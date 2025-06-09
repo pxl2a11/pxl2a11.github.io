@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор случайных чисел и цветов</title>
+    <style>
+        /* CSS стили для оформления */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            transition: background-color 0.5s ease;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            text-align: center;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 30px;
+        }
+        #randomNumber {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        #colorHex {
+            font-size: 18px;
+            color: #555;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Генератор случайных чисел и цветов</h1>
+
+        <div class="input-group">
+            <input type="number" id="min" value="1" placeholder="От">
+            <input type="number" id="max" value="100" placeholder="До">
+        </div>
+
+        <button id="generateBtn">Сгенерировать</button>
+
+        <div class="result">
+            <p id="randomNumber">Нажми на кнопку!</p>
+            <p id="colorHex"></p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript логика
+        const generateBtn = document.getElementById('generateBtn');
+        const minInput = document.getElementById('min');
+        const maxInput = document.getElementById('max');
+        const randomNumberDisplay = document.getElementById('randomNumber');
+        const colorHexDisplay = document.getElementById('colorHex');
+        const body = document.body;
+
+        generateBtn.addEventListener('click', () => {
+            // 1. Получаем значения из полей ввода
+            const min = parseInt(minInput.value, 10);
+            const max = parseInt(maxInput.value, 10);
+
+            // Простая проверка, чтобы максимум был больше минимума
+            if (min >= max) {
+                alert('Значение "От" должно быть меньше значения "До".');
+                return;
+            }
+
+            // 2. Генерируем случайное число в заданном диапазоне
+            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            // 3. Генерируем случайный цвет в формате HEX
+            const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+
+            // 4. Отображаем результаты
+            randomNumberDisplay.textContent = randomNumber;
+            colorHexDisplay.textContent = `Код цвета: ${randomColor}`;
+            body.style.backgroundColor = randomColor;
+        });
+    </script>
+
+</body>
+</html>
