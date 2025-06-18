@@ -38,7 +38,7 @@ section {
 /* --- СЕКЦИЯ HERO С ПАРАЛЛАКСОМ --- */
 .hero {
     /* Фон для параллакса */
-    background-image: url('img/background.jpg'); /* <-- УБЕДИТЕСЬ, ЧТО ПУТЬ ВЕРНЫЙ */
+    background-image: url('background.jpg'); /* <-- УБЕДИТЕСЬ, ЧТО ПУТЬ ВЕРНЫЙ */
     height: 100vh; /* Высота на весь экран */
     background-attachment: fixed; /* <-- ВОТ ОН, ЭФФЕКТ ПАРАЛЛАКСА */
     background-position: center;
