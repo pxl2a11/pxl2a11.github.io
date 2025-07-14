@@ -1,7 +1,7 @@
 const CACHE_NAME = 'contact-list-v1';
 const urlsToCache = [
   '/',
-  '/index.html',
+  'file:///D:\SOFT\Phone\2.0.html',
   '/manifest.json',
   '/sw.js',
   // Добавьте пути к вашим иконкам здесь
