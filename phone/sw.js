@@ -1,12 +1,12 @@
 const CACHE_NAME = 'contact-list-v1';
 const urlsToCache = [
-  '/',
+  '/phone',
   'file:///D:\SOFT\Phone\2.0.html',
-  '/manifest.json',
-  '/sw.js',
+  'https://pxl2a11.github.io/phone/manifest.json',
+  'https://pxl2a11.github.io/phone/sw.js',
   // Добавьте пути к вашим иконкам здесь
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  'https://pxl2a11.github.io/phone/icons/icon-192x192.png',
+  'https://pxl2a11.github.io/phone/icons/icon-512x512.png'
 ];
 
 // Установка сервис-воркера и кэширование статических ресурсов
