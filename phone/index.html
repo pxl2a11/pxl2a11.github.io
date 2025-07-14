@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Список контактов 2.0 | ООО "Невский ССЗ"</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="https://pxl2a11.github.io/phone/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Контакты НССЗ">
@@ -35,7 +35,7 @@
         // Зарегистрируйте сервис-воркер
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('https://pxl2a11.github.io/phone/sw.js')
                     .then(registration => {
                         console.log('ServiceWorker registration successful with scope: ', registration.scope);
                     })
