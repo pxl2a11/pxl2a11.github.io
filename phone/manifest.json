@@ -2,7 +2,7 @@
   "name": "Список контактов 2.0 | ООО \"Невский ССЗ\"",
   "short_name": "Контакты НССЗ",
   "description": "Список контактов для ООО \"Невский ССЗ\"",
-  "start_url": "/index.html",
+  "start_url": "file:///D:\SOFT\Phone\2.0.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
