@@ -30,7 +30,20 @@
     <iframe src="file:///D:\SOFT\Phone\2.0.html" title="Полноэкранный контент">
         Ваш браузер не поддерживает встроенные фреймы.
     </iframe>
-
+<script>
+        // Зарегистрируйте сервис-воркер
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('https://pxl2a11.github.io/phone/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
     
 </body>
 </html>
