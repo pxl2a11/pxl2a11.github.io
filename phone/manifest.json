@@ -1,7 +1,7 @@
 {
-    "name": "Список контактов Невского ССЗ",
+    "name": "Список контактов 2.0 Невского ССЗ",
     "short_name": "Контакты НССЗ",
-    "description": "Список контактов ООО «Невский ССЗ»",
+    "description": "Список контактов 2.0 ООО «Невский ССЗ»",
     "start_url": "/phone/index.html",
     "display": "standalone",
     "background_color": "#f8fafc",
