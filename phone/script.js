@@ -81,12 +81,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     displayPositionHtml = `<span class="clickable-department" data-department="${contact.position}">${contact.position}</span>`;
                 }
 
-                // Новая иконка человека (силуэт)
-                const humanIconSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS11c2VyIj48cGF0aCBkPSJNMTkgMjF2LTJhNCA0IDAgMCAwLTQgNEg5YTRgNCAwIDAgMC00IDR2MiIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iNyIgcj0iNCIvPjwvc3ZnPg==`;
+                // Иконка "Person fill" из Bootstrap Icons в виде SVG
+                // Используем btoa() для кодирования SVG в Base64, чтобы его можно было вставить в src data URL
+                const humanIconSvg = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
+                        <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                    </svg>
+                `;
 
                 const avatarHtml = contact.avatar ?
-                    `<img src="${imagePath}" alt="Фото ${contact.name}" class="contact-avatar" onerror="this.onerror=null;this.src='${humanIconSvg}';">` :
-                    `<img src="${humanIconSvg}" alt="Без фото" class="contact-avatar">`;
+                    `<img src="${imagePath}" alt="Фото ${contact.name}" class="contact-avatar" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,${btoa(humanIconSvg)}';">` :
+                    `<img src="data:image/svg+xml;base64,${btoa(humanIconSvg)}" alt="Без фото" class="contact-avatar">`;
 
                 // Выделение добавочного номера (например, "доб. 8015")
                 let phoneDisplay = contact.phone ? contact.phone.replace(/(доб\.\s*)(\d+)/g, '$1<strong>$2</strong>') : '';
