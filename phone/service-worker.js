@@ -4,6 +4,7 @@ const urlsToCache = [
     '/phone/index.html',
     '/phone/style.css',
     '/phone/script.js',
+    '/phone/contacts.json,
     '/phone/manifest.json',
     '/phone/logo.png',
     '/phone/img/logo-osk.png',
