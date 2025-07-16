@@ -1,0 +1,358 @@
+/* CSS Variables for theming */
+:root {
+    --bg-color: #f8fafc; /* Light background */
+    --text-color: #1f2937; /* Dark text for general text */
+    --heading-color: #1a202c; /* Even darker text for headings */
+    --card-bg: #ffffff; /* White card background */
+    --border-color: #e5e7eb; /* Light border */
+    --input-bg: #ffffff; /* White input background */
+    --input-text: #1f2937; /* Input text color */
+    --input-placeholder: #6b7280; /* Input placeholder color */
+    --input-border: #d1d5db; /* Light input border */
+    --input-focus-border: #3b82f6; /* Blue focus border */
+    --input-focus-shadow: rgba(59, 130, 246, 0.3); /* Blue focus shadow */
+    
+    --department-bg-base: #f0f4f8; /* Light gray-blue for department sections */
+    --department-bg-gradient-from: #e0e7ef; /* Slightly darker for gradient start */
+    --department-bg-gradient-to: #d1d8e0; /* Even darker for gradient end */
+    --department-text: #2d3748; /* Dark text for department titles */
+    --department-hover-bg: #c0c7cf; /* Hover state for department header */
+
+    --contact-border: #cbd5e0; /* Light border for contacts */
+    --contact-link-color: #3b82f6; /* Blue for links */
+    --contact-link-hover: #2563eb; /* Darker blue for links on hover */
+
+    --avatar-border: #cbd5e0;
+    --avatar-fallback-bg: #d1d5db;
+
+    --button-bg: #2563eb;
+    --button-text: #ffffff;
+    --button-hover-bg: #1d4ed8;
+    --button-focus-shadow: rgba(37, 99, 235, 0.4);
+
+    --theme-toggle-bg: #e2e8f0; /* Background for the theme toggle button */
+    --theme-toggle-hover-bg: #cbd5e0;
+    --theme-toggle-border: #cbd5e0;
+    --theme-toggle-shadow: rgba(0, 0, 0, 0.1);
+
+    --clear-button-color: #6b7280; /* Color for the clear filter button */
+    --clear-button-hover-color: #1f2937; /* Hover color for the clear filter button */
+
+    /* Scrollbar colors */
+    --scrollbar-track-color: #f1f1f1;
+    --scrollbar-thumb-color: #888;
+    --scrollbar-thumb-hover-color: #555;
+
+    --dark-grey-text: #343a40; /* Цвет мокрого асфальта */
+    --version-text-color: #6c757d; /* Цвет для версии (темно-серый) */
+}
+
+/* Dark theme overrides */
+body.dark-theme {
+    --bg-color: #1a202c; /* Dark background */
+    --text-color: #e2e8f0; /* Light text for general text */
+    --heading-color: #f8fafc; /* Lighter text for headings */
+    --card-bg: #2d3748; /* Darker card background */
+    --border-color: #4a5568; /* Darker border */
+    --input-bg: #4a5568; /* Dark input background */
+    --input-text: #e2e8f0; /* Input text color in dark theme */
+    --input-placeholder: #9ca3af; /* Input placeholder color in dark theme */
+    --input-border: #6b7280; /* Darker input border */
+    --input-focus-border: #63b3ed; /* Lighter blue focus border */
+    --input-focus-shadow: rgba(99, 179, 237, 0.3); /* Lighter blue focus shadow */
+    
+    --department-bg-base: #374151; /* Darker gray for department sections */
+    --department-bg-gradient-from: #4a5568; /* Slightly lighter for gradient start */
+    --department-bg-gradient-to: #5a6270; /* Even lighter for gradient end */
+    --department-text: #e2e8f0; /* Light text for department titles */
+    --department-hover-bg: #6b7280; /* Hover state for department header */
+
+    --contact-border: #6b7280; /* Darker border for contacts */
+    --contact-link-color: #63b3ed; /* Lighter blue for links */
+    --contact-link-hover: #4299e1; /* Even lighter blue for links on hover */
+
+    --avatar-border: #9ca3af;
+    --avatar-fallback-bg: #6b7280;
+
+    --button-bg: #4299e1;
+    --button-text: #ffffff;
+    --button-hover-bg: #3182ce;
+    --button-focus-shadow: rgba(66, 153, 225, 0.4);
+
+    --theme-toggle-bg: #4a5568;
+    --theme-toggle-hover-bg: #6b7280;
+    --theme-toggle-border: #6b7280;
+    --theme-toggle-shadow: rgba(0, 0, 0, 0.3);
+
+    --clear-button-color: #9ca3af;
+    --clear-button-hover-color: #e2e8f0;
+
+    /* Scrollbar colors for dark theme */
+    --scrollbar-track-color: #2d3748;
+    --scrollbar-thumb-color: #6b7280;
+    --scrollbar-thumb-hover-color: #9ca3af;
+
+    --dark-grey-text: #cfd8dc; /* Более светлый текст для темной темы */
+    --version-text-color: #9ca3af; /* Более светлый цвет для версии в темной теме */
+}
+
+body {
+    font-family: 'Roboto', sans-serif; /* Apply Roboto to the entire body */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Custom scrollbar styles */
+    scrollbar-width: thin; /* "auto" or "thin" */
+    scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color); /* thumb and track color */
+}
+/* Webkit browsers (Chrome, Safari) scrollbar styles */
+body::-webkit-scrollbar {
+    width: 8px; /* width of the vertical scrollbar */
+}
+body::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-color); /* color of the track */
+    border-radius: 10px;
+}
+body::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-color); /* color of the scroll thumb */
+    border-radius: 10px; /* roundness of the scroll thumb */
+    border: 2px solid var(--scrollbar-track-color); /* creates padding around scroll thumb */
+}
+body::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover-color);
+}
+
+.main-container {
+    background-color: var(--card-bg);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    position: relative; /* Needed for absolute positioning of theme toggle */
+}
+h1 { /* Main title */
+    font-weight: normal; /* Removed extra bold */
+    color: var(--heading-color);
+}
+h2 { /* Department titles */
+    font-weight: 600; /* Semi-bold for department titles */
+    color: var(--department-text);
+}
+h3 { /* Contact names */
+    font-weight: normal; /* Removed semi-bold */
+    color: var(--heading-color);
+}
+.input-field {
+    padding: 0.875rem 1.25rem;
+    border-width: 1px;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+    background-color: var(--input-bg); /* Use general input background by default */
+    color: var(--input-text); /* Use general input text by default */
+    border-color: var(--input-border); /* Use general input border by default */
+}
+.input-field::placeholder {
+    color: var(--input-placeholder);
+}
+.input-field:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+.department-section {
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background-color: var(--department-bg-base);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.department-title-div {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: linear-gradient(to right, var(--department-bg-gradient-from), var(--department-bg-gradient-to));
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer; /* Make the header clickable */
+}
+.department-title-div:hover {
+    background: linear-gradient(to right, var(--department-hover-bg), var(--department-bg-gradient-to)); /* Subtle hover effect */
+}
+.department-title-div h2 {
+    color: var(--department-text);
+}
+.contact-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom-width: 1px;
+    border-color: var(--contact-border); /* Unified contact border color */
+    padding-top: 1rem;
+}
+.contact-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.contact-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 9999px;
+    margin-right: 1.25rem;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid var(--avatar-border);
+    transition: border-color 0.3s ease;
+}
+.contact-avatar[src^="data:image/svg+xml"] {
+    background-color: var(--avatar-fallback-bg);
+    padding: 10px;
+    transition: background-color 0.3s ease;
+}
+.contact-details p {
+    color: var(--text-color); /* Ensure contact details are visible */
+}
+.contact-details a {
+    color: var(--contact-link-color);
+    transition: color 0.2s ease;
+}
+.contact-details a:hover {
+    color: var(--contact-link-hover);
+}
+.clickable-department {
+    color: inherit; /* Use inherited text color */
+    text-decoration: underline; /* Always underline */
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.clickable-department:hover {
+    color: var(--contact-link-hover); /* Keep hover color for better UX */
+}
+.theme-toggle-button {
+    position: absolute;
+    top: 1.5rem; /* Adjust as needed */
+    right: 1.5rem; /* Adjust as needed */
+    width: 48px; /* w-12 */
+    height: 48px; /* h-12 */
+    border-radius: 9999px; /* rounded-full */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: var(--theme-toggle-bg);
+    border: 1px solid var(--theme-toggle-border);
+    box-shadow: 0 2px 5px var(--theme-toggle-shadow);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.theme-toggle-button:hover {
+    background-color: var(--theme-toggle-hover-bg);
+}
+.theme-toggle-button svg {
+    width: 24px; /* w-6 */
+    height: 24px; /* h-6 */
+}
+/* Hidden class for department content */
+.department-content.hidden {
+    display: none;
+}
+
+/* Styles for the clear filter button */
+.filter-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.clear-filter-button {
+    position: absolute;
+    right: 0.75rem; /* Adjust position relative to input field */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--clear-button-color);
+    transition: color 0.2s ease;
+}
+.clear-filter-button:hover {
+    color: var(--clear-button-hover-color);
+}
+.clear-filter-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Sticky header for search and filter */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10; /* Ensure it stays on top of other content */
+    background-color: var(--card-bg); /* Revert to card background */
+    color: var(--text-color); /* Revert to general text color */
+    padding-top: 1.5rem; /* Adjust padding to match main container's top padding */
+    padding-bottom: 1rem; /* Add some padding at the bottom */
+    margin-bottom: 1rem; /* Space between sticky header and content */
+    border-bottom: 1px solid var(--border-color); /* Optional: add a subtle border */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Optional: add a subtle shadow */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for theme change */
+}
+.sticky-header label {
+    color: var(--text-color); /* Ensure labels are visible */
+}
+.sticky-header .input-field {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--input-border);
+}
+.sticky-header .input-field::placeholder {
+    color: var(--input-placeholder);
+}
+.sticky-header .input-field:focus {
+    border-color: var(--input-focus-border);
+}
+.sticky-header .clear-filter-button {
+    color: var(--clear-button-color);
+}
+.sticky-header .clear-filter-button:hover {
+    color: var(--clear-button-hover-color);
+}
+
+/* Sort icon styling */
+.sort-icon {
+    cursor: pointer;
+    margin-left: 0.5rem;
+    width: 20px;
+    height: 20px;
+    color: var(--clear-button-color); /* Use a similar color to clear button */
+    transition: color 0.2s ease;
+}
+.sort-icon:hover {
+    color: var(--clear-button-hover-color);
+}
+
+/* Scroll to top button */
+#scrollToTopBtn {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed position */
+    bottom: 20px; /* Place at the bottom */
+    right: 20px; /* Place at the right */
+    z-index: 99; /* Ensure it's on top */
+    border: none; /* Remove borders */
+    outline: none; /* Remove outline */
+    background-color: var(--button-bg); /* Set a background color */
+    color: white; /* Text color */
+    cursor: pointer; /* Add a mouse pointer on hover */
+    padding: 15px; /* Some padding */
+    border-radius: 50%; /* Rounded corners */
+    font-size: 18px; /* Increase font size */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#scrollToTopBtn:hover {
+    background-color: var(--button-hover-bg); /* Add a darker background on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+}
