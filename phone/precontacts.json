@@ -1,0 +1,67 @@
+[
+    {
+        "department": "Техническая поддержка",
+        "contacts": [
+            {
+                "name": "Специалисты ОСК-Сервис",
+                "position": "Техническая поддержка | Специалист",
+                "email": "mikhailovala@osk-ssc.ru",
+                "phone": "335-25-77, доб. 8248",
+                "mobile": null,
+                "avatar": true
+            },
+            {
+                "name": "Специалисты Global",
+                "position": "Техническая поддержка | Специалист",
+                "email": "a.nudelman@global-system.ru",
+                "phone": "335-25-77, доб. 8179",
+                "mobile": null,
+                "avatar": true
+            }
+        ]
+    },
+    {
+        "department": "Дежурные службы",
+        "contacts": [
+            {
+                "name": "Медицинский кабинет",
+                "position": "Дежурные службы",
+                "email": "medkab@nssz.ru",
+                "phone": "335-25-77, доб. 8220",
+                "mobile": "+7 (931) 204-00-16",
+                "avatar": true
+            },
+            {
+                "name": "Дежурный водоснабжения, теплоснабжения, канализации",
+                "position": "Дежурные службы",
+                "email": null,
+                "phone": "335-25-77, доб. 8129",
+                "mobile": null,
+                "avatar": false
+            },
+            {
+                "name": "Дежурный ВЭС",
+                "position": "Дежурные службы",
+                "email": null,
+                "phone": "335-25-77, доб. 8147",
+                "mobile": "+7 (921) 327-92-76",
+                "avatar": true
+            },
+            {
+                "name": "Дежурный по участку ремонта ПТМ",
+                "position": "Дежурные службы",
+                "email": null,
+                "phone": "335-25-77, доб. 8142",
+                "mobile": null,
+                "avatar": false
+            },
+            {
+                "name": "Дежурный электрик",
+                "position": "Дежурные службы",
+                "email": null,
+                "phone": "335-25-77, доб. 8143",
+                "mobile": "+7 (921) 397-37-47",
+                "avatar": false
+            }
+        ]
+    },
