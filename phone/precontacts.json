@@ -19,25 +19,16 @@
     "mail": "a.nudelman@global-system.ru",
     "category": 2
   },
-  {
-    "id": "cefadba1-41ef-11ec-80ce-d8d385e18888_",
-    "fullName": "Лазебный Анатолий Иванович",
-    "department": "Ремонтно-строительный участок",
-    "departmentCode": 650,
-    "position": "Начальник РСУ",
-    "phone": "8094",
-    "mail": "emo1@nssz.ru",
-    "mobile": "79217411749",
-    "category": 1
-  },
-  {
-    "id": "Дежурный по участку ремонта ПТМ",
-    "fullName": "Дежурный по участку ремонта ПТМ",
+    {
+    "id": "Медицинский кабинет",
+    "fullName": "Медицинский кабинет",
     "department": "Дежурные службы",
     "departmentCode": -1,
     "position": "",
-    "phone": "8142",
-    "category": 2
+    "mobile": "79312040016",
+    "phone": "8220",
+    "mail": "medkab@nssz.ru",
+    "category": 1
   },
   {
     "id": "Дежурный водоснабжения, теплоснабжения, канализации",
@@ -59,6 +50,15 @@
     "category": 2
   },
   {
+    "id": "Дежурный по участку ремонта ПТМ",
+    "fullName": "Дежурный по участку ремонта ПТМ",
+    "department": "Дежурные службы",
+    "departmentCode": -1,
+    "position": "",
+    "phone": "8142",
+    "category": 2
+  },
+  {
     "id": "Дежурный электрик",
     "fullName": "Дежурный электрик",
     "department": "Дежурные службы",
@@ -67,79 +67,5 @@
     "mobile": "79213973747",
     "phone": "8143",
     "category": 2
-  },
-  {
-    "id": "Медицинский кабинет",
-    "fullName": "Медицинский кабинет",
-    "department": "Дежурные службы",
-    "departmentCode": -1,
-    "position": "",
-    "mobile": "79312040016",
-    "phone": "8220",
-    "mail": "medkab@nssz.ru",
-    "category": 1
-  },
-  {
-    "id": "Пост охраны видеонаблюдения",
-    "fullName": "Пост охраны видеонаблюдения",
-    "department": "Посты охраны",
-    "departmentCode": 9999,
-    "position": "",
-    "phone": "8468",
-    "category": 2
-  },
-  {
-    "id": "Пост охраны проект 703",
-    "fullName": "Пост охраны проект 703",
-    "department": "Посты охраны",
-    "departmentCode": 9999,
-    "position": "",
-    "phone": "8169",
-    "category": 2
-  },
-  {
-    "id": "Пост охраны проект 402",
-    "fullName": "Пост охраны проект 402",
-    "department": "Посты охраны",
-    "departmentCode": 9999,
-    "position": "",
-    "phone": "8498",
-    "category": 2
-  },
-  {
-    "id": "Пост охраны проект 702",
-    "fullName": "Пост охраны проект 702",
-    "department": "Посты охраны",
-    "departmentCode": 9999,
-    "position": "",
-    "phone": "8168",
-    "category": 2
-  },
-  {
-    "id": "Пост охраны проект 701",
-    "fullName": "Пост охраны проект 701",
-    "department": "Посты охраны",
-    "departmentCode": 9999,
-    "position": "",
-    "phone": "8443",
-    "category": 2
-  },
-  {
-    "id": "Транспортная проходная",
-    "fullName": "Транспортная проходная",
-    "department": "Проходные",
-    "departmentCode": 8888,
-    "position": "",
-    "phone": "8059",
-    "category": 2
-  },
-  {
-    "id": "Центральная проходная",
-    "fullName": "Центральная проходная",
-    "department": "Проходные",
-    "departmentCode": 8888,
-    "position": "",
-    "phone": "8057",
-    "category": 1
   }
 ]
