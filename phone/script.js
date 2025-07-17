@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Изменено: загружаем contacts.json
             const response = await fetch('contacts.json');
             if (!response.ok) {
+                // Логируем конкретную HTTP-ошибку, если ответ не OK
+                console.error(`HTTP error! status: ${response.status} - ${response.statusText || 'Неизвестный статус'}`);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
@@ -47,8 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
             applyFilters();
         } catch (error) {
             console.error('Ошибка загрузки контактов:', error);
-            // Можно отобразить сообщение об ошибке пользователю
-            departmentsContainer.innerHTML = '<p class="text-red-500">Не удалось загрузить данные контактов. Пожалуйста, попробуйте позже.</p>';
+            // Обновлено: Добавлено предложение проверить консоль разработчика
+            departmentsContainer.innerHTML = '<p class="text-red-500">Не удалось загрузить данные контактов. Пожалуйста, попробуйте позже. Проверьте консоль разработчика для получения подробной информации.</p>';
         }
     }
 
