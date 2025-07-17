@@ -20,45 +20,37 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadContacts() {
         try {
             let data;
+            let loadedFromPrecontacts = false; // Флаг для отслеживания, откуда загружены данные
+
             try {
                 // Попытка загрузить precontacts.json
                 const precontactsResponse = await fetch('precontacts.json');
                 if (precontactsResponse.ok) {
                     const precontactsData = await precontactsResponse.json();
-                    if (precontactsData && precontactsData.length > 0) {
-                        // Если precontacts.json успешно загружен и не пуст, используем его
+                    // Проверяем, что precontactsData является массивом и не пуст
+                    if (Array.isArray(precontactsData) && precontactsData.length > 0) {
                         data = precontactsData;
+                        loadedFromPrecontacts = true;
                         console.log('Контакты загружены из precontacts.json');
                     } else {
-                        // Если precontacts.json пуст, логируем и переходим к contacts.json
                         console.warn('precontacts.json пуст или не содержит данных. Попытка загрузки contacts.json...');
-                        const contactsResponse = await fetch('contacts.json');
-                        if (!contactsResponse.ok) {
-                            throw new Error(`HTTP error! status: ${contactsResponse.status} - ${contactsResponse.statusText || 'Неизвестный статус'}`);
-                        }
-                        data = await contactsResponse.json();
-                        console.log('Контакты загружены из contacts.json (precontacts.json был пуст)');
                     }
                 } else {
-                    // Если precontacts.json недоступен, логируем и переходим к contacts.json
                     console.warn(`Ошибка загрузки precontacts.json (статус: ${precontactsResponse.status}). Попытка загрузки contacts.json...`);
-                    const contactsResponse = await fetch('contacts.json');
-                    if (!contactsResponse.ok) {
-                        throw new Error(`HTTP error! status: ${contactsResponse.status} - ${contactsResponse.statusText || 'Неизвестный статус'}`);
-                    }
-                    data = await contactsResponse.json();
-                    console.log('Контакты загружены из contacts.json (precontacts.json недоступен)');
                 }
             } catch (precontactsError) {
-                // Если произошла ошибка при загрузке precontacts.json, пытаемся загрузить contacts.json
                 console.error('Ошибка при загрузке precontacts.json:', precontactsError);
                 console.log('Попытка загрузки contacts.json...');
+            }
+
+            // Если данные не были загружены из precontacts.json, пытаемся загрузить contacts.json
+            if (!loadedFromPrecontacts) {
                 const contactsResponse = await fetch('contacts.json');
                 if (!contactsResponse.ok) {
                     throw new Error(`HTTP error! status: ${contactsResponse.status} - ${contactsResponse.statusText || 'Неизвестный статус'}`);
                 }
                 data = await contactsResponse.json();
-                console.log('Контакты загружены из contacts.json (после ошибки precontacts.json)');
+                console.log('Контакты загружены из contacts.json');
             }
 
             // Проверяем формат данных и преобразуем при необходимости
@@ -80,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Если данные уже в сгруппированном формате (из precontacts.json), используем их напрямую
                 contactsData = data.map(dept => {
                     // Убедимся, что контакты внутри отдела отсортированы
-                    dept.contacts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    dept.contacts.sort((a, b) => (a.fullName || a.name || '').localeCompare(b.fullName || b.name || ''));
                     return dept;
                 });
             } else {
