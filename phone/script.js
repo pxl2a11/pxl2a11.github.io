@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${avatarHtml}
                     <div class="contact-details">
                         <h3 class="text-xl">${contact.fullName}</h3>
-                        ${contact.position ? `<p class="text-sm"><strong>Должность:</strong> ${displayPositionHtml}</p>` : ''}
+                        ${contact.position ? `<p class="text-sm"><strong>Должность:</strong> ${contact.position}</p>` : ''}
                         ${contact.mail ? `<p class="text-sm"><strong>Email:</strong> <a href="mailto:${contact.mail}" class="hover:underline">${contact.mail}</a></p>` : ''}
                         ${contact.phone ? `<p class="text-sm"><strong>Телефон:</strong> ${phoneDisplay}</p>` : ''}
                         ${contact.mobile ? `<p class="text-sm"><strong>Мобильный:</strong> ${contact.mobile}</p>` : ''}
