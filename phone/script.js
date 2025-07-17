@@ -85,26 +85,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 const contactItem = document.createElement('div');
                 contactItem.className = `contact-item`;
 
-                // Генерация пути к изображению из имени
-                // Предполагаем, что изображения называются по fullName контакта
-                const imagePath = `img/${contact.fullName}.jpg`;
-
-                // Логика для того, чтобы название отдела в должности было кликабельным
-                // contacts.json имеет плоскую структуру, поэтому 'position' - это просто строка
-                // Мы не будем пытаться извлекать отдел из 'position' для кликабельности,
-                // так как 'department' уже является основной категорией.
-                const displayPositionHtml = contact.position || ''; // Используем position напрямую
-
                 // Иконка "Person fill" из Bootstrap Icons в виде SVG
-                // Используем btoa() для кодирования SVG в Base64, чтобы его можно было вставить в src data URL
                 const humanIconSvg = `
                     <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
                         <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
                     </svg>
                 `;
+                // Base64-кодированная SVG-иконка для использования в качестве заглушки
+                const base64HumanIcon = `data:image/svg+xml;base64,${btoa(humanIconSvg)}`;
 
-                // В contacts.json нет поля 'avatar', поэтому всегда используем иконку-заглушку
-                const avatarHtml = `<img src="data:image/svg+xml;base64,${btoa(humanIconSvg)}" alt="Без фото" class="contact-avatar">`;
+                // Генерация пути к изображению из имени
+                // Предполагаем, что изображения называются по fullName контакта
+                const imagePath = `img/${contact.fullName}.jpg`;
+
+                // Изменено: Пытаемся загрузить изображение, если оно есть, иначе используем заглушку
+                // Добавлен onerror для обработки отсутствующих изображений
+                const avatarHtml = `
+                    <img src="${imagePath}" 
+                         alt="${contact.fullName}" 
+                         class="contact-avatar" 
+                         onerror="this.onerror=null;this.src='${base64HumanIcon}';this.alt='Без фото';">
+                `;
 
                 // Выделение добавочного номера (например, "доб. 8015")
                 let phoneDisplay = contact.phone ? contact.phone.replace(/(доб\.\s*)(\d+)/g, '$1<strong>$2</strong>') : '';
