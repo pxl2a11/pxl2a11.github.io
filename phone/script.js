@@ -19,13 +19,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Функция для загрузки контактов из JSON-файла
     async function loadContacts() {
         try {
+            // Изменено: загружаем contacts.json
             const response = await fetch('contacts.json');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            contactsData = data;
-            originalContactsData = JSON.parse(JSON.stringify(data)); // Глубокая копия
+            
+            // Преобразуем плоский массив контактов в сгруппированный по отделам
+            const groupedData = data.reduce((acc, contact) => {
+                const departmentName = contact.department || 'Без отдела'; // Если отдела нет, используем "Без отдела"
+                if (!acc[departmentName]) {
+                    acc[departmentName] = { department: departmentName, contacts: [] };
+                }
+                acc[departmentName].contacts.push(contact);
+                return acc;
+            }, {});
+
+            // Преобразуем объект обратно в массив для удобства и сортируем контакты внутри каждого отдела по fullName
+            contactsData = Object.values(groupedData).map(dept => {
+                dept.contacts.sort((a, b) => a.fullName.localeCompare(b.fullName));
+                return dept;
+            });
+
+            originalContactsData = JSON.parse(JSON.stringify(contactsData)); // Глубокая копия
             renderContacts();
             applyFilters();
         } catch (error) {
@@ -39,15 +56,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderContacts() {
         departmentsContainer.innerHTML = ''; // Очистить существующие контакты
 
-        // Сортировка contactsData в зависимости от текущего порядка сортировки
+        let departmentsToRender = [...contactsData]; // Создаем копию для сортировки
+
+        // Сортировка departmentsToRender в зависимости от текущего порядка сортировки
         if (isAlphabeticalSort) {
-            contactsData.sort((a, b) => a.department.localeCompare(b.department));
+            departmentsToRender.sort((a, b) => a.department.localeCompare(b.department));
         } else {
-            // Сброс к оригинальному порядку путем повторного присвоения глубокой копии
-            contactsData = JSON.parse(JSON.stringify(originalContactsData));
+            // Если не алфавитная, используем оригинальный порядок отделов
+            departmentsToRender = JSON.parse(JSON.stringify(originalContactsData));
         }
 
-        contactsData.forEach(dept => {
+        departmentsToRender.forEach(dept => {
             const departmentSection = document.createElement('div');
             departmentSection.className = `department-section mb-8 p-4 rounded-xl shadow-md`;
             departmentSection.setAttribute('data-department-name', dept.department);
@@ -67,19 +86,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 contactItem.className = `contact-item`;
 
                 // Генерация пути к изображению из имени
-                const imagePath = `img/${contact.name}.jpg`;
+                // Предполагаем, что изображения называются по fullName контакта
+                const imagePath = `img/${contact.fullName}.jpg`;
 
                 // Логика для того, чтобы название отдела в должности было кликабельным
-                const positionParts = contact.position.split(' | ');
-                let displayPositionHtml = contact.position;
-                if (positionParts.length > 1) {
-                    const departmentInPosition = positionParts[0];
-                    const restOfPosition = positionParts.slice(1).join(' | ');
-                    displayPositionHtml = `<span class="clickable-department" data-department="${departmentInPosition}">${departmentInPosition}</span> | ${restOfPosition}`;
-                } else {
-                    // Если нет разделителя " | ", вся должность является отделом
-                    displayPositionHtml = `<span class="clickable-department" data-department="${contact.position}">${contact.position}</span>`;
-                }
+                // contacts.json имеет плоскую структуру, поэтому 'position' - это просто строка
+                // Мы не будем пытаться извлекать отдел из 'position' для кликабельности,
+                // так как 'department' уже является основной категорией.
+                const displayPositionHtml = contact.position || ''; // Используем position напрямую
 
                 // Иконка "Person fill" из Bootstrap Icons в виде SVG
                 // Используем btoa() для кодирования SVG в Base64, чтобы его можно было вставить в src data URL
@@ -89,9 +103,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </svg>
                 `;
 
-                const avatarHtml = contact.avatar ?
-                    `<img src="${imagePath}" alt="Фото ${contact.name}" class="contact-avatar" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,${btoa(humanIconSvg)}';">` :
-                    `<img src="data:image/svg+xml;base64,${btoa(humanIconSvg)}" alt="Без фото" class="contact-avatar">`;
+                // В contacts.json нет поля 'avatar', поэтому всегда используем иконку-заглушку
+                const avatarHtml = `<img src="data:image/svg+xml;base64,${btoa(humanIconSvg)}" alt="Без фото" class="contact-avatar">`;
 
                 // Выделение добавочного номера (например, "доб. 8015")
                 let phoneDisplay = contact.phone ? contact.phone.replace(/(доб\.\s*)(\d+)/g, '$1<strong>$2</strong>') : '';
@@ -99,9 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 contactItem.innerHTML = `
                     ${avatarHtml}
                     <div class="contact-details">
-                        <h3 class="text-xl">${contact.name}</h3>
-                        <p class="text-sm"><strong>Должность:</strong> ${displayPositionHtml}</p>
-                        ${contact.email ? `<p class="text-sm"><strong>Email:</strong> <a href="mailto:${contact.email}" class="hover:underline">${contact.email}</a></p>` : ''}
+                        <h3 class="text-xl">${contact.fullName}</h3>
+                        ${contact.position ? `<p class="text-sm"><strong>Должность:</strong> ${displayPositionHtml}</p>` : ''}
+                        ${contact.mail ? `<p class="text-sm"><strong>Email:</strong> <a href="mailto:${contact.mail}" class="hover:underline">${contact.mail}</a></p>` : ''}
                         ${contact.phone ? `<p class="text-sm"><strong>Телефон:</strong> ${phoneDisplay}</p>` : ''}
                         ${contact.mobile ? `<p class="text-sm"><strong>Мобильный:</strong> ${contact.mobile}</p>` : ''}
                     </div>
@@ -121,15 +134,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentSelectedDepartment = departmentFilter.value; // Сохранить текущий выбор
         departmentFilter.innerHTML = '<option value="all">Все отделы</option>'; // Очистить и добавить по умолчанию
 
-        // Использовать Set для обеспечения уникальности названий отделов, затем отсортировать их, если активна алфавитная сортировка
+        // Использовать Set для обеспечения уникальности названий отделов
         let uniqueDepartments = new Set(contactsData.map(dept => dept.department));
         let departmentsArray = Array.from(uniqueDepartments);
 
         if (isAlphabeticalSort) {
             departmentsArray.sort((a, b) => a.localeCompare(b));
         } else {
-            // Если не алфавитная, использовать порядок из текущих `contactsData`
-            departmentsArray = originalContactsData.map(dept => dept.department); // Используем originalContactsData для сохранения исходного порядка
+            // Если не алфавитная, используем порядок из originalContactsData
+            departmentsArray = originalContactsData.map(dept => dept.department);
         }
 
         departmentsArray.forEach(deptName => {
@@ -250,16 +263,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Обработчик события для кликабельных названий отделов в контактных данных
-    departmentsContainer.addEventListener('click', function(event) {
-        const clickableDeptSpan = event.target.closest('.clickable-department');
-        if (clickableDeptSpan) {
-            const deptName = clickableDeptSpan.dataset.department;
-            departmentFilter.value = deptName;
-            searchInput.value = ''; // Очистить поиск при нажатии на ссылку отдела
-
-            applyFilters(); // Повторно применить фильтры на основе нового значения выпадающего списка
-        }
-    });
+    // Этот функционал был удален, так как contacts.json не имеет вложенной структуры "Отдел | Должность"
+    // departmentsContainer.addEventListener('click', function(event) {
+    //     const clickableDeptSpan = event.target.closest('.clickable-department');
+    //     if (clickableDeptSpan) {
+    //         const deptName = clickableDeptSpan.dataset.department;
+    //         departmentFilter.value = deptName;
+    //         searchInput.value = ''; // Очистить поиск при нажатии на ссылку отдела
+    //         applyFilters(); // Повторно применить фильтры на основе нового значения выпадающего списка
+    //     }
+    // });
 
     // Обработчик события для иконки сортировки
     sortDepartmentsIcon.addEventListener('click', function() {
