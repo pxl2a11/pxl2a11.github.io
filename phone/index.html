@@ -19,43 +19,52 @@
     <div class="max-w-4xl mx-auto main-container">
         <!-- Логотипы и заголовок -->
         <div class="flex items-center justify-start mb-8 flex-wrap gap-2">
-            <img src="img/logo-osk.png" alt="Логотип ОСК" class="h-16 w-auto" onerror="this.onerror=null;this.src='https://placehold.co/100x60/f0f0f0/333333?text=OSK+Logo';">
-            <img src="img/logo-nssz.png" alt="Логотип НССЗ" class="h-16 w-auto" onerror="this.onerror=null;this.src='https://placehold.co/100x60/f0f0f0/333333?text=NSSZ+Logo';">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white ml-4">Список контактов 2.0</h1>
+            <img src="img/logo-osk.png" alt="Логотип ОСК" class="h-16 w-auto" onerror="this.onerror=null;this.src='https://placehold.co/100x64/cccccc/333333?text=OSK';">
+            <img src="img/logo-nssz.png" alt="Логотип Невского ССЗ" class="h-16 w-auto" onerror="this.onerror=null;this.src='https://placehold.co/100x64/cccccc/333333?text=NSSZ';">
+            <div class="flex flex-col items-center sm:items-start">
+                <span class="text-2xl sm:text-3xl font-normal" style="color: var(--dark-grey-text);">Список контактов ООО «Невский ССЗ»</span>
+                <span class="text-sm font-normal" style="color: var(--version-text-color);">ver. 2.0</span>
+            </div>
         </div>
 
-        <!-- Поля фильтрации и поиска -->
-        <div class="filter-search-container sticky top-0 bg-white dark:bg-gray-800 p-4 rounded-b-lg shadow-md z-10">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
-                <!-- Выпадающий список для фильтрации по отделам -->
-                <div class="flex items-center w-full sm:w-auto relative">
-                    <label for="departmentFilter" class="block text-base font-semibold mr-2 whitespace-nowrap">Отдел:</label>
-                    <select id="departmentFilter" class="w-full input-field rounded-lg pr-8">
-                        <option value="all">Все отделы</option>
-                    </select>
-                    <button id="clearDepartmentFilter" class="clear-filter-button hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <!-- Иконка сортировки -->
-                <div class="flex items-center justify-end w-full sm:w-auto">
-                    <span class="text-base font-semibold mr-2">Сортировка:</span>
-                    <svg id="sortDepartmentsIcon" class="sort-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-sort-order="default">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M3 8h18M3 12h18M3 16h18M3 20h18" />
+        <!-- Кнопка переключения темы -->
+        <button id="themeToggle" class="theme-toggle-button">
+            <!-- Иконка солнца из Lucide Icons -->
+            <svg id="sunIcon" class="text-yellow-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <circle cx="12" cy="12" r="4"/>
+                <path d="M12 2v2"/>
+                <path d="M12 20v2"/>
+                <path d="M4.93 4.93l1.41 1.41"/>
+                <path d="M17.66 17.66l1.41 1.41"/>
+                <path d="M2 12h2"/>
+                <path d="M20 12h2"/>
+                <path d="M4.93 19.07l1.41-1.41"/>
+                <path d="M17.66 6.34l1.41-1.41"/>
+            </svg>
+            <!-- Иконка луны из Lucide Icons -->
+            <svg id="moonIcon" class="text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+        </button>
+
+        <!-- Фильтр и поиск (закрепленный заголовок) -->
+        <div class="sticky-header rounded-b-xl px-6 pb-4">
+            <!-- Фильтр по отделам (выпадающий список) -->
+            <div class="mb-4">
+                <label for="departmentFilter" class="block text-base font-semibold mb-2 flex items-center">
+                    Фильтр по отделам:
+                    <svg id="sortDepartmentsIcon" class="sort-icon" data-sort-order="default" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m3 16 4 4 4-4"/>
+                        <path d="M7 20V4"/>
+                        <path d="m21 8-4-4-4 4"/>
+                        <path d="M17 4v16"/>
                     </svg>
-                    <!-- Кнопка переключения темы -->
-                    <button id="themeToggle" class="theme-toggle-button ml-4 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <svg id="sunIcon" class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.325 6.757l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                        <svg id="moonIcon" class="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9 9 0 008.354-5.646z" />
-                        </svg>
-                    </button>
-                </div>
-            </select>
+                </label>
+                <div class="filter-wrapper">
+                    <select id="departmentFilter" class="w-full input-field pr-10 rounded-lg">
+                        <option value="all">Все отделы</option>
+                        <!-- Опции будут добавлены динамически с помощью JavaScript -->
+                    </select>
                     <button id="clearDepartmentFilter" class="clear-filter-button hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -80,81 +89,10 @@
     <!-- Кнопка "Наверх" -->
     <button id="scrollToTopBtn" title="Наверх">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 19V5M5 12l7-7 7 7"/>
+            <path d="m5 12 7-7 7 7"/>
+            <path d="M12 19V5"/>
         </svg>
     </button>
-
-    <!-- Встроенные данные контактов -->
-    <script id="initial-contacts-data" type="application/json">
-        [
-            {
-                "department": "Техническая поддержка",
-                "contacts": [
-                    {
-                        "fullName": "Специалисты ОСК-Сервис",
-                        "position": "Техническая поддержка | Специалист",
-                        "mail": "mikhailovala@osk-ssc.ru",
-                        "phone": "335-25-77, доб. 8248",
-                        "mobile": null,
-                        "avatar": true
-                    },
-                    {
-                        "fullName": "Специалисты Global",
-                        "position": "Техническая поддержка | Специалист",
-                        "mail": "a.nudelman@global-system.ru",
-                        "phone": "335-25-77, доб. 8179",
-                        "mobile": null,
-                        "avatar": true
-                    }
-                ]
-            },
-            {
-                "department": "Дежурные службы",
-                "contacts": [
-                    {
-                        "fullName": "Медицинский кабинет",
-                        "position": "Дежурные службы",
-                        "mail": "medkab@nssz.ru",
-                        "phone": "335-25-77, доб. 8220",
-                        "mobile": "+7 (931) 204-00-16",
-                        "avatar": true
-                    },
-                    {
-                        "fullName": "Дежурный водоснабжения, теплоснабжения, канализации",
-                        "position": "Дежурные службы",
-                        "mail": null,
-                        "phone": "335-25-77, доб. 8129",
-                        "mobile": null,
-                        "avatar": false
-                    },
-                    {
-                        "fullName": "Дежурный ВЭС",
-                        "position": "Дежурные службы",
-                        "mail": null,
-                        "phone": "335-25-77, доб. 8147",
-                        "mobile": "+7 (921) 327-92-76",
-                        "avatar": true
-                    },
-                    {
-                        "fullName": "Дежурный по участку ремонта ПТМ",
-                        "position": "Дежурные службы",
-                        "mail": null,
-                        "phone": "335-25-77, доб. 8142",
-                        "mobile": null,
-                        "avatar": false
-                    },
-                    {
-                        "fullName": "Дежурный электрик",
-                        "position": "Дежурные службы",
-                        "mail": null,
-                        "phone": "335-25-77, доб. 8143",
-                        "mobile": "+7 (921) 397-37-47",
-                        "avatar": false
-                    }
-                ]
-            }
-        ]
-    </script>
 
     <!-- Подключение основного JavaScript файла -->
     <script src="script.js"></script>
