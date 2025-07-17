@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const precontactsData = await precontactsResponse.json();
                     if (Array.isArray(precontactsData) && precontactsData.length > 0) {
                         addContactsToMap(precontactsData, true); // true для сгруппированного формата
-                        console.log('Контакты загружены из precontacts.json');
+                        console.log('Контакты загружены из precontacts.json:', precontactsData);
                     } else {
                         console.warn('precontacts.json пуст или не содержит данных.');
                     }
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 const contactsJsonData = await contactsResponse.json();
                 addContactsToMap(contactsJsonData, false); // false для плоского формата
-                console.log('Контакты загружены из contacts.json');
+                console.log('Контакты загружены из contacts.json:', contactsJsonData);
 
             } catch (contactsError) {
                 console.error('Ошибка при загрузке contacts.json:', contactsError);
@@ -99,18 +99,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Преобразуем Map обратно в массив contactsData
-            contactsData = Array.from(mergedDepartmentsMap.entries()).map(([departmentName, contacts]) => ({
+            // Преобразуем Map обратно в массив contactsData.
+            // Важно: на этом этапе порядок отделов будет зависеть от порядка их добавления в Map.
+            // Map сохраняет порядок вставки ключей.
+            let initialContactsArray = Array.from(mergedDepartmentsMap.entries()).map(([departmentName, contacts]) => ({
                 department: departmentName,
                 // Сортируем контакты внутри каждого отдела по fullName или name
                 contacts: contacts.sort((a, b) => (a.fullName || a.name || '').localeCompare(b.fullName || b.name || ''))
             }));
 
-            // Сохраняем начальный (по умолчанию) порядок отделов
-            originalContactsData = JSON.parse(JSON.stringify(contactsData)); // Глубокая копия
+            // Сохраняем начальный (по умолчанию) порядок отделов.
+            // Это должна быть глубокая копия массива, который не был отсортирован по алфавиту.
+            originalContactsData = JSON.parse(JSON.stringify(initialContactsArray));
+            console.log('Original Contacts Data (default order):', originalContactsData.map(d => d.department));
+
+            // Устанавливаем contactsData для текущего использования.
+            contactsData = initialContactsArray;
+            console.log('Initial Contacts Data for display:', contactsData.map(d => d.department));
+
 
             // Изначально отображаем в порядке по умолчанию (который является порядком вставки в Map)
             renderContacts();
+            populateDepartmentFilter();
             applyFilters();
 
         } catch (error) {
