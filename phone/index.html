@@ -20,40 +20,56 @@
         <!-- Логотипы и заголовок -->
         <div class="flex items-center justify-start mb-8 flex-wrap gap-2">
             <img src="img/logo-osk.png" alt="Логотип ОСК" class="h-16 w-auto" onerror="this.onerror=null;this.src='https://placehold.co/100x64/cccccc/333333?text=OSK';">
-            <img src="img/logo-nssz.png" alt="Логотип Невский ССЗ" class="h-16 w-auto" onerror="this.onerror=null;this.src='https://placehold.co/100x64/cccccc/333333?text=NSSZ';">
-            <h1 class="text-3xl font-bold text-heading-color ml-4">Список контактов 2.0</h1>
-            <!-- Кнопка переключения темы -->
-            <button id="themeToggle" class="p-2 rounded-full bg-button-bg text-white shadow-lg hover:bg-button-hover-bg transition duration-300 ml-auto flex items-center justify-center w-10 h-10">
-                <svg id="sunIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display: none;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1M3 12h1m15.325-6.675l-.707.707M6.675 18.325l-.707.707M18.325 6.675l-.707-.707M6.675 6.675l-.707-.707M12 18a6 6 0 100-12 6 6 0 000 12z"></path>
-                </svg>
-                <svg id="moonIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                </svg>
-            </button>
+            <img src="img/logo-nssz.png" alt="Логотип Невского ССЗ" class="h-16 w-auto" onerror="this.onerror=null;this.src='https://placehold.co/100x64/cccccc/333333?text=NSSZ';">
+            <div class="flex flex-col items-center sm:items-start">
+                <span class="text-2xl sm:text-3xl font-normal" style="color: var(--dark-grey-text);">Список контактов ООО «Невский ССЗ»</span>
+                <span class="text-sm font-normal" style="color: var(--version-text-color);">ver. 2.0</span>
+            </div>
         </div>
 
-        <!-- Фильтры -->
-        <div class="sticky-header bg-card p-4 rounded-xl shadow-md mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-4">
-                <!-- Фильтр по отделам -->
-                <div class="flex-grow">
-                    <label for="departmentFilter" class="block text-base font-semibold mb-2">Фильтр по отделам:</label>
-                    <select id="departmentFilter" class="w-full input-field rounded-lg">
+        <!-- Кнопка переключения темы -->
+        <button id="themeToggle" class="theme-toggle-button">
+            <!-- Иконка солнца из Lucide Icons -->
+            <svg id="sunIcon" class="text-yellow-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <circle cx="12" cy="12" r="4"/>
+                <path d="M12 2v2"/>
+                <path d="M12 20v2"/>
+                <path d="M4.93 4.93l1.41 1.41"/>
+                <path d="M17.66 17.66l1.41 1.41"/>
+                <path d="M2 12h2"/>
+                <path d="M20 12h2"/>
+                <path d="M4.93 19.07l1.41-1.41"/>
+                <path d="M17.66 6.34l1.41-1.41"/>
+            </svg>
+            <!-- Иконка луны из Lucide Icons -->
+            <svg id="moonIcon" class="text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+        </button>
+
+        <!-- Фильтр и поиск (закрепленный заголовок) -->
+        <div class="sticky-header rounded-b-xl px-6 pb-4">
+            <!-- Фильтр по отделам (выпадающий список) -->
+            <div class="mb-4">
+                <label for="departmentFilter" class="block text-base font-semibold mb-2 flex items-center">
+                    Фильтр по отделам:
+                    <svg id="sortDepartmentsIcon" class="sort-icon" data-sort-order="default" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m3 16 4 4 4-4"/>
+                        <path d="M7 20V4"/>
+                        <path d="m21 8-4-4-4 4"/>
+                        <path d="M17 4v16"/>
+                    </svg>
+                </label>
+                <div class="filter-wrapper">
+                    <select id="departmentFilter" class="w-full input-field pr-10 rounded-lg">
                         <option value="all">Все отделы</option>
-                        <!-- Опции будут добавлены с помощью JavaScript -->
+                        <!-- Опции будут добавлены динамически с помощью JavaScript -->
                     </select>
                     <button id="clearDepartmentFilter" class="clear-filter-button hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
-                </div>
-                <!-- Иконка сортировки -->
-                <div class="flex items-center justify-end sm:justify-start mt-2 sm:mt-0">
-                    <svg id="sortDepartmentsIcon" class="sort-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-sort-order="default">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m-6 4h2m10 0l4-4m0 0l4 4m-4-4v12"></path>
-                    </svg>
                 </div>
             </div>
 
@@ -77,67 +93,6 @@
             <path d="M12 19V5"/>
         </svg>
     </button>
-
-    <!-- Встроенные данные precontacts.json -->
-    <script>
-        const preloadedPrecontactsData = [
-            {
-                "department": "Техническая поддержка",
-                "contacts": [
-                    {
-                        "id": "Специалисты ОСК-Сервис",
-                        "fullName": "Специалисты ОСК-Сервис",
-                        "department": "Техническая поддержка",
-                        "departmentCode": -2,
-                        "position": "Специалист",
-                        "phone": "8248",
-                        "mail": "mikhailovala@osk-ssc.ru",
-                        "category": 2
-                    },
-                    {
-                        "id": "Специалисты Global",
-                        "fullName": "Специалисты Global",
-                        "department": "Техническая поддержка",
-                        "departmentCode": -2,
-                        "position": "Специалист",
-                        "phone": "8179",
-                        "mail": "a.nudelman@global-system.ru",
-                        "category": 2
-                    }
-                ]
-            },
-            {
-                "department": "Ремонтно-строительный участок",
-                "contacts": [
-                    {
-                        "id": "cefadba1-41ef-11ec-80ce-d8d385e18888_",
-                        "fullName": "Лазебный Анатолий Иванович",
-                        "department": "Ремонтно-строительный участок",
-                        "departmentCode": 650,
-                        "position": "Начальник РСУ",
-                        "phone": "8094",
-                        "mail": "emo1@nssz.ru",
-                        "mobile": "79217411749",
-                        "category": 1
-                    }
-                ]
-            },
-            {
-                "department": "Посты охраны",
-                "contacts": [
-                    {
-                        "id": "Пост охраны видеонаблюдения",
-                        "fullName": "Пост охраны видеонаблюдения",
-                        "department": "Посты охраны",
-                        "departmentCode": 9999,
-                        "position": "",
-                        "phone": "8468",
-                        "category": 2
-                    }
-                ]
-            }
-        ];
-    </script>
 
     <!-- Подключение основного JavaScript файла -->
     <script src="script.js"></script>
