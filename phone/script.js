@@ -1,6 +1,6 @@
 // Данные контактов будут загружены из JSON-файлов
 let contactsData = [];
-let originalContactsData = []; // Для сохранения оригинального порядка
+let originalContactsData = []; // Для сохранения оригинального порядка загрузки отделов
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
@@ -13,13 +13,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const sortDepartmentsIcon = document.getElementById('sortDepartmentsIcon');
     const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
-    // Флаг для отслеживания порядка сортировки
+    // Флаг для отслеживания порядка сортировки. По умолчанию - не алфавитная (т.е. порядок загрузки).
     let isAlphabeticalSort = false;
 
     // Функция для загрузки контактов из JSON-файлов
     async function loadContacts() {
         try {
-            const mergedDepartmentsMap = new Map(); // Используем Map для объединения отделов
+            // Используем Map для объединения отделов, сохраняя порядок добавления
+            const mergedDepartmentsMap = new Map();
+
+            // Вспомогательная функция для добавления контактов в Map, обрабатывая дубликаты
+            const addContactsToMap = (sourceData, isGroupedFormat = false) => {
+                if (isGroupedFormat) {
+                    // Данные из precontacts.json (уже сгруппированы по отделам)
+                    sourceData.forEach(dept => {
+                        const departmentName = dept.department || 'Без отдела';
+                        if (!mergedDepartmentsMap.has(departmentName)) {
+                            mergedDepartmentsMap.set(departmentName, []);
+                        }
+                        const existingContactsInDept = mergedDepartmentsMap.get(departmentName);
+                        dept.contacts.forEach(contact => {
+                            const isDuplicate = existingContactsInDept.some(existingContact =>
+                                (existingContact.id && existingContact.id === contact.id) ||
+                                (existingContact.fullName && existingContact.fullName === contact.fullName) ||
+                                (existingContact.name && existingContact.name === contact.name) // Проверка на 'name' для precontacts
+                            );
+                            if (!isDuplicate) {
+                                existingContactsInDept.push(contact);
+                            }
+                        });
+                    });
+                } else {
+                    // Данные из contacts.json (плоский массив)
+                    sourceData.forEach(contact => {
+                        const departmentName = contact.department || 'Без отдела';
+                        if (!mergedDepartmentsMap.has(departmentName)) {
+                            mergedDepartmentsMap.set(departmentName, []);
+                        }
+                        const existingContactsInDept = mergedDepartmentsMap.get(departmentName);
+                        const isDuplicate = existingContactsInDept.some(existingContact =>
+                            (existingContact.id && existingContact.id === contact.id) ||
+                            (existingContact.fullName && existingContact.fullName === contact.fullName)
+                        );
+                        if (!isDuplicate) {
+                            existingContactsInDept.push(contact);
+                        }
+                    });
+                }
+            };
 
             // 1. Загрузка precontacts.json
             try {
@@ -27,11 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (precontactsResponse.ok) {
                     const precontactsData = await precontactsResponse.json();
                     if (Array.isArray(precontactsData) && precontactsData.length > 0) {
-                        precontactsData.forEach(dept => {
-                            // Добавляем отделы из precontacts.json в Map
-                            // Клонируем контакты, чтобы избежать мутации оригинальных данных при сортировке
-                            mergedDepartmentsMap.set(dept.department, [...dept.contacts]);
-                        });
+                        addContactsToMap(precontactsData, true); // true для сгруппированного формата
                         console.log('Контакты загружены из precontacts.json');
                     } else {
                         console.warn('precontacts.json пуст или не содержит данных.');
@@ -50,26 +87,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(`HTTP error! status: ${contactsResponse.status} - ${contactsResponse.statusText || 'Неизвестный статус'}`);
                 }
                 const contactsJsonData = await contactsResponse.json();
+                addContactsToMap(contactsJsonData, false); // false для плоского формата
                 console.log('Контакты загружены из contacts.json');
-
-                // Обрабатываем contacts.json (плоский массив)
-                contactsJsonData.forEach(contact => {
-                    const departmentName = contact.department || 'Без отдела';
-                    if (!mergedDepartmentsMap.has(departmentName)) {
-                        mergedDepartmentsMap.set(departmentName, []);
-                    }
-                    // Добавляем контакт в соответствующий отдел.
-                    // Проверяем на дубликаты по 'id' (если есть) или 'fullName'
-                    const existingContactsInDept = mergedDepartmentsMap.get(departmentName);
-                    const isDuplicate = existingContactsInDept.some(existingContact =>
-                        (existingContact.id && existingContact.id === contact.id) ||
-                        (existingContact.fullName && existingContact.fullName === contact.fullName)
-                    );
-
-                    if (!isDuplicate) {
-                        existingContactsInDept.push(contact);
-                    }
-                });
 
             } catch (contactsError) {
                 console.error('Ошибка при загрузке contacts.json:', contactsError);
@@ -87,10 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 contacts: contacts.sort((a, b) => (a.fullName || a.name || '').localeCompare(b.fullName || b.name || ''))
             }));
 
-            // Сортируем отделы по алфавиту по умолчанию
-            contactsData.sort((a, b) => a.department.localeCompare(b.department));
+            // Сохраняем начальный (по умолчанию) порядок отделов
+            originalContactsData = JSON.parse(JSON.stringify(contactsData)); // Глубокая копия
 
-            originalContactsData = JSON.parse(JSON.stringify(contactsData)); // Глубокая копия для сохранения оригинального порядка
+            // Изначально отображаем в порядке по умолчанию (который является порядком вставки в Map)
             renderContacts();
             applyFilters();
 
@@ -104,14 +123,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderContacts() {
         departmentsContainer.innerHTML = ''; // Очистить существующие контакты
 
-        let departmentsToRender = [...contactsData]; // Создаем копию для сортировки
+        let departmentsToRender = [...contactsData]; // Начинаем с текущего состояния contactsData
 
-        // Сортировка departmentsToRender в зависимости от текущего порядка сортировки
+        // Применяем сортировку в зависимости от isAlphabeticalSort
         if (isAlphabeticalSort) {
             departmentsToRender.sort((a, b) => a.department.localeCompare(b.department));
         } else {
-            // Если не алфавитная, используем оригинальный порядок отделов
-            // Создаем новый массив на основе originalContactsData, чтобы сохранить порядок отделов
+            // Если не алфавитная, восстанавливаем порядок отделов из originalContactsData
             const originalOrderDeptNames = originalContactsData.map(d => d.department);
             departmentsToRender.sort((a, b) => {
                 return originalOrderDeptNames.indexOf(a.department) - originalOrderDeptNames.indexOf(b.department);
