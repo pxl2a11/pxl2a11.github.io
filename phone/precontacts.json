@@ -1,67 +1,145 @@
 [
-    {
-        "department": "Техническая поддержка",
-        "contacts": [
-            {
-                "name": "Специалисты ОСК-Сервис",
-                "position": "Техническая поддержка | Специалист",
-                "email": "mikhailovala@osk-ssc.ru",
-                "phone": "335-25-77, доб. 8248",
-                "mobile": null,
-                "avatar": true
-            },
-            {
-                "name": "Специалисты Global",
-                "position": "Техническая поддержка | Специалист",
-                "email": "a.nudelman@global-system.ru",
-                "phone": "335-25-77, доб. 8179",
-                "mobile": null,
-                "avatar": true
-            }
-        ]
-    },
-    {
-        "department": "Дежурные службы",
-        "contacts": [
-            {
-                "name": "Медицинский кабинет",
-                "position": "Дежурные службы",
-                "email": "medkab@nssz.ru",
-                "phone": "335-25-77, доб. 8220",
-                "mobile": "+7 (931) 204-00-16",
-                "avatar": true
-            },
-            {
-                "name": "Дежурный водоснабжения, теплоснабжения, канализации",
-                "position": "Дежурные службы",
-                "email": null,
-                "phone": "335-25-77, доб. 8129",
-                "mobile": null,
-                "avatar": false
-            },
-            {
-                "name": "Дежурный ВЭС",
-                "position": "Дежурные службы",
-                "email": null,
-                "phone": "335-25-77, доб. 8147",
-                "mobile": "+7 (921) 327-92-76",
-                "avatar": true
-            },
-            {
-                "name": "Дежурный по участку ремонта ПТМ",
-                "position": "Дежурные службы",
-                "email": null,
-                "phone": "335-25-77, доб. 8142",
-                "mobile": null,
-                "avatar": false
-            },
-            {
-                "name": "Дежурный электрик",
-                "position": "Дежурные службы",
-                "email": null,
-                "phone": "335-25-77, доб. 8143",
-                "mobile": "+7 (921) 397-37-47",
-                "avatar": false
-            }
-        ]
-    },
+  {
+    "id": "Специалисты ОСК-Сервис",
+    "fullName": "Специалисты ОСК-Сервис",
+    "department": "Техническая поддержка",
+    "departmentCode": -2,
+    "position": "Специалист",
+    "phone": "8248",
+    "mail": "mikhailovala@osk-ssc.ru",
+    "category": 2
+  },
+  {
+    "id": "Специалисты Global",
+    "fullName": "Специалисты Global",
+    "department": "Техническая поддержка",
+    "departmentCode": -2,
+    "position": "Специалист",
+    "phone": "8179",
+    "mail": "a.nudelman@global-system.ru",
+    "category": 2
+  },
+  {
+    "id": "cefadba1-41ef-11ec-80ce-d8d385e18888_",
+    "fullName": "Лазебный Анатолий Иванович",
+    "department": "Ремонтно-строительный участок",
+    "departmentCode": 650,
+    "position": "Начальник РСУ",
+    "phone": "8094",
+    "mail": "emo1@nssz.ru",
+    "mobile": "79217411749",
+    "category": 1
+  },
+  {
+    "id": "Дежурный по участку ремонта ПТМ",
+    "fullName": "Дежурный по участку ремонта ПТМ",
+    "department": "Дежурные службы",
+    "departmentCode": -1,
+    "position": "",
+    "phone": "8142",
+    "category": 2
+  },
+  {
+    "id": "Дежурный водоснабжения, теплоснабжения, канализации",
+    "fullName": "Дежурный водоснабжения, теплоснабжения, канализации",
+    "department": "Дежурные службы",
+    "departmentCode": -1,
+    "position": "",
+    "phone": "8129",
+    "category": 2
+  },
+  {
+    "id": "Дежурный ВЭС",
+    "fullName": "Дежурный ВЭС",
+    "department": "Дежурные службы",
+    "departmentCode": -1,
+    "position": "",
+    "phone": "8147",
+    "mobile": "79213279276",
+    "category": 2
+  },
+  {
+    "id": "Дежурный электрик",
+    "fullName": "Дежурный электрик",
+    "department": "Дежурные службы",
+    "departmentCode": -1,
+    "position": "",
+    "mobile": "79213973747",
+    "phone": "8143",
+    "category": 2
+  },
+  {
+    "id": "Медицинский кабинет",
+    "fullName": "Медицинский кабинет",
+    "department": "Дежурные службы",
+    "departmentCode": -1,
+    "position": "",
+    "mobile": "79312040016",
+    "phone": "8220",
+    "mail": "medkab@nssz.ru",
+    "category": 1
+  },
+  {
+    "id": "Пост охраны видеонаблюдения",
+    "fullName": "Пост охраны видеонаблюдения",
+    "department": "Посты охраны",
+    "departmentCode": 9999,
+    "position": "",
+    "phone": "8468",
+    "category": 2
+  },
+  {
+    "id": "Пост охраны проект 703",
+    "fullName": "Пост охраны проект 703",
+    "department": "Посты охраны",
+    "departmentCode": 9999,
+    "position": "",
+    "phone": "8169",
+    "category": 2
+  },
+  {
+    "id": "Пост охраны проект 402",
+    "fullName": "Пост охраны проект 402",
+    "department": "Посты охраны",
+    "departmentCode": 9999,
+    "position": "",
+    "phone": "8498",
+    "category": 2
+  },
+  {
+    "id": "Пост охраны проект 702",
+    "fullName": "Пост охраны проект 702",
+    "department": "Посты охраны",
+    "departmentCode": 9999,
+    "position": "",
+    "phone": "8168",
+    "category": 2
+  },
+  {
+    "id": "Пост охраны проект 701",
+    "fullName": "Пост охраны проект 701",
+    "department": "Посты охраны",
+    "departmentCode": 9999,
+    "position": "",
+    "phone": "8443",
+    "category": 2
+  },
+  {
+    "id": "Транспортная проходная",
+    "fullName": "Транспортная проходная",
+    "department": "Проходные",
+    "departmentCode": 8888,
+    "position": "",
+    "phone": "8059",
+    "category": 2
+  },
+  {
+    "id": "Центральная проходная",
+    "fullName": "Центральная проходная",
+    "department": "Проходные",
+    "departmentCode": 8888,
+    "position": "",
+    "phone": "8057",
+    "category": 1
+  }
+]
