@@ -80,9 +80,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Ошибка при загрузке precontacts.json:', precontactsError);
             }
 
-            // 2. Загрузка contacts.json
+            // 2. Загрузка contacts.json с новым URL
             try {
-                const contactsResponse = await fetch('contacts.json');
+                const contactsResponse = await fetch('http://contacts.nssz.local/data/contacts.json'); // Изменено здесь
                 if (!contactsResponse.ok) {
                     throw new Error(`HTTP error! status: ${contactsResponse.status} - ${contactsResponse.statusText || 'Неизвестный статус'}`);
                 }
