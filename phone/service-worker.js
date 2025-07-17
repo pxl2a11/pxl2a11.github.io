@@ -1,14 +1,13 @@
 const CACHE_NAME = 'contact-list-v1';
 const urlsToCache = [
-    '/phone',
-    '/phone/index.html',
-    '/phone/style.css',
-    '/phone/script.js',
-    '/phone/contacts.json,
-    '/phone/manifest.json',
-    '/phone/logo.png',
-    '/phone/img/logo-osk.png',
-    '/phone/img/logo-nssz.png',
+    '/',
+    '/index.html',
+    '/style.css',
+    '/script.js',
+    '/manifest.json',
+    '/logo.png',
+    '/img/logo-osk.png',
+    '/img/logo-nssz.png',
     // Добавьте сюда пути ко всем изображениям аватаров, если они существуют
     // Например: '/img/Имя контакта.jpg'
 ];

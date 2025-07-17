@@ -1,4 +1,4 @@
-// Данные контактов будут загружены из JSON-файлов
+// Данные контактов будут загружены из contacts.json
 let contactsData = [];
 let originalContactsData = []; // Для сохранения оригинального порядка
 
@@ -16,83 +16,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Флаг для отслеживания порядка сортировки
     let isAlphabeticalSort = false;
 
-    // Функция для загрузки контактов из JSON-файлов
+    // Функция для загрузки контактов из JSON-файла
     async function loadContacts() {
         try {
-            let data;
-            try {
-                // Попытка загрузить precontacts.json
-                const precontactsResponse = await fetch('precontacts.json');
-                if (precontactsResponse.ok) {
-                    const precontactsData = await precontactsResponse.json();
-                    if (precontactsData && precontactsData.length > 0) {
-                        // Если precontacts.json успешно загружен и не пуст, используем его
-                        data = precontactsData;
-                        console.log('Контакты загружены из precontacts.json');
-                    } else {
-                        // Если precontacts.json пуст, логируем и переходим к contacts.json
-                        console.warn('precontacts.json пуст или не содержит данных. Попытка загрузки contacts.json...');
-                        const contactsResponse = await fetch('contacts.json');
-                        if (!contactsResponse.ok) {
-                            throw new Error(`HTTP error! status: ${contactsResponse.status} - ${contactsResponse.statusText || 'Неизвестный статус'}`);
-                        }
-                        data = await contactsResponse.json();
-                        console.log('Контакты загружены из contacts.json (precontacts.json был пуст)');
-                    }
-                } else {
-                    // Если precontacts.json недоступен, логируем и переходим к contacts.json
-                    console.warn(`Ошибка загрузки precontacts.json (статус: ${precontactsResponse.status}). Попытка загрузки contacts.json...`);
-                    const contactsResponse = await fetch('contacts.json');
-                    if (!contactsResponse.ok) {
-                        throw new Error(`HTTP error! status: ${contactsResponse.status} - ${contactsResponse.statusText || 'Неизвестный статус'}`);
-                    }
-                    data = await contactsResponse.json();
-                    console.log('Контакты загружены из contacts.json (precontacts.json недоступен)');
-                }
-            } catch (precontactsError) {
-                // Если произошла ошибка при загрузке precontacts.json, пытаемся загрузить contacts.json
-                console.error('Ошибка при загрузке precontacts.json:', precontactsError);
-                console.log('Попытка загрузки contacts.json...');
-                const contactsResponse = await fetch('contacts.json');
-                if (!contactsResponse.ok) {
-                    throw new Error(`HTTP error! status: ${contactsResponse.status} - ${contactsResponse.statusText || 'Неизвестный статус'}`);
-                }
-                data = await contactsResponse.json();
-                console.log('Контакты загружены из contacts.json (после ошибки precontacts.json)');
+            const response = await fetch('contacts.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-
-            // Проверяем формат данных и преобразуем при необходимости
-            if (Array.isArray(data) && data.every(item => item.fullName && item.department)) {
-                // Если данные из contacts.json (плоский массив), преобразуем их в сгруппированный формат
-                const groupedData = data.reduce((acc, contact) => {
-                    const departmentName = contact.department || 'Без отдела';
-                    if (!acc[departmentName]) {
-                        acc[departmentName] = { department: departmentName, contacts: [] };
-                    }
-                    acc[departmentName].contacts.push(contact);
-                    return acc;
-                }, {});
-                contactsData = Object.values(groupedData).map(dept => {
-                    dept.contacts.sort((a, b) => a.fullName.localeCompare(b.fullName));
-                    return dept;
-                });
-            } else if (Array.isArray(data) && data.every(item => item.department && Array.isArray(item.contacts))) {
-                // Если данные уже в сгруппированном формате (из precontacts.json), используем их напрямую
-                contactsData = data.map(dept => {
-                    // Убедимся, что контакты внутри отдела отсортированы
-                    dept.contacts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                    return dept;
-                });
-            } else {
-                throw new Error('Неизвестный или некорректный формат данных контактов.');
-            }
-
-            originalContactsData = JSON.parse(JSON.stringify(contactsData)); // Глубокая копия
+            const data = await response.json();
+            contactsData = data;
+            originalContactsData = JSON.parse(JSON.stringify(data)); // Глубокая копия
             renderContacts();
             applyFilters();
         } catch (error) {
             console.error('Ошибка загрузки контактов:', error);
-            departmentsContainer.innerHTML = '<p class="text-red-500">Не удалось загрузить данные контактов. Пожалуйста, попробуйте позже. Проверьте консоль разработчика для получения подробной информации.</p>';
+            // Можно отобразить сообщение об ошибке пользователю
+            departmentsContainer.innerHTML = '<p class="text-red-500">Не удалось загрузить данные контактов. Пожалуйста, попробуйте позже.</p>';
         }
     }
 
@@ -100,21 +39,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderContacts() {
         departmentsContainer.innerHTML = ''; // Очистить существующие контакты
 
-        let departmentsToRender = [...contactsData]; // Создаем копию для сортировки
-
-        // Сортировка departmentsToRender в зависимости от текущего порядка сортировки
+        // Сортировка contactsData в зависимости от текущего порядка сортировки
         if (isAlphabeticalSort) {
-            departmentsToRender.sort((a, b) => a.department.localeCompare(b.department));
+            contactsData.sort((a, b) => a.department.localeCompare(b.department));
         } else {
-            // Если не алфавитная, используем оригинальный порядок отделов
-            // Создаем новый массив на основе originalContactsData, чтобы сохранить порядок отделов
-            const originalOrderDeptNames = originalContactsData.map(d => d.department);
-            departmentsToRender.sort((a, b) => {
-                return originalOrderDeptNames.indexOf(a.department) - originalOrderDeptNames.indexOf(b.department);
-            });
+            // Сброс к оригинальному порядку путем повторного присвоения глубокой копии
+            contactsData = JSON.parse(JSON.stringify(originalContactsData));
         }
 
-        departmentsToRender.forEach(dept => {
+        contactsData.forEach(dept => {
             const departmentSection = document.createElement('div');
             departmentSection.className = `department-section mb-8 p-4 rounded-xl shadow-md`;
             departmentSection.setAttribute('data-department-name', dept.department);
@@ -133,42 +66,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 const contactItem = document.createElement('div');
                 contactItem.className = `contact-item`;
 
+                // Генерация пути к изображению из имени
+                const imagePath = `img/${contact.name}.jpg`;
+
+                // Логика для того, чтобы название отдела в должности было кликабельным
+                const positionParts = contact.position.split(' | ');
+                let displayPositionHtml = contact.position;
+                if (positionParts.length > 1) {
+                    const departmentInPosition = positionParts[0];
+                    const restOfPosition = positionParts.slice(1).join(' | ');
+                    displayPositionHtml = `<span class="clickable-department" data-department="${departmentInPosition}">${departmentInPosition}</span> | ${restOfPosition}`;
+                } else {
+                    // Если нет разделителя " | ", вся должность является отделом
+                    displayPositionHtml = `<span class="clickable-department" data-department="${contact.position}">${contact.position}</span>`;
+                }
+
                 // Иконка "Person fill" из Bootstrap Icons в виде SVG
+                // Используем btoa() для кодирования SVG в Base64, чтобы его можно было вставить в src data URL
                 const humanIconSvg = `
                     <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
                         <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
                     </svg>
                 `;
-                // Base64-кодированная SVG-иконка для использования в качестве заглушки
-                const base64HumanIcon = `data:image/svg+xml;base64,${btoa(humanIconSvg)}`;
 
-                // Генерация пути к изображению из имени (используем fullName для contacts.json и name для precontacts.json)
-                const contactNameForImage = contact.fullName || contact.name;
-                const imagePath = `img/${contactNameForImage}.jpg`;
+                const avatarHtml = contact.avatar ?
+                    `<img src="${imagePath}" alt="Фото ${contact.name}" class="contact-avatar" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,${btoa(humanIconSvg)}';">` :
+                    `<img src="data:image/svg+xml;base64,${btoa(humanIconSvg)}" alt="Без фото" class="contact-avatar">`;
 
-                // Изменено: Пытаемся загрузить изображение, если оно есть, иначе используем заглушку
-                // Добавлен onerror для обработки отсутствующих изображений
-                const avatarHtml = `
-                    <img src="${imagePath}"
-                         alt="${contactNameForImage}"
-                         class="contact-avatar"
-                         onerror="this.onerror=null;this.src='${base64HumanIcon}';this.alt='Без фото';">
-                `;
-
-                // Используем fullName или name для отображения имени
-                const displayName = contact.fullName || contact.name;
-                // Используем position для отображения должности
-                const displayPosition = contact.position;
                 // Выделение добавочного номера (например, "доб. 8015")
                 let phoneDisplay = contact.phone ? contact.phone.replace(/(доб\.\s*)(\d+)/g, '$1<strong>$2</strong>') : '';
-
 
                 contactItem.innerHTML = `
                     ${avatarHtml}
                     <div class="contact-details">
-                        <h3 class="text-xl">${displayName}</h3>
-                        ${displayPosition ? `<p class="text-sm"><strong>Должность:</strong> ${displayPosition}</p>` : ''}
-                        ${contact.mail ? `<p class="text-sm"><strong>Email:</strong> <a href="mailto:${contact.mail}" class="hover:underline">${contact.mail}</a></p>` : ''}
+                        <h3 class="text-xl">${contact.name}</h3>
+                        <p class="text-sm"><strong>Должность:</strong> ${displayPositionHtml}</p>
                         ${contact.email ? `<p class="text-sm"><strong>Email:</strong> <a href="mailto:${contact.email}" class="hover:underline">${contact.email}</a></p>` : ''}
                         ${contact.phone ? `<p class="text-sm"><strong>Телефон:</strong> ${phoneDisplay}</p>` : ''}
                         ${contact.mobile ? `<p class="text-sm"><strong>Мобильный:</strong> ${contact.mobile}</p>` : ''}
@@ -189,15 +121,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentSelectedDepartment = departmentFilter.value; // Сохранить текущий выбор
         departmentFilter.innerHTML = '<option value="all">Все отделы</option>'; // Очистить и добавить по умолчанию
 
-        // Использовать Set для обеспечения уникальности названий отделов
+        // Использовать Set для обеспечения уникальности названий отделов, затем отсортировать их, если активна алфавитная сортировка
         let uniqueDepartments = new Set(contactsData.map(dept => dept.department));
         let departmentsArray = Array.from(uniqueDepartments);
 
         if (isAlphabeticalSort) {
             departmentsArray.sort((a, b) => a.localeCompare(b));
         } else {
-            // Если не алфавитная, используем порядок из originalContactsData
-            departmentsArray = originalContactsData.map(dept => dept.department);
+            // Если не алфавитная, использовать порядок из текущих `contactsData`
+            departmentsArray = originalContactsData.map(dept => dept.department); // Используем originalContactsData для сохранения исходного порядка
         }
 
         departmentsArray.forEach(deptName => {
@@ -314,6 +246,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             searchInput.value = ''; // Очистить поиск при нажатии на отдел
             applyFilters(); // Повторно применить фильтр после изменения аккордеона
+        }
+    });
+
+    // Обработчик события для кликабельных названий отделов в контактных данных
+    departmentsContainer.addEventListener('click', function(event) {
+        const clickableDeptSpan = event.target.closest('.clickable-department');
+        if (clickableDeptSpan) {
+            const deptName = clickableDeptSpan.dataset.department;
+            departmentFilter.value = deptName;
+            searchInput.value = ''; // Очистить поиск при нажатии на ссылку отдела
+
+            applyFilters(); // Повторно применить фильтры на основе нового значения выпадающего списка
         }
     });
 
