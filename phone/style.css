@@ -24,7 +24,6 @@
 
     --avatar-border: #cbd5e0;
     --avatar-fallback-bg: #d1d5db;
-    --avatar-icon-color: #6b7280; /* Default icon color for light theme */
 
     --button-bg: #2563eb;
     --button-text: #ffffff;
@@ -74,7 +73,6 @@ body.dark-theme {
 
     --avatar-border: #9ca3af;
     --avatar-fallback-bg: #6b7280;
-    --avatar-icon-color: #2F3E4F; /* Icon color for dark theme */
 
     --button-bg: #4299e1;
     --button-text: #ffffff;
@@ -212,12 +210,6 @@ h3 { /* Contact names */
     padding: 10px;
     transition: background-color 0.3s ease;
 }
-/* Apply color to SVG icon directly */
-.contact-avatar[src^="data:image/svg+xml"] path,
-.contact-avatar[src^="data:image/svg+xml"] circle {
-    stroke: var(--avatar-icon-color); /* Use CSS variable for icon color */
-}
-
 .contact-details p {
     color: var(--text-color); /* Ensure contact details are visible */
 }
