@@ -24,7 +24,7 @@
 
     --avatar-border: #cbd5e0;
     --avatar-fallback-bg: #d1d5db;
-    --avatar-fallback-icon-color: #6b7280; /* Цвет иконки-заглушки аватара */
+    --avatar-icon-color: #6b7280; /* Default icon color for light theme */
 
     --button-bg: #2563eb;
     --button-text: #ffffff;
@@ -74,7 +74,7 @@ body.dark-theme {
 
     --avatar-border: #9ca3af;
     --avatar-fallback-bg: #6b7280;
-    --avatar-fallback-icon-color: #cccccc; /* Светло-серый для иконки-заглушки аватара в темной теме */
+    --avatar-icon-color: #2F3E4F; /* Icon color for dark theme */
 
     --button-bg: #4299e1;
     --button-text: #ffffff;
@@ -212,14 +212,10 @@ h3 { /* Contact names */
     padding: 10px;
     transition: background-color 0.3s ease;
 }
-/* Стиль для SVG иконки человечка */
-.contact-avatar[src^="data:image/svg+xml"] {
-    filter: invert(var(--avatar-fallback-icon-color-filter)); /* Применяем фильтр для изменения цвета */
-}
-body.dark-theme .contact-avatar[src^="data:image/svg+xml"] {
-    filter: invert(1) hue-rotate(180deg) brightness(1.5); /* Пример для светло-серого */
-    /* Более точный способ задать цвет для SVG, если он не меняется через filter */
-    /* Можно также изменить SVG напрямую в JS, если цвет не меняется через CSS */
+/* Apply color to SVG icon directly */
+.contact-avatar[src^="data:image/svg+xml"] path,
+.contact-avatar[src^="data:image/svg+xml"] circle {
+    stroke: var(--avatar-icon-color); /* Use CSS variable for icon color */
 }
 
 .contact-details p {
