@@ -1,6 +1,5 @@
 const CACHE_NAME = 'contact-list-v1';
 const urlsToCache = [
-    'https://pxl2a11.github.io/phone/',
     'https://pxl2a11.github.io/phone/index.html',
     'https://pxl2a11.github.io/phone/style.css',
     'https://pxl2a11.github.io/phone/script.js',
