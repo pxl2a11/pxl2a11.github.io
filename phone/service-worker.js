@@ -1,13 +1,13 @@
 const CACHE_NAME = 'contact-list-v1';
 const urlsToCache = [
-    '/phone/',
-    '/phone/index.html',
-    '/phone/style.css',
-    '/phone/script.js',
-    '/phone/manifest.json',
-    '/phone/logo.png',
-    '/phone/img/logo-osk.png',
-    '/phone/img/logo-nssz.png',
+    'https://pxl2a11.github.io/phone/phone/',
+    'https://pxl2a11.github.io/phone/phone/index.html',
+    'https://pxl2a11.github.io/phone/phone/style.css',
+    'https://pxl2a11.github.io/phone/phone/script.js',
+    'https://pxl2a11.github.io/phone/phone/manifest.json',
+    'https://pxl2a11.github.io/phone/phone/logo.png',
+    'https://pxl2a11.github.io/phone/phone/img/logo-osk.png',
+    'https://pxl2a11.github.io/phone/phone/img/logo-nssz.png',
     // Добавьте сюда пути ко всем изображениям аватаров, если они существуют
     // Например: '/img/Имя контакта.jpg'
 ];
