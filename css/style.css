@@ -1,0 +1,12 @@
+/* Плавные переходы и кастомные стили */
+body { transition: background-color 0.3s ease, color 0.3s ease; }
+:root { --volume-track-bg: #9ca3af; }
+.dark { --volume-track-bg: #4b5563; }
+input[type="range"] { -webkit-appearance: none; width: 100%; height: 0.25rem; background: transparent; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 0.25rem; cursor: pointer; background: var(--volume-track-bg); border-radius: 9999px; }
+input[type="range"]::-moz-range-track { width: 100%; height: 0.25rem; cursor: pointer; background: var(--volume-track-bg); border-radius: 9999px; }
+/* ... и так далее, все остальные стили из вашего файла ... */
+.dark .tab-btn.active {
+    color: #60a5fa; /* blue-400 */
+    border-color: #60a5fa; /* blue-400 */
+}
