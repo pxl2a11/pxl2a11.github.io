@@ -1,43 +1,17 @@
-// --- Сопоставление имен приложений с файлами модулей (ОБНОВЛЕНО) ---
-const appNameToModuleFile = {
-    'Скорость интернета': 'speedTest',
-    'Радио': 'radio',
-    'Заметки и задачи': 'notesAndTasks',
-    'Тест звука и микрофона': 'soundAndMicTest',
-    'Мой IP': 'myIp',
-    'Генератор паролей': 'passwordGenerator',
-    'Калькулятор процентных соотношений': 'percentageCalculator',
-    'Таймер и обратный отсчет': 'timer',
-    'Колесо фортуны': 'fortuneWheel',
-    'Шар предсказаний': 'magicBall',
-    'Крестики-нолики': 'ticTacToe',
-    'Сапер': 'minesweeper',
-    'Секундомер': 'stopwatch',
-    'Случайный цвет': 'randomColor',
-    'Генератор чисел': 'numberGenerator',
-    'Генератор QR-кодов': 'qrCodeGenerator',
-    'Эмодзи и символы': 'emojiAndSymbols',
-    'Конвертер величин': 'unitConverter',
-    'Калькулятор дат': 'dateCalculator',
-    'Калькулятор ИМТ': 'bmiCalculator',
-    'История изменений': 'changelogPage',
-    'Общее': null, // Для общих записей без привязки к приложению
-};
+// js/utils/changelog.js
+
+// ИМПОРТИРУЕМ сопоставление из центрального файла
+import { appNameToModuleFile } from './appList.js';
 
 const getRussianDate = (dateString) => {
     const date = new Date(dateString);
-    date.setUTCHours(date.getUTCHours() + 3); // Смещение на UTC+3 (Московское время)
+    date.setUTCHours(date.getUTCHours() + 3);
     return date.toLocaleDateString('ru-RU', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        timeZone: 'UTC' // Используем UTC, т.к. сместили время
+        year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
     }).replace(' г.', '');
 };
 
-// --- Данные (ПОЛНОСТЬЮ ОБНОВЛЕНЫ) ---
 const changelogData = [
-    // Новые записи вверху
     { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Калькулятор ИМТ', description: 'добавлены поля для ввода возраста и пола для более точного контекста.' },
     { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Калькулятор ИМТ', description: 'добавлен расчет и отображение диапазона идеального веса.' },
     { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Тест звука и микрофона', description: 'реализована возможность выбора конкретного микрофона и устройства вывода звука из списка доступных в системе.' },
@@ -78,7 +52,6 @@ const changelogData = [
     { date: getRussianDate('2025-08-04T00:00:00Z'), appName: 'Общее', description: 'начальная версия проекта.'}
 ];
 
-
 function groupChangelogData(data) {
     const grouped = {};
     data.forEach(entry => {
@@ -88,30 +61,29 @@ function groupChangelogData(data) {
         }
         grouped[key].descriptions.push(entry.description);
     });
-    return Object.values(grouped);
+    return Object.values(grouped).sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
 export function getChangelogData() {
     return groupChangelogData(changelogData);
 }
 
-// Функция renderChangelog
 export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     if (!targetEl) return;
 
     const isMainChangelog = targetEl.id === 'changelog-container';
     
-    let effectiveLimit = limit;
-    if (isMainChangelog && effectiveLimit === null) {
-        effectiveLimit = 10;
-    }
+    const allGroupedData = getChangelogData();
+    const filteredData = appNameFilter 
+        ? allGroupedData.filter(group => group.appName === appNameFilter)
+        : allGroupedData;
 
-    const filteredData = appNameFilter ? changelogData.filter(entry => entry.appName === appNameFilter) : changelogData;
-
-    let dataToRender = groupChangelogData(filteredData);
+    let dataToRender = filteredData;
+    let showMoreButtonNeeded = false;
     
-    if (effectiveLimit && dataToRender.length > effectiveLimit) {
-        dataToRender = dataToRender.slice(0, effectiveLimit);
+    if (limit && filteredData.length > limit) {
+        dataToRender = filteredData.slice(0, limit);
+        showMoreButtonNeeded = true;
     }
 
     if (!isMainChangelog && dataToRender.length === 0) {
@@ -123,31 +95,29 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
         const moduleFile = appNameToModuleFile[entry.appName];
         const appHref = moduleFile ? `?app=${moduleFile}` : '#';
 
-        // --- ИЗМЕНЕНО: data-app-name теперь содержит имя модуля, а не русское название ---
-        const appNameLink = `<a href="${appHref}" target="_blank" rel="noopener noreferrer" data-app-name="${moduleFile}" class="changelog-link font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">${entry.appName}.</a>`;
+        const appNameLink = `<a href="${appHref}" data-app-name="${moduleFile}" class="changelog-link font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">${entry.appName}.</a>`;
         
         const capitalizedDescs = entry.descriptions.map(desc => desc.charAt(0).toUpperCase() + desc.slice(1));
         const descriptionsHtml = capitalizedDescs.length > 1 
             ? `<ul class="list-disc list-inside mt-1">${capitalizedDescs.map(d => `<li class="ml-4">${d}</li>`).join('')}</ul>`
             : `<span class="ml-1">${capitalizedDescs[0]}</span>`;
         
-        const contentHtml = isMainChangelog 
-            ? (entry.appName === 'Общее' ? descriptionsHtml.replace('<span class="ml-1">', '<span>') : `${appNameLink} ${descriptionsHtml}`)
+        const contentHtml = (isMainChangelog && entry.appName !== 'Общее')
+            ? `${appNameLink} ${descriptionsHtml}`
             : descriptionsHtml.replace('<span class="ml-1">', '<span>');
 
         return `
             <div class="border-t border-gray-300 dark:border-gray-700 pt-4 mt-4 first:mt-0 first:pt-0 first:border-0">
                 <p class="font-semibold text-gray-500 dark:text-gray-400">${entry.date}</p>
                 <div class="mt-2 text-gray-800 dark:text-gray-300">${contentHtml}</div>
-            </div>
-        `;
+            </div>`;
     }).join('');
 
     let finalHtml = '';
     if (isMainChangelog) {
         finalHtml = `<h2 class="text-2xl font-bold text-center mb-4">История изменений</h2>`;
         finalHtml += dataToRender.length === 0 ? '<p class="text-center text-gray-500 dark:text-gray-400">Нет записей.</p>' : entriesHtml;
-        if (effectiveLimit && groupChangelogData(changelogData).length > effectiveLimit) {
+        if (showMoreButtonNeeded) {
             finalHtml += `<div class="text-center mt-6"><button id="show-all-changelog-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Показать ещё</button></div>`;
         }
     } else {
