@@ -98,4 +98,142 @@ export function init() {
     const resultContainer = document.getElementById('bmi-result-container');
     const bmiValueEl = document.getElementById('bmi-value');
     const bmiCategoryEl = document.getElementById('bmi-category');
-    const bmiIndicatorBar =
+    const bmiIndicatorBar = document.getElementById('bmi-indicator-bar');
+    const bmiInfoEl = document.getElementById('bmi-info');
+    const idealWeightEl = document.getElementById('ideal-weight');
+
+    let isImperial = false;
+
+    function toggleUnits() {
+        isImperial = unitToggle.checked;
+        metricInputs.classList.toggle('hidden', isImperial);
+        imperialInputs.classList.toggle('hidden', !isImperial);
+        metricLabel.classList.toggle('text-blue-600', !isImperial);
+        metricLabel.classList.toggle('dark:text-blue-400', !isImperial);
+        metricLabel.classList.toggle('text-gray-400', isImperial);
+        metricLabel.classList.toggle('dark:text-gray-500', isImperial);
+        imperialLabel.classList.toggle('text-blue-600', isImperial);
+        imperialLabel.classList.toggle('dark:text-blue-400', isImperial);
+        imperialLabel.classList.toggle('text-gray-400', !isImperial);
+        imperialLabel.classList.toggle('dark:text-gray-500', !isImperial);
+        weightUnitEl.textContent = isImperial ? 'фунты' : 'кг';
+        // Конвертация значений при переключении
+        if (isImperial) {
+            const cm = parseFloat(heightCmInput.value) || 0;
+            const kg = parseFloat(weightInput.value) || 0;
+            const inches = cm * 0.393701;
+            const feet = Math.floor(inches / 12);
+            const remInches = (inches % 12).toFixed(1);
+            heightFtInput.value = feet;
+            heightInInput.value = remInches;
+            weightInput.value = (kg * 2.20462).toFixed(1);
+        } else {
+            const feet = parseFloat(heightFtInput.value) || 0;
+            const inches = parseFloat(heightInInput.value) || 0;
+            const lbs = parseFloat(weightInput.value) || 0;
+            const totalInches = (feet * 12) + inches;
+            heightCmInput.value = (totalInches * 2.54).toFixed(0);
+            weightInput.value = (lbs * 0.453592).toFixed(1);
+        }
+        calculateBmi();
+    }
+
+    function calculateBmi() {
+        let height, weight, bmi;
+        let heightInMeters;
+
+        if (isImperial) {
+            const feet = parseFloat(heightFtInput.value) || 0;
+            const inches = parseFloat(heightInInput.value) || 0;
+            weight = parseFloat(weightInput.value);
+            height = (feet * 12) + inches; // Total height in inches
+            if (isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
+                 clearResults(); return;
+            }
+            heightInMeters = height * 0.0254;
+            bmi = (weight / (height * height)) * 703;
+        } else {
+            height = parseFloat(heightCmInput.value);
+            weight = parseFloat(weightInput.value);
+             if (isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
+                clearResults(); return;
+            }
+            heightInMeters = height / 100;
+            bmi = weight / (heightInMeters * heightInMeters);
+        }
+        
+        displayResults(bmi, heightInMeters);
+    }
+    
+    function clearResults() {
+        resultContainer.classList.add('hidden');
+        bmiInfoEl.classList.add('hidden');
+        bmiIndicatorBar.style.width = '0%';
+        idealWeightEl.textContent = '';
+    }
+
+    function displayResults(bmi, heightInMeters) {
+        const bmiFormatted = bmi.toFixed(1);
+
+        resultContainer.classList.remove('hidden');
+        bmiValueEl.textContent = bmiFormatted;
+
+        // Расчет идеального веса (ИМТ от 18.5 до 25)
+        const idealMin = 18.5 * (heightInMeters * heightInMeters);
+        const idealMax = 25 * (heightInMeters * heightInMeters);
+        if (isImperial) {
+            idealWeightEl.textContent = `Идеальный вес: ${(idealMin * 2.20462).toFixed(1)} - ${(idealMax * 2.20462).toFixed(1)} фунтов`;
+        } else {
+            idealWeightEl.textContent = `Идеальный вес: ${idealMin.toFixed(1)} - ${idealMax.toFixed(1)} кг`;
+        }
+        
+        let category = '', colorClass = '', infoText = '';
+
+        if (bmi < 16) {
+            category = 'Выраженный дефицит массы'; colorClass = 'bg-red-600';
+            infoText = 'Риск для здоровья очень высокий. Необходима консультация врача.';
+        } else if (bmi >= 16 && bmi < 18.5) {
+            category = 'Недостаточная масса тела'; colorClass = 'bg-yellow-500';
+            infoText = 'Риск для здоровья повышен. Рекомендуется набрать вес до нормы.';
+        } else if (bmi >= 18.5 && bmi < 25) {
+            category = 'Нормальный вес'; colorClass = 'bg-green-500';
+            infoText = 'Ваш вес в норме. Риск для здоровья минимальный. Так держать!';
+        } else if (bmi >= 25 && bmi < 30) {
+            category = 'Избыточная масса тела'; colorClass = 'bg-yellow-500';
+            infoText = 'Риск для здоровья повышен. Рекомендуется снизить вес до нормы.';
+        } else if (bmi >= 30 && bmi < 35) {
+            category = 'Ожирение 1 степени'; colorClass = 'bg-orange-500';
+            infoText = 'Риск для здоровья высокий. Рекомендуется консультация специалиста.';
+        } else if (bmi >= 35 && bmi < 40) {
+            category = 'Ожирение 2 степени'; colorClass = 'bg-red-600';
+            infoText = 'Риск для здоровья очень высокий. Необходима консультация врача.';
+        } else {
+            category = 'Ожирение 3 степени'; colorClass = 'bg-red-800';
+            infoText = 'Риск для здоровья чрезвычайно высокий. Срочно обратитесь к врачу.';
+        }
+
+        bmiCategoryEl.textContent = category;
+        bmiValueEl.className = `text-5xl font-bold ${colorClass.replace('bg-', 'text-')}`;
+        
+        const percentage = Math.min(100, Math.max(0, ((bmi - 15) / (40 - 15)) * 100));
+        bmiIndicatorBar.style.width = `${percentage}%`;
+        bmiIndicatorBar.className = `h-2.5 rounded-full transition-all duration-500 ${colorClass}`;
+        
+        bmiInfoEl.textContent = infoText;
+        bmiInfoEl.classList.remove('hidden');
+    }
+
+    unitToggle.addEventListener('change', toggleUnits);
+    [heightCmInput, heightFtInput, heightInInput, weightInput, ageInput, genderSelect].forEach(el => {
+        el.addEventListener('input', calculateBmi);
+    });
+
+    calculateBmi();
+}
+
+// Этот экспорт был пропущен в предыдущей версии
+export function cleanup() {
+    // В этом приложении нет глобальных слушателей или интервалов, которые нужно очищать,
+    // так как все слушатели привязаны к элементам, которые удаляются вместе с HTML.
+    // Но функция должна существовать для консистентности.
+}
