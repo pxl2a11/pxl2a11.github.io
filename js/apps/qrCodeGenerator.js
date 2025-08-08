@@ -1,4 +1,4 @@
-// qrCodeGenerator.js
+// 1qrCodeGenerator.js
 
 /* ... (весь код до функции generateQRCode остается без изменений) ... */
 
