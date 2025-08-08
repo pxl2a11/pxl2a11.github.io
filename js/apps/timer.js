@@ -83,7 +83,7 @@ export function getHtml() {
     return `
         <div class="flex flex-col items-center text-center">
             <!-- Аудио для оповещения -->
-            <audio id="timer-notification" src="sounds/notification.mp3" preload="auto"></audio>
+            <audio id="timer-notification" src="sounds/notification.wav" preload="auto"></audio>
 
             <!-- Дисплей таймера -->
             <div id="timer-display" class="text-6xl md:text-8xl font-mono font-bold mb-6 w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">00:00:00</div>
