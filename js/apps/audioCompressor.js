@@ -1,4 +1,4 @@
-// --- START OF FILE apps/audioCompressor.js ---
+// --- !START OF FILE apps/audioCompressor.js ---
 
 // Переменные для хранения состояния и ссылок на элементы
 let audioFile = null;
