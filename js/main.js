@@ -1,8 +1,6 @@
-// js/main.js
-
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// --- Сопоставление имен приложений с файлами модулей (ОБНОВЛЕНО) ---
+// --- Сопоставление имен приложений с файлами модулей ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -10,8 +8,8 @@ const appNameToModuleFile = {
     'Тест звука и микрофона': 'soundAndMicTest',
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
-    'Калькулятор процентных соотношений': 'percentageCalculator', // НОВОЕ
-    'Таймер и обратный отсчет': 'timer', // НОВОЕ
+    'Калькулятор процентных соотношений': 'percentageCalculator',
+    'Таймер и обратный отсчет': 'timer',
     'Колесо фортуны': 'fortuneWheel',
     'Шар предсказаний': 'magicBall',
     'Крестики-нолики': 'ticTacToe',
@@ -27,7 +25,7 @@ const appNameToModuleFile = {
     'История изменений': 'changelogPage',
 };
 
-// --- Обратное сопоставление ---
+// --- Обратное сопоставление для поиска полного имени по файлу модуля ---
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
@@ -37,9 +35,9 @@ const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
 const suggestionsContainer = document.getElementById('suggestions-container');
-let activeAppModule = null;
+let activeAppModule = null; // Хранит текущий активный модуль для очистки
 
-// --- Шаблоны HTML (ОБНОВЛЕН) ---
+// --- Шаблоны HTML ---
 const homeScreenHtml = `
     <div id="home-screen">
         <div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -56,7 +54,20 @@ const homeScreenHtml = `
                 <span class="text-sm font-medium ml-4">Заметки и задачи</span>
             </a>
             <a href="?app=soundAndMicTest" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Тест звука и микрофона">
-                <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><g><rect x="22" y="28" width="16" height="30" rx="8"/><line x1="30" y1="58" x2="30" y2="72" fill="none"/><line x1="22" y1="72" x2="38" y2="72" fill="none"/></g><g><path d="M56 42 L62 42 L70 34 L70 66 L62 58 L56 58 Z"/><path d="M75 38 a10 10 0 0 1 0 24" fill="none"/><path d="M80 32 a16 16 0 0 1 0 36" fill="none"/></g></g></svg></div>
+                <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" fill="currentColor">
+                        <!-- Микрофон (заливка) -->
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke="none"/>
+                        <!-- Подставка и волны (контур) -->
+                        <g fill="none" stroke-width="2" stroke-linecap="round">
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="23"/>
+                            <line x1="8" y1="23" x2="16" y2="23"/>
+                            <path d="M21 12h-2"/>
+                            <path d="M3 12h2"/>
+                        </g>
+                    </svg>
+                </div>
                 <span class="text-sm font-medium ml-4">Тест звука и микрофона</span>
             </a>
             <a href="?app=myIp" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Мой IP">
@@ -67,14 +78,28 @@ const homeScreenHtml = `
                 <div class="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></div>
                 <span class="text-sm font-medium ml-4">Генератор паролей</span>
             </a>
-            <!-- НОВОЕ ПРИЛОЖЕНИЕ -->
             <a href="?app=percentageCalculator" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор процентных соотношений">
-                <div class="w-12 h-12 bg-fuchsia-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l-7 7 7 7"></path><path d="M19 12a7 7 0 11-14 0 7 7 0 0114 0z" stroke="none" fill="currentColor" style="opacity:0.2"></path><text x="12" y="16" font-size="10" text-anchor="middle" fill="currentColor">%</text></svg></div>
+                <div class="w-12 h-12 bg-fuchsia-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="6.5" cy="6.5" r="2.5" />
+                        <circle cx="17.5" cy="17.5" r="2.5" />
+                        <line x1="19" y1="5" x2="5" y2="19" />
+                    </svg>
+                </div>
                 <span class="text-sm font-medium ml-4">Калькулятор процентных соотношений</span>
             </a>
-            <!-- НОВОЕ ПРИЛОЖЕНИЕ -->
             <a href="?app=timer" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Таймер и обратный отсчет">
-                <div class="w-12 h-12 bg-orange-400 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 19l2 2m-2-2l-2 2m-12-2l-2 2m2-2l2 2"></path></svg></div>
+                <div class="w-12 h-12 bg-orange-400 text-white rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Корпус таймера -->
+                        <circle cx="12" cy="12" r="9" />
+                        <!-- Кнопка сверху -->
+                        <line x1="12" y1="2" x2="12" y2="5" />
+                        <!-- Стрелки -->
+                        <line x1="12" y1="12" x2="12" y2="7" />
+                        <line x1="12" y1="12" x2="15" y2="12" />
+                    </svg>
+                </div>
                 <span class="text-sm font-medium ml-4">Таймер и обратный отсчет</span>
             </a>
             <a href="?app=fortuneWheel" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Колесо фортуны">
@@ -138,7 +163,7 @@ const appScreenHtml = `
         <div id="app-changelog-container" class="mt-8"></div>
     </div>`;
 
-// --- Основная функция-роутер (ИЗМЕНЕНА) ---
+// --- Основная функция-роутер ---
 async function router() {
     // 1. Очищаем предыдущее приложение
     if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
@@ -153,10 +178,9 @@ async function router() {
     const appName = moduleFileToAppName[moduleName]; 
 
     if (appName) {
-        // --- ИСПРАВЛЕНИЕ: Очистка поиска при переходе в приложение ---
+        // Очистка поиска при переходе в приложение
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
         
         // --- Загрузка страницы приложения ---
         dynamicContentArea.innerHTML = appScreenHtml;
@@ -226,7 +250,7 @@ function setupNavigationEvents() {
     });
 }
 
-// --- Логика поиска (ИЗМЕНЕНА) ---
+// --- Логика поиска ---
 function setupSearch() {
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer) return;
@@ -255,7 +279,7 @@ function setupSearch() {
                     if(moduleFile) {
                         history.pushState({}, '', `?app=${moduleFile}`);
                         router();
-                        // ИСПРАВЛЕНИЕ: дополнительно очищаем здесь для мгновенной реакции
+                        // дополнительно очищаем здесь для мгновенной реакции
                         searchInput.value = ''; 
                         suggestionsContainer.classList.add('hidden');
                     }
@@ -271,7 +295,7 @@ function setupSearch() {
 
 // --- Инициализация при загрузке страницы ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Код для переключения темы... (без изменений)
+    // Код для переключения темы
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
@@ -293,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         moonIcon.classList.toggle('hidden', !isDark);
     });
     
-    // Скрывать подсказки при клике вне поля... (без изменений)
+    // Скрывать подсказки при клике вне поля
     document.addEventListener('click', e => {
         if (!suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
@@ -310,6 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Слушаем событие `popstate` (нажатие кнопок "назад/вперед" в браузере)
     window.addEventListener('popstate', router);
+
+    // Первоначальный запуск роутера
     router();
 });
