@@ -37,5 +37,5 @@ export const appNameToModuleFile = appList.reduce((acc, app) => {
  * Возвращает отсортированный список приложений.
  */
 export function getAppList() {
-    return appList.sort((a, b) => a.name.localeCompare(b.name));
+    return [...appList].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
 }
