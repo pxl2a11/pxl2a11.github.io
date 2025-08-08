@@ -1,15 +1,19 @@
 export function getHtml() {
     return `
-        <div class="p-4 flex flex-col items-center space-y-6 w-full max-w-sm">
-            <div id="color-display" class="w-48 h-48 rounded-2xl shadow-lg transition-colors duration-300 border-4 border-gray-200 dark:border-gray-700" style="background-color: #ffffff;"></div>
-            <div class="text-center bg-gray-100 dark:bg-gray-800 p-4 rounded-lg w-full">
-                <p id="color-code-hex" class="text-2xl font-mono">#ffffff</p>
-                <p id="color-code-rgb" class="text-lg font-mono text-gray-600 dark:text-gray-400">rgb(255, 255, 255)</p>
-                <p id="color-code-hsl" class="text-lg font-mono text-gray-600 dark:text-gray-400">hsl(0, 0%, 100%)</p>
+        <div class="p-3 flex flex-col items-center space-y-4 w-full max-w-xs">
+            {/* Блок отображения цвета теперь содержит текстовую информацию */}
+            <div id="color-display" class="relative w-40 h-40 rounded-2xl shadow-lg transition-colors duration-300 border-4 border-gray-200 dark:border-gray-700 flex items-center justify-center text-white" style="background-color: #ffffff;">
+                <div class="p-3 text-center bg-black bg-opacity-50 rounded-lg">
+                    <p id="color-code-hex" class="text-xl font-mono">#ffffff</p>
+                    <p id="color-code-rgb" class="text-sm font-mono text-gray-300">rgb(255, 255, 255)</p>
+                    <p id="color-code-hsl" class="text-sm font-mono text-gray-300">hsl(0, 0%, 100%)</p>
+                </div>
             </div>
-            <button id="generate-color-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600">Новый цвет</button>
-            <!-- Палитры -->
-            <div id="palettes-container" class="w-full space-y-4 pt-4 border-t border-gray-300 dark:border-gray-700">
+            
+            <button id="generate-color-btn" class="w-full bg-blue-500 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-600">Новый цвет</button>
+            
+            {/* Палитры */}
+            <div id="palettes-container" class="w-full space-y-3 pt-3 border-t border-gray-300 dark:border-gray-700">
                 <div>
                     <h4 class="text-center font-semibold mb-2">Комплементарная палитра</h4>
                     <div id="complementary-palette" class="flex justify-center gap-2"></div>
@@ -31,7 +35,7 @@ export function init() {
     const complementaryPaletteEl = document.getElementById('complementary-palette');
     const analogousPaletteEl = document.getElementById('analogous-palette');
 
-    // --- Функции-конвертеры ---
+    // --- Функции-конвертеры (без изменений) ---
     function hexToRgb(hex) {
         let r = 0, g = 0, b = 0;
         if (hex.length == 4) {
@@ -85,7 +89,8 @@ export function init() {
         el.innerHTML = '';
         colors.forEach(color => {
             const swatch = document.createElement('div');
-            swatch.className = 'w-12 h-12 rounded-lg shadow-inner cursor-pointer';
+            // Уменьшаем размер плашек в палитре
+            swatch.className = 'w-10 h-10 rounded-md shadow-inner cursor-pointer';
             swatch.style.backgroundColor = color;
             swatch.title = color;
             swatch.onclick = () => generateColor(color);
