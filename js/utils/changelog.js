@@ -1,8 +1,8 @@
 // js/utils/changelog.js
 
-// ИМПОРТИРУЕМ сопоставление из центрального файла
 import { appNameToModuleFile } from './appList.js';
 
+// Эта функция теперь используется только для форматирования даты перед выводом
 const getRussianDate = (dateString) => {
     const date = new Date(dateString);
     date.setUTCHours(date.getUTCHours() + 3);
@@ -11,48 +11,60 @@ const getRussianDate = (dateString) => {
     }).replace(' г.', '');
 };
 
-const changelogData = [
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Калькулятор ИМТ', description: 'добавлены поля для ввода возраста и пола для более точного контекста.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Калькулятор ИМТ', description: 'добавлен расчет и отображение диапазона идеального веса.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Тест звука и микрофона', description: 'реализована возможность выбора конкретного микрофона и устройства вывода звука из списка доступных в системе.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Мой IP', description: 'добавлена интерактивная карта для визуального отображения геолокации IP-адреса.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Калькулятор дат', description: 'добавлена опция учета официальных праздничных дней РФ при расчете рабочих дней.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Сапер', description: 'добавлена функция "аккорд": клик по открытой ячейке с цифрой для быстрого открытия соседних ячеек.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Генератор паролей', description: 'добавлен индикатор надежности, оценивающий сгенерированный пароль.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Секундомер', description: 'реализована функция экспорта (копирования) списка кругов.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Случайный цвет', description: 'теперь отображаются значения цвета в форматах RGB и HSL.' },
-    { date: getRussianDate('2025-08-08T14:00:00Z'), appName: 'Случайный цвет', description: 'добавлена генерация комплементарной и аналоговой цветовых палитр.' },
-    { date: getRussianDate('2025-08-08T12:00:00Z'), appName: 'Таймер и обратный отсчет', description: 'добавлено новое приложение для установки таймера со звуковым оповещением.' },
-    { date: getRussianDate('2025-08-08T12:00:00Z'), appName: 'Калькулятор процентных соотношений', description: 'добавлено новое приложение для быстрых расчетов с процентами.' },
-    { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Конвертер величин', description: 'добавлены новые типы конвертации: площадь и скорость.' },
-    { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Шар предсказаний', description: 'добавлена возможность создавать и сохранять собственный список ответов.' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Калькулятор ИМТ', description: 'добавлен переключатель между метрической и имперской системами измерения.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Тест звука и микрофона', description: 'реализована функция записи и воспроизведения звука с микрофона.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Генератор чисел', description: 'добавлена возможность генерации нескольких чисел одновременно.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Калькулятор дат', description: 'реализован расчет рабочих (будних) дней между датами.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Генератор QR-кодов', description: 'добавлены шаблоны для Wi-Fi, Email, SMS и возможность кастомизации цвета QR-кода.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Колесо фортуны', description: 'добавлены звуковые эффекты и возможность выбора цветовой схемы.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Калькулятор ИМТ', description: 'добавлено новое приложение для расчета индекса массы тела.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Калькулятор дат', description: 'добавлено новое приложение для расчета разницы между датами и прибавления дней.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Эмодзи и символы', description: 'добавлено новое приложение для копирования эмодзи и специальных символов.'},
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Конвертер величин', description: 'добавлено новое приложение-конвертер для различных единиц измерения.'},
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Колесо фортуны', description: 'добавлен режим "на выбывание", в котором выпавший вариант удаляется из списка.'},
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Радио', description: 'добавлена возможность выбора качества потока (Low, Medium, High).'},
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Радио', description: 'в список добавлены новые станции: Дорожное Радио, Relax FM и DFM.'},
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Радио', description: 'добавлено поле для поиска и фильтрации станций по названию.'},
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Колесо фортуны', description: 'реализована возможность сохранять, загружать и удалять списки вариантов.'},
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Секундомер', description: 'добавлена функция "Круг" для фиксации промежуточных результатов.'},
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Крестики-нолики', description: 'добавлены уровни сложности для игры с компьютером: "Легкий" и "Сложный".'},
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Мой IP', description: 'добавлено отображение интернет-провайдера (ISP).'},
-    { date: getRussianDate('2025-08-05T00:00:00Z'), appName: 'Заметки и задачи', description: 'исправлена логика добавления и сохранения заметок, теперь они добавляются в список, а не заменяют друг друга.'},
-    { date: getRussianDate('2025-08-05T00:00:00Z'), appName: 'Мой IP', description: 'добавлена кнопка "Обновить", позволяющая перезапросить IP-адрес и геолокационные данные без перезагрузки страницы.'},
-    { date: getRussianDate('2025-08-05T00:00:00Z'), appName: 'Мой IP', description: 'теперь приложение будет определять и показывать страну, регион и город пользователя, используя данные геолокации.'},
-    { date: getRussianDate('2025-08-05T00:00:00Z'), appName: 'Сапер', description: 'добавлены уровни сложности, таймер и кнопка для рестарта игры.'},
-    { date: getRussianDate('2025-08-05T00:00:00Z'), appName: 'Крестики-нолики', description: 'добавлен режим игры с компьютером (простой AI) и возможность сменить режим или начать заново.'},
-    { date: getRussianDate('2025-08-04T00:00:00Z'), appName: 'Общее', description: 'начальная версия проекта.'}
+// Исходные данные с надежными ISO-датами для сортировки
+const changelogRawData = [
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Калькулятор ИМТ', description: 'добавлены поля для ввода возраста и пола для более точного контекста.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Калькулятор ИМТ', description: 'добавлен расчет и отображение диапазона идеального веса.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Тест звука и микрофона', description: 'реализована возможность выбора конкретного микрофона и устройства вывода звука.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Мой IP', description: 'добавлена интерактивная карта для визуального отображения геолокации IP-адреса.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Калькулятор дат', description: 'добавлена опция учета официальных праздничных дней РФ при расчете рабочих дней.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Сапер', description: 'добавлена функция "аккорд": клик по открытой ячейке с цифрой для быстрого открытия соседних ячеек.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Генератор паролей', description: 'добавлен индикатор надежности, оценивающий сгенерированный пароль.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Секундомер', description: 'реализована функция экспорта (копирования) списка кругов.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Случайный цвет', description: 'теперь отображаются значения цвета в форматах RGB и HSL.' },
+    { isoDate: '2025-08-08T14:00:00Z', appName: 'Случайный цвет', description: 'добавлена генерация комплементарной и аналоговой цветовых палитр.' },
+    { isoDate: '2025-08-08T12:00:00Z', appName: 'Таймер и обратный отсчет', description: 'добавлено новое приложение для установки таймера со звуковым оповещением.' },
+    { isoDate: '2025-08-08T12:00:00Z', appName: 'Калькулятор процентных соотношений', description: 'добавлено новое приложение для быстрых расчетов с процентами.' },
+    { isoDate: '2025-08-08T10:00:00Z', appName: 'Конвертер величин', description: 'добавлены новые типы конвертации: площадь и скорость.' },
+    { isoDate: '2025-08-08T10:00:00Z', appName: 'Шар предсказаний', description: 'добавлена возможность создавать и сохранять собственный список ответов.' },
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Калькулятор ИМТ', description: 'добавлен переключатель между метрической и имперской системами измерения.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Тест звука и микрофона', description: 'реализована функция записи и воспроизведения звука с микрофона.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Генератор чисел', description: 'добавлена возможность генерации нескольких чисел одновременно.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Калькулятор дат', description: 'реализован расчет рабочих (будних) дней между датами.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Генератор QR-кодов', description: 'добавлены шаблоны для Wi-Fi, Email, SMS и возможность кастомизации цвета QR-кода.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Колесо фортуны', description: 'добавлены звуковые эффекты и возможность выбора цветовой схемы.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Калькулятор ИМТ', description: 'добавлено новое приложение для расчета индекса массы тела.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Калькулятор дат', description: 'добавлено новое приложение для расчета разницы между датами и прибавления дней.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Эмодзи и символы', description: 'добавлено новое приложение для копирования эмодзи и специальных символов.'},
+    { isoDate: '2025-08-07T00:00:00Z', appName: 'Конвертер величин', description: 'добавлено новое приложение-конвертер для различных единиц измерения.'},
+    { isoDate: '2025-08-06T00:00:00Z', appName: 'Колесо фортуны', description: 'добавлен режим "на выбывание", в котором выпавший вариант удаляется из списка.'},
+    { isoDate: '2025-08-06T00:00:00Z', appName: 'Радио', description: 'добавлена возможность выбора качества потока (Low, Medium, High).'},
+    { isoDate: '2025-08-06T00:00:00Z', appName: 'Радио', description: 'в список добавлены новые станции: Дорожное Радио, Relax FM и DFM.'},
+    { isoDate: '2025-08-06T00:00:00Z', appName: 'Радио', description: 'добавлено поле для поиска и фильтрации станций по названию.'},
+    { isoDate: '2025-08-06T00:00:00Z', appName: 'Колесо фортуны', description: 'реализована возможность сохранять, загружать и удалять списки вариантов.'},
+    { isoDate: '2025-08-06T00:00:00Z', appName: 'Секундомер', description: 'добавлена функция "Круг" для фиксации промежуточных результатов.'},
+    { isoDate: '2025-08-06T00:00:00Z', appName: 'Крестики-нолики', description: 'добавлены уровни сложности для игры с компьютером: "Легкий" и "Сложный".'},
+    { isoDate: '2025-08-06T00:00:00Z', appName: 'Мой IP', description: 'добавлено отображение интернет-провайдера (ISP).'},
+    { isoDate: '2025-08-05T00:00:00Z', appName: 'Заметки и задачи', description: 'исправлена логика добавления и сохранения заметок.'},
+    { isoDate: '2025-08-05T00:00:00Z', appName: 'Мой IP', description: 'добавлена кнопка "Обновить".'},
+    { isoDate: '2025-08-05T00:00:00Z', appName: 'Мой IP', description: 'добавлено определение геолокации.'},
+    { isoDate: '2025-08-05T00:00:00Z', appName: 'Сапер', description: 'добавлены уровни сложности, таймер и рестарт.'},
+    { isoDate: '2025-08-05T00:00:00Z', appName: 'Крестики-нолики', description: 'добавлен режим игры с компьютером.'},
+    { isoDate: '2025-08-04T00:00:00Z', appName: 'Общее', description: 'начальная версия проекта.'}
 ];
 
-function groupChangelogData(data) {
+// Преобразуем исходные данные, добавляя отформатированную дату
+const changelogData = changelogRawData.map(item => ({
+    ...item,
+    date: getRussianDate(item.isoDate)
+}));
+
+/**
+ * Группирует отсортированный список записей по дате и приложению.
+ * @param {Array} data - Массив записей истории.
+ * @returns {Array} - Массив сгруппированных записей.
+ */
+function groupSortedData(data) {
     const grouped = {};
     data.forEach(entry => {
         const key = `${entry.date}-${entry.appName}`;
@@ -61,32 +73,43 @@ function groupChangelogData(data) {
         }
         grouped[key].descriptions.push(entry.description);
     });
-    return Object.values(grouped).sort((a, b) => new Date(b.date) - new Date(a.date));
+    return Object.values(grouped);
 }
 
+/**
+ * Получает отсортированные и сгруппированные данные для рендеринга.
+ * @returns {Array}
+ */
 export function getChangelogData() {
-    return groupChangelogData(changelogData);
+    const sortedData = [...changelogData].sort((a, b) => new Date(b.isoDate) - new Date(a.isoDate));
+    return groupSortedData(sortedData);
 }
 
+/**
+ * Рендерит блок истории изменений.
+ * @param {string|null} appNameFilter - Фильтр по имени приложения.
+ * @param {number|null} limit - Ограничение на количество записей.
+ * @param {HTMLElement} targetEl - Целевой элемент для рендеринга.
+ */
 export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     if (!targetEl) return;
 
-    const isMainChangelog = targetEl.id === 'changelog-container';
+    const isMainChangelogBlock = targetEl.id === 'changelog-container';
     
-    const allGroupedData = getChangelogData();
-    const filteredData = appNameFilter 
-        ? allGroupedData.filter(group => group.appName === appNameFilter)
-        : allGroupedData;
+    let allData = getChangelogData();
+    if (appNameFilter) {
+        allData = allData.filter(group => group.appName === appNameFilter);
+    }
 
-    let dataToRender = filteredData;
+    let dataToRender = allData;
     let showMoreButtonNeeded = false;
     
-    if (limit && filteredData.length > limit) {
-        dataToRender = filteredData.slice(0, limit);
+    if (limit && allData.length > limit) {
+        dataToRender = allData.slice(0, limit);
         showMoreButtonNeeded = true;
     }
 
-    if (!isMainChangelog && dataToRender.length === 0) {
+    if (!isMainChangelogBlock && dataToRender.length === 0) {
         targetEl.innerHTML = '';
         return;
     }
@@ -99,30 +122,4 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
         
         const capitalizedDescs = entry.descriptions.map(desc => desc.charAt(0).toUpperCase() + desc.slice(1));
         const descriptionsHtml = capitalizedDescs.length > 1 
-            ? `<ul class="list-disc list-inside mt-1">${capitalizedDescs.map(d => `<li class="ml-4">${d}</li>`).join('')}</ul>`
-            : `<span class="ml-1">${capitalizedDescs[0]}</span>`;
-        
-        const contentHtml = (isMainChangelog && entry.appName !== 'Общее')
-            ? `${appNameLink} ${descriptionsHtml}`
-            : descriptionsHtml.replace('<span class="ml-1">', '<span>');
-
-        return `
-            <div class="border-t border-gray-300 dark:border-gray-700 pt-4 mt-4 first:mt-0 first:pt-0 first:border-0">
-                <p class="font-semibold text-gray-500 dark:text-gray-400">${entry.date}</p>
-                <div class="mt-2 text-gray-800 dark:text-gray-300">${contentHtml}</div>
-            </div>`;
-    }).join('');
-
-    let finalHtml = '';
-    if (isMainChangelog) {
-        finalHtml = `<h2 class="text-2xl font-bold text-center mb-4">История изменений</h2>`;
-        finalHtml += dataToRender.length === 0 ? '<p class="text-center text-gray-500 dark:text-gray-400">Нет записей.</p>' : entriesHtml;
-        if (showMoreButtonNeeded) {
-            finalHtml += `<div class="text-center mt-6"><button id="show-all-changelog-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Показать ещё</button></div>`;
-        }
-    } else {
-        finalHtml = `<div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-2xl shadow-inner"><h3 class="text-xl font-bold text-center mb-4">История изменений</h3>${entriesHtml}</div>`;
-    }
-    
-    targetEl.innerHTML = finalHtml;
-}
+            ? `<ul class="list-disc list-inside mt-1"
