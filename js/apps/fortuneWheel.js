@@ -1,5 +1,6 @@
 let spinTimeout;
 let spinSound, winSound;
+let isAudioUnlocked = false; // Флаг для отслеживания "разблокировки" звука
 
 export function getHtml() {
     return `
@@ -7,10 +8,10 @@ export function getHtml() {
              <audio id="spin-sound" src="https://actions.google.com/sounds/v1/games/spin_wheel.ogg" preload="auto"></audio>
              <audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" preload="auto"></audio>
 
-            <canvas id="wheel-canvas" width="350" height="350" class="mb-4"></canvas>
+            <canvas id="wheel-canvas" width="350" height="350" class="mb-4 rounded-full shadow-lg"></canvas>
             
             <div class="flex items-center justify-center gap-4 w-full max-w-sm mb-4">
-                <button id="spin-btn" class="flex-grow bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600 disabled:opacity-50">Крутить</button>
+                <button id="spin-btn" class="flex-grow bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600 disabled:opacity-50 transition-all">Крутить</button>
                 <label class="flex items-center cursor-pointer whitespace-nowrap">
                     <input type="checkbox" id="elimination-mode-checkbox" class="h-4 w-4 rounded">
                     <span class="ml-2 text-sm">На выбывание</span>
@@ -69,7 +70,7 @@ export function init() {
     spinSound = document.getElementById('spin-sound');
     winSound = document.getElementById('win-sound');
 
-    let options = ['Приз 1', 'Сектор 2', 'Шанс', 'Попробуй еще'];
+    let options = ['Приз 1', 'Сектор 2', 'Шанс', 'Попробуй еще', 'Бонус', 'Удача'];
     const colorPalettes = {
         default: ['#FFC107', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#E91E63'],
         pastel: ['#fec5bb', '#fcd5ce', '#fae1dd', '#f8edeb', '#e8e8e4', '#d8e2dc'],
@@ -78,13 +79,6 @@ export function init() {
     };
     let colors = colorPalettes.default;
     let startAngle = 0, arc, spinAngleStart, spinTime = 0, spinTimeTotal = 0;
-
-    const getContrastColor = (hex) => {
-        if (hex.indexOf('#') === 0) hex = hex.slice(1);
-        if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-        const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
-        return (r * 0.299 + g * 0.587 + b * 0.114) > 186 ? '#000000' : '#FFFFFF';
-    };
 
     const getSavedLists = () => JSON.parse(localStorage.getItem('fortuneWheelLists')) || {};
     const populateSavedLists = () => {
@@ -102,6 +96,7 @@ export function init() {
         localStorage.setItem('fortuneWheelLists', JSON.stringify(lists));
         listNameInput.value = '';
         populateSavedLists();
+        savedListsSelect.value = name;
     };
     const loadSelectedList = () => {
         const name = savedListsSelect.value;
@@ -126,27 +121,49 @@ export function init() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#4A5568' : '#E2E8F0';
         ctx.lineWidth = 2;
-        ctx.font = 'bold 14px Arial';
+        
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
-            const segmentColor = colors[i % colors.length];
-            ctx.fillStyle = segmentColor;
+            ctx.fillStyle = colors[i % colors.length];
             ctx.beginPath();
             ctx.arc(175, 175, 170, angle, angle + arc, false);
             ctx.arc(175, 175, 0, angle + arc, angle, true);
             ctx.fill();
-            ctx.save();
-            ctx.fillStyle = getContrastColor(segmentColor);
-            ctx.translate(175 + Math.cos(angle + arc / 2) * 110, 175 + Math.sin(angle + arc / 2) * 110);
-            ctx.rotate(angle + arc / 2 + Math.PI / 2);
+            ctx.stroke();
+        }
+
+        ctx.save();
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        for (let i = 0; i < options.length; i++) {
+            const angle = startAngle + i * arc;
             const text = options[i];
-            ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+            
+            ctx.save();
+            ctx.translate(175 + Math.cos(angle + arc / 2) * 115, 175 + Math.sin(angle + arc / 2) * 115);
+            ctx.rotate(angle + arc / 2 + Math.PI / 2);
+
+            // --- РЕШЕНИЕ: Рисуем плашку для текста ---
+            const textMetrics = ctx.measureText(text);
+            const textWidth = textMetrics.width;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.roundRect(-textWidth / 2 - 8, -12, textWidth + 16, 24, 8);
+            ctx.fill();
+
+            // --- РЕШЕНИЕ: Рисуем сам текст поверх плашки ---
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(text, 0, 0);
             ctx.restore();
         }
+        ctx.restore();
+        
+        // Рисуем указатель
         ctx.fillStyle = '#4A5568';
         ctx.beginPath();
-        ctx.moveTo(175 - 5, 5);
-        ctx.lineTo(175 + 5, 5);
+        ctx.moveTo(175 - 6, 5);
+        ctx.lineTo(175 + 6, 5);
         ctx.lineTo(175, 25);
         ctx.closePath();
         ctx.fill();
@@ -175,13 +192,20 @@ export function init() {
         const index = Math.floor((360 - degrees % 360) / arcd);
         const winner = options[index];
         
+        // --- РЕШЕНИЕ: Эффект затемнения ---
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // --- РЕШЕНИЕ: Отображение победителя поверх затемнения ---
         ctx.save();
-        ctx.font = 'bold 30px Arial';
-        ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#FFF' : '#000';
+        ctx.font = 'bold 36px Arial';
+        ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
-        ctx.fillText(winner, 175, 175 + 10);
+        ctx.textBaseline = 'middle';
+        ctx.fillText(winner, 175, 175);
         ctx.restore();
 
+        // --- РЕШЕНИЕ: Воспроизводим звук после отрисовки ---
         if (winner && soundCheckbox.checked) {
             winSound.play();
         }
@@ -230,6 +254,13 @@ export function init() {
     });
 
     spinBtn.addEventListener("click", () => {
+        // --- РЕШЕНИЕ: Разблокировка и предзагрузка звука ---
+        if (!isAudioUnlocked) {
+            spinSound.load();
+            winSound.load();
+            isAudioUnlocked = true;
+        }
+
         spinBtn.disabled = true;
         if (soundCheckbox.checked) {
             spinSound.currentTime = 0;
