@@ -68,9 +68,10 @@ export async function init() {
     const setupFfmpeg = async () => {
         if (!ffmpeg || !ffmpeg.isLoaded()) {
             statusContainer.innerHTML = 'Загрузка библиотеки для обработки (может занять время)...';
+            // ИСПОЛЬЗУЕМ ОДНОПОТОЧНУЮ ВЕРСИЮ ЯДРА (CORE-ST)
             ffmpeg = createFFmpeg({
                 log: true,
-                corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
+                corePath: 'https://unpkg.com/@ffmpeg/core-st@0.10.0/dist/ffmpeg-core.js',
             });
             await ffmpeg.load();
             statusContainer.innerHTML = 'Библиотека загружена. Готово к работе.';
