@@ -43,7 +43,7 @@ function getHtml() {
                 <!-- 1. Шаблон: Простой текст -->
                 <div id="template-text" class="template-panel space-y-2">
                     <label for="qr-text" class="block text-sm font-medium text-gray-800 dark:text-gray-300">Текст, ссылка или данные:</label>
-                    <textarea id="qr-text" rows="4" class="w-full p-2.5 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Например: https://www.google.com">Привет от Mini Apps!</textarea>
+                    <textarea id="qr-text" rows="4" class="w-full p-2.5 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Например: https://www.google.com"></textarea>
                 </div>
 
                 <!-- 2. Шаблон: Wi-Fi -->
