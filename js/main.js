@@ -6,6 +6,7 @@ const appNameToModuleFile = {
     'Радио': 'radio',
     'Заметки и задачи': 'notesAndTasks',
     'Тест звука и микрофона': 'soundAndMicTest',
+    'Сжатие аудио': 'audioCompressor', // <-- ВОССТАНОВЛЕНО
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
     'Калькулятор процентных соотношений': 'percentageCalculator',
@@ -55,20 +56,32 @@ const homeScreenHtml = `
             </a>
             <a href="?app=soundAndMicTest" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Тест звука и микрофона">
                 <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <!-- Левая крайняя полоска -->
-            <rect x="1" y="9" width="3" height="6" rx="1" />
-            <!-- Левая средняя полоска -->
-            <rect x="6" y="7" width="3" height="10" rx="1" />
-            <!-- Центральная (самая высокая) полоска -->
-            <rect x="11" y="4" width="3" height="16" rx="1" />
-            <!-- Правая средняя полоска -->
-            <rect x="16" y="7" width="3" height="10" rx="1" />
-            <!-- Правая крайняя полоска -->
-            <rect x="21" y="9" width="3" height="6" rx="1" />
-        </svg>
+                    <svg class="w-8 h-8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" fill="currentColor">
+                        <!-- Микрофон (заливка) -->
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke="none"/>
+                        <!-- Подставка и волны (контур) -->
+                        <g fill="none" stroke-width="2" stroke-linecap="round">
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="23"/>
+                            <line x1="8" y1="23" x2="16" y2="23"/>
+                            <path d="M21 12h-2"/>
+                            <path d="M3 12h2"/>
+                        </g>
+                    </svg>
                 </div>
                 <span class="text-sm font-medium ml-4">Тест звука и микрофона</span>
+            </a>
+            <a href="?app=audioCompressor" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Сжатие аудио">
+                <div class="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="9" width="3" height="6" rx="1" />
+                        <rect x="6" y="7" width="3" height="10" rx="1" />
+                        <rect x="11" y="4" width="3" height="16" rx="1" />
+                        <rect x="16" y="7" width="3" height="10" rx="1" />
+                        <rect x="21" y="9" width="3" height="6" rx="1" />
+                    </svg>
+                </div>
+                <span class="text-sm font-medium ml-4">Сжатие аудио</span>
             </a>
             <a href="?app=myIp" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Мой IP">
                 <div class="w-12 h-12 bg-gray-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9M3 12a9 9 0 019-9m-9 9a9 9 0 009 9m-9-9h18" /></svg></div>
