@@ -3,8 +3,12 @@ let spinSound, winSound;
 let isAudioUnlocked = false; // Флаг для отслеживания "разблокировки" звука
 
 export function getHtml() {
-    // --- ИСПРАВЛЕНИЕ: Полностью очищенный HTML без посторонних символов ---
     return `
+        <style>
+            #options-list::-webkit-scrollbar { display: none; }
+            #options-list { -ms-overflow-style: none; scrollbar-width: none; }
+        </style>
+
         <div class="p-4 flex flex-col items-center">
              <audio id="spin-sound" src="https://actions.google.com/sounds/v1/games/spin_wheel.ogg" preload="auto"></audio>
              <audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" preload="auto"></audio>
@@ -81,30 +85,6 @@ export function init() {
     let colors = colorPalettes.default;
     let startAngle = 0, arc, spinAngleStart, spinTime = 0, spinTimeTotal = 0;
 
-    function drawCurvedText(ctx, text, centerX, centerY, radius, centerAngle) {
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        const textWidth = ctx.measureText(text).width;
-        const totalAngle = textWidth / radius;
-        let currentAngle = centerAngle - totalAngle / 2;
-        
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            const charWidth = ctx.measureText(char).width;
-            const charAngle = charWidth / radius;
-            const drawAngle = currentAngle + charAngle / 2;
-
-            ctx.save();
-            ctx.rotate(drawAngle);
-            ctx.translate(0, -radius);
-            ctx.rotate(Math.PI / 2);
-            ctx.fillText(char, 0, 0);
-            ctx.restore();
-            currentAngle += charAngle;
-        }
-        ctx.restore();
-    }
-
     const getSavedLists = () => JSON.parse(localStorage.getItem('fortuneWheelLists')) || {};
     const populateSavedLists = () => {
         const lists = getSavedLists();
@@ -143,41 +123,44 @@ export function init() {
 
     function drawWheel() {
         const R = canvas.width / 2;
-        const R_outer = R - 5;
-        const R_text_area = R * 0.35;
+        const textRadius = R * 0.65; // Позиция текста от центра
 
         arc = options.length > 0 ? Math.PI / (options.length / 2) : 0;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
+
+            // 1. Рисуем цветной сектор
             ctx.fillStyle = colors[i % colors.length];
             ctx.beginPath();
-            ctx.arc(R, R, R_outer, angle, angle + arc, false);
+            ctx.arc(R, R, R - 5, angle, angle + arc, false);
             ctx.lineTo(R, R);
             ctx.fill();
-        }
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.beginPath();
-        ctx.arc(R, R, R_outer, 0, Math.PI * 2, false);
-        ctx.arc(R, R, R_outer - R_text_area, 0, Math.PI * 2, true);
-        ctx.fill();
+            // 2. РЕШЕНИЕ: Рисуем затемняющий слой поверх сектора
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(R, R, R - 5, angle, angle + arc, false);
+            ctx.lineTo(R, R);
+            ctx.fill();
 
-        ctx.save();
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#FFFFFF';
-
-        for (let i = 0; i < options.length; i++) {
-            const angle = startAngle + i * arc;
+            // 3. РЕШЕНИЕ: Рисуем прямой, но повернутый текст
+            ctx.save();
+            ctx.translate(R, R); // Перемещаем начало координат в центр
+            ctx.rotate(angle + arc / 2); // Поворачиваем всю систему координат
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = 'bold 16px Arial';
+            
             const text = options[i];
-            const textRadius = R_outer - (R_text_area / 2);
-            drawCurvedText(ctx, text, R, R, textRadius, angle + arc / 2);
+            // Рисуем текст на повернутой оси X на расстоянии textRadius
+            ctx.fillText(text, textRadius, 0); 
+            ctx.restore(); // Возвращаем систему координат в исходное состояние
         }
-        ctx.restore();
         
+        // Рисуем указатель
         ctx.fillStyle = '#111827';
         ctx.beginPath();
         ctx.moveTo(R - 8, 2);
@@ -311,4 +294,5 @@ export function cleanup() {
         winSound.pause();
         winSound.currentTime = 0;
     }
-}
+}```
+--- END OF FILE fortuneWheel.js ---
