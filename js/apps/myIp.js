@@ -1,3 +1,4 @@
+// *** иИЗМЕНЕНИЕ ЗДЕСЬ: Используем https вместо http ***
 export function getHtml() {
     return `
         <div class="p-4 flex flex-col items-center">
