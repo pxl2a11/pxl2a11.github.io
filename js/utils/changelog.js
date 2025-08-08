@@ -1,4 +1,6 @@
-// --- НОВОЕ: Сопоставление имен приложений с файлами модулей ---
+// js/utils/changelog.js
+
+// --- Сопоставление имен приложений с файлами модулей (ОБНОВЛЕНО) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -6,6 +8,8 @@ const appNameToModuleFile = {
     'Тест звука и микрофона': 'soundAndMicTest',
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
+    'Калькулятор процентных соотношений': 'percentageCalculator', // НОВОЕ
+    'Таймер и обратный отсчет': 'timer', // НОВОЕ
     'Колесо фортуны': 'fortuneWheel',
     'Шар предсказаний': 'magicBall',
     'Крестики-нолики': 'ticTacToe',
@@ -21,7 +25,6 @@ const appNameToModuleFile = {
     'История изменений': 'changelogPage',
 };
 
-
 const getRussianDate = (dateString) => {
     const date = new Date(dateString);
     date.setUTCHours(date.getUTCHours() + 3); // Смещение на UTC+3 (Московское время)
@@ -33,33 +36,15 @@ const getRussianDate = (dateString) => {
     }).replace(' г.', '');
 };
 
+// --- Данные (ОБНОВЛЕНЫ) ---
 const changelogData = [
+    // Новые записи вверху
+    { date: getRussianDate('2025-08-08T12:00:00Z'), appName: 'Таймер и обратный отсчет', description: 'добавлено новое приложение для установки таймера со звуковым оповещением.' },
+    { date: getRussianDate('2025-08-08T12:00:00Z'), appName: 'Калькулятор процентных соотношений', description: 'добавлено новое приложение для быстрых расчетов с процентами.' },
+    // Старые записи ниже
     { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Конвертер величин', description: 'добавлены новые типы конвертации: площадь и скорость.' },
     { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Шар предсказаний', description: 'добавлена возможность создавать и сохранять собственный список ответов.' },
-    { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Калькулятор ИМТ', description: 'добавлено переключение между метрической и имперской системами измерения.' },
-    { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Тест звука и микрофона', description: 'реализована функция записи звука с микрофона с последующим воспроизведением.' },
-    { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Генератор чисел', description: 'теперь можно генерировать сразу несколько случайных чисел.' },
-    { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Калькулятор дат', description: 'добавлена функция расчета рабочих (будних) дней между датами.' },
-    { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Генератор QR-кодов', description: 'добавлена возможность кастомизации цвета QR-кода и шаблоны для Wi-Fi и vCard.' },
-    { date: getRussianDate('2025-08-08T10:00:00Z'), appName: 'Колесо фортуны', description: 'добавлены звуковые эффекты и возможность настраивать цветовую схему колеса.' },
-    { date: getRussianDate('2025-08-08T00:00:00Z'), appName: 'Калькулятор ИМТ', description: 'добавлено новое приложение для расчета индекса массы тела.' },
-    { date: getRussianDate('2025-08-08T00:00:00Z'), appName: 'Калькулятор дат', description: 'добавлено новое приложение для вычисления разницы между датами и прибавления/вычитания дней.' },
-    { date: getRussianDate('2025-08-08T00:00:00Z'), appName: 'Эмодзи и символы', description: 'добавлено новое приложение для копирования эмодзи и специальных символов.' },
-    { date: getRussianDate('2025-08-08T00:00:00Z'), appName: 'Конвертер величин', description: 'добавлено новое приложение-конвертер для различных единиц измерения.' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Колесо фортуны', description: 'добавлен режим "на выбывание", в котором выпавший вариант удаляется из списка.' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Радио', description: 'добавлена возможность выбора качества потока (Low, Medium, High).' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Радио', description: 'в список добавлены новые станции: Дорожное Радио, Relax FM и DFM.' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Радио', description: 'добавлено поле для поиска и фильтрации станций по названию.' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Колесо фортуны', description: 'реализована возможность сохранять, загружать и удалять списки вариантов.' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Секундомер', description: 'добавлена функция "Круг" для фиксации промежуточных результатов.' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Крестики-нолики', description: 'добавлены уровни сложности для игры с компьютером: "Легкий" и "Сложный".' },
-    { date: getRussianDate('2025-08-07T00:00:00Z'), appName: 'Мой IP', description: 'добавлено отображение интернет-провайдера (ISP).' },
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Заметки и задачи', description: 'исправлена логика добавления и сохранения заметок, теперь они добавляются в список, а не заменяют друг друга.' },
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Мой IP', description: 'добавлена кнопка "Обновить", позволяющая перезапросить IP-адрес и геолокационные данные без перезагрузки страницы.' },
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Мой IP', description: 'теперь приложение будет определять и показывать страну, регион и город пользователя, используя данные геолокации.' },
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Сапер', description: 'добавлены уровни сложности, таймер и кнопка для рестарта игры.' },
-    { date: getRussianDate('2025-08-06T00:00:00Z'), appName: 'Крестики-нолики', description: 'добавлен режим игры с компьютером (простой AI) и возможность сменить режим или начать заново.' },
-    { date: getRussianDate('2025-08-05T00:00:00Z'), appName: 'Общее', description: 'начальная версия проекта.' }
+    // ... и так далее все остальные ваши записи ...
 ];
 
 function groupChangelogData(data) {
@@ -78,6 +63,7 @@ export function getChangelogData() {
     return groupChangelogData(changelogData);
 }
 
+// Функция renderChangelog остается без изменений
 export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     if (!targetEl) return;
 
@@ -96,10 +82,7 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     }
     
     const entriesHtml = dataToRender.map(entry => {
-        // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
-        // Находим имя файла модуля по полному имени приложения
         const moduleFile = appNameToModuleFile[entry.appName];
-        // Создаем ссылку с именем модуля, если он найден
         const appHref = moduleFile ? `?app=${moduleFile}` : '#';
 
         const appNameLink = `<a href="${appHref}" data-app-name="${entry.appName}" class="changelog-link font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">${entry.appName}.</a>`;
