@@ -3,6 +3,7 @@
 let ffmpeg;
 let objectUrl = null;
 
+// Эта вспомогательная функция по-прежнему полезна, чтобы дождаться загрузки скрипта
 const getFFmpeg = () => {
     return new Promise((resolve) => {
         if (window.FFmpeg) {
@@ -24,7 +25,7 @@ export function getHtml() {
             <h3 class="text-xl font-semibold text-center text-gray-800 dark:text-gray-200">Сжатие аудиофайлов</h3>
             <p class="text-center text-gray-600 dark:text-gray-400">
                 Выберите аудиофайл, установите желаемый битрейт и нажмите "Сжать".
-                Обработка происходит локально в вашем браузере и может занять некоторое время.
+                Обработка происходит локально в вашем браузere.
             </p>
             <div class="flex flex-col items-center justify-center w-full">
                 <label for="audio-file-input" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
@@ -73,11 +74,10 @@ export async function init() {
             const FFmpeg = await getFFmpeg();
             const { createFFmpeg } = FFmpeg;
 
-            // Используем coreURL для загрузки ядра с надежного CDN
-            ffmpeg = createFFmpeg({
-                log: true,
-                coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.6/dist/umd/ffmpeg-core.js',
-            });
+            // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: мы не передаем никаких URL.
+            // Версия "все-в-одном" знает, что делать.
+            ffmpeg = createFFmpeg({ log: true });
+            
             await ffmpeg.load();
             statusContainer.innerHTML = 'Библиотека загружена. Готово к работе.';
         }
