@@ -1,18 +1,16 @@
-// --- START OF FILE apps/audioCompressor.js ---
+// --- 1START OF FILE apps/audioCompressor.js ---
 
 // Переменные для хранения состояния и ссылок на элементы
 let audioFile = null;
+let detectedInputFormat = null; // 'mp3' или 'wav'
 let audioPlayer;
-let downloadLink;
-let fileInput;
 let processButton;
 let statusMessage;
 let originalSizeEl;
 let compressedSizeEl;
 let audioContext;
-let bitrateSelector;
-let formatSelector;
 let bitrateContainer;
+let bitrateSelector;
 let wavOptionsContainer;
 let wavSamplerateSelector;
 
@@ -21,23 +19,16 @@ export function getHtml() {
     return `
         <div class="space-y-4 max-w-lg mx-auto">
             <p class="text-sm text-gray-600 dark:text-gray-400">
-                Этот инструмент может <strong>сжать любой</strong> аудиофайл в компактный <strong>MP3</strong>, или сжать его в формат <strong>WAV</strong> путем понижения частоты дискретизации.
+                Приложение автоматически определит тип вашего файла (MP3 или WAV) и предложит соответствующие настройки для сжатия.
             </p>
             <div>
-                <label for="audio-input" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">1. Выберите аудиофайл:</label>
-                <input type="file" id="audio-input" accept="audio/*" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-            </div>
-
-            <div>
-                <label for="format-selector" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">2. Выберите формат вывода:</label>
-                <select id="format-selector" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                    <option value="mp3" selected>MP3 (сжатый)</option>
-                    <option value="wav">WAV (сжатый понижением частоты)</option>
-                </select>
+                <label for="audio-input" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">1. Выберите аудиофайл (MP3 или WAV):</label>
+                <input type="file" id="audio-input" accept=".mp3,.wav,audio/mpeg,audio/wav" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
             </div>
             
-            <div id="bitrate-container">
-                <label for="bitrate-selector" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">3. Качество MP3 (битрейт):</label>
+            <!-- Контейнер для настроек MP3, изначально скрыт -->
+            <div id="bitrate-container" class="hidden">
+                <label for="bitrate-selector" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">2. Настройки сжатия MP3 (битрейт):</label>
                 <select id="bitrate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                     <option value="192">192 kbps (Отличное)</option>
                     <option value="128" selected>128 kbps (Очень хорошее)</option>
@@ -47,10 +38,11 @@ export function getHtml() {
                 </select>
             </div>
             
+            <!-- Контейнер для настроек WAV, изначально скрыт -->
             <div id="wav-options-container" class="hidden">
-                 <label for="wav-samplerate-selector" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">3. Качество WAV (частота):</label>
+                 <label for="wav-samplerate-selector" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">2. Настройки сжатия WAV (частота):</label>
                  <select id="wav-samplerate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                    <option value="44100">44100 Гц (Качество CD, без сжатия)</option>
+                    <option value="44100">44100 Гц (Качество CD)</option>
                     <option value="22050" selected>22050 Гц (Качество FM-радио)</option>
                     <option value="16000">16000 Гц (Качество речи)</option>
                     <option value="8000">8000 Гц (Телефонное качество)</option>
@@ -58,7 +50,7 @@ export function getHtml() {
             </div>
 
             <button id="process-button" disabled class="w-full px-4 py-2 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                Обработать файл
+                Выберите файл для начала
             </button>
 
             <div id="status-message" class="text-center text-gray-700 dark:text-gray-300"></div>
@@ -89,15 +81,14 @@ export function getHtml() {
 // Функция инициализации
 export function init() {
     // Получаем все элементы
-    fileInput = document.getElementById('audio-input');
+    const fileInput = document.getElementById('audio-input');
     processButton = document.getElementById('process-button');
     statusMessage = document.getElementById('status-message');
     audioPlayer = document.getElementById('audio-player');
-    downloadLink = document.getElementById('download-link');
-    originalSizeEl = document.getElementById('original-size');
-    compressedSizeEl = document.getElementById('compressed-size');
+    const downloadLink = document.getElementById('download-link');
+    const originalSizeEl = document.getElementById('original-size');
+    const compressedSizeEl = document.getElementById('compressed-size');
     bitrateSelector = document.getElementById('bitrate-selector');
-    formatSelector = document.getElementById('format-selector');
     bitrateContainer = document.getElementById('bitrate-container');
     wavOptionsContainer = document.getElementById('wav-options-container');
     wavSamplerateSelector = document.getElementById('wav-samplerate-selector');
@@ -107,38 +98,48 @@ export function init() {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    // Обработчик выбора файла
+    // Обработчик выбора файла, который теперь управляет всей логикой UI
     fileInput.addEventListener('change', (event) => {
-        audioFile = event.target.files[0];
-        if (audioFile) {
-            processButton.disabled = false;
-            statusMessage.textContent = `Выбран файл: ${audioFile.name}`;
-            resultContainer.classList.add('hidden');
-        } else {
-            processButton.disabled = true;
+        const file = event.target.files[0];
+        // Сбрасываем UI при каждом новом выборе
+        resultContainer.classList.add('hidden');
+        bitrateContainer.classList.add('hidden');
+        wavOptionsContainer.classList.add('hidden');
+        processButton.disabled = true;
+        
+        if (!file) {
+            audioFile = null;
+            detectedInputFormat = null;
             statusMessage.textContent = '';
+            processButton.textContent = 'Выберите файл для начала';
+            return;
         }
-    });
 
-    // Обработчик смены формата
-    formatSelector.addEventListener('change', (e) => {
-        const selectedFormat = e.target.value;
-        if (selectedFormat === 'mp3') {
+        audioFile = file;
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith('.mp3')) {
+            detectedInputFormat = 'mp3';
+            statusMessage.textContent = `Выбран MP3 файл: ${file.name}`;
             bitrateContainer.classList.remove('hidden');
-            wavOptionsContainer.classList.add('hidden');
             processButton.textContent = 'Сжать в MP3';
-        } else { // wav
-            bitrateContainer.classList.add('hidden');
+            processButton.disabled = false;
+        } else if (fileName.endsWith('.wav')) {
+            detectedInputFormat = 'wav';
+            statusMessage.textContent = `Выбран WAV файл: ${file.name}`;
             wavOptionsContainer.classList.remove('hidden');
             processButton.textContent = 'Сжать в WAV';
+            processButton.disabled = false;
+        } else {
+            detectedInputFormat = null;
+            statusMessage.textContent = 'Ошибка: Поддерживаются только файлы .mp3 и .wav';
+            processButton.textContent = 'Неподдерживаемый формат';
         }
     });
-    // Вызываем событие сразу, чтобы установить правильное начальное состояние
-    formatSelector.dispatchEvent(new Event('change'));
 
     // Основной обработчик нажатия на кнопку
     processButton.addEventListener('click', async () => {
-        if (!audioFile) return;
+        if (!audioFile || !detectedInputFormat) return;
 
         processButton.disabled = true;
         statusMessage.textContent = 'Идет обработка... Это может занять много времени.';
@@ -147,18 +148,16 @@ export function init() {
         try {
             const arrayBuffer = await audioFile.arrayBuffer();
             let audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            const selectedFormat = formatSelector.value;
             
             let outputBlob;
             let outputFileName;
 
-            if (selectedFormat === 'mp3') {
+            if (detectedInputFormat === 'mp3') {
                 const selectedBitrate = parseInt(bitrateSelector.value, 10);
                 outputBlob = await compressToMp3(audioBuffer, selectedBitrate);
                 outputFileName = `compressed_${Date.now()}.mp3`;
-            } else { // wav
+            } else if (detectedInputFormat === 'wav') {
                 const targetSampleRate = parseInt(wavSamplerateSelector.value, 10);
-                // Если целевая частота не ниже исходной, нет смысла пережимать
                 if (targetSampleRate < audioBuffer.sampleRate) {
                     statusMessage.textContent = 'Понижаю частоту для сжатия WAV...';
                     audioBuffer = await resampleAudioBuffer(audioBuffer, targetSampleRate);
@@ -181,33 +180,28 @@ export function init() {
 
         } catch (error) {
             console.error('Ошибка обработки аудио:', error);
-            statusMessage.textContent = `Ошибка: ${error.message}. Возможно, файл поврежден или имеет неподдерживаемый формат.`;
+            statusMessage.textContent = `Ошибка: ${error.message}. Возможно, файл поврежден.`;
         } finally {
             processButton.disabled = false;
         }
     });
 }
 
-// НОВАЯ ФУНКЦИЯ для понижения частоты (resampling)
+// Функция для понижения частоты (resampling)
 function resampleAudioBuffer(audioBuffer, targetSampleRate) {
     return new Promise((resolve, reject) => {
         try {
-            const duration = audioBuffer.duration;
             const offlineContext = new OfflineAudioContext(
                 audioBuffer.numberOfChannels,
-                duration * targetSampleRate,
+                audioBuffer.duration * targetSampleRate,
                 targetSampleRate
             );
-
             const bufferSource = offlineContext.createBufferSource();
             bufferSource.buffer = audioBuffer;
             bufferSource.connect(offlineContext.destination);
             bufferSource.start(0);
-
             offlineContext.startRendering().then(resolve).catch(reject);
-        } catch (e) {
-            reject(e);
-        }
+        } catch (e) { reject(e); }
     });
 }
 
@@ -278,11 +272,11 @@ function bufferToWav(buffer) {
     return new Blob([view], { type: 'audio/wav' });
 }
 
-
 // Функция очистки
 export function cleanup() {
     if (audioPlayer && audioPlayer.src) URL.revokeObjectURL(audioPlayer.src);
     audioFile = null;
+    detectedInputFormat = null;
 }
 
 // Вспомогательная функция форматирования байтов
