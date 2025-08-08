@@ -22,6 +22,7 @@ const appNameToModuleFile = {
     'Конвертер величин': 'unitConverter',
     'Калькулятор дат': 'dateCalculator',
     'Калькулятор ИМТ': 'bmiCalculator',
+    'Сжатие аудио': 'audioCompressor', // ДОБАВЛЕНО
     'История изменений': 'changelogPage',
 };
 
@@ -149,6 +150,17 @@ const homeScreenHtml = `
             <a href="?app=bmiCalculator" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор ИМТ">
                 <div class="w-12 h-12 bg-emerald-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="16" height="16" rx="2" /><circle cx="12" cy="12" r="4" /><line x1="12" y1="12" x2="15" y2="9" /></svg></div>
                 <span class="text-sm font-medium ml-4">Калькулятор ИМТ</span>
+            </a>
+            <!-- НОВОЕ ПРИЛОЖЕНИЕ -->
+            <a href="?app=audioCompressor" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Сжатие аудио">
+                <div class="w-12 h-12 bg-violet-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 19l-4-4H4a2 2 0 01-2-2V7a2 2 0 012-2h4l4-4v18z"/>
+                        <path d="M15 8l6 6"/>
+                        <path d="M21 8l-6 6"/>
+                    </svg>
+                </div>
+                <span class="text-sm font-medium ml-4">Сжатие аудио</span>
             </a>
         </div>
     </div>`;
