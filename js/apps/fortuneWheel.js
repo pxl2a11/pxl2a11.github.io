@@ -76,7 +76,7 @@ export function init() {
     spinSound = document.getElementById('spin-sound');
     winSound = document.getElementById('win-sound');
 
-    let options = ['Приз 1', 'Сектор 2', 'Шанс', 'Попробуй еще', 'Бонус', 'Удача'];
+    let options = ['Приз 1', 'Сектор 2', 'Шанс', 'Победа', 'Бонус', 'Удача'];
     const colorPalettes = {
         default: ['#FFC107', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#E91E63'],
         pastel: ['#fec5bb', '#fcd5ce', '#fae1dd', '#f8edeb', '#e8e8e4', '#d8e2dc'],
