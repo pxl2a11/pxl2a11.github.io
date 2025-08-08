@@ -61,6 +61,30 @@ export function init() {
             <input type="email" id="qr-vcard-email" placeholder="Email" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600">`
     };
 
+    /**
+     * НОВАЯ ФУНКЦИЯ: Кодирует строку в UTF-8 для поддержки кириллицы
+     * @param {string} str - Входная строка
+     * @returns {string} - Строка в формате UTF-8
+     */
+    function toUtf8(str) {
+        let utftext = "";
+        str = str.replace(/\r\n/g, "\n");
+        for (let n = 0; n < str.length; n++) {
+            let c = str.charCodeAt(n);
+            if (c < 128) {
+                utftext += String.fromCharCode(c);
+            } else if ((c > 127) && (c < 2048)) {
+                utftext += String.fromCharCode((c >> 6) | 192);
+                utftext += String.fromCharCode((c & 63) | 128);
+            } else {
+                utftext += String.fromCharCode((c >> 12) | 224);
+                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+        }
+        return utftext;
+    }
+
     function updateInputs(template) {
         inputContainer.innerHTML = templates[template];
     }
@@ -95,7 +119,8 @@ export function init() {
             downloadBtn.classList.add('hidden');
             try {
                 new QRCode(display, {
-                    text: text,
+                    // ИЗМЕНЕНО: Текст предварительно кодируется в UTF-8
+                    text: toUtf8(text),
                     width: 208,
                     height: 208,
                     colorDark: colorDark,
