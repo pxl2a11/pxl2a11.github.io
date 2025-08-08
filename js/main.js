@@ -29,20 +29,21 @@ async function loadApp(appName) {
 
     // Особая обработка для "страницы" истории изменений
     if (appName === 'changelogPage') {
-        contentArea.innerHTML = ''; // Очищаем 'Загрузка...'
-        renderChangelog(null, null, contentArea); // Рендерим все записи без лимита
+        contentArea.innerHTML = ''; 
+        renderChangelog(null, null, contentArea);
         return;
     }
 
     try {
-        const module = await import(`../apps/${appName}.js`);
+        // --- КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Путь теперь абсолютный от корня сайта ---
+        const module = await import(`/apps/${appName}.js`);
+        
         contentArea.innerHTML = module.getHtml();
         if (typeof module.init === 'function') {
             module.init();
         }
         currentAppCleanup = module.cleanup || (() => {});
         
-        // Рендерим историю изменений для текущего приложения
         const appData = getAppList().find(app => app.module === appName);
         if (appData) {
             const appHistoryEl = document.createElement('div');
@@ -52,8 +53,9 @@ async function loadApp(appName) {
             renderChangelog(appData.name, null, appHistoryEl);
         }
     } catch (error) {
-        console.error(`Ошибка загрузки модуля ${appName}:`, error);
-        contentArea.innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение '${appName}'. Проверьте консоль.</p>`;
+        // Улучшенное сообщение об ошибке для отладки
+        console.error(`Ошибка загрузки модуля '${appName}'. Запрашиваемый путь: /apps/${appName}.js`, error);
+        contentArea.innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение '${appName}'.<br>Убедитесь, что файл <span class="font-mono">/apps/${appName}.js</span> существует.<br>Откройте консоль (F12) для подробностей.</p>`;
     }
 }
 
@@ -65,7 +67,9 @@ function showAppList() {
         currentAppCleanup();
     }
     currentAppCleanup = () => {};
-    history.pushState({ page: 'home' }, 'Mini Apps', window.location.pathname);
+    // Устанавливаем базовый URL без параметров
+    const cleanPath = window.location.pathname;
+    history.pushState({ page: 'home' }, 'Mini Apps', cleanPath);
     
     const apps = getAppList();
     const appLinksHtml = apps.map(app => `
@@ -97,7 +101,6 @@ document.body.addEventListener('click', (e) => {
     const appName = link.dataset.appName;
     if (appName) {
         e.preventDefault();
-        // ИСПРАВЛЕННАЯ СТРОКА С ПРАВИЛЬНЫМ СИНТАКСИСОМ
         history.pushState({ app: appName }, `App - ${appName}`, `?app=${appName}`);
         loadApp(appName);
     } else if (link.id === 'home-link') {
