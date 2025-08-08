@@ -46,7 +46,7 @@ export function init() {
     const inputContainer = document.getElementById('qr-input-container');
 
     const templates = {
-        text: `<textarea id="qr-text" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" rows="3" placeholder="https://example.com"></textarea>`,
+        text: `<textarea id="qr-text" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" rows="3" placeholder="https://example.com или любой текст"></textarea>`,
         wifi: `
             <input type="text" id="qr-wifi-ssid" placeholder="Название сети (SSID)" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 mb-2">
             <input type="password" id="qr-wifi-pass" placeholder="Пароль" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 mb-2">
@@ -63,6 +63,13 @@ export function init() {
 
     function updateInputs(template) {
         inputContainer.innerHTML = templates[template];
+        // Добавим автоматическое заполнение поля для текста для удобства
+        if (template === 'text') {
+            const qrText = document.getElementById('qr-text');
+            if (qrText) {
+                qrText.value = 'Привет, мир!';
+            }
+        }
     }
 
     function generateQRCode() {
@@ -95,6 +102,7 @@ export function init() {
             downloadBtn.classList.add('hidden');
             try {
                 new QRCode(display, {
+                    // ИСПРАВЛЕНО: передаем текст напрямую, без ручного кодирования
                     text: text,
                     width: 208,
                     height: 208,
@@ -102,25 +110,38 @@ export function init() {
                     colorLight: colorLight,
                     correctLevel: QRCode.CorrectLevel.H
                 });
+                
+                // Небольшая задержка, чтобы canvas успел отрисоваться перед созданием ссылки
                 setTimeout(() => {
                     const canvas = display.querySelector('canvas');
-                    if (canvas) {
-                        downloadBtn.href = canvas.toDataURL();
+                    const img = display.querySelector('img');
+
+                    if (canvas) { // Для стандартного рендеринга
+                        downloadBtn.href = canvas.toDataURL('image/png');
+                        downloadBtn.classList.remove('hidden');
+                    } else if (img) { // Для старых браузеров или SVG рендеринга
+                        downloadBtn.href = img.src;
                         downloadBtn.classList.remove('hidden');
                     }
                 }, 100);
+
             } catch (e) {
                 console.error(e);
-                display.innerHTML = '<span class="text-red-500">Ошибка при создании QR-кода.</span>';
+                display.innerHTML = '<span class="text-red-500 text-center">Ошибка при создании QR-кода. Возможно, данных слишком много.</span>';
             }
+        } else {
+            display.innerHTML = '<span class="text-gray-400">Введите данные для генерации.</span>';
+            downloadBtn.classList.add('hidden');
         }
     }
 
     templateSelect.addEventListener('change', (e) => updateInputs(e.target.value));
     generateBtn.addEventListener('click', generateQRCode);
     
-    // Initial setup
+    // Первоначальная настройка полей ввода
     updateInputs('text');
 }
 
-export function cleanup() {}
+export function cleanup() {
+    // Здесь можно сбрасывать состояние, если это необходимо
+}
