@@ -1,9 +1,10 @@
+// js/apps/fortuneWheel.js
+
 let spinTimeout;
 let spinSound, winSound;
-let isAudioUnlocked = false; // Флаг для отслеживания "разблокировки" звука
+let isAudioUnlocked = false;
 
 export function getHtml() {
-    // --- ИСПРАВЛЕНИЕ: Добавлены недостающие `}` и ``` в конце строки ---
     return `
         <style>
             #options-list::-webkit-scrollbar { display: none; }
@@ -11,8 +12,9 @@ export function getHtml() {
         </style>
 
         <div class="p-4 flex flex-col items-center">
-             <audio id="spin-sound" src="https://actions.google.com/sounds/v1/games/spin_wheel.ogg" preload="auto"></audio>
-             <audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" preload="auto"></audio>
+             <!-- ИЗМЕНЕНО: Источники звуков теперь локальные -->
+             <audio id="spin-sound" src="sounds/wheel-spinning.wav" preload="auto"></audio>
+             <audio id="win-sound" src="sounds/wheel-winner.wav" preload="auto"></audio>
 
             <canvas id="wheel-canvas" width="350" height="350" class="mb-4 rounded-full shadow-lg"></canvas>
             
@@ -133,12 +135,6 @@ export function init() {
             const angle = startAngle + i * arc;
 
             ctx.fillStyle = colors[i % colors.length];
-            ctx.beginPath();
-            ctx.arc(R, R, R - 5, angle, angle + arc, false);
-            ctx.lineTo(R, R);
-            ctx.fill();
-
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.beginPath();
             ctx.arc(R, R, R - 5, angle, angle + arc, false);
             ctx.lineTo(R, R);
