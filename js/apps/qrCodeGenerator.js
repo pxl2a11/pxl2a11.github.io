@@ -1,140 +1,175 @@
-export function getHtml() {
+// --- Глобальные переменные для модуля, чтобы обеспечить их очистку ---
+let generateBtn, qrTextInput;
+const QRCODE_LIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js';
+let abortController;
+
+
+/**
+ * Динамически загружает внешний скрипт и возвращает Promise.
+ * @param {string} src - URL скрипта для загрузки.
+ * @returns {Promise<void>}
+ */
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        // Проверяем, не был ли скрипт уже загружен
+        if (document.querySelector(`script[src="${src}"]`)) {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Не удалось загрузить скрипт: ${src}`));
+        document.head.appendChild(script);
+    });
+}
+
+
+/**
+ * Возвращает HTML-структуру для интерфейса генератора QR-кодов.
+ * @returns {string} HTML-разметка.
+ */
+function getHtml() {
     return `
-        <div class="p-4 flex flex-col items-center space-y-4">
-            <div id="qrcode-display" class="w-56 h-56 bg-white p-2 rounded-lg shadow-inner flex items-center justify-center">
-                <span class="text-gray-400">Здесь появится QR-код</span>
+        <div class="max-w-lg mx-auto space-y-5 p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-xl">
+            <!-- Поле для ввода данных -->
+            <div>
+                <label for="qr-text" class="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1.5">
+                    Текст, ссылка или данные для QR-кода:
+                </label>
+                <textarea id="qr-text" rows="4" class="w-full p-2.5 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Например: https://www.google.com"></textarea>
             </div>
 
-            <div class="w-full space-y-3">
-                <div>
-                    <label for="qr-template-select" class="text-sm font-medium">Шаблон данных</label>
-                    <select id="qr-template-select" class="w-full mt-1 p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600">
-                        <option value="text">Текст/Ссылка</option>
-                        <option value="wifi">Wi-Fi</option>
-                        <option value="vcard">vCard (Контакт)</option>
-                    </select>
-                </div>
-
-                <div id="qr-input-container">
-                    <!-- Поля будут добавляться динамически -->
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="qr-color-dark" class="text-sm font-medium">Цвет QR</label>
-                        <input type="color" id="qr-color-dark" value="#000000" class="w-full h-10 mt-1 p-1 rounded-lg border dark:bg-gray-700 dark:border-gray-600">
-                    </div>
-                    <div>
-                        <label for="qr-color-light" class="text-sm font-medium">Цвет фона</label>
-                        <input type="color" id="qr-color-light" value="#ffffff" class="w-full h-10 mt-1 p-1 rounded-lg border dark:bg-gray-700 dark:border-gray-600">
-                    </div>
-                </div>
+            <!-- Настройки кастомизации -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
+                 <div>
+                    <label for="qr-size" class="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1.5">Размер</label>
+                    <input type="number" id="qr-size" value="256" min="64" max="1024" step="16" class="w-full p-2.5 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                 </div>
+                 <div>
+                    <label for="qr-color-dark" class="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1.5">Цвет</label>
+                    <input type="color" id="qr-color-dark" value="#000000" class="w-full h-11 p-1 border rounded-xl bg-gray-50 dark:bg-gray-700 cursor-pointer">
+                 </div>
+                 <div>
+                    <label for="qr-color-light" class="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1.5">Фон</label>
+                    <input type="color" id="qr-color-light" value="#ffffff" class="w-full h-11 p-1 border rounded-xl bg-gray-50 dark:bg-gray-700 cursor-pointer">
+                 </div>
+                 <div class="col-span-2 sm:col-span-1">
+                    <button id="generate-qr-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors h-11 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">
+                        Создать
+                    </button>
+                 </div>
             </div>
 
-            <div class="w-full flex flex-col sm:flex-row gap-2">
-                <button id="generate-qr-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600">Сгенерировать</button>
-                <a id="download-qr-btn" class="w-full bg-green-500 text-white font-bold py-3 px-6 rounded-full hover:bg-green-600 text-center hidden" download="qrcode.png">Скачать</a>
+            <!-- Контейнер для вывода QR-кода -->
+            <div id="qr-code-container" class="mt-4 flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl min-h-[256px] bg-gray-50 dark:bg-gray-900/50 transition">
+                 <p class="text-gray-500 dark:text-gray-400 text-center">Здесь появится ваш QR-код</p>
             </div>
-        </div>`;
+
+            <!-- Кнопка скачивания -->
+            <a id="download-qr-btn" class="hidden w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors mt-2" download="qrcode.png">
+                Скачать PNG
+            </a>
+        </div>
+    `;
 }
 
-export function init() {
-    const generateBtn = document.getElementById('generate-qr-btn');
-    const display = document.getElementById('qrcode-display');
-    const downloadBtn = document.getElementById('download-qr-btn');
-    const templateSelect = document.getElementById('qr-template-select');
-    const inputContainer = document.getElementById('qr-input-container');
+/**
+ * Основная функция для генерации QR-кода на основе данных из полей ввода.
+ */
+const handleGenerateQr = async () => {
+    const text = document.getElementById('qr-text').value;
+    const size = parseInt(document.getElementById('qr-size').value, 10) || 256;
+    const colorDark = document.getElementById('qr-color-dark').value;
+    const colorLight = document.getElementById('qr-color-light').value;
+    const container = document.getElementById('qr-code-container');
+    const downloadLink = document.getElementById('download-qr-btn');
 
-    const templates = {
-        text: `<textarea id="qr-text" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" rows="3" placeholder="https://example.com или любой текст"></textarea>`,
-        wifi: `
-            <input type="text" id="qr-wifi-ssid" placeholder="Название сети (SSID)" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 mb-2">
-            <input type="password" id="qr-wifi-pass" placeholder="Пароль" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 mb-2">
-            <select id="qr-wifi-enc" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600">
-                <option value="WPA">WPA/WPA2</option>
-                <option value="WEP">WEP</option>
-                <option value="nopass">Без пароля</option>
-            </select>`,
-        vcard: `
-            <input type="text" id="qr-vcard-name" placeholder="Имя Фамилия" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 mb-2">
-            <input type="tel" id="qr-vcard-tel" placeholder="Телефон" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 mb-2">
-            <input type="email" id="qr-vcard-email" placeholder="Email" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600">`
-    };
-
-    function updateInputs(template) {
-        inputContainer.innerHTML = templates[template];
+    // Проверка наличия текста
+    if (!text.trim()) {
+        container.innerHTML = `<p class="text-red-500">Пожалуйста, введите текст или ссылку.</p>`;
+        downloadLink.classList.add('hidden');
+        return;
     }
 
-    function generateQRCode() {
-        let text = '';
-        const selectedTemplate = templateSelect.value;
-        const colorDark = document.getElementById('qr-color-dark').value;
-        const colorLight = document.getElementById('qr-color-light').value;
-
-        if (selectedTemplate === 'text') {
-            text = document.getElementById('qr-text').value.trim();
-        } else if (selectedTemplate === 'wifi') {
-            const ssid = document.getElementById('qr-wifi-ssid').value.trim();
-            const pass = document.getElementById('qr-wifi-pass').value;
-            const enc = document.getElementById('qr-wifi-enc').value;
-            if (ssid) text = `WIFI:T:${enc};S:${ssid};P:${pass};;`;
-        } else if (selectedTemplate === 'vcard') {
-            const name = document.getElementById('qr-vcard-name').value.trim();
-            const tel = document.getElementById('qr-vcard-tel').value.trim();
-            const email = document.getElementById('qr-vcard-email').value.trim();
-            if (name) {
-                text = `BEGIN:VCARD\nVERSION:3.0\nN:${name}\n`;
-                if (tel) text += `TEL:${tel}\n`;
-                if (email) text += `EMAIL:${email}\n`;
-                text += `END:VCARD`;
-            }
-        }
-
-        if (text) {
-            display.innerHTML = '';
-            downloadBtn.classList.add('hidden');
-            try {
-                new QRCode(display, {
-                    text: text,
-                    width: 208,
-                    height: 208,
-                    colorDark: colorDark,
-                    colorLight: colorLight,
-                    // ИЗМЕНЕНО: Уровень коррекции ошибок установлен на L (Low),
-                    // чтобы максимизировать доступное место для данных.
-                    correctLevel: QRCode.CorrectLevel.L
-                });
-                
-                setTimeout(() => {
-                    const canvas = display.querySelector('canvas');
-                    const img = display.querySelector('img');
-
-                    if (canvas) {
-                        downloadBtn.href = canvas.toDataURL('image/png');
-                        downloadBtn.classList.remove('hidden');
-                    } else if (img) { 
-                        downloadBtn.href = img.src;
-                        downloadBtn.classList.remove('hidden');
-                    }
-                }, 100);
-
-            } catch (e) {
-                console.error(e);
-                // Улучшенное сообщение об ошибке для пользователя
-                display.innerHTML = '<span class="text-red-500 text-center p-2"><b>Ошибка:</b> слишком много данных. Попробуйте сократить вводимый текст.</span>';
-            }
-        } else {
-            display.innerHTML = '<span class="text-gray-400">Введите данные для генерации.</span>';
-            downloadBtn.classList.add('hidden');
-        }
-    }
-
-    templateSelect.addEventListener('change', (e) => updateInputs(e.target.value));
-    generateBtn.addEventListener('click', generateQRCode);
+    container.innerHTML = '<div class="w-8 h-8 border-4 border-dashed rounded-full animate-spin border-green-500"></div>'; // Индикатор загрузки
     
-    updateInputs('text');
+    // Создаем canvas для отрисовки
+    const canvas = document.createElement('canvas');
+
+    try {
+        // Используем библиотеку для отрисовки QR-кода на canvas
+        await QRCode.toCanvas(canvas, text, {
+            width: size,
+            margin: 2,
+            color: {
+                dark: colorDark,
+                light: colorLight
+            },
+            errorCorrectionLevel: 'H' // Высокий уровень коррекции ошибок
+        });
+        
+        container.innerHTML = ''; // Очищаем контейнер
+        container.appendChild(canvas);
+
+        // Обновляем ссылку для скачивания
+        const dataUrl = canvas.toDataURL('image/png');
+        downloadLink.href = dataUrl;
+        downloadLink.classList.remove('hidden');
+
+    } catch (err) {
+        console.error('Ошибка генерации QR-кода:', err);
+        container.innerHTML = `<p class="text-red-500 text-center">Не удалось сгенерировать QR-код. <br> Возможно, текст слишком длинный.</p>`;
+        downloadLink.classList.add('hidden');
+    }
+};
+
+
+/**
+ * Инициализирует приложение: загружает скрипты и назначает обработчики событий.
+ */
+async function init() {
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    // 1. Загружаем внешнюю библиотеку для генерации QR-кодов
+    try {
+        await loadScript(QRCODE_LIB_URL);
+    } catch (error) {
+        console.error(error);
+        const container = document.getElementById('qr-code-container');
+        if (container) {
+            container.innerHTML = 
+            `<p class="text-center text-red-500">Не удалось загрузить библиотеку для генерации QR-кодов. Проверьте подключение к интернету.</p>`;
+        }
+        return;
+    }
+
+    // 2. Находим ключевые элементы в DOM
+    generateBtn = document.getElementById('generate-qr-btn');
+    qrTextInput = document.getElementById('qr-text');
+
+    if (!generateBtn || !qrTextInput) return;
+
+    // 3. Назначаем обработчики событий
+    generateBtn.addEventListener('click', handleGenerateQr, { signal });
+    
+    // 4. Генерируем QR-код с текстом по умолчанию для наглядности
+    if (typeof QRCode !== 'undefined') {
+        qrTextInput.value = 'Привет от Mini Apps!';
+        handleGenerateQr();
+    }
 }
 
-export function cleanup() {
-    // Эта функция остается пустой, если нет специфичной логики очистки
+/**
+ * Очищает ресурсы, удаляя обработчики событий.
+ */
+function cleanup() {
+    if (abortController) {
+        abortController.abort(); // Отменяем все назначенные обработчики
+    }
+    console.log("Генератор QR-кодов: очистка завершена.");
 }
+
+// --- Экспортируем публичные функции модуля ---
+export { getHtml, init, cleanup };
