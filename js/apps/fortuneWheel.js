@@ -4,12 +4,6 @@ let isAudioUnlocked = false; // Флаг для отслеживания "раз
 
 export function getHtml() {
     return `
-        {/* --- РЕШЕНИЕ: Стиль для скрытия полосы прокрутки --- */}
-        <style>
-            #options-list::-webkit-scrollbar { display: none; }
-            #options-list { -ms-overflow-style: none; scrollbar-width: none; }
-        </style>
-
         <div class="p-4 flex flex-col items-center">
              <audio id="spin-sound" src="https://actions.google.com/sounds/v1/games/spin_wheel.ogg" preload="auto"></audio>
              <audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" preload="auto"></audio>
@@ -27,8 +21,8 @@ export function getHtml() {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <div class="w-full p-3 bg-gray-100 dark:bg-gray-800 rounded-lg space-y-2">
                     <h4 class="text-center font-semibold text-sm mb-1">Варианты</h4>
-                    {/* --- РЕШЕНИЕ: Убрана полоса прокрутки --- */}
-                    <div id="options-list" class="space-y-1.5 pr-1 max-h-40 overflow-y-auto"></div>
+                    {/* --- РЕШЕНИЕ: Убраны классы max-h-40 и overflow-y-auto --- */}
+                    <div id="options-list" class="space-y-1.5 pr-1"></div>
                     <div class="flex gap-2 pt-1">
                         <input id="option-input" type="text" placeholder="Добавить..." class="flex-grow p-1.5 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-sm">
                         <button id="add-option-btn" class="bg-green-500 text-white px-3 rounded-lg hover:bg-green-600 text-lg font-bold">+</button>
@@ -87,6 +81,62 @@ export function init() {
     let colors = colorPalettes.default;
     let startAngle = 0, arc, spinAngleStart, spinTime = 0, spinTimeTotal = 0;
 
+    // --- РЕШЕНИЕ: Функция для рисования текста вдоль дуги ---
+    function drawTextAlongArc(ctx, str, centerX, centerY, radius, angle) {
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle);
+        
+        let currentAngle = 0;
+        for (let i = 0; i < str.length; i++) {
+            // Поворачиваем для каждой буквы
+            ctx.rotate(currentAngle);
+            ctx.save();
+            // Смещаемся по радиусу
+            ctx.translate(0, -radius);
+            ctx.fillText(str[i], 0, 0);
+            ctx.restore();
+            // Сбрасываем поворот, чтобы измерить следующую букву
+            ctx.rotate(-currentAngle);
+            
+            // Вычисляем угол для следующей буквы
+            const charWidth = ctx.measureText(str[i]).width;
+            currentAngle += charWidth / radius;
+        }
+        ctx.restore();
+    }
+    
+    // --- РЕШЕНИЕ: Альтернативная, более простая функция для рисования текста вдоль дуги ---
+    function drawCurvedText(ctx, text, centerX, centerY, radius, centerAngle) {
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        // Вычисляем общую угловую ширину текста
+        const textWidth = ctx.measureText(text).width;
+        const totalAngle = textWidth / radius;
+        
+        // Начальный угол для центрирования текста
+        let currentAngle = centerAngle - totalAngle / 2;
+        
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const charWidth = ctx.measureText(char).width;
+            const charAngle = charWidth / radius;
+            
+            const drawAngle = currentAngle + charAngle / 2;
+
+            ctx.save();
+            ctx.rotate(drawAngle);
+            ctx.translate(0, -radius); // Смещаемся по радиусу
+            ctx.rotate(Math.PI / 2); // Поворачиваем букву, чтобы она стояла прямо
+            ctx.fillText(char, 0, 0);
+            ctx.restore();
+
+            currentAngle += charAngle;
+        }
+        ctx.restore();
+    }
+
+
     const getSavedLists = () => JSON.parse(localStorage.getItem('fortuneWheelLists')) || {};
     const populateSavedLists = () => {
         const lists = getSavedLists();
@@ -125,30 +175,26 @@ export function init() {
 
     function drawWheel() {
         const R = canvas.width / 2; // Radius
-        const R_outer = R - 5; // Внешний радиус всего колеса
-        const R_inner = R * 0.7; // Внутренний радиус для цветных секторов
+        const R_outer = R - 5; 
+        const R_inner = R * 0.7;
 
         arc = options.length > 0 ? Math.PI / (options.length / 2) : 0;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // --- РЕШЕНИЕ: Рисуем сплошное темное кольцо для фона текста ---
-        ctx.fillStyle = '#1F2937'; // Dark Gray
+        ctx.fillStyle = '#1F2937';
         ctx.beginPath();
-        ctx.arc(R, R, R_outer, 0, Math.PI * 2, false);
-        ctx.arc(R, R, R_inner, 0, Math.PI * 2, true);
+        ctx.arc(R, R, R_outer, 0, Math.PI * 2);
         ctx.fill();
 
-        // Рисуем цветные сектора внутри кольца
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
             ctx.fillStyle = colors[i % colors.length];
             ctx.beginPath();
             ctx.arc(R, R, R_inner, angle, angle + arc, false);
-            ctx.lineTo(R, R); // замыкаем сектор в центре
+            ctx.lineTo(R, R);
             ctx.fill();
         }
 
-        // Рисуем текст на темном кольце
         ctx.save();
         ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
@@ -158,18 +204,14 @@ export function init() {
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
             const text = options[i];
-            const textRadius = (R_outer + R_inner) / 2; // Позиция текста между кольцами
+            const textRadius = (R_outer + R_inner) / 2;
             
-            ctx.save();
-            ctx.translate(R + Math.cos(angle + arc / 2) * textRadius, R + Math.sin(angle + arc / 2) * textRadius);
-            ctx.rotate(angle + arc / 2 + Math.PI / 2);
-            ctx.fillText(text, 0, 0);
-            ctx.restore();
+            // --- РЕШЕНИЕ: Используем новую функцию для рисования изогнутого текста ---
+            drawCurvedText(ctx, text, R, R, textRadius, angle + arc / 2);
         }
         ctx.restore();
         
-        // Рисуем указатель
-        ctx.fillStyle = '#111827'; // Almost black
+        ctx.fillStyle = '#111827';
         ctx.beginPath();
         ctx.moveTo(R - 8, 2);
         ctx.lineTo(R + 8, 2);
