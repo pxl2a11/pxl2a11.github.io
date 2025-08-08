@@ -3,10 +3,8 @@
 import { renderChangelog } from './utils/changelog.js';
 import { getAppList } from './utils/appList.js';
 
-// --- ГЛАВНЫЙ КОНТЕЙНЕР И ЭЛЕМЕНТЫ UI ---
+// --- Глобальные переменные и элементы UI ---
 const contentArea = document.getElementById('dynamic-content-area');
-const searchInput = document.getElementById('search-input');
-const suggestionsContainer = document.getElementById('suggestions-container');
 const changelogContainer = document.getElementById('changelog-container');
 const themeToggle = document.getElementById('theme-toggle');
 const sunIcon = document.getElementById('sun-icon');
@@ -14,24 +12,40 @@ const moonIcon = document.getElementById('moon-icon');
 
 let currentAppCleanup = () => {};
 
-// --- РОУТИНГ И ЗАГРУЗКА ПРИЛОЖЕНИЙ ---
+// --- ОСНОВНЫЕ ФУНКЦИИ ---
 
+/**
+ * Очищает предыдущее приложение и загружает новое.
+ * @param {string} appName - Имя модуля приложения (например, 'stopwatch').
+ */
 async function loadApp(appName) {
+    // 1. Выполняем функцию очистки от предыдущего приложения, если она есть
     if (typeof currentAppCleanup === 'function') {
         currentAppCleanup();
     }
     currentAppCleanup = () => {};
+    contentArea.innerHTML = '<p class="text-center text-xl animate-pulse">Загрузка...</p>';
+    window.scrollTo(0, 0);
 
-    contentArea.innerHTML = '<p class="text-center text-xl">Загрузка...</p>';
-    
+    // 2. ***ВАЖНО: Особая обработка для страницы "История изменений"***
+    if (appName === 'changelogPage') {
+        // Это не обычное приложение, просто рендерим весь список изменений
+        contentArea.innerHTML = ''; // Очищаем "Загрузка..."
+        renderChangelog(null, null, contentArea); // Рендерим все без лимита
+        return; // Завершаем выполнение функции
+    }
+
+    // 3. Загружаем стандартное приложение
     try {
         const module = await import(`../apps/${appName}.js`);
         contentArea.innerHTML = module.getHtml();
         if (typeof module.init === 'function') {
             module.init();
         }
+        // Сохраняем новую функцию очистки
         currentAppCleanup = module.cleanup || (() => {});
         
+        // Рендерим историю изменений для конкретного приложения
         const appData = getAppList().find(app => app.module === appName);
         if (appData) {
             const appHistoryEl = document.createElement('div');
@@ -43,13 +57,13 @@ async function loadApp(appName) {
 
     } catch (error) {
         console.error(`Ошибка загрузки модуля ${appName}:`, error);
-        contentArea.innerHTML = '<p class="text-center text-red-500">Не удалось загрузить приложение.</p>';
-        showAppList();
+        contentArea.innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение '${appName}'.</p>`;
     }
 }
 
-// --- СПИСОК ПРИЛОЖЕНИЙ (ГЛАВНАЯ СТРАНИЦА) ---
-
+/**
+ * Отображает главный экран со списком всех приложений.
+ */
 function showAppList() {
     if (typeof currentAppCleanup === 'function') {
         currentAppCleanup();
@@ -73,24 +87,38 @@ function showAppList() {
 
 // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
 
+/**
+ * Единый обработчик кликов для навигации по сайту.
+ */
 document.body.addEventListener('click', (e) => {
     const link = e.target.closest('a');
-    
-    if (link && link.dataset.appName) {
+
+    // Клик по кнопке "Показать ещё" в истории изменений
+    if (e.target.id === 'show-all-changelog-btn') {
         e.preventDefault();
-        const appName = link.dataset.appName;
-        history.pushState({ app: appName }, `App - ${appName}`, `?app=${appName}`);
-        loadApp(appName);
-        window.scrollTo(0, 0); // Прокрутка вверх при смене приложения
+        renderChangelog(null, null, changelogContainer); // Рендер без лимита
         return;
     }
 
-    if (e.target.id === 'show-all-changelog-btn') {
+    if (!link) return; // Если клик был не по ссылке, выходим
+
+    // Клик по ссылке с data-app-name (карточка приложения или ссылка в истории)
+    const appName = link.dataset.appName;
+    if (appName) {
+        e.preventDefault(); // Отменяем стандартный переход по ссылке
+        // Обновляем историю браузера для SPA
+        history.pushState({ app: appName }, `App - ${appName}`, `?app=${appName}`);
+        loadApp(appName);
+    } else if (link.id === 'home-link') {
+        // Клик по главной ссылке "Mini Apps"
         e.preventDefault();
-        renderChangelog(null, null, changelogContainer);
+        showAppList();
     }
 });
 
+/**
+ * Обработка кнопок "вперед/назад" в браузере.
+ */
 window.addEventListener('popstate', (e) => {
     if (e.state && e.state.app) {
         loadApp(e.state.app);
@@ -99,15 +127,9 @@ window.addEventListener('popstate', (e) => {
     }
 });
 
-// --- ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ ---
-if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.documentElement.classList.add('dark');
-    sunIcon.classList.add('hidden');
-    moonIcon.classList.remove('hidden');
-} else {
-    document.documentElement.classList.remove('dark');
-}
-
+/**
+ * Переключатель темы.
+ */
 themeToggle.addEventListener('click', () => {
     const isDark = document.documentElement.classList.toggle('dark');
     localStorage.theme = isDark ? 'dark' : 'light';
@@ -115,8 +137,20 @@ themeToggle.addEventListener('click', () => {
     moonIcon.classList.toggle('hidden', !isDark);
 });
 
-// --- ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ---
+// --- ИНИЦИАЛИЗАЦИЯ ---
+
+/**
+ * Первоначальная настройка при загрузке страницы.
+ */
 function init() {
+    // Установка темы
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+    }
+
+    // Определяем, что загружать: главную страницу или конкретное приложение
     const urlParams = new URLSearchParams(window.location.search);
     const appParam = urlParams.get('app');
     const appExists = getAppList().some(app => app.module === appParam);
@@ -127,7 +161,11 @@ function init() {
         showAppList();
     }
 
+    // Рендерим нижний блок истории изменений с лимитом
     renderChangelog(null, 10, changelogContainer);
 }
 
-init();
+// Запускаем всё!
+init();```
+
+После замены этого файла всё должно заработать как положено. Приложения будут открываться, а навигация — работать корректно. Ещё раз приношу извинения за допущенную ошибку.
