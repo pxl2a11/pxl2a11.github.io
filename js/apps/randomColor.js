@@ -1,32 +1,62 @@
 export function getHtml() {
     return `
-        <div class="p-3 flex flex-col items-center space-y-4 w-full max-w-xs">
-            {/* Блок отображения цвета теперь содержит текстовую информацию */}
-            <div id="color-display" class="relative w-40 h-40 rounded-2xl shadow-lg transition-colors duration-300 border-4 border-gray-200 dark:border-gray-700 flex items-center justify-center text-white" style="background-color: #ffffff;">
-                <div class="p-3 text-center bg-black bg-opacity-50 rounded-lg">
-                    <p id="color-code-hex" class="text-xl font-mono">#ffffff</p>
-                    <p id="color-code-rgb" class="text-sm font-mono text-gray-300">rgb(255, 255, 255)</p>
-                    <p id="color-code-hsl" class="text-sm font-mono text-gray-300">hsl(0, 0%, 100%)</p>
-                </div>
-            </div>
+        {/* Внешний контейнер для центрирования всего компонента на странице */}
+        <div class="min-h-screen w-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
             
-            <button id="generate-color-btn" class="w-full bg-blue-500 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-600">Новый цвет</button>
-            
-            {/* Палитры */}
-            <div id="palettes-container" class="w-full space-y-3 pt-3 border-t border-gray-300 dark:border-gray-700">
-                <div>
-                    <h4 class="text-center font-semibold mb-2">Комплементарная палитра</h4>
-                    <div id="complementary-palette" class="flex justify-center gap-2"></div>
+            <div class="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 flex flex-col md:flex-row gap-8">
+                
+                {/* Левая часть: Отображение цвета */}
+                <div class="flex-shrink-0 flex flex-col items-center gap-6">
+                    <div id="color-display" class="w-56 h-56 rounded-2xl shadow-lg transition-colors duration-300 border-4 border-gray-200 dark:border-gray-700"></div>
+                    <button id="generate-color-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600 transition-transform transform hover:scale-105">
+                        Новый цвет
+                    </button>
                 </div>
-                <div>
-                    <h4 class="text-center font-semibold mb-2">Аналоговая палитра</h4>
-                    <div id="analogous-palette" class="flex justify-center gap-2"></div>
+
+                {/* Правая часть: Информация и палитры */}
+                <div class="flex-grow flex flex-col space-y-5">
+                    
+                    {/* Блок с кодами цветов */}
+                    <div class="space-y-3">
+                        <h3 class="text-xl font-semibold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">Коды цвета</h3>
+                        <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                            <span id="color-code-hex" class="text-lg font-mono text-gray-900 dark:text-gray-200">#ffffff</span>
+                            <button id="copy-hex" title="Скопировать" class="p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                            <span id="color-code-rgb" class="text-lg font-mono text-gray-900 dark:text-gray-200">rgb(255, 255, 255)</span>
+                             <button id="copy-rgb" title="Скопировать" class="p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                            <span id="color-code-hsl" class="text-lg font-mono text-gray-900 dark:text-gray-200">hsl(0, 0%, 100%)</span>
+                             <button id="copy-hsl" title="Скопировать" class="p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Палитры */}
+                    <div id="palettes-container" class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div>
+                            <h4 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Комплементарная палитра</h4>
+                            <div id="complementary-palette" class="flex gap-3"></div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Аналоговая палитра</h4>
+                            <div id="analogous-palette" class="flex gap-3"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>`;
 }
 
 export function init() {
+    // --- Получение элементов ---
     const display = document.getElementById('color-display');
     const codeHex = document.getElementById('color-code-hex');
     const codeRgb = document.getElementById('color-code-rgb');
@@ -89,10 +119,9 @@ export function init() {
         el.innerHTML = '';
         colors.forEach(color => {
             const swatch = document.createElement('div');
-            // Уменьшаем размер плашек в палитре
-            swatch.className = 'w-10 h-10 rounded-md shadow-inner cursor-pointer';
+            swatch.className = 'w-12 h-12 rounded-lg shadow-inner cursor-pointer border-2 border-gray-200 dark:border-gray-700';
             swatch.style.backgroundColor = color;
-            swatch.title = color;
+            swatch.title = `Нажмите, чтобы выбрать ${color}`;
             swatch.onclick = () => generateColor(color);
             el.appendChild(swatch);
         });
@@ -101,17 +130,14 @@ export function init() {
     const generateColor = (baseHex = null) => {
         const randomColor = baseHex || '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
         
-        // Обновляем основной цвет
         display.style.backgroundColor = randomColor;
         codeHex.textContent = randomColor;
 
-        // Конвертируем и обновляем RGB/HSL
         const rgb = hexToRgb(randomColor);
         const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
         codeRgb.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
         codeHsl.textContent = `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
         
-        // Генерируем палитры
         const complementaryH = (hsl.h + 180) % 360;
         const complementaryHex = hslToHex(complementaryH, hsl.s, hsl.l);
         renderPalette(complementaryPaletteEl, [randomColor, complementaryHex]);
@@ -123,8 +149,29 @@ export function init() {
         renderPalette(analogousPaletteEl, [analogousHex1, randomColor, analogousHex2]);
     };
 
+    // --- Функция копирования ---
+    const copyToClipboard = (text, btnEl) => {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalIcon = btnEl.innerHTML;
+            // Показываем галочку
+            btnEl.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            setTimeout(() => {
+                btnEl.innerHTML = originalIcon; // Возвращаем иконку копирования
+            }, 1500);
+        }).catch(err => {
+            console.error('Ошибка копирования: ', err);
+            alert('Не удалось скопировать текст');
+        });
+    };
+    
+    // --- Слушатели событий ---
     btn.addEventListener('click', () => generateColor());
-    generateColor(); // Initial color
+    
+    document.getElementById('copy-hex').addEventListener('click', (e) => copyToClipboard(codeHex.textContent, e.currentTarget));
+    document.getElementById('copy-rgb').addEventListener('click', (e) => copyToClipboard(codeRgb.textContent, e.currentTarget));
+    document.getElementById('copy-hsl').addEventListener('click', (e) => copyToClipboard(codeHsl.textContent, e.currentTarget));
+
+    generateColor(); // Генерируем начальный цвет
 }
 
 export function cleanup() {}
