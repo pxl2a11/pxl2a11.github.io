@@ -1,155 +1,212 @@
-// 1js/apps/audioCompressor.js
+// --- START OF FILE apps/audioCompressor.js ---
 
-let ffmpeg;
-let objectUrl = null;
+// Переменные для хранения состояния и ссылок на элементы
+let audioFile = null;
+let audioPlayer;
+let downloadLink;
+let fileInput;
+let compressButton;
+let statusMessage;
+let originalSizeEl;
+let compressedSizeEl;
+let audioContext;
 
-// Эта вспомогательная функция по-прежнему полезна, чтобы дождаться загрузки скрипта
-const getFFmpeg = () => {
-    return new Promise((resolve) => {
-        if (window.FFmpeg) {
-            resolve(window.FFmpeg);
-            return;
-        }
-        const interval = setInterval(() => {
-            if (window.FFmpeg) {
-                clearInterval(interval);
-                resolve(window.FFmpeg);
-            }
-        }, 100);
-    });
-};
-
+// Функция для получения HTML-разметки приложения
 export function getHtml() {
     return `
-        <div class="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-inner">
-            <h3 class="text-xl font-semibold text-center text-gray-800 dark:text-gray-200">Сжатие аудиофайлов</h3>
-            <p class="text-center text-gray-600 dark:text-gray-400">
-                Выберите аудиофайл, установите желаемый битрейт и нажмите "Сжать".
-                Обработка происходит локально в вашем браузere.
+        <div class="space-y-4 max-w-lg mx-auto">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                Выберите аудиофайл (например, WAV, FLAC), чтобы уменьшить его размер. Сжатие происходит путем понижения частоты дискретизации. 
+                Результат будет доступен в формате WAV.
             </p>
-            <div class="flex flex-col items-center justify-center w-full">
-                <label for="audio-file-input" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V6a2 2 0 012-2h10a2 2 0 012 2v6a4 4 0 01-4 4H7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v3m0 0l-2-2m2 2l2-2"></path></svg>
-                        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Нажмите для загрузки</span> или перетащите файл</p>
-                        <p id="file-name" class="mt-2 text-sm text-center text-gray-600 dark:text-gray-400"></p>
+            <div>
+                <label for="audio-input" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Выберите аудиофайл:</label>
+                <input type="file" id="audio-input" accept="audio/*" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+            </div>
+            
+            <button id="compress-button" disabled class="w-full px-4 py-2 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                Сжать аудио
+            </button>
+
+            <div id="status-message" class="text-center text-gray-700 dark:text-gray-300"></div>
+
+            <div id="result-container" class="hidden space-y-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Исходный размер</p>
+                        <p id="original-size" class="text-lg font-semibold">-</p>
                     </div>
-                    <input id="audio-file-input" type="file" class="hidden" accept="audio/*" />
-                </label>
+                     <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Размер после сжатия</p>
+                        <p id="compressed-size" class="text-lg font-semibold">-</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium mb-2 text-center">Предпрослушивание:</p>
+                    <audio id="audio-player" controls class="w-full"></audio>
+                </div>
+                <a id="download-link" class="block w-full text-center px-4 py-2 font-bold text-white bg-green-600 rounded-lg hover:bg-green-700" download="compressed_audio.wav">
+                    Скачать сжатый файл
+                </a>
             </div>
-            <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
-                <label for="bitrate-select" class="text-gray-700 dark:text-gray-300 font-medium">Битрейт:</label>
-                <select id="bitrate-select" class="w-full md:w-auto p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="64">64 kbps (низкое качество)</option>
-                    <option value="96">96 kbps (речь)</option>
-                    <option value="128" selected>128 kbps (стандарт)</option>
-                    <option value="192">192 kbps (хорошее качество)</option>
-                    <option value="256">256 kbps (высокое качество)</option>
-                    <option value="320">320 kbps (отличное качество)</option>
-                </select>
-            </div>
-            <div class="text-center">
-                <button id="compress-button" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-md">
-                    Сжать файл
-                </button>
-            </div>
-            <div id="status-container" class="text-center text-gray-600 dark:text-gray-400 space-y-2"></div>
-            <div id="result-container" class="hidden mt-6 p-4 bg-green-50 dark:bg-gray-700 rounded-lg space-y-3"></div>
         </div>
     `;
 }
 
-export async function init() {
-    const fileInput = document.getElementById('audio-file-input');
-    const fileNameDisplay = document.getElementById('file-name');
-    const bitrateSelect = document.getElementById('bitrate-select');
-    const compressButton = document.getElementById('compress-button');
-    const statusContainer = document.getElementById('status-container');
+// Функция инициализации (добавление обработчиков событий)
+export function init() {
+    // Получаем ссылки на DOM-элементы
+    fileInput = document.getElementById('audio-input');
+    compressButton = document.getElementById('compress-button');
+    statusMessage = document.getElementById('status-message');
+    audioPlayer = document.getElementById('audio-player');
+    downloadLink = document.getElementById('download-link');
+    originalSizeEl = document.getElementById('original-size');
+    compressedSizeEl = document.getElementById('compressed-size');
     const resultContainer = document.getElementById('result-container');
-    let selectedFile = null;
 
-    const setupFfmpeg = async () => {
-        if (!ffmpeg || !ffmpeg.isLoaded()) {
-            statusContainer.innerHTML = 'Загрузка библиотеки для обработки...';
-            const FFmpeg = await getFFmpeg();
-            const { createFFmpeg } = FFmpeg;
+    // Инициализация AudioContext при взаимодействии с пользователем
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
 
-            // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: мы не передаем никаких URL.
-            // Версия "все-в-одном" знает, что делать.
-            ffmpeg = createFFmpeg({ log: true });
-            
-            await ffmpeg.load();
-            statusContainer.innerHTML = 'Библиотека загружена. Готово к работе.';
-        }
-    };
-
+    // Обработчик выбора файла
     fileInput.addEventListener('change', (event) => {
-        selectedFile = event.target.files[0];
-        if (selectedFile) {
-            fileNameDisplay.textContent = `Выбран файл: ${selectedFile.name}`;
+        audioFile = event.target.files[0];
+        if (audioFile) {
             compressButton.disabled = false;
+            statusMessage.textContent = `Выбран файл: ${audioFile.name}`;
+            resultContainer.classList.add('hidden');
         } else {
-            fileNameDisplay.textContent = '';
             compressButton.disabled = true;
+            statusMessage.textContent = '';
         }
     });
 
+    // Обработчик нажатия на кнопку "Сжать"
     compressButton.addEventListener('click', async () => {
-        if (!selectedFile) {
-            alert('Пожалуйста, выберите файл.');
-            return;
-        }
-        cleanup(); 
-        resultContainer.classList.add('hidden');
-        resultContainer.innerHTML = '';
+        if (!audioFile) return;
+
         compressButton.disabled = true;
+        statusMessage.textContent = 'Идет обработка... Это может занять некоторое время.';
+        resultContainer.classList.add('hidden');
 
         try {
-            await setupFfmpeg();
-            const FFmpeg = await getFFmpeg();
-            const { fetchFile } = FFmpeg;
-            const inputFileName = 'input.' + selectedFile.name.split('.').pop();
-            const outputFileName = 'output.mp3';
-            const bitrate = bitrateSelect.value + 'k';
+            const arrayBuffer = await audioFile.arrayBuffer();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            
+            // Здесь происходит "сжатие" путем понижения частоты дискретизации до 16кГц
+            const targetSampleRate = 16000;
+            const offlineContext = new OfflineAudioContext(
+                audioBuffer.numberOfChannels,
+                (audioBuffer.duration * targetSampleRate),
+                targetSampleRate
+            );
 
-            statusContainer.innerHTML = 'Загрузка файла в виртуальную систему...';
-            ffmpeg.FS('writeFile', inputFileName, await fetchFile(selectedFile));
-            statusContainer.innerHTML = 'Начинаю сжатие...';
-            await ffmpeg.run('-i', inputFileName, '-b:a', bitrate, outputFileName);
-            statusContainer.innerHTML = 'Сжатие завершено.';
-            const data = ffmpeg.FS('readFile', outputFileName);
-            const compressedBlob = new Blob([data.buffer], { type: 'audio/mpeg' });
-            ffmpeg.FS('unlink', inputFileName);
-            ffmpeg.FS('unlink', outputFileName);
-            const originalSize = (selectedFile.size / 1024 / 1024).toFixed(2);
-            const compressedSize = (compressedBlob.size / 1024 / 1024).toFixed(2);
-            const ratio = ((1 - compressedBlob.size / selectedFile.size) * 100).toFixed(1);
-            objectUrl = URL.createObjectURL(compressedBlob);
-            resultContainer.innerHTML = `
-                <h4 class="font-bold text-lg text-green-800 dark:text-green-300">Готово!</h4>
-                <p><strong>Исходный размер:</strong> ${originalSize} МБ</p>
-                <p><strong>Размер после сжатия:</strong> ${compressedSize} МБ</p>
-                <p><strong>Степень сжатия:</strong> ~${ratio}%</p>
-                <a href="${objectUrl}" download="${selectedFile.name.replace(/\.[^/.]+$/, "")}_${bitrate}.mp3" class="inline-block mt-4 bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-                    Скачать сжатый файл
-                </a>
-            `;
+            const bufferSource = offlineContext.createBufferSource();
+            bufferSource.buffer = audioBuffer;
+            bufferSource.connect(offlineContext.destination);
+            bufferSource.start();
+
+            const compressedBuffer = await offlineContext.startRendering();
+            const wavBlob = bufferToWav(compressedBuffer);
+
+            // Отображаем результаты
+            const objectURL = URL.createObjectURL(wavBlob);
+            audioPlayer.src = objectURL;
+            downloadLink.href = objectURL;
+            
+            originalSizeEl.textContent = formatBytes(audioFile.size);
+            compressedSizeEl.textContent = formatBytes(wavBlob.size);
+            
+            statusMessage.textContent = 'Сжатие завершено!';
             resultContainer.classList.remove('hidden');
-            statusContainer.innerHTML = 'Готово к сжатию следующего файла.';
+
         } catch (error) {
-            console.error(error);
-            statusContainer.innerHTML = `<p class="text-red-500">Произошла ошибка. Попробуйте другой файл или обновите страницу.</p>`;
+            console.error('Ошибка сжатия аудио:', error);
+            statusMessage.textContent = `Ошибка: ${error.message}. Попробуйте другой файл.`;
         } finally {
             compressButton.disabled = false;
         }
     });
-
-    compressButton.disabled = true;
 }
 
+// Функция очистки (удаление ссылок и обработчиков)
 export function cleanup() {
-    if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-        objectUrl = null;
+    if (audioPlayer && audioPlayer.src) {
+        URL.revokeObjectURL(audioPlayer.src);
+    }
+    audioFile = null;
+    fileInput = null;
+    compressButton = null;
+    statusMessage = null;
+    downloadLink = null;
+    originalSizeEl = null;
+    compressedSizeEl = null;
+    // audioContext не очищается, т.к. может использоваться повторно
+}
+
+
+// --- Вспомогательные функции ---
+
+// Форматирование байтов в читаемый вид
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+// Конвертация AudioBuffer в WAV Blob
+function bufferToWav(buffer) {
+    const numOfChan = buffer.numberOfChannels;
+    const length = buffer.length * numOfChan * 2 + 44;
+    const bufferArr = new ArrayBuffer(length);
+    const view = new DataView(bufferArr);
+    const channels = [];
+    let i, sample, pos = 0;
+
+    // Запись WAV-заголовка
+    setUint32(0x46464952); // "RIFF"
+    setUint32(length - 8); // file length - 8
+    setUint32(0x45564157); // "WAVE"
+    setUint32(0x20746d66); // "fmt " chunk
+    setUint32(16); // length = 16
+    setUint16(1); // PCM (uncompressed)
+    setUint16(numOfChan);
+    setUint32(buffer.sampleRate);
+    setUint32(buffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
+    setUint16(numOfChan * 2); // block-align
+    setUint16(16); // 16-bit
+    setUint32(0x61746164); // "data" - chunk
+    setUint32(length - pos - 4); // chunk length
+
+    for (i = 0; i < buffer.numberOfChannels; i++) {
+        channels.push(buffer.getChannelData(i));
+    }
+
+    let offset = 0;
+    while (pos < length) {
+        for (i = 0; i < numOfChan; i++) {
+            sample = Math.max(-1, Math.min(1, channels[i][offset]));
+            sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+            view.setInt16(pos, sample, true);
+            pos += 2;
+        }
+        offset++;
+    }
+
+    return new Blob([view], { type: 'audio/wav' });
+
+    function setUint16(data) {
+        view.setUint16(pos, data, true);
+        pos += 2;
+    }
+
+    function setUint32(data) {
+        view.setUint32(pos, data, true);
+        pos += 4;
     }
 }
