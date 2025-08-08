@@ -1,13 +1,12 @@
-// js/main1.js
+// js/main.js
 
-import { renderChangelog, getChangelogData } from './utils/changelog.js';
-import { appNameToModuleFile, getAppList } from './utils/appList.js';
+import { renderChangelog } from './utils/changelog.js';
+import { getAppList } from './utils/appList.js';
 
 // --- ГЛАВНЫЙ КОНТЕЙНЕР И ЭЛЕМЕНТЫ UI ---
 const contentArea = document.getElementById('dynamic-content-area');
 const searchInput = document.getElementById('search-input');
 const suggestionsContainer = document.getElementById('suggestions-container');
-const homeLink = document.getElementById('home-link');
 const changelogContainer = document.getElementById('changelog-container');
 const themeToggle = document.getElementById('theme-toggle');
 const sunIcon = document.getElementById('sun-icon');
@@ -18,26 +17,29 @@ let currentAppCleanup = () => {};
 // --- РОУТИНГ И ЗАГРУЗКА ПРИЛОЖЕНИЙ ---
 
 async function loadApp(appName) {
-    if (currentAppCleanup) {
+    if (typeof currentAppCleanup === 'function') {
         currentAppCleanup();
-        currentAppCleanup = () => {};
     }
+    currentAppCleanup = () => {};
 
     contentArea.innerHTML = '<p class="text-center text-xl">Загрузка...</p>';
     
     try {
         const module = await import(`../apps/${appName}.js`);
         contentArea.innerHTML = module.getHtml();
-        if (module.init) {
+        if (typeof module.init === 'function') {
             module.init();
         }
         currentAppCleanup = module.cleanup || (() => {});
-        // Добавляем блок с историей изменений для конкретного приложения
-        const appHistoryEl = document.createElement('div');
-        appHistoryEl.id = 'app-changelog-container';
-        appHistoryEl.className = 'mt-8';
-        contentArea.appendChild(appHistoryEl);
-        renderChangelog(Object.keys(appNameToModuleFile).find(key => appNameToModuleFile[key] === appName), null, appHistoryEl);
+        
+        const appData = getAppList().find(app => app.module === appName);
+        if (appData) {
+            const appHistoryEl = document.createElement('div');
+            appHistoryEl.id = 'app-changelog-container';
+            appHistoryEl.className = 'mt-8';
+            contentArea.appendChild(appHistoryEl);
+            renderChangelog(appData.name, null, appHistoryEl);
+        }
 
     } catch (error) {
         console.error(`Ошибка загрузки модуля ${appName}:`, error);
@@ -49,10 +51,10 @@ async function loadApp(appName) {
 // --- СПИСОК ПРИЛОЖЕНИЙ (ГЛАВНАЯ СТРАНИЦА) ---
 
 function showAppList() {
-    if (currentAppCleanup) {
+    if (typeof currentAppCleanup === 'function') {
         currentAppCleanup();
-        currentAppCleanup = () => {};
     }
+    currentAppCleanup = () => {};
     history.pushState({ page: 'home' }, 'Mini Apps', window.location.pathname);
     
     const apps = getAppList();
@@ -71,30 +73,24 @@ function showAppList() {
 
 // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
 
-// **ИСПРАВЛЕННЫЙ ОБРАБОТЧИК КЛИКОВ ДЛЯ ВСЕЙ СТРАНИЦЫ**
 document.body.addEventListener('click', (e) => {
-    // Находим ближайшую ссылку, по которой кликнули
     const link = e.target.closest('a');
-    if (!link) return; // Если клик был не по ссылке, выходим
-
-    const appName = link.dataset.appName;
-
-    // Проверяем, является ли ссылка на приложение и не открывается ли она в новой вкладке
-    if (appName && link.target !== '_blank') {
-        e.preventDefault(); // Предотвращаем стандартный переход
+    
+    if (link && link.dataset.appName) {
+        e.preventDefault();
+        const appName = link.dataset.appName;
         history.pushState({ app: appName }, `App - ${appName}`, `?app=${appName}`);
         loadApp(appName);
+        window.scrollTo(0, 0); // Прокрутка вверх при смене приложения
+        return;
     }
 
-    // **НОВЫЙ ОБРАБОТЧИК ДЛЯ КНОПКИ "ПОКАЗАТЬ ЕЩЁ"**
     if (e.target.id === 'show-all-changelog-btn') {
         e.preventDefault();
-        // Перерисовываем историю, но без лимита (limit = null)
         renderChangelog(null, null, changelogContainer);
     }
 });
 
-// Навигация по истории браузера
 window.addEventListener('popstate', (e) => {
     if (e.state && e.state.app) {
         loadApp(e.state.app);
@@ -102,10 +98,6 @@ window.addEventListener('popstate', (e) => {
         showAppList();
     }
 });
-
-// --- ПОИСК ---
-// (Логика поиска остается без изменений, если она у вас есть)
-
 
 // --- ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ ---
 if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -126,15 +118,15 @@ themeToggle.addEventListener('click', () => {
 // --- ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ---
 function init() {
     const urlParams = new URLSearchParams(window.location.search);
-    const app = urlParams.get('app');
+    const appParam = urlParams.get('app');
+    const appExists = getAppList().some(app => app.module === appParam);
 
-    if (app && appNameToModuleFile[Object.keys(appNameToModuleFile).find(key => appNameToModuleFile[key] === app)]) {
-        loadApp(app);
+    if (appParam && appExists) {
+        loadApp(appParam);
     } else {
         showAppList();
     }
 
-    // Рендерим историю изменений с лимитом по умолчанию
     renderChangelog(null, 10, changelogContainer);
 }
 
