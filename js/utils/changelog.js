@@ -1,3 +1,27 @@
+// --- НОВОЕ: Сопоставление имен приложений с файлами модулей ---
+const appNameToModuleFile = {
+    'Скорость интернета': 'speedTest',
+    'Радио': 'radio',
+    'Заметки и задачи': 'notesAndTasks',
+    'Тест звука и микрофона': 'soundAndMicTest',
+    'Мой IP': 'myIp',
+    'Генератор паролей': 'passwordGenerator',
+    'Колесо фортуны': 'fortuneWheel',
+    'Шар предсказаний': 'magicBall',
+    'Крестики-нолики': 'ticTacToe',
+    'Сапер': 'minesweeper',
+    'Секундомер': 'stopwatch',
+    'Случайный цвет': 'randomColor',
+    'Генератор чисел': 'numberGenerator',
+    'Генератор QR-кодов': 'qrCodeGenerator',
+    'Эмодзи и символы': 'emojiAndSymbols',
+    'Конвертер величин': 'unitConverter',
+    'Калькулятор дат': 'dateCalculator',
+    'Калькулятор ИМТ': 'bmiCalculator',
+    'История изменений': 'changelogPage',
+};
+
+
 const getRussianDate = (dateString) => {
     const date = new Date(dateString);
     date.setUTCHours(date.getUTCHours() + 3); // Смещение на UTC+3 (Московское время)
@@ -72,7 +96,12 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     }
     
     const entriesHtml = dataToRender.map(entry => {
-        const appHref = `?app=${encodeURIComponent(entry.appName)}`;
+        // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+        // Находим имя файла модуля по полному имени приложения
+        const moduleFile = appNameToModuleFile[entry.appName];
+        // Создаем ссылку с именем модуля, если он найден
+        const appHref = moduleFile ? `?app=${moduleFile}` : '#';
+
         const appNameLink = `<a href="${appHref}" data-app-name="${entry.appName}" class="changelog-link font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">${entry.appName}.</a>`;
         const capitalizedDescs = entry.descriptions.map(desc => desc.charAt(0).toUpperCase() + desc.slice(1));
         const descriptionsHtml = capitalizedDescs.length > 1 
