@@ -1,4 +1,4 @@
-// 1js/apps/audioCompressor.js
+// js/apps/audioCompressor.js
 
 let ffmpeg;
 let objectUrl = null; // Хранит URL созданного файла для последующей очистки
