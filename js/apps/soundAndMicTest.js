@@ -2,7 +2,19 @@ let audioCtx, micStream, animationFrameId, mediaRecorder, audioChunks, isRecordi
 
 export function getHtml() {
     return `
-        <div class="p-4 space-y-8">
+        <div class="p-4 space-y-6">
+            <!-- Секция выбора устройств -->
+            <div id="device-selectors" class="hidden space-y-4 max-w-lg mx-auto">
+                <div>
+                    <label for="output-select" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Устройство вывода (Динамики):</label>
+                    <select id="output-select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
+                </div>
+                 <div>
+                    <label for="mic-select" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Устройство ввода (Микрофон):</label>
+                    <select id="mic-select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
+                </div>
+            </div>
+
             <!-- Тест звука -->
             <div>
                 <h3 class="text-xl font-bold mb-2 text-center">Тест звука</h3>
@@ -40,12 +52,29 @@ export function getHtml() {
 }
 
 export function init() {
+    const deviceSelectors = document.getElementById('device-selectors');
+    const micSelect = document.getElementById('mic-select');
+    const outputSelect = document.getElementById('output-select');
+    
     // --- Тест звука ---
-    const playTestTone = pan => {
+    const playTestTone = async (pan) => {
         if (!audioCtx || audioCtx.state === 'closed') {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+        }
+        
+        // Устанавливаем устройство вывода
+        const sinkId = outputSelect.value;
+        if (sinkId && typeof audioCtx.setSinkId === 'function') {
+            try {
+                await audioCtx.setSinkId(sinkId);
+            } catch (err) {
+                console.error('Не удалось установить устройство вывода:', err);
+            }
+        }
+        
         const osc = audioCtx.createOscillator();
         const panner = audioCtx.createStereoPanner();
         osc.type = 'sine';
@@ -67,18 +96,28 @@ export function init() {
     const recordToggleBtn = document.getElementById('record-toggle-btn');
     const audioPlayback = document.getElementById('audio-playback');
 
-    const startMic = async () => {
-        if (micStream) return;
-        try {
-            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            startBtn.style.display = 'none';
-            micStatus.textContent = 'Говорите в микрофон...';
-            recordSection.classList.remove('hidden');
+    const stopMic = () => {
+        if (micStream) {
+            micStream.getTracks().forEach(track => track.stop());
+            micStream = null;
+        }
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    };
 
-            if (!audioCtx || audioCtx.state === 'closed') {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+    const startMic = async () => {
+        stopMic(); // Останавливаем предыдущий поток, если он есть
+        const deviceId = micSelect.value;
+        if (!deviceId) return;
+        
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: deviceId } } });
+            
+            micStatus.textContent = 'Говорите в микрофон...';
+            if (!audioCtx || audioCtx.state === 'closed') audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
 
             const analyser = audioCtx.createAnalyser();
             const source = audioCtx.createMediaStreamSource(micStream);
@@ -94,50 +133,91 @@ export function init() {
             draw();
             setupRecording();
         } catch (err) {
-            micStatus.textContent = 'Ошибка: Доступ к микрофону запрещен.';
+            micStatus.textContent = `Ошибка доступа к микрофону: ${err.message}`;
             console.error(err);
         }
     };
-    startBtn.addEventListener('click', startMic);
+
+    const populateDeviceLists = async () => {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            micSelect.innerHTML = '';
+            outputSelect.innerHTML = '';
+
+            devices.forEach(device => {
+                if (device.kind === 'audioinput') {
+                    const option = new Option(device.label || `Микрофон ${micSelect.length + 1}`, device.deviceId);
+                    micSelect.add(option);
+                } else if (device.kind === 'audiooutput') {
+                    const option = new Option(device.label || `Динамики ${outputSelect.length + 1}`, device.deviceId);
+                    outputSelect.add(option);
+                }
+            });
+            deviceSelectors.classList.remove('hidden');
+        } catch (err) {
+             console.error('Не удалось получить список устройств:', err);
+        }
+    };
+    
+    const initialStart = async () => {
+         try {
+            // Запрашиваем доступ, чтобы получить имена устройств
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            await populateDeviceLists();
+            
+            startBtn.style.display = 'none';
+            recordSection.classList.remove('hidden');
+            micSelect.addEventListener('change', startMic);
+            
+            // Запускаем тест с первым (и теперь уже выбранным) устройством
+            await startMic();
+         } catch (err) {
+            micStatus.textContent = 'Ошибка: Доступ к микрофону запрещен.';
+            console.error(err);
+         }
+    };
+    startBtn.addEventListener('click', initialStart);
 
     // --- Логика записи ---
     function setupRecording() {
+        if (!micStream) return;
         mediaRecorder = new MediaRecorder(micStream);
         audioChunks = [];
 
         mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-
         mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
             const audioUrl = URL.createObjectURL(audioBlob);
             audioPlayback.src = audioUrl;
             audioPlayback.classList.remove('hidden');
             audioChunks = [];
         };
 
-        recordToggleBtn.addEventListener('click', () => {
-            if (!isRecording) {
-                mediaRecorder.start();
-                isRecording = true;
-                // Update button to "Stop" state
-                recordToggleBtn.classList.remove('bg-red-500');
-                recordToggleBtn.classList.add('bg-gray-600');
-                recordToggleBtn.innerHTML = `
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><rect x="6" y="6" width="8" height="8" rx="1"/></svg>
-                    <span>Стоп</span>`;
-                audioPlayback.classList.add('hidden');
-            } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                // Update button to "Record" state
-                recordToggleBtn.classList.remove('bg-gray-600');
-                recordToggleBtn.classList.add('bg-red-500');
-                recordToggleBtn.innerHTML = `
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>
-                    <span>Запись</span>`;
-            }
-        });
+        // Сбрасываем состояние кнопки записи
+        isRecording = false;
+        recordToggleBtn.classList.remove('bg-gray-600');
+        recordToggleBtn.classList.add('bg-red-500');
+        recordToggleBtn.innerHTML = `
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>
+            <span>Запись</span>`;
     }
+    
+    // Один листенер на кнопке записи
+    recordToggleBtn.addEventListener('click', () => {
+        if (!mediaRecorder) return;
+        
+        if (!isRecording) {
+            mediaRecorder.start();
+            isRecording = true;
+            recordToggleBtn.classList.replace('bg-red-500', 'bg-gray-600');
+            recordToggleBtn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><rect x="6" y="6" width="8" height="8" rx="1"/></svg><span>Стоп</span>`;
+            audioPlayback.classList.add('hidden');
+        } else {
+            mediaRecorder.stop();
+            isRecording = false;
+            // Состояние кнопки сбрасывается в setupRecording после onstop
+        }
+    });
 }
 
 export function cleanup() {
