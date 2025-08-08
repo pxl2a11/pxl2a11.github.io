@@ -22,6 +22,7 @@ function router() {
     const params = new URLSearchParams(window.location.search);
     const appName = params.get('app');
     
+    // Проверяем, что запрашиваемое приложение существует в нашем списке
     if (appName && getAppList().some(app => app.module === appName)) {
         loadApp(appName);
     } else {
@@ -60,6 +61,7 @@ async function loadApp(appName) {
     contentArea.innerHTML = `<p class="text-center text-xl animate-pulse">Загрузка...</p>`;
     window.scrollTo(0, 0);
 
+    // Особая обработка для "виртуальной" страницы истории изменений
     if (appName === 'changelogPage') {
         contentArea.innerHTML = '';
         renderChangelog(null, null, contentArea);
@@ -67,14 +69,16 @@ async function loadApp(appName) {
     }
 
     try {
-        // ИСПРАВЛЕННЫЙ ПУТЬ: './../apps/' - самый надежный относительный путь
-        // от js/main.js до папки apps, которая лежит в корне.
-        const module = await import(`./../apps/${appName}.js`);
+        // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ ---
+        // Этот путь означает: "из текущей папки (js) подняться на один уровень вверх (в корень проекта),
+        // а затем зайти в папку apps". Это самый правильный и надежный относительный путь.
+        const module = await import(`../apps/${appName}.js`);
         
         contentArea.innerHTML = module.getHtml();
         if (typeof module.init === 'function') module.init();
         currentAppCleanup = module.cleanup || (() => {});
         
+        // Отображение истории для конкретного приложения
         const appData = getAppList().find(app => app.module === appName);
         if (appData) {
             const appHistoryEl = document.createElement('div');
@@ -84,8 +88,8 @@ async function loadApp(appName) {
             renderChangelog(appData.name, null, appHistoryEl);
         }
     } catch (error) {
-        console.error(`Ошибка загрузки модуля ${appName}:`, error);
-        contentArea.innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение. Откройте консоль (F12) для подробностей.</p>`;
+        console.error(`Ошибка загрузки модуля '${appName}'. Запрашиваемый путь: ../apps/${appName}.js`, error);
+        contentArea.innerHTML = `<p class="text-center text-red-500 font-semibold">Не удалось загрузить приложение. Откройте консоль (F12) для подробностей.</p>`;
     }
 }
 
@@ -93,21 +97,28 @@ async function loadApp(appName) {
 
 // Обработка кликов для SPA-навигации
 document.body.addEventListener('click', (e) => {
+    // Находим ближайший кликабельный элемент (кнопку или ссылку)
+    const button = e.target.closest('button');
     const link = e.target.closest('a');
-    if (!link) return;
 
-    if (e.target.closest('#show-all-changelog-btn')) {
+    // Клик по кнопке "Показать ещё"
+    if (button && button.id === 'show-all-changelog-btn') {
         e.preventDefault();
         renderChangelog(null, null, changelogContainer);
         return;
     }
     
+    if (!link) return; // Если клик был не по ссылке, ничего не делаем
+
+    // Клик по ссылке на приложение
     const appName = link.dataset.appName;
     if (appName) {
         e.preventDefault();
+        // Обновляем URL в адресной строке и внутреннее состояние
         history.pushState({ app: appName }, '', `?app=${appName}`);
-        router();
+        router(); // Вызываем роутер, который решит, что загружать
     } else if (link.id === 'home-link') {
+        // Клик по главной ссылке
         e.preventDefault();
         history.pushState({ page: 'home' }, '', window.location.pathname.split('?')[0]);
         router();
@@ -134,7 +145,7 @@ function init() {
         moonIcon.classList.remove('hidden');
     }
     
-    // Запускаем роутер для отображения нужного контента
+    // Запускаем роутер для отображения нужного контента при первой загрузке
     router();
     
     // Отображаем нижний блок истории изменений с лимитом
