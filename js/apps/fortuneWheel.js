@@ -119,9 +119,8 @@ export function init() {
     function drawWheel() {
         arc = options.length > 0 ? Math.PI / (options.length / 2) : 0;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#4A5568' : '#E2E8F0';
-        ctx.lineWidth = 2;
         
+        // Рисуем цветные сектора
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
             ctx.fillStyle = colors[i % colors.length];
@@ -129,9 +128,9 @@ export function init() {
             ctx.arc(175, 175, 170, angle, angle + arc, false);
             ctx.arc(175, 175, 0, angle + arc, angle, true);
             ctx.fill();
-            ctx.stroke();
         }
 
+        // Рисуем текст на черных плашках по краю
         ctx.save();
         ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
@@ -142,25 +141,32 @@ export function init() {
             const text = options[i];
             
             ctx.save();
-            ctx.translate(175 + Math.cos(angle + arc / 2) * 115, 175 + Math.sin(angle + arc / 2) * 115);
+            // --- ИЗМЕНЕНИЕ: Смещаем текст к самому краю (радиус 145) ---
+            ctx.translate(175 + Math.cos(angle + arc / 2) * 145, 175 + Math.sin(angle + arc / 2) * 145);
             ctx.rotate(angle + arc / 2 + Math.PI / 2);
 
-            // --- РЕШЕНИЕ: Рисуем плашку для текста ---
             const textMetrics = ctx.measureText(text);
             const textWidth = textMetrics.width;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.roundRect(-textWidth / 2 - 8, -12, textWidth + 16, 24, 8);
+            
+            // --- ИЗМЕНЕНИЕ: Рисуем сплошную черную плашку ---
+            ctx.fillStyle = '#000000';
+            ctx.roundRect(-textWidth / 2 - 10, -12, textWidth + 20, 24, 8);
             ctx.fill();
 
-            // --- РЕШЕНИЕ: Рисуем сам текст поверх плашки ---
+            // --- ИЗМЕНЕНИЕ: Рисуем белый текст ---
             ctx.fillStyle = '#FFFFFF';
             ctx.fillText(text, 0, 0);
             ctx.restore();
         }
         ctx.restore();
         
-        // Рисуем указатель
-        ctx.fillStyle = '#4A5568';
+        // Рисуем центральный круг и указатель
+        ctx.fillStyle = '#374151'; // Dark gray
+        ctx.beginPath();
+        ctx.arc(175, 175, 25, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#4A5568'; // Medium gray
         ctx.beginPath();
         ctx.moveTo(175 - 6, 5);
         ctx.lineTo(175 + 6, 5);
@@ -192,11 +198,9 @@ export function init() {
         const index = Math.floor((360 - degrees % 360) / arcd);
         const winner = options[index];
         
-        // --- РЕШЕНИЕ: Эффект затемнения ---
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // --- РЕШЕНИЕ: Отображение победителя поверх затемнения ---
         ctx.save();
         ctx.font = 'bold 36px Arial';
         ctx.fillStyle = '#FFFFFF';
@@ -205,7 +209,6 @@ export function init() {
         ctx.fillText(winner, 175, 175);
         ctx.restore();
 
-        // --- РЕШЕНИЕ: Воспроизводим звук после отрисовки ---
         if (winner && soundCheckbox.checked) {
             winSound.play();
         }
@@ -254,7 +257,6 @@ export function init() {
     });
 
     spinBtn.addEventListener("click", () => {
-        // --- РЕШЕНИЕ: Разблокировка и предзагрузка звука ---
         if (!isAudioUnlocked) {
             spinSound.load();
             winSound.load();
