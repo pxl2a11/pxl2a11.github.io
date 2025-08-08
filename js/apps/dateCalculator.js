@@ -23,7 +23,13 @@ function getHtml() {
             
             <!-- Расчет рабочих дней -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-                <h3 class="text-xl font-bold mb-4">Расчет рабочих дней</h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Расчет рабочих дней</h3>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="include-holidays" class="h-4 w-4 rounded">
+                        <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">Учитывать праздники РФ</span>
+                    </label>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <div>
                         <label for="workStartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Начальная дата</label>
@@ -65,11 +71,15 @@ function init() {
     const workStartDateInput = document.getElementById('workStartDate');
     const workEndDateInput = document.getElementById('workEndDate');
     const workDaysResultEl = document.getElementById('work-days-result');
+    const includeHolidaysCheck = document.getElementById('include-holidays');
 
     const calcDateInput = document.getElementById('calcDate');
     const daysInput = document.getElementById('days');
     const calculateDaysBtn = document.getElementById('calculate-days-btn');
     const dateCalcResultEl = document.getElementById('date-calc-result');
+
+    // Список праздников РФ (формат ММ-ДД). Упрощенный вариант без переносов.
+    const russianHolidays = ['01-01', '01-02', '01-03', '01-04', '01-05', '01-06', '01-07', '01-08', '02-23', '03-08', '05-01', '05-09', '06-12', '11-04'];
 
     function calculateDateDifference() {
         const startDate = new Date(startDateInput.value);
@@ -135,7 +145,14 @@ function init() {
         
         while (curDate <= endDate) {
             const dayOfWeek = curDate.getDay();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = Sunday, 6 = Saturday
+            const month = (curDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = curDate.getDate().toString().padStart(2, '0');
+            const mmdd = `${month}-${day}`;
+
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const isHoliday = includeHolidaysCheck.checked && russianHolidays.includes(mmdd);
+
+            if (!isWeekend && !isHoliday) {
                 count++;
             }
             curDate.setDate(curDate.getDate() + 1);
@@ -166,6 +183,7 @@ function init() {
 
     workStartDateInput.addEventListener('change', calculateWorkDays);
     workEndDateInput.addEventListener('change', calculateWorkDays);
+    includeHolidaysCheck.addEventListener('change', calculateWorkDays);
     
     calculateDaysBtn.addEventListener('click', calculateNewDate);
     
