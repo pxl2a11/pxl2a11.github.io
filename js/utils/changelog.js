@@ -2,16 +2,12 @@
 
 import { appNameToModuleFile } from './appList.js';
 
-// Эта функция теперь используется только для форматирования даты перед выводом
 const getRussianDate = (dateString) => {
     const date = new Date(dateString);
     date.setUTCHours(date.getUTCHours() + 3);
-    return date.toLocaleDateString('ru-RU', {
-        year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
-    }).replace(' г.', '');
+    return date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }).replace(' г.', '');
 };
 
-// Исходные данные с надежными ISO-датами для сортировки
 const changelogRawData = [
     { isoDate: '2025-08-08T14:00:00Z', appName: 'Калькулятор ИМТ', description: 'добавлены поля для ввода возраста и пола для более точного контекста.' },
     { isoDate: '2025-08-08T14:00:00Z', appName: 'Калькулятор ИМТ', description: 'добавлен расчет и отображение диапазона идеального веса.' },
@@ -53,18 +49,10 @@ const changelogRawData = [
     { isoDate: '2025-08-04T00:00:00Z', appName: 'Общее', description: 'начальная версия проекта.'}
 ];
 
-// Преобразуем исходные данные, добавляя отформатированную дату
-const changelogData = changelogRawData.map(item => ({
-    ...item,
-    date: getRussianDate(item.isoDate)
-}));
+const changelogData = changelogRawData.map(item => ({ ...item, date: getRussianDate(item.isoDate) }));
 
-/**
- * Группирует отсортированный список записей по дате и приложению.
- * @param {Array} data - Массив записей истории.
- * @returns {Array} - Массив сгруппированных записей.
- */
 function groupSortedData(data) {
+    if (!data || data.length === 0) return [];
     const grouped = {};
     data.forEach(entry => {
         const key = `${entry.date}-${entry.appName}`;
@@ -76,24 +64,13 @@ function groupSortedData(data) {
     return Object.values(grouped);
 }
 
-/**
- * Получает отсортированные и сгруппированные данные для рендеринга.
- * @returns {Array}
- */
 export function getChangelogData() {
     const sortedData = [...changelogData].sort((a, b) => new Date(b.isoDate) - new Date(a.isoDate));
     return groupSortedData(sortedData);
 }
 
-/**
- * Рендерит блок истории изменений.
- * @param {string|null} appNameFilter - Фильтр по имени приложения.
- * @param {number|null} limit - Ограничение на количество записей.
- * @param {HTMLElement} targetEl - Целевой элемент для рендеринга.
- */
 export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     if (!targetEl) return;
-
     const isMainChangelogBlock = targetEl.id === 'changelog-container';
     
     let allData = getChangelogData();
@@ -102,11 +79,10 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     }
 
     let dataToRender = allData;
-    let showMoreButtonNeeded = false;
+    let showMoreButtonNeeded = limit && allData.length > limit;
     
-    if (limit && allData.length > limit) {
+    if (showMoreButtonNeeded) {
         dataToRender = allData.slice(0, limit);
-        showMoreButtonNeeded = true;
     }
 
     if (!isMainChangelogBlock && dataToRender.length === 0) {
@@ -117,9 +93,26 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     const entriesHtml = dataToRender.map(entry => {
         const moduleFile = appNameToModuleFile[entry.appName];
         const appHref = moduleFile ? `?app=${moduleFile}` : '#';
-
         const appNameLink = `<a href="${appHref}" data-app-name="${moduleFile}" class="changelog-link font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">${entry.appName}.</a>`;
-        
         const capitalizedDescs = entry.descriptions.map(desc => desc.charAt(0).toUpperCase() + desc.slice(1));
         const descriptionsHtml = capitalizedDescs.length > 1 
-            ? `<ul class="list-disc list-inside mt-1"
+            ? `<ul class="list-disc list-inside mt-1">${capitalizedDescs.map(d => `<li class="ml-4">${d}</li>`).join('')}</ul>`
+            : `<span class="ml-1">${capitalizedDescs[0]}</span>`;
+        const contentHtml = (isMainChangelogBlock && entry.appName !== 'Общее') || !isMainChangelogBlock ? `${appNameLink} ${descriptionsHtml}` : descriptionsHtml.replace('<span class="ml-1">', '<span>');
+        return `<div class="border-t border-gray-300 dark:border-gray-700 pt-4 mt-4 first:mt-0 first:pt-0 first:border-0"><p class="font-semibold text-gray-500 dark:text-gray-400">${entry.date}</p><div class="mt-2 text-gray-800 dark:text-gray-300">${contentHtml}</div></div>`;
+    }).join('');
+
+    let finalHtml = ``;
+    if (isMainChangelogBlock) {
+        finalHtml = `<h2 class="text-2xl font-bold text-center mb-4">История изменений</h2>`;
+    } else {
+        finalHtml = `<div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-2xl shadow-inner"><h3 class="text-xl font-bold text-center mb-4">История изменений</h3>`;
+    }
+    finalHtml += dataToRender.length === 0 ? '<p class="text-center text-gray-500 dark:text-gray-400">Нет записей об изменениях для этого приложения.</p>' : entriesHtml;
+    if (isMainChangelogBlock && showMoreButtonNeeded) {
+        finalHtml += `<div class="text-center mt-6"><button id="show-all-changelog-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Показать ещё</button></div>`;
+    } else if (!isMainChangelogBlock) {
+        finalHtml += `</div>`;
+    }
+    targetEl.innerHTML = finalHtml;
+}
