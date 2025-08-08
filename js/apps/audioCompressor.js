@@ -1,4 +1,4 @@
-// --- 1START OF FILE apps/audioCompressor.js ---
+// --- START OF FILE apps/audioCompressor.js ---
 
 // Переменные для хранения состояния и ссылок на элементы
 let audioFile = null;
@@ -128,30 +128,47 @@ export function init() {
     });
 }
 
-// Главная функция сжатия в MP3
+// НОВАЯ, ИСПРАВЛЕННАЯ ФУНКЦИЯ СЖАТИЯ
 function compressToMp3(audioBuffer, bitrate = 128) {
     return new Promise((resolve, reject) => {
         try {
-            const sampleRate = audioBuffer.sampleRate;
             const channels = audioBuffer.numberOfChannels;
+            const sampleRate = audioBuffer.sampleRate;
+
+            // Проверка на поддержку количества каналов
+            if (channels > 2) {
+                reject(new Error('Поддерживаются только моно и стерео файлы.'));
+                return;
+            }
             
             const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, bitrate);
-            
-            const pcmData = [];
-            for (let i = 0; i < channels; i++) {
-                pcmData.push(audioBuffer.getChannelData(i));
-            }
+            const pcmInt16Channels = [];
 
-            const samples = new Int16Array(pcmData[0].length);
-            for (let i = 0; i < pcmData[0].length; i++) {
-                samples[i] = Math.max(-1, Math.min(1, pcmData[0][i])) * 32767;
+            // Конвертируем каждый канал в Int16
+            for (let i = 0; i < channels; i++) {
+                const channelData = audioBuffer.getChannelData(i);
+                const int16Data = new Int16Array(channelData.length);
+                for (let j = 0; j < channelData.length; j++) {
+                    int16Data[j] = Math.max(-1, Math.min(1, channelData[j])) * 32767;
+                }
+                pcmInt16Channels.push(int16Data);
             }
             
             const mp3Data = [];
             const bufferSize = 1152; // Стандартный размер для lamejs
-            for (let i = 0; i < samples.length; i += bufferSize) {
-                const sampleChunk = samples.subarray(i, i + bufferSize);
-                const mp3buf = mp3encoder.encodeBuffer(sampleChunk);
+            const sampleBlockSize = channels * bufferSize;
+
+            for (let i = 0; i < pcmInt16Channels[0].length; i += bufferSize) {
+                const leftChunk = pcmInt16Channels[0].subarray(i, i + bufferSize);
+                let mp3buf;
+
+                if (channels === 1) {
+                    mp3buf = mp3encoder.encodeBuffer(leftChunk);
+                } else { // channels === 2
+                    const rightChunk = pcmInt16Channels[1].subarray(i, i + bufferSize);
+                    mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+                }
+
                 if (mp3buf.length > 0) {
                     mp3Data.push(mp3buf);
                 }
@@ -170,7 +187,6 @@ function compressToMp3(audioBuffer, bitrate = 128) {
     });
 }
 
-
 // Функция очистки
 export function cleanup() {
     if (audioPlayer && audioPlayer.src) {
@@ -179,7 +195,7 @@ export function cleanup() {
     audioFile = null;
 }
 
-// --- Вспомогательные функции ---
+// Вспомогательная функция форматирования байтов
 function formatBytes(bytes, decimals = 2) {
     if (!+bytes) return '0 Bytes';
     const k = 1024;
