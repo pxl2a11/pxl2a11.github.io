@@ -1,61 +1,57 @@
 export function getHtml() {
     return `
-        <!-- Внешний контейнер для идеального центрирования компонента -->
-        <div class="min-h-screen w-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4 font-sans">
+        <!-- 
+            Главный контейнер компонента.
+            Он не имеет собственного фона или тени, только внутреннюю структуру.
+            Вертикальный на мобильных, горизонтальный на десктопах.
+        -->
+        <div class="flex flex-col md:flex-row w-full md:gap-8">
             
-            <!-- Основная карточка компонента -->
-            <div class="w-full max-w-3xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 md:p-6">
+            <!-- Левая колонка: Дисплей цвета и кнопка -->
+            <div class="flex-shrink-0 flex flex-col items-center gap-4 mb-6 md:mb-0 md:w-56">
+                <div id="color-display" class="w-full h-56 rounded-xl shadow-lg transition-colors duration-300 border-4 border-gray-200 dark:border-gray-700"></div>
+                <button id="generate-color-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">
+                    Новый цвет
+                </button>
+            </div>
+
+            <!-- Правая колонка: Информация и палитры. min-w-0 исправляет ошибки переполнения flexbox -->
+            <div class="flex-grow flex flex-col space-y-5 min-w-0">
                 
-                <!-- Главный flex-контейнер: вертикальный на мобильных, горизонтальный на десктопах -->
-                <div class="flex flex-col md:flex-row md:gap-8">
-                    
-                    <!-- Левая колонка: Дисплей цвета и кнопка -->
-                    <div class="flex-shrink-0 flex flex-col items-center gap-4 mb-6 md:mb-0 md:w-56">
-                        <div id="color-display" class="w-full h-56 rounded-xl shadow-lg transition-colors duration-300 border-4 border-gray-200 dark:border-gray-700"></div>
-                        <button id="generate-color-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">
-                            Новый цвет
-                        </button>
+                <!-- Секция с кодами цветов -->
+                <div class="space-y-3">
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">Коды цвета</h3>
+                    <div class="space-y-2">
+                         <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                            <span id="color-code-hex" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">#ffffff</span>
+                            <button id="copy-hex" title="Скопировать" class="flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                            <span id="color-code-rgb" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">rgb(255, 255, 255)</span>
+                             <button id="copy-rgb" title="Скопировать" class="flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                            <span id="color-code-hsl" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">hsl(0, 0%, 100%)</span>
+                             <button id="copy-hsl" title="Скопировать" class="flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                        </div>
                     </div>
+                </div>
 
-                    <!-- Правая колонка: Информация и палитры. min-w-0 исправляет ошибки переполнения flexbox -->
-                    <div class="flex-grow flex flex-col space-y-5 min-w-0">
-                        
-                        <!-- Секция с кодами цветов -->
-                        <div class="space-y-3">
-                            <h3 class="text-xl font-semibold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">Коды цвета</h3>
-                            <div class="space-y-2">
-                                 <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                                    <span id="color-code-hex" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">#ffffff</span>
-                                    <button id="copy-hex" title="Скопировать" class="flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
-                                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                    </button>
-                                </div>
-                                <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                                    <span id="color-code-rgb" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">rgb(255, 255, 255)</span>
-                                     <button id="copy-rgb" title="Скопировать" class="flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
-                                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                    </button>
-                                </div>
-                                <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                                    <span id="color-code-hsl" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">hsl(0, 0%, 100%)</span>
-                                     <button id="copy-hsl" title="Скопировать" class="flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
-                                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Секция с палитрами -->
-                        <div class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <div>
-                                <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300">Комплементарная палитра</h4>
-                                <div id="complementary-palette" class="flex gap-3"></div>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300">Аналоговая палитра</h4>
-                                <div id="analogous-palette" class="flex gap-3"></div>
-                            </div>
-                        </div>
+                <!-- Секция с палитрами -->
+                <div class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                        <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300">Комплементарная палитра</h4>
+                        <div id="complementary-palette" class="flex gap-3"></div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300">Аналоговая палитра</h4>
+                        <div id="analogous-palette" class="flex gap-3"></div>
                     </div>
                 </div>
             </div>
