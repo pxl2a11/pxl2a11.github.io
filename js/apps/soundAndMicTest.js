@@ -1,4 +1,4 @@
-let audioCtx, micStream, animationFrameId, mediaRecorder, audioChunks;
+let audioCtx, micStream, animationFrameId, mediaRecorder, audioChunks, isRecording = false;
 
 export function getHtml() {
     return `
@@ -29,11 +29,9 @@ export function getHtml() {
             <div id="record-section" class="hidden">
                 <h3 class="text-xl font-bold mb-2 text-center">Запись и Воспроизведение</h3>
                  <div class="flex justify-center gap-4 mb-4">
-                    <button id="record-btn" class="bg-red-500 text-white font-bold py-2 px-5 rounded-full flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>Запись
-                    </button>
-                    <button id="stop-record-btn" class="bg-gray-500 text-white font-bold py-2 px-5 rounded-full flex items-center gap-2 disabled:opacity-50" disabled>
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><rect x="6" y="6" width="8" height="8" rx="1"/></svg>Стоп
+                    <button id="record-toggle-btn" class="bg-red-500 text-white font-bold py-2 px-5 rounded-full flex items-center gap-2 w-32 justify-center transition-colors">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>
+                        <span>Запись</span>
                     </button>
                 </div>
                 <audio id="audio-playback" controls class="w-full hidden"></audio>
@@ -66,8 +64,7 @@ export function init() {
     const micStatus = document.getElementById('mic-status');
     const micLevel = document.getElementById('mic-level');
     const recordSection = document.getElementById('record-section');
-    const recordBtn = document.getElementById('record-btn');
-    const stopRecordBtn = document.getElementById('stop-record-btn');
+    const recordToggleBtn = document.getElementById('record-toggle-btn');
     const audioPlayback = document.getElementById('audio-playback');
 
     const startMic = async () => {
@@ -108,9 +105,7 @@ export function init() {
         mediaRecorder = new MediaRecorder(micStream);
         audioChunks = [];
 
-        mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-        };
+        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
 
         mediaRecorder.onstop = () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
@@ -120,17 +115,27 @@ export function init() {
             audioChunks = [];
         };
 
-        recordBtn.addEventListener('click', () => {
-            mediaRecorder.start();
-            recordBtn.disabled = true;
-            stopRecordBtn.disabled = false;
-            audioPlayback.classList.add('hidden');
-        });
-
-        stopRecordBtn.addEventListener('click', () => {
-            mediaRecorder.stop();
-            recordBtn.disabled = false;
-            stopRecordBtn.disabled = true;
+        recordToggleBtn.addEventListener('click', () => {
+            if (!isRecording) {
+                mediaRecorder.start();
+                isRecording = true;
+                // Update button to "Stop" state
+                recordToggleBtn.classList.remove('bg-red-500');
+                recordToggleBtn.classList.add('bg-gray-600');
+                recordToggleBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><rect x="6" y="6" width="8" height="8" rx="1"/></svg>
+                    <span>Стоп</span>`;
+                audioPlayback.classList.add('hidden');
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                // Update button to "Record" state
+                recordToggleBtn.classList.remove('bg-gray-600');
+                recordToggleBtn.classList.add('bg-red-500');
+                recordToggleBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>
+                    <span>Запись</span>`;
+            }
         });
     }
 }
@@ -150,4 +155,5 @@ export function cleanup() {
     audioCtx = null;
     mediaRecorder = null;
     audioChunks = [];
+    isRecording = false;
 }
