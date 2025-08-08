@@ -3,6 +3,7 @@ let spinSound, winSound;
 let isAudioUnlocked = false; // Флаг для отслеживания "разблокировки" звука
 
 export function getHtml() {
+    // --- ИСПРАВЛЕНИЕ: Добавлены недостающие `}` и ``` в конце строки ---
     return `
         <style>
             #options-list::-webkit-scrollbar { display: none; }
@@ -123,7 +124,7 @@ export function init() {
 
     function drawWheel() {
         const R = canvas.width / 2;
-        const textRadius = R * 0.65; // Позиция текста от центра
+        const textRadius = R * 0.65; 
 
         arc = options.length > 0 ? Math.PI / (options.length / 2) : 0;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -131,36 +132,31 @@ export function init() {
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
 
-            // 1. Рисуем цветной сектор
             ctx.fillStyle = colors[i % colors.length];
             ctx.beginPath();
             ctx.arc(R, R, R - 5, angle, angle + arc, false);
             ctx.lineTo(R, R);
             ctx.fill();
 
-            // 2. РЕШЕНИЕ: Рисуем затемняющий слой поверх сектора
             ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.beginPath();
             ctx.arc(R, R, R - 5, angle, angle + arc, false);
             ctx.lineTo(R, R);
             ctx.fill();
 
-            // 3. РЕШЕНИЕ: Рисуем прямой, но повернутый текст
             ctx.save();
-            ctx.translate(R, R); // Перемещаем начало координат в центр
-            ctx.rotate(angle + arc / 2); // Поворачиваем всю систему координат
+            ctx.translate(R, R);
+            ctx.rotate(angle + arc / 2);
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillStyle = "#FFFFFF";
             ctx.font = 'bold 16px Arial';
             
             const text = options[i];
-            // Рисуем текст на повернутой оси X на расстоянии textRadius
             ctx.fillText(text, textRadius, 0); 
-            ctx.restore(); // Возвращаем систему координат в исходное состояние
+            ctx.restore();
         }
         
-        // Рисуем указатель
         ctx.fillStyle = '#111827';
         ctx.beginPath();
         ctx.moveTo(R - 8, 2);
@@ -294,5 +290,4 @@ export function cleanup() {
         winSound.pause();
         winSound.currentTime = 0;
     }
-}```
---- END OF FILE fortuneWheel.js ---
+}
