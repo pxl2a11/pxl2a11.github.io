@@ -1,4 +1,4 @@
-// js/utils/changelog.js
+// 1js/utils/changelog.js
 
 // --- ИЗМЕНЕНО: Добавлен экспорт для использования в других модулях ---
 export const appNameToModuleFile = {
