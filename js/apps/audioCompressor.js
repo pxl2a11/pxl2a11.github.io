@@ -1,7 +1,5 @@
 // js/apps/audioCompressor.js
 
-// Явно обращаемся к глобальному объекту window, чтобы получить доступ к FFmpeg
-const { createFFmpeg, fetchFile } = window.FFmpeg;
 let ffmpeg;
 let objectUrl = null; // Хранит URL созданного файла для последующей очистки
 
@@ -57,6 +55,9 @@ export function getHtml() {
  * Инициализирует функциональность приложения.
  */
 export async function init() {
+    // Откладываем обращение к window.FFmpeg до момента реального использования
+    const { createFFmpeg, fetchFile } = window.FFmpeg;
+
     const fileInput = document.getElementById('audio-file-input');
     const fileNameDisplay = document.getElementById('file-name');
     const bitrateSelect = document.getElementById('bitrate-select');
