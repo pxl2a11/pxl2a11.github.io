@@ -54,7 +54,7 @@ export function init() {
                  neighbors.push(neighborIndex);
             }
         });
-        return neighbors;
+        return neighbors.filter(nId => board[nId]);
     };
 
     const startGame = (difficulty) => {
@@ -72,6 +72,9 @@ export function init() {
         boardEl.style.setProperty('--ms-width', currentDifficulty.width);
         cells = [];
 
+        // Создаем доску из "пустых" ячеек для инициализации
+        board = Array.from({ length: currentDifficulty.width * currentDifficulty.height }, (_, i) => ({ id: i, isBomb: false, isRevealed: false, isFlagged: false, neighbors: 0 }));
+
         for (let i = 0; i < currentDifficulty.width * currentDifficulty.height; i++) {
             const cell = document.createElement('div');
             cell.dataset.id = i;
@@ -88,14 +91,13 @@ export function init() {
         const emptyArray = Array(currentDifficulty.width * currentDifficulty.height - currentDifficulty.bombs).fill('valid');
         let gameArray = emptyArray.concat(bombsArray).sort(() => Math.random() - 0.5);
         
-        if (gameArray[firstClickId] === 'bomb') {
-            let validIndex = gameArray.findIndex(sq => sq === 'valid');
-            if (validIndex !== -1) [gameArray[firstClickId], gameArray[validIndex]] = [gameArray[validIndex], gameArray[firstClickId]];
+        // Гарантируем, что первый клик не будет по бомбе
+        while (gameArray[firstClickId] === 'bomb') {
+             gameArray.sort(() => Math.random() - 0.5);
         }
 
-        board = [];
-        for(let i=0; i<currentDifficulty.width * currentDifficulty.height; i++) {
-            board.push({ isBomb: gameArray[i] === 'bomb', isRevealed: false, isFlagged: false, neighbors: 0, id: i });
+        for(let i=0; i< board.length; i++) {
+            board[i].isBomb = (gameArray[i] === 'bomb');
         }
         
         for (let i = 0; i < board.length; i++) {
@@ -107,9 +109,9 @@ export function init() {
     };
     
     const revealCell = (id) => {
-        if (id < 0 || id >= board.length || !board[id] || board[id].isRevealed || board[id].isFlagged) return;
-        
         const cell = board[id];
+        if (!cell || cell.isRevealed || cell.isFlagged) return;
+        
         cell.isRevealed = true;
         const cellEl = cells[id];
         cellEl.classList.remove('bg-gray-400', 'dark:bg-gray-600', 'hover:bg-gray-400/80');
@@ -119,12 +121,25 @@ export function init() {
         if (cell.neighbors > 0) {
             cellEl.textContent = cell.neighbors;
             cellEl.classList.add(`ms-cell-${cell.neighbors}`);
-        } else {
+        } else { // Пустая ячейка, рекурсивно открываем соседей
             setTimeout(() => getNeighbors(id).forEach(neighborId => revealCell(neighborId)), 10);
+        }
+        checkForWin();
+    };
+    
+    // Новая функция "Аккорд"
+    const chord = (id) => {
+        const cell = board[id];
+        const neighbors = getNeighbors(id);
+        const flaggedNeighbors = neighbors.filter(nId => board[nId].isFlagged).length;
+
+        if (cell.neighbors === flaggedNeighbors) {
+            neighbors.forEach(nId => revealCell(nId));
         }
     };
 
     const gameOver = (win, clickedBombId) => {
+        if(isGameOver) return;
         isGameOver = true;
         clearInterval(minesweeperTimer);
         faceBtn.textContent = win ? '😎' : '😵';
@@ -140,8 +155,9 @@ export function init() {
     };
 
     const checkForWin = () => {
+        if(isGameOver) return;
         const revealedCount = board.filter(cell => cell.isRevealed).length;
-        if (board.length > 0 && revealedCount === (currentDifficulty.width * currentDifficulty.height - currentDifficulty.bombs)) {
+        if (revealedCount === (currentDifficulty.width * currentDifficulty.height - currentDifficulty.bombs)) {
             gameOver(true);
         }
     };
@@ -157,10 +173,13 @@ export function init() {
             isFirstClick = false;
             minesweeperTimer = setInterval(() => { time++; timerEl.textContent = time; }, 1000);
         }
-        if (board[id].isRevealed || board[id].isFlagged) return;
-        if (board[id].isBomb) { gameOver(false, id); return; }
-        revealCell(id);
-        checkForWin();
+        
+        const cell = board[id];
+        if (cell.isRevealed && cell.neighbors > 0) {
+            chord(id); // Выполняем "аккорд", если клик по открытой ячейке
+        } else if (!cell.isFlagged) {
+            revealCell(id);
+        }
     };
 
     const onRightClick = (e) => {
@@ -169,13 +188,12 @@ export function init() {
         if (!cellEl) return;
         const id = parseInt(cellEl.dataset.id);
         
-        if (isGameOver || board.length === 0 || board[id].isRevealed) return;
+        if (isGameOver || isFirstClick || board[id].isRevealed) return;
         
         board[id].isFlagged = !board[id].isFlagged;
         flags += board[id].isFlagged ? 1 : -1;
         cells[id].textContent = board[id].isFlagged ? '🚩' : '';
         minesLeftEl.textContent = currentDifficulty.bombs - flags;
-        checkForWin();
     };
     
     settingsEl.addEventListener('click', e => {
