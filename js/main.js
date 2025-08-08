@@ -1,4 +1,4 @@
-// js/main.js
+// js/main1.js
 
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 import { appNameToModuleFile, getAppList } from './utils/appList.js';
