@@ -48,9 +48,8 @@ export function init() {
     const fetchIpInfo = () => {
         resetInfo();
         
-        // Используем http://ip-api.com/ как альтернативный, более доступный API
-        // Добавляем поля, чтобы получить всю необходимую информацию в одном запросе
-        fetch('http://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon,isp,query')
+        // *** ИЗМЕНЕНИЕ ЗДЕСЬ: Используем https вместо http ***
+        fetch('https://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon,isp,query')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Network response was not ok, status: ${response.status}`);
@@ -68,10 +67,8 @@ export function init() {
                 cityEl.textContent = data.city || 'Не определен';
                 ispEl.textContent = data.isp || 'Не определен';
 
-                // Показываем карту, если есть координаты
                 if (data.lat && data.lon) {
                     mapContainer.style.display = 'block';
-                    // Проверяем, подключена ли библиотека Leaflet
                     if (typeof L !== 'undefined') {
                         map = L.map('ip-map').setView([data.lat, data.lon], 10);
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
