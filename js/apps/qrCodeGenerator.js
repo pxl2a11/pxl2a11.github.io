@@ -144,7 +144,7 @@ export function init() {
     templateSelect.addEventListener('change', (e) => updateInputs(e.target.value));
     generateBtn.addEventListener('click', generateQRCode);
     
-    // Initial setup
+    // 1Initial setup
     updateInputs('text');
 }
 
