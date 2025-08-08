@@ -72,7 +72,8 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
     }
     
     const entriesHtml = dataToRender.map(entry => {
-        const appNameLink = `<a href="#" data-app-name="${entry.appName}" class="changelog-link font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">${entry.appName}.</a>`;
+        const appHref = `?app=${encodeURIComponent(entry.appName)}`;
+        const appNameLink = `<a href="${appHref}" data-app-name="${entry.appName}" class="changelog-link font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">${entry.appName}.</a>`;
         const capitalizedDescs = entry.descriptions.map(desc => desc.charAt(0).toUpperCase() + desc.slice(1));
         const descriptionsHtml = capitalizedDescs.length > 1 
             ? `<ul class="list-disc list-inside mt-1">${capitalizedDescs.map(d => `<li class="ml-4">${d}</li>`).join('')}</ul>`
