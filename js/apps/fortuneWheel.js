@@ -79,6 +79,13 @@ export function init() {
     let colors = colorPalettes.default;
     let startAngle = 0, arc, spinAngleStart, spinTime = 0, spinTimeTotal = 0;
 
+    const getContrastColor = (hex) => {
+        if (hex.indexOf('#') === 0) hex = hex.slice(1);
+        if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+        return (r * 0.299 + g * 0.587 + b * 0.114) > 186 ? '#000000' : '#FFFFFF';
+    };
+
     const getSavedLists = () => JSON.parse(localStorage.getItem('fortuneWheelLists')) || {};
     const populateSavedLists = () => {
         const lists = getSavedLists();
@@ -119,28 +126,29 @@ export function init() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#4A5568' : '#E2E8F0';
         ctx.lineWidth = 2;
-        ctx.font = '14px Arial';
+        ctx.font = 'bold 14px Arial';
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
-            ctx.fillStyle = colors[i % colors.length];
+            const segmentColor = colors[i % colors.length];
+            ctx.fillStyle = segmentColor;
             ctx.beginPath();
             ctx.arc(175, 175, 170, angle, angle + arc, false);
             ctx.arc(175, 175, 0, angle + arc, angle, true);
             ctx.fill();
             ctx.save();
-            ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#FFF' : '#000';
-            ctx.translate(175 + Math.cos(angle + arc / 2) * 120, 175 + Math.sin(angle + arc / 2) * 120);
+            ctx.fillStyle = getContrastColor(segmentColor);
+            ctx.translate(175 + Math.cos(angle + arc / 2) * 110, 175 + Math.sin(angle + arc / 2) * 110);
             ctx.rotate(angle + arc / 2 + Math.PI / 2);
             const text = options[i];
             ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
             ctx.restore();
         }
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = '#4A5568';
         ctx.beginPath();
-        ctx.moveTo(175 - 4, 175 - (170 + 15));
-        ctx.lineTo(175 + 4, 175 - (170 + 15));
-        ctx.lineTo(175 + 4, 175 - (170 - 5));
-        ctx.lineTo(175 - 4, 175 - (170 - 5));
+        ctx.moveTo(175 - 5, 5);
+        ctx.lineTo(175 + 5, 5);
+        ctx.lineTo(175, 25);
+        ctx.closePath();
         ctx.fill();
     }
 
@@ -158,25 +166,31 @@ export function init() {
 
     function stopRotateWheel() {
         clearTimeout(spinTimeout);
-        if (soundCheckbox.checked) spinSound.pause();
+        if (soundCheckbox.checked) {
+            spinSound.pause();
+            spinSound.currentTime = 0;
+        }
         const degrees = startAngle * 180 / Math.PI + 90;
         const arcd = arc * 180 / Math.PI;
         const index = Math.floor((360 - degrees % 360) / arcd);
         const winner = options[index];
-
-        if(winner && soundCheckbox.checked) winSound.play();
         
         ctx.save();
         ctx.font = 'bold 30px Arial';
         ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#FFF' : '#000';
-        ctx.fillText(winner, 175 - ctx.measureText(winner).width / 2, 175 + 10);
+        ctx.textAlign = 'center';
+        ctx.fillText(winner, 175, 175 + 10);
         ctx.restore();
+
+        if (winner && soundCheckbox.checked) {
+            winSound.play();
+        }
         
         if (eliminationCheckbox.checked && options.length > 1) {
             setTimeout(() => {
                 options.splice(index, 1);
                 updateOptionsUI();
-            }, 1500);
+            }, 2000);
         }
         spinBtn.disabled = (eliminationCheckbox.checked && options.length < 2) || options.length < 1;
     }
@@ -244,6 +258,183 @@ export function cleanup() {
         clearTimeout(spinTimeout);
         spinTimeout = null;
     }
-    if (spinSound) spinSound.pause();
-    if (winSound) winSound.pause();
+    if (spinSound) {
+        spinSound.pause();
+        spinSound.currentTime = 0;
+    }
+    if (winSound) {
+        winSound.pause();
+        winSound.currentTime = 0;
+    }
+}```
+--- END OF FILE fortuneWheel.js ---
+
+### 2. Тест звука и микрофона (`soundAndMicTest.js`)
+
+**Проблема:**
+*   Кнопки "Запись" и "Стоп" были раздельными, что не очень удобно.
+
+**Решение:**
+*   Я объединил их в одну кнопку-переключатель. Теперь она меняет свой вид и функциональность в зависимости от того, идет запись или нет. Это делает интерфейс более чистым и интуитивно понятным.
+
+--- START OF FILE soundAndMicTest.js ---
+```javascript
+let audioCtx, micStream, animationFrameId, mediaRecorder, audioChunks, isRecording = false;
+
+export function getHtml() {
+    return `
+        <div class="p-4 space-y-8">
+            <!-- Тест звука -->
+            <div>
+                <h3 class="text-xl font-bold mb-2 text-center">Тест звука</h3>
+                <p class="text-center mb-4">Нажмите для проверки левого и правого каналов.</p>
+                <div class="flex justify-center gap-4">
+                    <button id="left-channel-btn" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-full">Левый</button>
+                    <button id="right-channel-btn" class="bg-green-500 text-white font-bold py-3 px-6 rounded-full">Правый</button>
+                </div>
+            </div>
+
+            <!-- Тест микрофона -->
+            <div>
+                <h3 class="text-xl font-bold mb-2 text-center">Тест микрофона</h3>
+                <p id="mic-status" class="text-center mb-4">Нажмите "Начать" для проверки.</p>
+                <div class="w-full h-16 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden mb-4">
+                    <div id="mic-level" class="h-full bg-teal-500 transition-all duration-50" style="width: 0%;"></div>
+                </div>
+                <div id="mic-controls" class="text-center">
+                    <button id="mic-start-btn" class="bg-teal-500 text-white font-bold py-3 px-6 rounded-full">Начать</button>
+                </div>
+            </div>
+
+            <!-- Запись и воспроизведение -->
+            <div id="record-section" class="hidden">
+                <h3 class="text-xl font-bold mb-2 text-center">Запись и Воспроизведение</h3>
+                 <div class="flex justify-center gap-4 mb-4">
+                    <button id="record-toggle-btn" class="bg-red-500 text-white font-bold py-2 px-5 rounded-full flex items-center gap-2 w-32 justify-center transition-colors">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>
+                        <span>Запись</span>
+                    </button>
+                </div>
+                <audio id="audio-playback" controls class="w-full hidden"></audio>
+            </div>
+        </div>`;
+}
+
+export function init() {
+    // --- Тест звука ---
+    const playTestTone = pan => {
+        if (!audioCtx || audioCtx.state === 'closed') {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const panner = audioCtx.createStereoPanner();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        panner.pan.setValueAtTime(pan, audioCtx.currentTime);
+        osc.connect(panner).connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+    };
+
+    document.getElementById('left-channel-btn').addEventListener('click', () => playTestTone(-1));
+    document.getElementById('right-channel-btn').addEventListener('click', () => playTestTone(1));
+
+    // --- Тест микрофона и запись ---
+    const startBtn = document.getElementById('mic-start-btn');
+    const micStatus = document.getElementById('mic-status');
+    const micLevel = document.getElementById('mic-level');
+    const recordSection = document.getElementById('record-section');
+    const recordToggleBtn = document.getElementById('record-toggle-btn');
+    const audioPlayback = document.getElementById('audio-playback');
+
+    const startMic = async () => {
+        if (micStream) return;
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            startBtn.style.display = 'none';
+            micStatus.textContent = 'Говорите в микрофон...';
+            recordSection.classList.remove('hidden');
+
+            if (!audioCtx || audioCtx.state === 'closed') {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaStreamSource(micStream);
+            source.connect(analyser);
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            
+            const draw = () => {
+                animationFrameId = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+                const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+                micLevel.style.width = `${Math.min(average * 2, 100)}%`;
+            };
+            draw();
+            setupRecording();
+        } catch (err) {
+            micStatus.textContent = 'Ошибка: Доступ к микрофону запрещен.';
+            console.error(err);
+        }
+    };
+    startBtn.addEventListener('click', startMic);
+
+    // --- Логика записи ---
+    function setupRecording() {
+        mediaRecorder = new MediaRecorder(micStream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            audioPlayback.src = audioUrl;
+            audioPlayback.classList.remove('hidden');
+            audioChunks = [];
+        };
+
+        recordToggleBtn.addEventListener('click', () => {
+            if (!isRecording) {
+                mediaRecorder.start();
+                isRecording = true;
+                // Update button to "Stop" state
+                recordToggleBtn.classList.remove('bg-red-500');
+                recordToggleBtn.classList.add('bg-gray-600');
+                recordToggleBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><rect x="6" y="6" width="8" height="8" rx="1"/></svg>
+                    <span>Стоп</span>`;
+                audioPlayback.classList.add('hidden');
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                // Update button to "Record" state
+                recordToggleBtn.classList.remove('bg-gray-600');
+                recordToggleBtn.classList.add('bg-red-500');
+                recordToggleBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>
+                    <span>Запись</span>`;
+            }
+        });
+    }
+}
+
+export function cleanup() {
+    if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+    }
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    if (audioCtx && audioCtx.state !== 'closed') {
+        audioCtx.close();
+    }
+    micStream = null;
+    animationFrameId = null;
+    audioCtx = null;
+    mediaRecorder = null;
+    audioChunks = [];
+    isRecording = false;
 }
