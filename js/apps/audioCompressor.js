@@ -1,7 +1,7 @@
-// 11js/apps/audioCompressor.js
+// js/apps/audioCompressor.js
 
-// Для работы приложения используется CDN FFmpeg.wasm
-const { createFFmpeg, fetchFile } = FFmpeg;
+// Явно обращаемся к глобальному объекту window, чтобы получить доступ к FFmpeg
+const { createFFmpeg, fetchFile } = window.FFmpeg;
 let ffmpeg;
 let objectUrl = null; // Хранит URL созданного файла для последующей очистки
 
@@ -68,10 +68,10 @@ export async function init() {
     const setupFfmpeg = async () => {
         if (!ffmpeg || !ffmpeg.isLoaded()) {
             statusContainer.innerHTML = 'Загрузка библиотеки для обработки (может занять время)...';
-            // ИСПОЛЬЗУЕМ ОДНОПОТОЧНУЮ ВЕРСИЮ ЯДРА (CORE-ST)
+            // Используем локальный путь
             ffmpeg = createFFmpeg({
                 log: true,
-                corePath: 'https://unpkg.com/@ffmpeg/core-st@0.10.0/dist/ffmpeg-core.js',
+                corePath: 'js/ffmpeg-st/ffmpeg-core.js',
             });
             await ffmpeg.load();
             statusContainer.innerHTML = 'Библиотека загружена. Готово к работе.';
