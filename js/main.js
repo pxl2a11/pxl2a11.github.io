@@ -1,4 +1,4 @@
-// js/main.js
+// js//main.js
 
 import { renderChangelog } from './utils/changelog.js';
 import { getAppList } from './utils/appList.js';
