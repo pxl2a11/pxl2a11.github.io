@@ -1,7 +1,29 @@
-// 1js/apps/audioCompressor.js
+// js/apps/audioCompressor.js
 
 let ffmpeg;
 let objectUrl = null; // Хранит URL созданного файла для последующей очистки
+
+/**
+ * Вспомогательная функция, которая возвращает Promise.
+ * Promise разрешится только тогда, когда window.FFmpeg будет доступен.
+ */
+const getFFmpeg = () => {
+    return new Promise((resolve) => {
+        // Если объект уже существует, немедленно возвращаем его.
+        if (window.FFmpeg) {
+            resolve(window.FFmpeg);
+            return;
+        }
+        // Если нет, проверяем его наличие каждые 100 миллисекунд.
+        const interval = setInterval(() => {
+            if (window.FFmpeg) {
+                clearInterval(interval);
+                resolve(window.FFmpeg);
+            }
+        }, 100);
+    });
+};
+
 
 /**
  * Возвращает HTML-структуру для приложения сжатия аудио.
@@ -55,9 +77,6 @@ export function getHtml() {
  * Инициализирует функциональность приложения.
  */
 export async function init() {
-    // Откладываем обращение к window.FFmpeg до момента реального использования
-    const { createFFmpeg, fetchFile } = window.FFmpeg;
-
     const fileInput = document.getElementById('audio-file-input');
     const fileNameDisplay = document.getElementById('file-name');
     const bitrateSelect = document.getElementById('bitrate-select');
@@ -69,7 +88,11 @@ export async function init() {
     const setupFfmpeg = async () => {
         if (!ffmpeg || !ffmpeg.isLoaded()) {
             statusContainer.innerHTML = 'Загрузка библиотеки для обработки (может занять время)...';
-            // Используем локальный путь
+            
+            // Ждем, пока библиотека FFmpeg не будет готова.
+            const FFmpeg = await getFFmpeg();
+            const { createFFmpeg } = FFmpeg;
+
             ffmpeg = createFFmpeg({
                 log: true,
                 corePath: 'js/ffmpeg-st/ffmpeg-core.js',
@@ -95,13 +118,18 @@ export async function init() {
             alert('Пожалуйста, выберите файл.');
             return;
         }
-        cleanup(); // Очистка предыдущего результата
+        cleanup(); 
         resultContainer.classList.add('hidden');
         resultContainer.innerHTML = '';
         compressButton.disabled = true;
 
         try {
             await setupFfmpeg();
+
+            // Ждем, пока библиотека FFmpeg не будет готова.
+            const FFmpeg = await getFFmpeg();
+            const { fetchFile } = FFmpeg;
+
             const inputFileName = 'input.' + selectedFile.name.split('.').pop();
             const outputFileName = 'output.mp3';
             const bitrate = bitrateSelect.value + 'k';
