@@ -10,8 +10,8 @@ export function getHtml() {
             
             <div class="w-full p-4 bg-gray-100 dark:bg-gray-800 rounded-lg space-y-2 mt-4">
                  <h4 class="text-center font-semibold text-sm mb-2">Пользовательские ответы</h4>
-                 <textarea id="custom-answers-textarea" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" rows="4" placeholder="Введите каждый ответ с новой строки..."></textarea>
-                 <button id="save-custom-answers-btn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-full hover:bg-green-600 text-sm">Сохранить ответы</button>
+                 <textarea id="custom-answers-textarea" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" rows="4" placeholder="Введите каждый ответ с новой строки... Если поле заполнено, будут использоваться только эти ответы."></textarea>
+                 <button id="save-custom-answers-btn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-full hover:bg-green-600 text-sm transition-colors">Сохранить ответы</button>
             </div>
         </div>`;
 }
@@ -28,26 +28,44 @@ export function init() {
     function loadCustomAnswers() {
         const saved = localStorage.getItem('magicBallCustomAnswers');
         if (saved) {
-            customAnswersTextarea.value = JSON.parse(saved).join('\n');
+            const answers = JSON.parse(saved);
+            if (answers.length > 0) {
+                customAnswersTextarea.value = answers.join('\n');
+            }
         }
     }
 
     function saveCustomAnswers() {
         const answers = customAnswersTextarea.value.split('\n').map(a => a.trim()).filter(a => a.length > 0);
         localStorage.setItem('magicBallCustomAnswers', JSON.stringify(answers));
-        alert('Ответы сохранены!');
+        
+        saveAnswersBtn.textContent = 'Сохранено!';
+        saveAnswersBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+        saveAnswersBtn.classList.add('bg-blue-500');
+        setTimeout(() => {
+            saveAnswersBtn.textContent = 'Сохранить ответы';
+            saveAnswersBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+            saveAnswersBtn.classList.remove('bg-blue-500');
+        }, 2000);
     }
 
     const getAnswer = () => {
         const customAnswersRaw = localStorage.getItem('magicBallCustomAnswers');
-        const customAnswers = customAnswersRaw ? JSON.parse(customAnswersRaw) : [];
-        const allAnswers = [...defaultAnswers, ...customAnswers];
+        const customAnswers = customAnswersRaw ? JSON.parse(customAnswersRaw).filter(a => a) : [];
+        
+        // --- ИСПРАВЛЕНИЕ: Использовать пользовательские ответы, если они есть, иначе - стандартные ---
+        const answersToUse = customAnswers.length > 0 ? customAnswers : defaultAnswers;
         
         answerEl.textContent = '...';
+        answerEl.style.fontSize = '1.125rem'; // reset font size
         ball.classList.add('shake-animation');
+        
         setTimeout(() => {
-            const randomAnswer = allAnswers[Math.floor(Math.random() * allAnswers.length)];
+            const randomAnswer = answersToUse[Math.floor(Math.random() * answersToUse.length)];
             answerEl.textContent = randomAnswer || 'Спроси позже';
+            if(randomAnswer.length > 20) {
+                 answerEl.style.fontSize = '0.9rem';
+            }
             ball.classList.remove('shake-animation');
         }, 800);
     };
