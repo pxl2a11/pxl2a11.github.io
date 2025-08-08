@@ -1,9 +1,14 @@
 let spinTimeout;
+let spinSound, winSound;
 
 export function getHtml() {
     return `
         <div class="p-4 flex flex-col items-center">
+             <audio id="spin-sound" src="https://actions.google.com/sounds/v1/games/spin_wheel.ogg" preload="auto"></audio>
+             <audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" preload="auto"></audio>
+
             <canvas id="wheel-canvas" width="350" height="350" class="mb-4"></canvas>
+            
             <div class="flex items-center justify-center gap-4 w-full max-w-sm mb-4">
                 <button id="spin-btn" class="flex-grow bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600 disabled:opacity-50">Крутить</button>
                 <label class="flex items-center cursor-pointer whitespace-nowrap">
@@ -11,6 +16,7 @@ export function getHtml() {
                     <span class="ml-2 text-sm">На выбывание</span>
                 </label>
             </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <div class="w-full p-3 bg-gray-100 dark:bg-gray-800 rounded-lg space-y-2">
                     <h4 class="text-center font-semibold text-sm mb-1">Варианты</h4>
@@ -21,7 +27,18 @@ export function getHtml() {
                     </div>
                 </div>
                 <div class="w-full p-3 bg-gray-100 dark:bg-gray-800 rounded-lg space-y-2">
-                    <h4 class="text-center font-semibold text-sm mb-1">Сохраненные списки</h4>
+                    <h4 class="text-center font-semibold text-sm mb-1">Настройки</h4>
+                     <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="sound-effects-checkbox" class="h-4 w-4 rounded" checked>
+                        <span class="ml-2 text-sm">Звуковые эффекты</span>
+                    </label>
+                    <select id="color-scheme-select" class="w-full py-1.5 px-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-sm">
+                        <option value="default">Схема по умолчанию</option>
+                        <option value="pastel">Пастельная</option>
+                        <option value="neon">Неоновая</option>
+                        <option value="ocean">Океан</option>
+                    </select>
+                    <h4 class="text-center font-semibold text-sm mb-1 pt-2">Сохраненные списки</h4>
                     <select id="saved-lists-select" class="w-full py-1.5 px-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-sm">
                         <option value="">-- Загрузить список --</option>
                     </select>
@@ -47,9 +64,19 @@ export function init() {
     const savedListsSelect = document.getElementById('saved-lists-select');
     const deleteListBtn = document.getElementById('delete-list-btn');
     const eliminationCheckbox = document.getElementById('elimination-mode-checkbox');
+    const colorSchemeSelect = document.getElementById('color-scheme-select');
+    const soundCheckbox = document.getElementById('sound-effects-checkbox');
+    spinSound = document.getElementById('spin-sound');
+    winSound = document.getElementById('win-sound');
 
     let options = ['Приз 1', 'Сектор 2', 'Шанс', 'Попробуй еще'];
-    const colors = ['#FFC107', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#E91E63'];
+    const colorPalettes = {
+        default: ['#FFC107', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#E91E63'],
+        pastel: ['#fec5bb', '#fcd5ce', '#fae1dd', '#f8edeb', '#e8e8e4', '#d8e2dc'],
+        neon: ['#fe4450', '#ff8928', '#ffd300', '#2dfc2f', '#3296ff', '#8f20e8'],
+        ocean: ['#003f5c', '#2f4b7c', '#665191', '#a05195', '#d45087', '#f95d6a']
+    };
+    let colors = colorPalettes.default;
     let startAngle = 0, arc, spinAngleStart, spinTime = 0, spinTimeTotal = 0;
 
     const getSavedLists = () => JSON.parse(localStorage.getItem('fortuneWheelLists')) || {};
@@ -131,22 +158,27 @@ export function init() {
 
     function stopRotateWheel() {
         clearTimeout(spinTimeout);
+        if (soundCheckbox.checked) spinSound.pause();
         const degrees = startAngle * 180 / Math.PI + 90;
         const arcd = arc * 180 / Math.PI;
         const index = Math.floor((360 - degrees % 360) / arcd);
         const winner = options[index];
+
+        if(winner && soundCheckbox.checked) winSound.play();
+        
         ctx.save();
         ctx.font = 'bold 30px Arial';
         ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#FFF' : '#000';
         ctx.fillText(winner, 175 - ctx.measureText(winner).width / 2, 175 + 10);
         ctx.restore();
+        
         if (eliminationCheckbox.checked && options.length > 1) {
             setTimeout(() => {
                 options.splice(index, 1);
                 updateOptionsUI();
             }, 1500);
         }
-        spinBtn.disabled = options.length < 2 && eliminationCheckbox.checked;
+        spinBtn.disabled = (eliminationCheckbox.checked && options.length < 2) || options.length < 1;
     }
 
     function easeOut(t, b, c, d) {
@@ -157,7 +189,7 @@ export function init() {
 
     function updateOptionsUI() {
         optionsListDiv.innerHTML = '';
-        spinBtn.disabled = options.length < 2;
+        spinBtn.disabled = options.length < 1 || (eliminationCheckbox.checked && options.length < 2);
         options.forEach((opt, i) => {
             optionsListDiv.innerHTML += `<div class="flex items-center justify-between p-1.5 bg-gray-200 dark:bg-gray-700 rounded-md text-sm"><span>${opt}</span><button data-index="${i}" class="remove-option text-red-500 hover:text-red-700 font-bold">✖</button></div>`;
         });
@@ -185,10 +217,19 @@ export function init() {
 
     spinBtn.addEventListener("click", () => {
         spinBtn.disabled = true;
+        if (soundCheckbox.checked) {
+            spinSound.currentTime = 0;
+            spinSound.play();
+        }
         spinAngleStart = Math.random() * 10 + 10;
         spinTime = 0;
         spinTimeTotal = Math.random() * 3 + 4 * 1000;
         rotateWheel();
+    });
+
+    colorSchemeSelect.addEventListener('change', (e) => {
+        colors = colorPalettes[e.target.value];
+        drawWheel();
     });
 
     saveListBtn.addEventListener('click', saveCurrentList);
@@ -203,4 +244,6 @@ export function cleanup() {
         clearTimeout(spinTimeout);
         spinTimeout = null;
     }
+    if (spinSound) spinSound.pause();
+    if (winSound) winSound.pause();
 }
