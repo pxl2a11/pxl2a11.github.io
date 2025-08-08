@@ -4,6 +4,12 @@ let isAudioUnlocked = false; // Флаг для отслеживания "раз
 
 export function getHtml() {
     return `
+        {/* --- РЕШЕНИЕ: Стиль для скрытия полосы прокрутки --- */}
+        <style>
+            #options-list::-webkit-scrollbar { display: none; }
+            #options-list { -ms-overflow-style: none; scrollbar-width: none; }
+        </style>
+
         <div class="p-4 flex flex-col items-center">
              <audio id="spin-sound" src="https://actions.google.com/sounds/v1/games/spin_wheel.ogg" preload="auto"></audio>
              <audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" preload="auto"></audio>
@@ -21,6 +27,7 @@ export function getHtml() {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <div class="w-full p-3 bg-gray-100 dark:bg-gray-800 rounded-lg space-y-2">
                     <h4 class="text-center font-semibold text-sm mb-1">Варианты</h4>
+                    {/* --- РЕШЕНИЕ: Убрана полоса прокрутки --- */}
                     <div id="options-list" class="space-y-1.5 pr-1 max-h-40 overflow-y-auto"></div>
                     <div class="flex gap-2 pt-1">
                         <input id="option-input" type="text" placeholder="Добавить..." class="flex-grow p-1.5 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-sm">
@@ -117,60 +124,56 @@ export function init() {
     };
 
     function drawWheel() {
+        const R = canvas.width / 2; // Radius
+        const R_outer = R - 5; // Внешний радиус всего колеса
+        const R_inner = R * 0.7; // Внутренний радиус для цветных секторов
+
         arc = options.length > 0 ? Math.PI / (options.length / 2) : 0;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Рисуем цветные сектора
+        // --- РЕШЕНИЕ: Рисуем сплошное темное кольцо для фона текста ---
+        ctx.fillStyle = '#1F2937'; // Dark Gray
+        ctx.beginPath();
+        ctx.arc(R, R, R_outer, 0, Math.PI * 2, false);
+        ctx.arc(R, R, R_inner, 0, Math.PI * 2, true);
+        ctx.fill();
+
+        // Рисуем цветные сектора внутри кольца
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
             ctx.fillStyle = colors[i % colors.length];
             ctx.beginPath();
-            ctx.arc(175, 175, 170, angle, angle + arc, false);
-            ctx.arc(175, 175, 0, angle + arc, angle, true);
+            ctx.arc(R, R, R_inner, angle, angle + arc, false);
+            ctx.lineTo(R, R); // замыкаем сектор в центре
             ctx.fill();
         }
 
-        // Рисуем текст на черных плашках по краю
+        // Рисуем текст на темном кольце
         ctx.save();
         ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#FFFFFF';
 
         for (let i = 0; i < options.length; i++) {
             const angle = startAngle + i * arc;
             const text = options[i];
+            const textRadius = (R_outer + R_inner) / 2; // Позиция текста между кольцами
             
             ctx.save();
-            // --- ИЗМЕНЕНИЕ: Смещаем текст к самому краю (радиус 145) ---
-            ctx.translate(175 + Math.cos(angle + arc / 2) * 145, 175 + Math.sin(angle + arc / 2) * 145);
+            ctx.translate(R + Math.cos(angle + arc / 2) * textRadius, R + Math.sin(angle + arc / 2) * textRadius);
             ctx.rotate(angle + arc / 2 + Math.PI / 2);
-
-            const textMetrics = ctx.measureText(text);
-            const textWidth = textMetrics.width;
-            
-            // --- ИЗМЕНЕНИЕ: Рисуем сплошную черную плашку ---
-            ctx.fillStyle = '#000000';
-            ctx.roundRect(-textWidth / 2 - 10, -12, textWidth + 20, 24, 8);
-            ctx.fill();
-
-            // --- ИЗМЕНЕНИЕ: Рисуем белый текст ---
-            ctx.fillStyle = '#FFFFFF';
             ctx.fillText(text, 0, 0);
             ctx.restore();
         }
         ctx.restore();
         
-        // Рисуем центральный круг и указатель
-        ctx.fillStyle = '#374151'; // Dark gray
+        // Рисуем указатель
+        ctx.fillStyle = '#111827'; // Almost black
         ctx.beginPath();
-        ctx.arc(175, 175, 25, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#4A5568'; // Medium gray
-        ctx.beginPath();
-        ctx.moveTo(175 - 6, 5);
-        ctx.lineTo(175 + 6, 5);
-        ctx.lineTo(175, 25);
+        ctx.moveTo(R - 8, 2);
+        ctx.lineTo(R + 8, 2);
+        ctx.lineTo(R, 28);
         ctx.closePath();
         ctx.fill();
     }
@@ -206,7 +209,7 @@ export function init() {
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(winner, 175, 175);
+        ctx.fillText(winner, canvas.width / 2, canvas.height / 2);
         ctx.restore();
 
         if (winner && soundCheckbox.checked) {
