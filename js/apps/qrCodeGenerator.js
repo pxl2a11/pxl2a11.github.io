@@ -100,10 +100,9 @@ export function init() {
                     height: 208,
                     colorDark: colorDark,
                     colorLight: colorLight,
-                    // ИЗМЕНЕНО: Уровень коррекции ошибок понижен до M (Medium).
-                    // Это стандартный уровень, который освобождает больше места для данных,
-                    // что особенно важно для "тяжелых" символов кириллицы.
-                    correctLevel: QRCode.CorrectLevel.M 
+                    // ИЗМЕНЕНО: Уровень коррекции ошибок установлен на L (Low),
+                    // чтобы максимизировать доступное место для данных.
+                    correctLevel: QRCode.CorrectLevel.L
                 });
                 
                 setTimeout(() => {
@@ -122,7 +121,7 @@ export function init() {
             } catch (e) {
                 console.error(e);
                 // Улучшенное сообщение об ошибке для пользователя
-                display.innerHTML = '<span class="text-red-500 text-center p-2">Ошибка: слишком много данных для QR-кода. Попробуйте сократить текст.</span>';
+                display.innerHTML = '<span class="text-red-500 text-center p-2"><b>Ошибка:</b> слишком много данных. Попробуйте сократить вводимый текст.</span>';
             }
         } else {
             display.innerHTML = '<span class="text-gray-400">Введите данные для генерации.</span>';
