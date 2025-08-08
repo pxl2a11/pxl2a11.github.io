@@ -12,7 +12,6 @@ export function getHtml() {
         </style>
 
         <div class="p-4 flex flex-col items-center">
-             <!-- ИЗМЕНЕНО: Источники звуков теперь локальные -->
              <audio id="spin-sound" src="sounds/wheel-spinning.wav" preload="auto"></audio>
              <audio id="win-sound" src="sounds/wheel-winner.wav" preload="auto"></audio>
 
@@ -162,8 +161,18 @@ export function init() {
         ctx.fill();
     }
 
+    // --- ИЗМЕНЕНИЕ №1: Добавлена логика затухания звука ---
     function rotateWheel() {
         spinTime += 30;
+
+        // НОВОЕ: Логика затухания громкости
+        if (soundCheckbox.checked && spinSound) {
+            // Рассчитываем прогресс вращения от 0.0 до 1.0
+            const progress = Math.min(spinTime / spinTimeTotal, 1.0);
+            // Громкость будет плавно уменьшаться с 1.0 до 0.0
+            spinSound.volume = 1.0 - progress;
+        }
+
         if (spinTime >= spinTimeTotal) {
             stopRotateWheel();
             return;
@@ -176,9 +185,10 @@ export function init() {
 
     function stopRotateWheel() {
         clearTimeout(spinTimeout);
-        if (soundCheckbox.checked) {
+        if (soundCheckbox.checked && spinSound) {
             spinSound.pause();
             spinSound.currentTime = 0;
+            spinSound.volume = 1.0; // Сбрасываем громкость для следующего раза
         }
         const degrees = startAngle * 180 / Math.PI + 90;
         const arcd = arc * 180 / Math.PI;
@@ -243,6 +253,7 @@ export function init() {
         }
     });
 
+    // --- ИЗМЕНЕНИЕ №2: Принудительная установка громкости на 1.0 перед стартом ---
     spinBtn.addEventListener("click", () => {
         if (!isAudioUnlocked) {
             spinSound.load();
@@ -253,6 +264,7 @@ export function init() {
         spinBtn.disabled = true;
         if (soundCheckbox.checked) {
             spinSound.currentTime = 0;
+            spinSound.volume = 1.0; // НОВОЕ: Сброс громкости на максимум
             spinSound.play();
         }
         spinAngleStart = Math.random() * 10 + 10;
