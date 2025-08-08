@@ -15,6 +15,8 @@ export function getHtml() {
                     <p><strong>Город:</strong> <span id="ip-city">Загрузка...</span></p>
                 </div>
             </div>
+            <!-- Контейнер для карты -->
+            <div id="ip-map" class="w-full max-w-md h-64 mt-4 rounded-xl shadow-md z-0"></div>
         </div>`;
 }
 
@@ -26,6 +28,9 @@ export function init() {
     const regionEl = document.getElementById('ip-region');
     const cityEl = document.getElementById('ip-city');
     const ispEl = document.getElementById('ip-isp');
+    const mapContainer = document.getElementById('ip-map');
+
+    let map = null; // Переменная для хранения экземпляра карты
 
     const fetchIpInfo = () => {
         ipEl.textContent = 'Загрузка...';
@@ -33,6 +38,11 @@ export function init() {
         regionEl.textContent = 'Загрузка...';
         cityEl.textContent = 'Загрузка...';
         ispEl.textContent = 'Загрузка...';
+        mapContainer.style.display = 'none'; // Скрыть карту на время загрузки
+        if(map) {
+            map.remove();
+            map = null;
+        }
         
         // Используем ipapi.co как более надежный API
         fetch('https://ipapi.co/json/')
@@ -47,7 +57,24 @@ export function init() {
                 countryEl.textContent = data.country_name || 'Не определена';
                 regionEl.textContent = data.region || 'Не определен';
                 cityEl.textContent = data.city || 'Не определен';
-                ispEl.textContent = data.org || 'Не определен'; // org часто содержит имя провайдера
+                ispEl.textContent = data.org || 'Не определен';
+
+                // Показываем карту, если есть координаты
+                if (data.latitude && data.longitude) {
+                    mapContainer.style.display = 'block';
+                    // Проверяем, подключена ли библиотека Leaflet
+                    if (typeof L !== 'undefined') {
+                        map = L.map('ip-map').setView([data.latitude, data.longitude], 10);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(map);
+                        L.marker([data.latitude, data.longitude]).addTo(map)
+                            .bindPopup(`Приблизительное местоположение для ${data.ip}`)
+                            .openPopup();
+                    } else {
+                        mapContainer.innerHTML = '<p class="text-center text-red-500">Библиотека карт (Leaflet) не загружена.</p>';
+                    }
+                }
             })
             .catch(() => {
                 ipEl.textContent = 'Ошибка';
@@ -73,4 +100,6 @@ export function init() {
     fetchIpInfo();
 }
 
-export function cleanup() {}
+export function cleanup() {
+    // В cleanup можно ничего не делать, так как карта пересоздается при каждом init
+}
