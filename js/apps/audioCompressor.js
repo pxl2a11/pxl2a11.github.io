@@ -1,4 +1,4 @@
-// js/apps/audioCompressor.js
+// 11js/apps/audioCompressor.js
 
 // Для работы приложения используется CDN FFmpeg.wasm
 const { createFFmpeg, fetchFile } = FFmpeg;
