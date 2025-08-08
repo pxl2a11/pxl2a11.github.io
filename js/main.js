@@ -22,7 +22,6 @@ const appNameToModuleFile = {
     'Конвертер величин': 'unitConverter',
     'Калькулятор дат': 'dateCalculator',
     'Калькулятор ИМТ': 'bmiCalculator',
-    'Сжатие аудио': 'audioCompressor', // Новое приложение
     'История изменений': 'changelogPage',
 };
 
@@ -56,16 +55,18 @@ const homeScreenHtml = `
             </a>
             <a href="?app=soundAndMicTest" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Тест звука и микрофона">
                 <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg class="w-8 h-8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" fill="currentColor">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke="none"/>
-                        <g fill="none" stroke-width="2" stroke-linecap="round">
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                            <line x1="12" y1="19" x2="12" y2="23"/>
-                            <line x1="8" y1="23" x2="16" y2="23"/>
-                            <path d="M21 12h-2"/>
-                            <path d="M3 12h2"/>
-                        </g>
-                    </svg>
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <!-- Левая крайняя полоска -->
+            <rect x="1" y="9" width="3" height="6" rx="1" />
+            <!-- Левая средняя полоска -->
+            <rect x="6" y="7" width="3" height="10" rx="1" />
+            <!-- Центральная (самая высокая) полоска -->
+            <rect x="11" y="4" width="3" height="16" rx="1" />
+            <!-- Правая средняя полоска -->
+            <rect x="16" y="7" width="3" height="10" rx="1" />
+            <!-- Правая крайняя полоска -->
+            <rect x="21" y="9" width="3" height="6" rx="1" />
+        </svg>
                 </div>
                 <span class="text-sm font-medium ml-4">Тест звука и микрофона</span>
             </a>
@@ -90,8 +91,11 @@ const homeScreenHtml = `
             <a href="?app=timer" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Таймер и обратный отсчет">
                 <div class="w-12 h-12 bg-orange-400 text-white rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Корпус таймера -->
                         <circle cx="12" cy="12" r="9" />
+                        <!-- Кнопка сверху -->
                         <line x1="12" y1="2" x2="12" y2="5" />
+                        <!-- Стрелки -->
                         <line x1="12" y1="12" x2="12" y2="7" />
                         <line x1="12" y1="12" x2="15" y2="12" />
                     </svg>
@@ -145,17 +149,6 @@ const homeScreenHtml = `
             <a href="?app=bmiCalculator" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор ИМТ">
                 <div class="w-12 h-12 bg-emerald-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="16" height="16" rx="2" /><circle cx="12" cy="12" r="4" /><line x1="12" y1="12" x2="15" y2="9" /></svg></div>
                 <span class="text-sm font-medium ml-4">Калькулятор ИМТ</span>
-            </a>
-            <a href="?app=audioCompressor" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Сжатие аудио">
-                <div class="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 19l-4-4m8-6l-4 4-4-4"/>
-                        <path d="M3 12h2M5 10v4"/>
-                        <path d="M19 12h2M17 10v4"/>
-                        <path d="M15 8v8"/>
-                    </svg>
-                </div>
-                <span class="text-sm font-medium ml-4">Сжатие аудио</span>
             </a>
         </div>
     </div>`;
@@ -326,22 +319,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Скрывать подсказки при клике вне поля
     document.addEventListener('click', e => {
-        if (suggestionsContainer && !suggestionsContainer.contains(e.target) && e.target !== searchInput) {
+        if (!suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
         }
     });
     
-    if (changelogContainer) {
-        changelogContainer.addEventListener('click', (e) => {
-            if (e.target.id === 'show-all-changelog-btn') {
-                e.preventDefault();
-                const moduleFile = appNameToModuleFile['История изменений'];
-                history.pushState({}, '', `?app=${moduleFile}`);
-                router();
-                return;
-            }
-        });
-    }
+    changelogContainer.addEventListener('click', (e) => {
+        if (e.target.id === 'show-all-changelog-btn') {
+            e.preventDefault();
+            const moduleFile = appNameToModuleFile['История изменений'];
+            history.pushState({}, '', `?app=${moduleFile}`);
+            router();
+            return;
+        }
+    });
 
     // Слушаем событие `popstate` (нажатие кнопок "назад/вперед" в браузере)
     window.addEventListener('popstate', router);
