@@ -76,7 +76,8 @@ export function init() {
                             map.remove();
                             map = null;
                         }
-                        map = L.map('ip-map').setView([lat, lon], 10);
+                        // *** ИЗМЕНЕНИЕ ЗДЕСЬ: добавлен { attributionControl: false } для удаления текста атрибуции ***
+                        map = L.map('ip-map', { attributionControl: false }).setView([lat, lon], 10);
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         }).addTo(map);
