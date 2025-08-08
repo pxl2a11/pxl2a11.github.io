@@ -1,5 +1,3 @@
-// js/utils/changelog.js
-
 // --- Сопоставление имен приложений с файлами модулей (ОБНОВЛЕНО) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
