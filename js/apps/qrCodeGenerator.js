@@ -63,13 +63,6 @@ export function init() {
 
     function updateInputs(template) {
         inputContainer.innerHTML = templates[template];
-        // Добавим автоматическое заполнение поля для текста для удобства
-        if (template === 'text') {
-            const qrText = document.getElementById('qr-text');
-            if (qrText) {
-                qrText.value = 'Привет, мир!';
-            }
-        }
     }
 
     function generateQRCode() {
@@ -102,24 +95,25 @@ export function init() {
             downloadBtn.classList.add('hidden');
             try {
                 new QRCode(display, {
-                    // ИСПРАВЛЕНО: передаем текст напрямую, без ручного кодирования
                     text: text,
                     width: 208,
                     height: 208,
                     colorDark: colorDark,
                     colorLight: colorLight,
-                    correctLevel: QRCode.CorrectLevel.H
+                    // ИЗМЕНЕНО: Уровень коррекции ошибок понижен до M (Medium).
+                    // Это стандартный уровень, который освобождает больше места для данных,
+                    // что особенно важно для "тяжелых" символов кириллицы.
+                    correctLevel: QRCode.CorrectLevel.M 
                 });
                 
-                // Небольшая задержка, чтобы canvas успел отрисоваться перед созданием ссылки
                 setTimeout(() => {
                     const canvas = display.querySelector('canvas');
                     const img = display.querySelector('img');
 
-                    if (canvas) { // Для стандартного рендеринга
+                    if (canvas) {
                         downloadBtn.href = canvas.toDataURL('image/png');
                         downloadBtn.classList.remove('hidden');
-                    } else if (img) { // Для старых браузеров или SVG рендеринга
+                    } else if (img) { 
                         downloadBtn.href = img.src;
                         downloadBtn.classList.remove('hidden');
                     }
@@ -127,7 +121,8 @@ export function init() {
 
             } catch (e) {
                 console.error(e);
-                display.innerHTML = '<span class="text-red-500 text-center">Ошибка при создании QR-кода. Возможно, данных слишком много.</span>';
+                // Улучшенное сообщение об ошибке для пользователя
+                display.innerHTML = '<span class="text-red-500 text-center p-2">Ошибка: слишком много данных для QR-кода. Попробуйте сократить текст.</span>';
             }
         } else {
             display.innerHTML = '<span class="text-gray-400">Введите данные для генерации.</span>';
@@ -138,10 +133,9 @@ export function init() {
     templateSelect.addEventListener('change', (e) => updateInputs(e.target.value));
     generateBtn.addEventListener('click', generateQRCode);
     
-    // Первоначальная настройка полей ввода
     updateInputs('text');
 }
 
 export function cleanup() {
-    // Здесь можно сбрасывать состояние, если это необходимо
+    // Эта функция остается пустой, если нет специфичной логики очистки
 }
