@@ -1,6 +1,8 @@
+// js/main.js
+
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// --- Сопоставление имен приложений с файлами модулей ---
+// --- Сопоставление имен приложений с файлами модулей (ОБНОВЛЕНО) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -8,6 +10,8 @@ const appNameToModuleFile = {
     'Тест звука и микрофона': 'soundAndMicTest',
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
+    'Калькулятор процентных соотношений': 'percentageCalculator', // НОВОЕ
+    'Таймер и обратный отсчет': 'timer', // НОВОЕ
     'Колесо фортуны': 'fortuneWheel',
     'Шар предсказаний': 'magicBall',
     'Крестики-нолики': 'ticTacToe',
@@ -20,23 +24,22 @@ const appNameToModuleFile = {
     'Конвертер величин': 'unitConverter',
     'Калькулятор дат': 'dateCalculator',
     'Калькулятор ИМТ': 'bmiCalculator',
-    'История изменений': 'changelogPage', // Специальная страница
+    'История изменений': 'changelogPage',
 };
 
-// --- НОВОЕ: Обратное сопоставление для поиска полного имени по файлу модуля ---
+// --- Обратное сопоставление ---
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
-
 
 // --- Глобальные переменные и константы ---
 const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
 const suggestionsContainer = document.getElementById('suggestions-container');
-let activeAppModule = null; // Хранит текущий активный модуль для очистки
+let activeAppModule = null;
 
-// --- Шаблоны HTML (ИЗМЕНЕНЫ ССЫЛКИ) ---
+// --- Шаблоны HTML (ОБНОВЛЕН) ---
 const homeScreenHtml = `
     <div id="home-screen">
         <div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -63,6 +66,16 @@ const homeScreenHtml = `
             <a href="?app=passwordGenerator" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Генератор паролей">
                 <div class="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></div>
                 <span class="text-sm font-medium ml-4">Генератор паролей</span>
+            </a>
+            <!-- НОВОЕ ПРИЛОЖЕНИЕ -->
+            <a href="?app=percentageCalculator" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор процентных соотношений">
+                <div class="w-12 h-12 bg-fuchsia-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l-7 7 7 7"></path><path d="M19 12a7 7 0 11-14 0 7 7 0 0114 0z" stroke="none" fill="currentColor" style="opacity:0.2"></path><text x="12" y="16" font-size="10" text-anchor="middle" fill="currentColor">%</text></svg></div>
+                <span class="text-sm font-medium ml-4">Калькулятор процентных соотношений</span>
+            </a>
+            <!-- НОВОЕ ПРИЛОЖЕНИЕ -->
+            <a href="?app=timer" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Таймер и обратный отсчет">
+                <div class="w-12 h-12 bg-orange-400 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 19l2 2m-2-2l-2 2m-12-2l-2 2m2-2l2 2"></path></svg></div>
+                <span class="text-sm font-medium ml-4">Таймер и обратный отсчет</span>
             </a>
             <a href="?app=fortuneWheel" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Колесо фортуны">
                 <div class="w-12 h-12 bg-purple-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M12 3 L12 21 M3 12 L21 12 M5.12 5.12 L18.88 18.88 M18.88 5.12 L5.12 18.88" stroke-width="2" stroke-linecap="round"/></svg></div>
@@ -137,9 +150,14 @@ async function router() {
     // 2. Определяем, какое приложение показать
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
-    const appName = moduleFileToAppName[moduleName]; // Находим полное имя по имени модуля
+    const appName = moduleFileToAppName[moduleName]; 
 
     if (appName) {
+        // --- ИСПРАВЛЕНИЕ: Очистка поиска при переходе в приложение ---
+        if (searchInput) searchInput.value = '';
+        if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+        
         // --- Загрузка страницы приложения ---
         dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
@@ -179,21 +197,19 @@ async function router() {
     setupNavigationEvents();
 }
 
-// --- Обработка навигации (ИЗМЕНЕНА) ---
+// --- Обработка навигации ---
 function setupNavigationEvents() {
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a');
         if (!link) return;
 
         const url = new URL(link.href);
-        // Если это внутренняя ссылка
         if (url.origin === window.location.origin) {
             const isAppNavigation = url.search.startsWith('?app=') || (url.pathname === '/' && !url.search);
             const isChangelogLink = link.classList.contains('changelog-link');
 
             if (isAppNavigation || isChangelogLink) {
                 e.preventDefault();
-                // Для ссылок из ченджлога, которые используют data-атрибут
                 const appNameToOpen = link.dataset.appName;
                 if (isChangelogLink && appNameToOpen) {
                     const moduleFile = appNameToModuleFile[appNameToOpen];
@@ -201,7 +217,6 @@ function setupNavigationEvents() {
                         history.pushState({}, '', `?app=${moduleFile}`);
                     }
                 } else {
-                    // Для всех остальных ссылок, href уже правильный
                     history.pushState({}, '', link.href);
                 }
                 router();
@@ -236,11 +251,13 @@ function setupSearch() {
                 suggestionEl.textContent = suggestionText;
                 suggestionEl.className = 'px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
                 suggestionEl.addEventListener('click', () => {
-                    // Находим имя модуля по полному имени и используем его в URL
                     const moduleFile = appNameToModuleFile[suggestionText];
                     if(moduleFile) {
                         history.pushState({}, '', `?app=${moduleFile}`);
                         router();
+                        // ИСПРАВЛЕНИЕ: дополнительно очищаем здесь для мгновенной реакции
+                        searchInput.value = ''; 
+                        suggestionsContainer.classList.add('hidden');
                     }
                 });
                 suggestionsContainer.appendChild(suggestionEl);
@@ -252,9 +269,9 @@ function setupSearch() {
 }
 
 
-// --- Инициализация при загрузке страницы (ИЗМЕНЕНА) ---
+// --- Инициализация при загрузке страницы ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Код для переключения темы
+    // Код для переключения темы... (без изменений)
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
@@ -276,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         moonIcon.classList.toggle('hidden', !isDark);
     });
     
-    // Скрывать подсказки при клике вне поля
+    // Скрывать подсказки при клике вне поля... (без изменений)
     document.addEventListener('click', e => {
         if (!suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
@@ -286,7 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
     changelogContainer.addEventListener('click', (e) => {
         if (e.target.id === 'show-all-changelog-btn') {
             e.preventDefault();
-            // Используем имя модуля для страницы истории
             const moduleFile = appNameToModuleFile['История изменений'];
             history.pushState({}, '', `?app=${moduleFile}`);
             router();
@@ -294,9 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Слушаем событие `popstate` (нажатие кнопок "назад/вперед" в браузере)
     window.addEventListener('popstate', router);
-
-    // Первоначальный запуск роутера
     router();
 });
