@@ -2,7 +2,7 @@
         resetInfo();
         
         // *** ИЗМЕНЕНИЕ ЗДЕСЬ: Используем http вместо https для бесплатного API ***
-        fetch('http://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon,isp,query')
+        fetch('https://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon,isp,query')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Network response was not ok, status: ${response.status}`);
