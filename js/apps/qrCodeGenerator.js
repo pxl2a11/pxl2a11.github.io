@@ -1,25 +1,5 @@
-// --- Глобальные переменные для модуля, чтобы обеспечить их очистку ---
-const QRCODE_LIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js';
+// --- 1Глобальные переменные для модуля, чтобы обеспечить их очистку ---
 let abortController;
-
-/**
- * Динамически загружает внешний скрипт и возвращает Promise.
- * @param {string} src - URL скрипта для загрузки.
- * @returns {Promise<void>}
- */
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) {
-            resolve();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = src;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`Не удалось загрузить скрипт: ${src}`));
-        document.head.appendChild(script);
-    });
-}
 
 /**
  * Возвращает HTML-структуру для интерфейса генератора QR-кодов.
@@ -248,13 +228,11 @@ async function init() {
     abortController = new AbortController();
     const { signal } = abortController;
 
-    try {
-        await loadScript(QRCODE_LIB_URL);
-    } catch (error) {
-        console.error(error);
+    if (typeof QRCode === 'undefined') {
+        console.error("Библиотека QRCode не загружена. Убедитесь, что файл qrcode.min.js подключен в HTML.");
         const container = document.getElementById('qr-code-container');
         if (container) {
-            container.innerHTML = `<p class="text-center text-red-500">Ошибка загрузки ресурсов. Проверьте интернет-соединение.</p>`;
+            container.innerHTML = `<p class="text-center text-red-500">Ошибка: библиотека для QR-кодов не загружена.</p>`;
         }
         return;
     }
@@ -284,9 +262,7 @@ async function init() {
     }, { signal });
     
     // Генерируем QR-код по умолчанию при загрузке
-    if (typeof QRCode !== 'undefined') {
-        handleGenerateQr();
-    }
+    handleGenerateQr();
 }
 
 /**
