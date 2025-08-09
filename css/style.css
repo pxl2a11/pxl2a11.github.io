@@ -63,3 +63,18 @@ input[type=number] {
     color: #60a5fa; /* blue-400 */
     border-color: #60a5fa; /* blue-400 */
 }
+
+/* НОВЫЕ СТИЛИ ДЛЯ ПОДСКАЗОК ПОИСКА */
+.suggestion-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.suggestion-hashtags {
+    font-size: 0.8em;
+    color: #6b7280; /* gray-500 */
+    margin-left: 1rem;
+}
+.dark .suggestion-hashtags {
+    color: #9ca3af; /* gray-400 */
+}
