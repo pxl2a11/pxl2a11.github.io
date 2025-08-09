@@ -26,7 +26,7 @@ const appNameToModuleFile = {
     // --- НОВЫЕ ПРИЛОЖЕНИЯ ---
     'Счетчик слов и символов': 'wordCounter',
     'Сканер QR-кодов': 'qrScanner',
-    'Простой синтезатор (Пианино)': 'piano',
+    'Пианино': 'piano',
     'История изменений': 'changelogPage',
 };
 
@@ -217,14 +217,14 @@ const homeScreenHtml = `
                 </div>
                 <span class="text-sm font-medium ml-4">Сканер QR-кодов</span>
             </a>
-            <a href="?app=piano" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Простой синтезатор (Пианино)" data-module="piano">
+            <a href="?app=piano" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Пианино" data-module="piano">
                 <div class="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path d="M2 5a1 1 0 011-1h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V5zm1 0v8h2V5H3zm4 0v8h2V5H7zm4 0v8h2V5h-2zm4 0v8h2V5h-2z"></path>
                         <path d="M4 5.5h.5v4H4v-4zm4 0h.5v4H8v-4zm4 0h.5v4h-2v-1H12v-3z"></path>
                     </svg>
                 </div>
-                <span class="text-sm font-medium ml-4">Простой синтезатор (Пианино)</span>
+                <span class="text-sm font-medium ml-4">Пианино</span>
             </a>
         </div>
     </div>`;
