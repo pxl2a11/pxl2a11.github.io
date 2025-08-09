@@ -13,7 +13,7 @@ const notes = {
 };
 
 // ИЗМЕНЕНО: Раскладка теперь использует коды физических клавиш (e.code),
-// что делает ее независимой от языка ввода.
+// что делает ее независимой от языка ввода. Добавлены недостающие клавиши.
 const keyMap = {
     // Нижняя октава (ряд ASDF)
     'KeyA': 'C4', 'KeyW': 'C#4', 'KeyS': 'D4', 'KeyE': 'D#4', 'KeyD': 'E4',
@@ -21,7 +21,9 @@ const keyMap = {
     'KeyU': 'A#4', 'KeyJ': 'B4',
     // Верхняя октава (ряд QWERTY)
     'KeyK': 'C5', 'KeyO': 'C#5', 'KeyL': 'D5', 'KeyP': 'D#5', 'Semicolon': 'E5',
-    'Quote': 'F5'
+    'Quote': 'F5',
+    // Дополнительные клавиши для верхней октавы
+    'KeyZ': 'F#5', 'KeyX': 'G5', 'KeyC': 'G#5', 'KeyV': 'A5', 'KeyB': 'A#5', 'KeyN': 'B5', 'KeyM': 'C6'
 };
 let pressedKeys = {};
 
@@ -90,8 +92,7 @@ function handleKeyUp(e) {
     }
 }
 
-// HTML-структура остается прежней, так как подсказки (буквы на клавишах) 
-// соответствуют физической QWERTY-клавиатуре.
+// HTML-структура обновлена для отображения всех подсказок клавиатуры.
 export function getHtml() {
     return `
       <div class="flex flex-col items-center space-y-4">
@@ -99,6 +100,8 @@ export function getHtml() {
             Играйте мышкой или используйте клавиатуру.
             <br>
             <span class="font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">A, W, S, E, D...</span> для нижней октавы, <span class="font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">K, O, L, P...</span> для верхней.
+            <br>
+            <span class="font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">Z, X, C, V, B, N, M</span> для самых верхних нот.
         </p>
         <div class="piano-container w-full">
             <!-- Нижняя октава -->
@@ -113,11 +116,11 @@ export function getHtml() {
             <div class="piano-key white" data-note="C5"><span>K</span><div class="piano-key black" data-note="C#5"><span>O</span></div></div>
             <div class="piano-key white" data-note="D5"><span>L</span><div class="piano-key black" data-note="D#5"><span>P</span></div></div>
             <div class="piano-key white" data-note="E5"><span>;</span></div>
-            <div class="piano-key white" data-note="F5"><span>'</span><div class="piano-key black" data-note="F#5"></div></div>
-            <div class="piano-key white" data-note="G5"><span></span><div class="piano-key black" data-note="G#5"></div></div>
-            <div class="piano-key white" data-note="A5"><span></span><div class="piano-key black" data-note="A#5"></div></div>
-            <div class="piano-key white" data-note="B5"><span></span></div>
-            <div class="piano-key white" data-note="C6"><span></span></div>
+            <div class="piano-key white" data-note="F5"><span>'</span><div class="piano-key black" data-note="F#5"><span>Z</span></div></div>
+            <div class="piano-key white" data-note="G5"><span>X</span><div class="piano-key black" data-note="G#5"><span>C</span></div></div>
+            <div class="piano-key white" data-note="A5"><span>V</span><div class="piano-key black" data-note="A#5"><span>B</span></div></div>
+            <div class="piano-key white" data-note="B5"><span>N</span></div>
+            <div class="piano-key white" data-note="C6"><span>M</span></div>
         </div>
       </div>
     `;
