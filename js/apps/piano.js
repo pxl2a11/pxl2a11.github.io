@@ -1,19 +1,39 @@
+// js/apps/piano.js
+
 let audioContext;
+// ИЗМЕНЕНО: Расширен диапазон нот до двух октав
 const notes = {
+    // Нижняя октава
     'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63,
     'F4': 349.23, 'F#4': 369.99, 'G4': 392.00, 'G#4': 415.30, 'A4': 440.00,
-    'A#4': 466.16, 'B4': 493.88, 'C5': 523.25
+    'A#4': 466.16, 'B4': 493.88,
+    // Верхняя октава
+    'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25,
+    'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.00,
+    'A#5': 932.33, 'B5': 987.77, 'C6': 1046.50
 };
+
+// ИЗМЕНЕНО: Новая раскладка для двух октав
 const keyMap = {
+    // Нижняя октава
     'a': 'C4', 'w': 'C#4', 's': 'D4', 'e': 'D#4', 'd': 'E4',
     'f': 'F4', 't': 'F#4', 'g': 'G4', 'y': 'G#4', 'h': 'A4',
-    'u': 'A#4', 'j': 'B4', 'k': 'C5'
+    'u': 'A#4', 'j': 'B4',
+    // Верхняя октава
+    'k': 'C5', 'o': 'C#5', 'l': 'D5', 'p': 'D#5', ';': 'E5',
+    "'": 'F5' // кавычка
 };
 let pressedKeys = {};
 
 function playNote(note) {
     if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {
+            console.error("AudioContext не поддерживается в этом браузере.", e);
+            // Можно показать сообщение пользователю
+            return;
+        }
     }
     if (!notes[note] || pressedKeys[note]) return;
 
@@ -24,16 +44,16 @@ function playNote(note) {
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    oscillator.type = 'sine';
+    oscillator.type = 'sine'; // 'sine', 'square', 'sawtooth', 'triangle'
     oscillator.frequency.value = notes[note];
 
     const now = audioContext.currentTime;
+    gainNode.gain.cancelScheduledValues(now);
     gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.01); 
+    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.02); 
 
     oscillator.start(now);
     
-    // Привязываем ноду к нажатой клавише, чтобы остановить ее позже
     pressedKeys[note] = { oscillator, gainNode };
 }
 
@@ -41,15 +61,20 @@ function stopNote(note) {
     if (pressedKeys[note]) {
         const { oscillator, gainNode } = pressedKeys[note];
         const now = audioContext.currentTime;
+        gainNode.gain.cancelScheduledValues(now);
         gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-        gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
-        oscillator.stop(now + 0.1);
+        gainNode.gain.linearRampToValueAtTime(0, now + 0.15);
+        oscillator.stop(now + 0.15);
         delete pressedKeys[note];
     }
 }
 
 function handleKeyDown(e) {
-    const note = keyMap[e.key.toLowerCase()];
+    // Игнорируем нажатия, если фокус на текстовом поле
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    const key = e.key.toLowerCase();
+    const note = keyMap[key];
     if (note && !pressedKeys[note]) {
         playNote(note);
         document.querySelector(`.piano-key[data-note="${note}"]`)?.classList.add('active');
@@ -57,18 +82,25 @@ function handleKeyDown(e) {
 }
 
 function handleKeyUp(e) {
-    const note = keyMap[e.key.toLowerCase()];
+    const key = e.key.toLowerCase();
+    const note = keyMap[key];
     if (note) {
         stopNote(note);
         document.querySelector(`.piano-key[data-note="${note}"]`)?.classList.remove('active');
     }
 }
 
+// ИЗМЕНЕНО: Полностью новая HTML структура для двух октав
 export function getHtml() {
     return `
       <div class="flex flex-col items-center space-y-4">
-        <p class="text-gray-600 dark:text-gray-400 text-center">Играйте мышкой или используйте клавиши на клавиатуре (A, W, S, E, D, F, T, G, Y, H, U, J, K).</p>
-        <div class="piano-container overflow-x-auto">
+        <p class="text-gray-600 dark:text-gray-400 text-center px-4">
+            Играйте мышкой или используйте клавиатуру.
+            <br>
+            <span class="font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">A, W, S, E, D...</span> для нижней октавы, <span class="font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">K, O, L, P...</span> для верхней.
+        </p>
+        <div class="piano-container w-full">
+            <!-- Нижняя октава -->
             <div class="piano-key white" data-note="C4"><span>A</span><div class="piano-key black" data-note="C#4"><span>W</span></div></div>
             <div class="piano-key white" data-note="D4"><span>S</span><div class="piano-key black" data-note="D#4"><span>E</span></div></div>
             <div class="piano-key white" data-note="E4"><span>D</span></div>
@@ -76,7 +108,15 @@ export function getHtml() {
             <div class="piano-key white" data-note="G4"><span>G</span><div class="piano-key black" data-note="G#4"><span>Y</span></div></div>
             <div class="piano-key white" data-note="A4"><span>H</span><div class="piano-key black" data-note="A#4"><span>U</span></div></div>
             <div class="piano-key white" data-note="B4"><span>J</span></div>
-            <div class="piano-key white" data-note="C5"><span>K</span></div>
+            <!-- Верхняя октава -->
+            <div class="piano-key white" data-note="C5"><span>K</span><div class="piano-key black" data-note="C#5"><span>O</span></div></div>
+            <div class="piano-key white" data-note="D5"><span>L</span><div class="piano-key black" data-note="D#5"><span>P</span></div></div>
+            <div class="piano-key white" data-note="E5"><span>;</span></div>
+            <div class="piano-key white" data-note="F5"><span>'</span><div class="piano-key black" data-note="F#5"></div></div>
+            <div class="piano-key white" data-note="G5"><span></span><div class="piano-key black" data-note="G#5"></div></div>
+            <div class="piano-key white" data-note="A5"><span></span><div class="piano-key black" data-note="A#5"></div></div>
+            <div class="piano-key white" data-note="B5"><span></span></div>
+            <div class="piano-key white" data-note="C6"><span></span></div>
         </div>
       </div>
     `;
@@ -85,10 +125,14 @@ export function getHtml() {
 export function init() {
     document.querySelectorAll('.piano-key').forEach(key => {
         const note = key.dataset.note;
-        key.addEventListener('mousedown', () => playNote(note));
+        
+        // Обработка для мыши
+        key.addEventListener('mousedown', (e) => { e.preventDefault(); playNote(note); });
         key.addEventListener('mouseup', () => stopNote(note));
-        key.addEventListener('mouseleave', () => stopNote(note)); // Если убрали мышку с зажатой клавиши
-        key.addEventListener('touchstart', (e) => { e.preventDefault(); playNote(note); });
+        key.addEventListener('mouseleave', () => stopNote(note));
+        
+        // Обработка для сенсорных экранов
+        key.addEventListener('touchstart', (e) => { e.preventDefault(); playNote(note); }, { passive: false });
         key.addEventListener('touchend', (e) => { e.preventDefault(); stopNote(note); });
     });
     
@@ -99,9 +143,13 @@ export function init() {
 export function cleanup() {
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
+    // Останавливаем все играющие ноты при выходе
+    Object.keys(pressedKeys).forEach(note => stopNote(note));
     if (audioContext) {
-        audioContext.close();
-        audioContext = null;
+        // Закрываем AudioContext, чтобы освободить ресурсы
+        audioContext.close().then(() => {
+            audioContext = null;
+        });
     }
     pressedKeys = {};
 }
