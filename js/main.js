@@ -28,29 +28,28 @@ const appNameToModuleFile = {
 
 // --- НОВЫЙ ОБЪЕКТ: Ключевые слова и хэштеги для поиска ---
 const appSearchMetadata = {
-    'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test'], hashtags: ['#internet', '#tools'] },
-    'radio': { keywords: ['музыка', 'станции'], hashtags: ['#music', '#entertainment'] },
-    'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo'], hashtags: ['#organizer', '#tools'] },
-    'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики'], hashtags: ['#audio', '#tools'] },
-    'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер'], hashtags: ['#audio', '#tools'] },
-    'myIp': { keywords: ['ip', 'адрес', 'айпи'], hashtags: ['#network', '#tools'] },
-    'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать'], hashtags: ['#security', '#tools'] },
-    'percentageCalculator': { keywords: ['проценты', 'вычислить'], hashtags: ['#math', '#calculator'] },
-    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] },
-    'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор'], hashtags: ['#random', '#game'] },
-    'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка'], hashtags: ['#fun', '#game'] },
-    'ticTacToe': { keywords: ['игра', 'крестики', 'нолики'], hashtags: ['#game'] },
-    'minesweeper': { keywords: ['игра', 'мины', 'сапер'], hashtags: ['#game', '#logic'] },
-    'stopwatch': { keywords: ['время', 'хронометр'], hashtags: ['#time', '#tools'] },
-    'randomColor': { keywords: ['цвет', 'случайный', 'палитра'], hashtags: ['#design', '#random'] },
-    'numberGenerator': { keywords: ['случайное', 'число', 'рандом'], hashtags: ['#random', '#math'] },
-    'qrCodeGenerator': { keywords: ['qr', 'код', 'куар'], hashtags: ['#tools', '#generator'] },
-    'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать'], hashtags: ['#text', '#tools'] },
-    'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения'], hashtags: ['#converter', '#math'] },
-    'dateCalculator': { keywords: ['дата', 'дни', 'календарь'], hashtags: ['#time', '#calculator'] },
-    'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье'], hashtags: ['#health', '#calculator'] },
+    'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] },
+    'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] },
+    'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] },
+    'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] },
+    'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] },
+    'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] },
+    'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] },
+    'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] },
+    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', ' #tools'] },
+    'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] },
+    'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] },
+    'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] },
+    'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] },
+    'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] },
+    'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random'] },
+    'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] },
+    'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] },
+    'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] },
+    'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] },
+    'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] },
+    'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] },
 };
-
 
 // --- Обратное сопоставление для поиска полного имени по файлу модуля ---
 const moduleFileToAppName = Object.fromEntries(
@@ -65,9 +64,10 @@ const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; // Хранит текущий активный модуль для очистки
 
 // --- Шаблоны HTML ---
+// ИЗМЕНЕНО: Применена более адаптивная сетка и добавлен атрибут data-module для поиска.
 const homeScreenHtml = `
     <div id="home-screen">
-        <div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <a href="?app=speedTest" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Скорость интернета" data-module="speedTest">
                 <div class="w-12 h-12 bg-cyan-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 15.5A8.5 8.5 0 1 1 20.5 15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 15.5L18 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.5" fill="currentColor"/></svg></div>
                 <span class="text-sm font-medium ml-4">Скорость интернета</span>
@@ -199,21 +199,24 @@ const appScreenHtml = `
 
 // --- Основная функция-роутер ---
 async function router() {
-    // ... (остальной код функции router остается без изменений)
+    // 1. Очищаем предыдущее приложение
     if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
         activeAppModule.cleanup();
         activeAppModule = null;
     }
-    dynamicContentArea.innerHTML = ''; 
+    dynamicContentArea.innerHTML = ''; // Очищаем контент
 
+    // 2. Определяем, какое приложение показать
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName]; 
 
     if (appName) {
+        // Очистка поиска при переходе в приложение
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         
+        // --- Загрузка страницы приложения ---
         dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
         appScreen.classList.remove('hidden');
@@ -242,6 +245,7 @@ async function router() {
             document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
         }
     } else {
+        // --- Загрузка домашней страницы ---
         dynamicContentArea.innerHTML = homeScreenHtml;
         changelogContainer.classList.remove('hidden');
         document.title = 'Mini Apps';
@@ -253,19 +257,22 @@ async function router() {
 
 // --- Обработка навигации ---
 function setupNavigationEvents() {
-    // ... (код функции setupNavigationEvents остается без изменений)
     document.body.addEventListener('click', e => {
+        // Ищем ближайшего родителя-ссылку
         const link = e.target.closest('a');
         if (!link) return;
 
         const url = new URL(link.href);
+        // Проверяем, что ссылка ведет на тот же сайт
         if (url.origin === window.location.origin) {
             const isAppNavigation = url.search.startsWith('?app=') || (url.pathname === '/' && !url.search);
             const isChangelogLink = link.classList.contains('changelog-link');
 
+            // Если это навигация по приложению, перехватываем ее
             if (isAppNavigation || isChangelogLink) {
                 e.preventDefault();
                 const appNameToOpen = link.dataset.appName;
+                // Специальная обработка для ссылок "подробнее" в истории изменений
                 if (isChangelogLink && appNameToOpen) {
                     const moduleFile = appNameToModuleFile[appNameToOpen];
                     if (moduleFile) {
@@ -296,11 +303,14 @@ function setupSearch() {
             const appName = app.dataset.name.toLowerCase();
             const moduleName = app.dataset.module;
             const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
+            
+            // Создаем единую строку для поиска, включающую название и ключевые слова
             const searchCorpus = [appName, ...metadata.keywords].join(' ');
 
             const isVisible = searchCorpus.includes(searchTerm);
             app.style.display = isVisible ? 'flex' : 'none';
 
+            // Если есть совпадение и строка поиска не пуста, добавляем в подсказки
             if (isVisible && searchTerm.length > 0) {
                 suggestions.push({
                     name: app.dataset.name,
@@ -315,18 +325,20 @@ function setupSearch() {
             suggestionsContainer.classList.remove('hidden');
             suggestions.forEach(suggestion => {
                 const suggestionEl = document.createElement('div');
-                suggestionEl.className = 'suggestion-item px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
+                // Добавляем классы для стилизации через Flexbox
+                suggestionEl.className = 'suggestion-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
                 
                 // Создаем HTML-структуру с названием и хэштегами
                 suggestionEl.innerHTML = `
                     <span class="suggestion-name">${suggestion.name}</span>
-                    <span class="suggestion-hashtags">${suggestion.hashtags.join(' ')}</span>
+                    <span class="suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4">${suggestion.hashtags.join(' ')}</span>
                 `;
                 
                 suggestionEl.addEventListener('click', () => {
                     if(suggestion.module) {
                         history.pushState({}, '', `?app=${suggestion.module}`);
                         router();
+                        // Очищаем поля после выбора
                         searchInput.value = ''; 
                         suggestionsContainer.classList.add('hidden');
                     }
@@ -342,7 +354,7 @@ function setupSearch() {
 
 // --- Инициализация при загрузке страницы ---
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (код этой функции остается без изменений)
+    // Код для переключения темы
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
@@ -364,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         moonIcon.classList.toggle('hidden', !isDark);
     });
     
+    // Скрывать подсказки при клике вне поля
     document.addEventListener('click', e => {
         if (!suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
@@ -380,7 +393,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Слушаем событие `popstate` (нажатие кнопок "назад/вперед" в браузере)
     window.addEventListener('popstate', router);
 
+    // Первоначальный запуск роутера
     router();
 });
