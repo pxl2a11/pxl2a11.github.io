@@ -23,9 +23,10 @@ const appNameToModuleFile = {
     'Конвертер величин': 'unitConverter',
     'Калькулятор дат': 'dateCalculator',
     'Калькулятор ИМТ': 'bmiCalculator',
+    // --- НОВЫЕ ПРИЛОЖЕНИЯ ---
     'Счетчик слов и символов': 'wordCounter',
     'Сканер QR-кодов': 'qrScanner',
-    'Пианино': 'piano', // ИЗМЕНЕНО
+    'Простой синтезатор (Пианино)': 'piano',
     'История изменений': 'changelogPage',
 };
 
@@ -52,6 +53,7 @@ const appSearchMetadata = {
     'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] },
     'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] },
     'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] },
+    // --- МЕТАДАННЫЕ ДЛЯ НОВЫХ ПРИЛОЖЕНИЙ ---
     'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] },
     'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] },
     'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] },
@@ -74,6 +76,7 @@ let activeAppModule = null;
 const homeScreenHtml = `
     <div id="home-screen">
         <div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            <!-- СУЩЕСТВУЮЩИЕ КАРТОЧКИ -->
             <a href="?app=speedTest" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Скорость интернета" data-module="speedTest">
                 <div class="w-12 h-12 bg-cyan-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 15.5A8.5 8.5 0 1 1 20.5 15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 15.5L18 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.5" fill="currentColor"/></svg></div>
                 <span class="text-sm font-medium ml-4">Скорость интернета</span>
@@ -190,6 +193,8 @@ const homeScreenHtml = `
                 <div class="w-12 h-12 bg-emerald-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="16" height="16" rx="2" /><circle cx="12" cy="12" r="4" /><line x1="12" y1="12" x2="15" y2="9" /></svg></div>
                 <span class="text-sm font-medium ml-4">Калькулятор ИМТ</span>
             </a>
+
+            <!-- НОВЫЕ КАРТОЧКИ ПРИЛОЖЕНИЙ -->
             <a href="?app=wordCounter" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Счетчик слов и символов" data-module="wordCounter">
                 <div class="w-12 h-12 bg-green-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -212,79 +217,228 @@ const homeScreenHtml = `
                 </div>
                 <span class="text-sm font-medium ml-4">Сканер QR-кодов</span>
             </a>
-            <!-- ИЗМЕНЕНО НАЗВАНИЕ КАРТОЧКИ -->
-            <a href="?app=piano" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Пианино" data-module="piano">
+            <a href="?app=piano" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Простой синтезатор (Пианино)" data-module="piano">
                 <div class="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path d="M2 5a1 1 0 011-1h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V5zm1 0v8h2V5H3zm4 0v8h2V5H7zm4 0v8h2V5h-2zm4 0v8h2V5h-2z"></path>
                         <path d="M4 5.5h.5v4H4v-4zm4 0h.5v4H8v-4zm4 0h.5v4h-2v-1H12v-3z"></path>
                     </svg>
                 </div>
-                <span class="text-sm font-medium ml-4">Пианино</span>
+                <span class="text-sm font-medium ml-4">Простой синтезатор (Пианино)</span>
             </a>
         </div>
     </div>`;
 
-// ... остальная часть файла main.js (appScreenHtml, router, и т.д.) остается без изменений
-// ... скопируйте ее из предыдущего ответа
-```*Я сократил остальную часть файла, так как она не меняется, но убедитесь, что вы скопировали ее целиком в свой проект.*
+const appScreenHtml = `
+    <div id="app-screen" class="hidden">
+        <div class="flex items-start mb-6">
+            <a href="/" id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"><svg class="h-6 w-6 text-gray-900 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></a>
+            <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>
+        </div>
+        <div id="app-content-container" class="mt-4"></div>
+        <div id="app-changelog-container" class="mt-8"></div>
+    </div>`;
 
----
+// --- Основная функция-роутер ---
+async function router() {
+    // 1. Очищаем предыдущее приложение
+    if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
+        activeAppModule.cleanup();
+        activeAppModule = null;
+    }
+    dynamicContentArea.innerHTML = ''; // Очищаем контент
 
-### Шаг 2: Обновление `js/utils/changelog.js`
+    // 2. Определяем, какое приложение показать
+    const params = new URLSearchParams(window.location.search);
+    const moduleName = params.get('app');
+    const appName = moduleFileToAppName[moduleName]; 
 
-```javascript
-// js/utils/changelog.js
+    if (appName) {
+        // Очистка поиска при переходе в приложение
+        if (searchInput) searchInput.value = '';
+        if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
+        
+        // --- Загрузка страницы приложения ---
+        dynamicContentArea.innerHTML = appScreenHtml;
+        const appScreen = document.getElementById('app-screen');
+        appScreen.classList.remove('hidden');
+        document.getElementById('app-title').textContent = appName;
+        changelogContainer.classList.add('hidden');
+        document.title = `${appName} | Mini Apps`;
 
-// --- ИЗМЕНЕНО НАЗВАНИЕ ---
-export const appNameToModuleFile = {
-    'Скорость интернета': 'speedTest',
-    'Радио': 'radio',
-    'Заметки и задачи': 'notesAndTasks',
-    'Тест звука и микрофона': 'soundAndMicTest',
-    'Мой IP': 'myIp',
-    'Генератор паролей': 'passwordGenerator',
-    'Калькулятор процентных соотношений': 'percentageCalculator',
-    'Таймер и обратный отсчет': 'timer',
-    'Колесо фортуны': 'fortuneWheel',
-    'Шар предсказаний': 'magicBall',
-    'Крестики-нолики': 'ticTacToe',
-    'Сапер': 'minesweeper',
-    'Секундомер': 'stopwatch',
-    'Случайный цвет': 'randomColor',
-    'Генератор чисел': 'numberGenerator',
-    'Генератор QR-кодов': 'qrCodeGenerator',
-    'Эмодзи и символы': 'emojiAndSymbols',
-    'Конвертер величин': 'unitConverter',
-    'Калькулятор дат': 'dateCalculator',
-    'Калькулятор ИМТ': 'bmiCalculator',
-    'Сжатие аудио': 'audioCompressor',
-    'Счетчик слов и символов': 'wordCounter', 
-    'Сканер QR-кодов': 'qrScanner',
-    'Пианино': 'piano', // ИЗМЕНЕНО
-    'История изменений': 'changelogPage',
-    'Общее': null,
-};
+        try {
+            const module = await import(`./apps/${moduleName}.js`);
+            activeAppModule = module;
 
-const getRussianDate = (dateString) => {
-    const date = new Date(dateString);
-    date.setUTCHours(date.getUTCHours() + 3);
-    return date.toLocaleDateString('ru-RU', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        timeZone: 'UTC'
-    }).replace(' г.', '');
-};
+            const appContentContainer = document.getElementById('app-content-container');
+            if (typeof module.getHtml === 'function') {
+                appContentContainer.innerHTML = module.getHtml();
+            }
+            if (typeof module.init === 'function') {
+                module.init();
+            }
 
-const changelogData = [
-    // --- ИЗМЕНЕНО НАЗВАНИЕ В ЗАПИСИ ИСТОРИИ ---
-    { date: getRussianDate('2025-08-09T10:00:00Z'), appName: 'Пианино', description: 'добавлено новое приложение-пианино для игры с помощью мыши и клавиатуры.' },
-    { date: getRussianDate('2025-08-09T10:00:00Z'), appName: 'Сканер QR-кодов', description: 'добавлено новое приложение для сканирования QR-кодов с помощью камеры.' },
-    { date: getRussianDate('2025-08-09T10:00:00Z'), appName: 'Счетчик слов и символов', description: 'добавлено новое приложение для подсчета статистики текста (слова, символы, предложения).' },
+            const appChangelogContainer = document.getElementById('app-changelog-container');
+            if (appName !== 'История изменений') {
+                renderChangelog(appName, null, appChangelogContainer);
+            }
+        } catch (error) {
+            console.error(`Ошибка загрузки модуля для "${appName}" (${moduleName}.js):`, error);
+            document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
+        }
+    } else {
+        // --- Загрузка домашней страницы ---
+        dynamicContentArea.innerHTML = homeScreenHtml;
+        changelogContainer.classList.remove('hidden');
+        document.title = 'Mini Apps';
+        renderChangelog(null, 5, changelogContainer);
+        setupSearch();
+    }
+}
+
+// --- Обработка навигации ---
+function setupNavigationEvents() {
+    document.body.addEventListener('click', e => {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        if (link.id === 'back-button') {
+            e.preventDefault();
+            history.back();
+            return;
+        }
+
+        const url = new URL(link.href);
+        if (url.origin === window.location.origin) {
+            const isAppNavigation = url.search.startsWith('?app=') || (url.pathname === '/' && !url.search);
+            const isChangelogLink = link.classList.contains('changelog-link');
+
+            if (isAppNavigation || isChangelogLink) {
+                e.preventDefault();
+                if (window.location.href === link.href) return;
+
+                const appNameToOpen = link.dataset.appName;
+                if (isChangelogLink && appNameToOpen) {
+                    const moduleFile = appNameToModuleFile[appNameToOpen];
+                    if (moduleFile) {
+                        history.pushState({}, '', `?app=${moduleFile}`);
+                    }
+                } else {
+                    history.pushState({}, '', link.href);
+                }
+                router();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
+}
+
+// --- Логика поиска ---
+function setupSearch() {
+    const appsContainer = document.getElementById('apps-container');
+    if (!appsContainer) return;
+
+    const allApps = Array.from(appsContainer.querySelectorAll('.app-item'));
     
-    // ... остальной массив changelogData остается без изменений ...
-];
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const suggestions = [];
+        
+        allApps.forEach(app => {
+            const appName = app.dataset.name.toLowerCase();
+            const moduleName = app.dataset.module;
+            const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
+            
+            const searchCorpus = [appName, ...metadata.keywords].join(' ');
 
-// ... остальная часть файла changelog.js (функции) остается без изменений
-// ... скопируйте ее из предыдущего ответа
+            const isVisible = searchCorpus.includes(searchTerm);
+            app.style.display = isVisible ? 'flex' : 'none';
+
+            if (isVisible && searchTerm.length > 0) {
+                suggestions.push({
+                    name: app.dataset.name,
+                    module: moduleName,
+                    hashtags: metadata.hashtags || []
+                });
+            }
+        });
+
+        suggestionsContainer.innerHTML = '';
+        if (searchTerm.length > 0 && suggestions.length > 0) {
+            suggestionsContainer.classList.remove('hidden');
+            suggestions.forEach(suggestion => {
+                const suggestionEl = document.createElement('div');
+                suggestionEl.className = 'suggestion-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
+                
+                suggestionEl.innerHTML = `
+                    <span class="suggestion-name">${suggestion.name}</span>
+                    <span class="suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4">${suggestion.hashtags.join(' ')}</span>
+                `;
+                
+                suggestionEl.addEventListener('click', () => {
+                    if(suggestion.module) {
+                        history.pushState({}, '', `?app=${suggestion.module}`);
+                        router();
+                        searchInput.value = ''; 
+                        suggestionsContainer.classList.add('hidden');
+                    }
+                });
+                suggestionsContainer.appendChild(suggestionEl);
+            });
+        } else {
+            suggestionsContainer.classList.add('hidden');
+        }
+    });
+}
+
+
+// --- Инициализация при загрузке страницы ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Код для переключения темы
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('sun-icon');
+    const moonIcon = document.getElementById('moon-icon');
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+    } else {
+        document.documentElement.classList.remove('dark');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+    }
+    themeToggleBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        sunIcon.classList.toggle('hidden', isDark);
+        moonIcon.classList.toggle('hidden', !isDark);
+    });
+    
+    // Скрывать подсказки при клике вне поля
+    document.addEventListener('click', e => {
+        if (!suggestionsContainer.contains(e.target) && e.target !== searchInput) {
+            suggestionsContainer.classList.add('hidden');
+        }
+    });
+    
+    changelogContainer.addEventListener('click', (e) => {
+        if (e.target.id === 'show-all-changelog-btn') {
+            e.preventDefault();
+            const moduleFile = appNameToModuleFile['История изменений'];
+            history.pushState({}, '', `?app=${moduleFile}`);
+            router();
+            return;
+        }
+    });
+
+    // Слушаем событие `popstate` (нажатие кнопок "назад/вперед" в браузере)
+    window.addEventListener('popstate', router);
+
+    // Настройка навигации вызывается один раз здесь
+    setupNavigationEvents();
+
+    // Первоначальный запуск роутера
+    router();
+});
