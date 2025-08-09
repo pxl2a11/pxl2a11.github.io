@@ -1,7 +1,6 @@
 // js/apps/piano.js
 
 let audioContext;
-// ИЗМЕНЕНО: Расширен диапазон нот до двух октав
 const notes = {
     // Нижняя октава
     'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63,
@@ -13,15 +12,16 @@ const notes = {
     'A#5': 932.33, 'B5': 987.77, 'C6': 1046.50
 };
 
-// ИЗМЕНЕНО: Новая раскладка для двух октав
+// ИЗМЕНЕНО: Раскладка теперь использует коды физических клавиш (e.code),
+// что делает ее независимой от языка ввода.
 const keyMap = {
-    // Нижняя октава
-    'a': 'C4', 'w': 'C#4', 's': 'D4', 'e': 'D#4', 'd': 'E4',
-    'f': 'F4', 't': 'F#4', 'g': 'G4', 'y': 'G#4', 'h': 'A4',
-    'u': 'A#4', 'j': 'B4',
-    // Верхняя октава
-    'k': 'C5', 'o': 'C#5', 'l': 'D5', 'p': 'D#5', ';': 'E5',
-    "'": 'F5' // кавычка
+    // Нижняя октава (ряд ASDF)
+    'KeyA': 'C4', 'KeyW': 'C#4', 'KeyS': 'D4', 'KeyE': 'D#4', 'KeyD': 'E4',
+    'KeyF': 'F4', 'KeyT': 'F#4', 'KeyG': 'G4', 'KeyY': 'G#4', 'KeyH': 'A4',
+    'KeyU': 'A#4', 'KeyJ': 'B4',
+    // Верхняя октава (ряд QWERTY)
+    'KeyK': 'C5', 'KeyO': 'C#5', 'KeyL': 'D5', 'KeyP': 'D#5', 'Semicolon': 'E5',
+    'Quote': 'F5'
 };
 let pressedKeys = {};
 
@@ -31,7 +31,6 @@ function playNote(note) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         } catch(e) {
             console.error("AudioContext не поддерживается в этом браузере.", e);
-            // Можно показать сообщение пользователю
             return;
         }
     }
@@ -44,7 +43,7 @@ function playNote(note) {
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    oscillator.type = 'sine'; // 'sine', 'square', 'sawtooth', 'triangle'
+    oscillator.type = 'sine';
     oscillator.frequency.value = notes[note];
 
     const now = audioContext.currentTime;
@@ -70,27 +69,29 @@ function stopNote(note) {
 }
 
 function handleKeyDown(e) {
-    // Игнорируем нажатия, если фокус на текстовом поле
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.repeat || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-    const key = e.key.toLowerCase();
-    const note = keyMap[key];
-    if (note && !pressedKeys[note]) {
+    // ИЗМЕНЕНО: Используем e.code вместо e.key
+    const code = e.code; 
+    const note = keyMap[code];
+    if (note) {
         playNote(note);
         document.querySelector(`.piano-key[data-note="${note}"]`)?.classList.add('active');
     }
 }
 
 function handleKeyUp(e) {
-    const key = e.key.toLowerCase();
-    const note = keyMap[key];
+    // ИЗМЕНЕНО: Используем e.code вместо e.key
+    const code = e.code;
+    const note = keyMap[code];
     if (note) {
         stopNote(note);
         document.querySelector(`.piano-key[data-note="${note}"]`)?.classList.remove('active');
     }
 }
 
-// ИЗМЕНЕНО: Полностью новая HTML структура для двух октав
+// HTML-структура остается прежней, так как подсказки (буквы на клавишах) 
+// соответствуют физической QWERTY-клавиатуре.
 export function getHtml() {
     return `
       <div class="flex flex-col items-center space-y-4">
@@ -126,12 +127,10 @@ export function init() {
     document.querySelectorAll('.piano-key').forEach(key => {
         const note = key.dataset.note;
         
-        // Обработка для мыши
         key.addEventListener('mousedown', (e) => { e.preventDefault(); playNote(note); });
         key.addEventListener('mouseup', () => stopNote(note));
         key.addEventListener('mouseleave', () => stopNote(note));
         
-        // Обработка для сенсорных экранов
         key.addEventListener('touchstart', (e) => { e.preventDefault(); playNote(note); }, { passive: false });
         key.addEventListener('touchend', (e) => { e.preventDefault(); stopNote(note); });
     });
@@ -143,10 +142,8 @@ export function init() {
 export function cleanup() {
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
-    // Останавливаем все играющие ноты при выходе
     Object.keys(pressedKeys).forEach(note => stopNote(note));
     if (audioContext) {
-        // Закрываем AudioContext, чтобы освободить ресурсы
         audioContext.close().then(() => {
             audioContext = null;
         });
