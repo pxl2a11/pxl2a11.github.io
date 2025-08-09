@@ -1,4 +1,4 @@
-// js/apps/piano.js
+// 1js/apps/piano.js
 
 let audioContext;
 const notes = {
