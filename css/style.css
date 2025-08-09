@@ -1,80 +1,57 @@
-/* Плавные переходы и кастомные стили */
-body { transition: background-color 0.3s ease, color 0.3s ease; }
-:root { --volume-track-bg: #9ca3af; }
-.dark { --volume-track-bg: #4b5563; }
-input[type="range"] { -webkit-appearance: none; width: 100%; height: 0.25rem; background: transparent; cursor: pointer; }
-input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 0.25rem; cursor: pointer; background: var(--volume-track-bg); border-radius: 9999px; }
-input[type="range"]::-moz-range-track { width: 100%; height: 0.25rem; cursor: pointer; background: var(--volume-track-bg); border-radius: 9999px; }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 1rem; height: 1rem; background-color: #3b82f6; cursor: pointer; border-radius: 9999px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-top: -0.375rem; }
-input[type="range"]::-moz-range-thumb { width: 1rem; height: 1rem; background-color: #3b82f6; cursor: pointer; border-radius: 9999px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-audio { display: none; }
-.card-active { box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); border-color: #3b82f6; transform: scale(1.02); }
-.dark .card-active { box-shadow: 0 0 15px rgba(204, 204, 204, 0.6); border-color: #cccccc; }
-@keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
-.shake-animation { animation: shake 0.8s ease-in-out; }
-/* Стили для Сапёра */
-.ms-cell {
-    font-size: 1.1rem;
-    line-height: 1.1rem;
-    width: 1.75rem;
-    height: 1.75rem;
-    user-select: none; /* Предотвратить выделение текста при кликах */
-}
-@media (max-width: 640px) {
-     .ms-cell.ms-medium {
-        width: 1.4rem;
-        height: 1.4rem;
-        font-size: 0.9rem;
-        line-height: 0.9rem;
-    }
-    .ms-cell.ms-hard {
-        width: 1.3rem;
-        height: 1.3rem;
-        font-size: 0.8rem;
-        line-height: 0.8rem;
-    }
-}
-.ms-cell-1 { color: #1d4ed8; } /* blue-700 */
-.ms-cell-2 { color: #15803d; } /* green-700 */
-.ms-cell-3 { color: #b91c1c; } /* red-700 */
-.ms-cell-4 { color: #7e22ce; } /* purple-700 */
-.ms-cell-5 { color: #a16207; } /* yellow-700 */
-.ms-cell-6 { color: #0d9488; } /* teal-600 */
-.ms-cell-7 { color: #1e293b; } /* slate-800 */
-.ms-cell-8 { color: #4b5563; } /* gray-600 */
-/* Убрать стрелочки в input[type=number] */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-input[type=number] {
-    -moz-appearance: textfield;
-}
-.quality-btn.active {
-    background-color: #3b82f6; /* blue-500 */
-    color: white;
-}
-.tab-btn.active {
-    color: #3b82f6; /* blue-500 */
-    border-color: #3b82f6; /* blue-500 */
-}
-.dark .tab-btn.active {
-    color: #60a5fa; /* blue-400 */
-    border-color: #60a5fa; /* blue-400 */
+/* ... ваши предыдущие стили ... */
+
+/* НОВЫЕ СТИЛИ ДЛЯ ПИАНИНО */
+.piano-container {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    background-color: #374151; /* gray-700 */
+    border-radius: 0.5rem;
 }
 
-/* НОВЫЕ СТИЛИ ДЛЯ ПОДСКАЗОК ПОИСКА */
-.suggestion-item {
+.piano-key {
+    position: relative;
+    border: 1px solid #4b5563; /* gray-600 */
+    box-sizing: border-box;
+    cursor: pointer;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none; /* Standard */
+}
+
+.piano-key.white {
+    width: 40px;
+    height: 180px;
+    background-color: #fff;
+    color: #000;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    font-weight: bold;
 }
-.suggestion-hashtags {
+
+.piano-key.black {
+    position: absolute;
+    width: 24px;
+    height: 100px;
+    background-color: #1f2937; /* gray-800 */
+    color: #fff;
+    left: -12px; /* Половина своей ширины */
+    z-index: 10;
+    border-radius: 0 0 4px 4px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 6px;
     font-size: 0.8em;
-    color: #6b7280; /* gray-500 */
-    margin-left: 1rem;
 }
-.dark .suggestion-hashtags {
-    color: #9ca3af; /* gray-400 */
+
+.piano-key.white:active, .piano-key.white.active {
+    background-color: #d1d5db; /* gray-300 */
+}
+.piano-key.black:active, .piano-key.black.active {
+    background-color: #4b5563; /* gray-600 */
 }
