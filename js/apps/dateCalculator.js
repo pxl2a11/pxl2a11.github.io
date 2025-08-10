@@ -1,7 +1,7 @@
 // apps/dateCalculator.js
 
 function getHtml() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0]; // Получаем сегодняшнюю дату в формате YYYY-MM-DD
 
     return `
         <div class="space-y-8">
@@ -21,7 +21,7 @@ function getHtml() {
                 <div id="date-diff-result" class="mt-4 text-center font-semibold text-lg text-gray-900 dark:text-gray-200 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg min-h-[70px]"></div>
             </div>
             
-            <!-- НОВЫЙ БЛОК: Калькулятор возраста -->
+            <!-- Калькулятор возраста -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h3 class="text-xl font-bold mb-4">Калькулятор возраста</h3>
                 <div>
@@ -70,7 +70,15 @@ function getHtml() {
                 <div id="date-calc-result" class="mt-4 text-center font-semibold text-lg text-gray-900 dark:text-gray-200 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg min-h-[50px]"></div>
             </div>
         </div>
-        <style>.input-style { rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 p-2 }</style>
+        <style>
+            .input-style { border-radius: 0.375rem; border-width: 1px; border-color: #D1D5DB; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); background-color: white; color: #111827; padding: 0.5rem; }
+            .dark .input-style {
+                border-color: #4B5563;
+                background-color: #374151;
+                color: #F3F4F6;
+                color-scheme: dark; /* ИСПРАВЛЕНИЕ: Это заставляет браузер использовать темную тему для календаря */
+            }
+        </style>
     `;
 }
 
