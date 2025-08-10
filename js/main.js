@@ -208,7 +208,7 @@ async function router() {
         
         setupFilters();
         setupSearch();
-        renderChangelog(null, 3, changelogContainer); // <--- ИЗМЕНЕНИЕ ЗДЕСЬ (5 -> 3)
+        renderChangelog(null, 3, changelogContainer);
     }
 }
 
@@ -249,13 +249,14 @@ function setupNavigationEvents() {
 }
 
 function setupSearch() {
-    searchInput.addEventListener('input', () => {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        const appsContainer = document.getElementById('apps-container');
-        if (!appsContainer) return;
+    const appsContainer = document.getElementById('apps-container');
+    if (!appsContainer) return;
 
-        const suggestions = [];
+    searchInput.addEventListener('input', () => {
+        // ИСПРАВЛЕНИЕ: Получаем актуальный список приложений ПРИ КАЖДОМ ВВОДЕ
         const allApps = appsContainer.querySelectorAll('.app-item');
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const suggestions = [];
         
         allApps.forEach(app => {
             const appName = app.dataset.name.toLowerCase();
