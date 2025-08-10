@@ -6,18 +6,17 @@ export function getHtml() {
                 <div class="grid grid-cols-1 sm:grid-cols-3 items-end gap-4">
                     <div>
                         <label for="min-num" class="text-sm font-medium">От</label>
-                        <input id="min-num" type="number" value="1" class="w-full mt-1 p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-center">
+                        <input id="min-num" type="number" value="1" class="w-full mt-1 p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-center no-spinner">
                     </div>
                     <div>
                         <label for="max-num" class="text-sm font-medium">До</label>
-                        <input id="max-num" type="number" value="100" class="w-full mt-1 p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-center">
+                        <input id="max-num" type="number" value="100" class="w-full mt-1 p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-center no-spinner">
                     </div>
                      <div>
                         <label for="num-count" class="text-sm font-medium">Количество</label>
-                        <input id="num-count" type="number" value="1" min="1" max="50" class="w-full mt-1 p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-center">
+                        <input id="num-count" type="number" value="1" min="1" max="100" class="w-full mt-1 p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-center no-spinner">
                     </div>
                 </div>
-                 <!-- НОВЫЙ ЧЕКБОКС -->
                 <label class="flex items-center justify-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer">
                     <input type="checkbox" id="unique-numbers" class="h-4 w-4 rounded text-blue-500 focus:ring-blue-500">
                     <span class="ml-3 dark:text-gray-300">Только уникальные числа</span>
@@ -25,7 +24,19 @@ export function getHtml() {
                 <p id="rng-error" class="text-red-500 text-center h-4"></p>
             </div>
             <button id="generate-num-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600">Сгенерировать</button>
-        </div>`;
+        </div>
+        <!-- ИСПРАВЛЕНИЕ: CSS для скрытия стрелок -->
+        <style>
+            .no-spinner::-webkit-outer-spin-button,
+            .no-spinner::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            .no-spinner {
+                -moz-appearance: textfield;
+            }
+        </style>
+    `;
 }
 
 export function init() {
