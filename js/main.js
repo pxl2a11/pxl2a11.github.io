@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// --- 1Сопоставление имен приложений с файлами модулей ---
+// --- Сопоставление имен приложений с файлами модулей ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -27,6 +27,11 @@ const appNameToModuleFile = {
     'Сканер QR-кодов': 'qrScanner',
     'Пианино': 'piano',
     'История изменений': 'changelogPage',
+    // --- НОВЫЕ ПРИЛОЖЕНИЯ ---
+    'Конвертер регистра': 'caseConverter',
+    'Конвертер форматов изображений': 'imageConverter',
+    'Конвертер цветов': 'colorConverter',
+    'Игра на память': 'memoryGame',
 };
 
 // --- Рейтинг популярности (условный) ---
@@ -37,7 +42,12 @@ const appPopularity = {
     'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64,
     'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71,
     'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55,
-    'numberGenerator': 54, 'changelogPage': 10
+    'numberGenerator': 54, 'changelogPage': 10,
+    // --- РЕЙТИНГИ ДЛЯ НОВЫХ ПРИЛОЖЕНИЙ ---
+    'imageConverter': 91,
+    'colorConverter': 87,
+    'memoryGame': 83,
+    'caseConverter': 76,
 };
 
 // --- Ключевые слова и хэштеги для поиска ---
@@ -66,6 +76,11 @@ const appSearchMetadata = {
     'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] },
     'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] },
     'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] },
+    // --- МЕТАДАННЫЕ ДЛЯ НОВЫХ ПРИЛОЖЕНИЙ ---
+    'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] },
+    'imageConverter': { keywords: ['конвертер', 'изображения', 'картинки', 'png', 'jpg', 'webp', 'формат', 'преобразовать'], hashtags: ['#image', '#tools', '#converter'] },
+    'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] },
+    'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] },
 };
 
 
@@ -101,6 +116,31 @@ function populateAppCardMap() {
     if (appCardElements.size > 0) return;
     const template = document.getElementById('all-apps-template');
     if (!template) return;
+    // Нужно создать новые карточки для новых приложений
+    for (const appName in appNameToModuleFile) {
+        if (moduleFileToAppName.hasOwnProperty(appNameToModuleFile[appName]) && !template.content.querySelector(`[data-module="${appNameToModuleFile[appName]}"]`)) {
+             const moduleName = appNameToModuleFile[appName];
+             const newCard = document.createElement('a');
+             newCard.href = `?app=${moduleName}`;
+             newCard.className = "app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full";
+             newCard.dataset.name = appName;
+             newCard.dataset.module = moduleName;
+             
+             // Простая иконка-плейсхолдер
+             const iconDiv = document.createElement('div');
+             iconDiv.className = 'w-12 h-12 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl flex items-center justify-center flex-shrink-0';
+             iconDiv.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>`;
+             
+             const span = document.createElement('span');
+             span.className = "text-sm font-medium ml-4";
+             span.textContent = appName;
+
+             newCard.appendChild(iconDiv);
+             newCard.appendChild(span);
+             template.content.appendChild(newCard);
+        }
+    }
+
     template.content.querySelectorAll('.app-item').forEach(card => {
         const moduleName = card.dataset.module;
         if (moduleName) {
@@ -111,7 +151,6 @@ function populateAppCardMap() {
 
 function renderSimilarApps(currentModule, container) {
     const currentAppMeta = appSearchMetadata[currentModule];
-    // Если у текущего приложения нет метаданных или хэштегов, ничего не показываем
     if (!currentAppMeta || !currentAppMeta.hashtags || currentAppMeta.hashtags.length === 0) {
         container.innerHTML = '';
         container.classList.add('hidden');
@@ -120,21 +159,17 @@ function renderSimilarApps(currentModule, container) {
 
     const currentHashtags = new Set(currentAppMeta.hashtags);
     
-    // Находим все модули, у которых есть хотя бы один общий хэштег
     let similarModules = [];
     for (const moduleName in appSearchMetadata) {
-        if (moduleName === currentModule) continue; // Пропускаем текущее приложение
-
+        if (moduleName === currentModule) continue; 
         const meta = appSearchMetadata[moduleName];
         if (meta.hashtags && meta.hashtags.some(tag => currentHashtags.has(tag))) {
             similarModules.push(moduleName);
         }
     }
 
-    // Сортируем найденные модули по популярности (от большего к меньшему)
     similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
 
-    // Ограничиваем до 3-х самых популярных
     const topSimilar = similarModules.slice(0, 3);
 
     if (topSimilar.length === 0) {
@@ -158,7 +193,6 @@ function renderSimilarApps(currentModule, container) {
     container.classList.remove('hidden');
 }
 
-
 // --- Основная функция-роутер ---
 async function router() {
     if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
@@ -173,7 +207,6 @@ async function router() {
     const filterContainer = document.getElementById('filter-container');
 
     if (appName) {
-        // --- Загрузка страницы приложения ---
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         filterContainer?.classList.add('hidden');
@@ -192,6 +225,8 @@ async function router() {
             const appContentContainer = document.getElementById('app-content-container');
             if (typeof module.getHtml === 'function') { appContentContainer.innerHTML = module.getHtml(); }
             if (typeof module.init === 'function') { module.init(); }
+            if (typeof module.cleanup === 'function') { activeAppModule.cleanup = module.cleanup; }
+
 
             const appChangelogContainer = document.getElementById('app-changelog-container');
             const similarAppsContainer = document.getElementById('similar-apps-container');
@@ -206,7 +241,6 @@ async function router() {
             document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
         }
     } else {
-        // --- Загрузка домашней страницы ---
         dynamicContentArea.innerHTML = homeScreenHtml;
         filterContainer?.classList.remove('hidden');
         changelogContainer.classList.remove('hidden');
@@ -329,9 +363,11 @@ function setupFilters() {
                 return popB - popA;
             });
         } else if (activeFilter === 'new') {
-            sortedApps = [...originalOrder].reverse();
+            const moduleNames = Object.values(appNameToModuleFile);
+            sortedApps = moduleNames.map(moduleName => appCardElements.get(moduleName)).reverse();
         } else {
-            sortedApps = originalOrder;
+            const moduleNames = Object.values(appNameToModuleFile);
+            sortedApps = moduleNames.map(moduleName => appCardElements.get(moduleName));
         }
         renderApps(sortedApps);
         
