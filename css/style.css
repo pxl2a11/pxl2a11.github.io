@@ -1,5 +1,58 @@
 /* ... ваши предыдущие стили ... */
 
+/* --- Стили для кнопок фильтрации --- */
+.filter-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px; /* pill shape */
+    border: 1px solid transparent;
+    background-color: #f3f4f6; /* gray-100 */
+    color: #374151; /* gray-700 */
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.dark .filter-btn {
+    background-color: #374151; /* dark:gray-700 */
+    color: #d1d5db; /* dark:gray-300 */
+}
+
+.filter-btn:hover {
+    background-color: #e5e7eb; /* gray-200 */
+    border-color: #60a5fa; /* blue-400 */
+}
+
+.dark .filter-btn:hover {
+    background-color: #4b5563; /* dark:gray-600 */
+}
+
+.filter-btn.active {
+    background-color: #3b82f6; /* blue-500 */
+    color: #ffffff; /* white */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark .filter-btn.active {
+    background-color: #60a5fa; /* dark:blue-400 */
+    color: #1f2937; /* dark:gray-800 */
+}
+
+/* --- Стили для похожих приложений --- */
+.similar-apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.similar-apps-grid .app-item {
+    transition: all 0.2s ease-in-out !important;
+}
+
+.similar-apps-grid .app-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
+}
+
 /* --- УЛУЧШЕННЫЕ СТИЛИ ДЛЯ ПИАНИНО --- */
 .piano-container {
     display: flex;
