@@ -62,8 +62,6 @@
 
     <!-- 
       НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ
-      JavaScript использует этот шаблон для создания и сортировки списков.
-      Он не отображается на странице напрямую.
     -->
     <template id="all-apps-template">
         <a href="?app=speedTest" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Скорость интернета" data-module="speedTest">
@@ -79,30 +77,11 @@
             <span class="text-sm font-medium ml-4">Заметки и задачи</span>
         </a>
         <a href="?app=soundAndMicTest" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Тест звука и микрофона" data-module="soundAndMicTest">
-            <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg class="w-8 h-8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" fill="currentColor">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke="none"/>
-                    <g fill="none" stroke-width="2" stroke-linecap="round">
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                        <line x1="12" y1="19" x2="12" y2="23"/>
-                        <line x1="8" y1="23" x2="16" y2="23"/>
-                        <path d="M21 12h-2"/>
-                        <path d="M3 12h2"/>
-                    </g>
-                </svg>
-            </div>
+            <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke="none"/><g fill="none" stroke-width="2" stroke-linecap="round"><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/><path d="M21 12h-2"/><path d="M3 12h2"/></g></svg></div>
             <span class="text-sm font-medium ml-4">Тест звука и микрофона</span>
         </a>
         <a href="?app=audioCompressor" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Сжатие аудио" data-module="audioCompressor">
-            <div class="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="1" y="9" width="3" height="6" rx="1" />
-                    <rect x="6" y="7" width="3" height="10" rx="1" />
-                    <rect x="11" y="4" width="3" height="16" rx="1" />
-                    <rect x="16" y="7" width="3" height="10" rx="1" />
-                    <rect x="21" y="9" width="3" height="6" rx="1" />
-                </svg>
-            </div>
+            <div class="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="9" width="3" height="6" rx="1" /><rect x="6" y="7" width="3" height="10" rx="1" /><rect x="11" y="4" width="3" height="16" rx="1" /><rect x="16" y="7" width="3" height="10" rx="1" /><rect x="21" y="9" width="3" height="6" rx="1" /></svg></div>
             <span class="text-sm font-medium ml-4">Сжатие аудио</span>
         </a>
         <a href="?app=myIp" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Мой IP" data-module="myIp">
@@ -114,24 +93,11 @@
             <span class="text-sm font-medium ml-4">Генератор паролей</span>
         </a>
         <a href="?app=percentageCalculator" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор процентных соотношений" data-module="percentageCalculator">
-            <div class="w-12 h-12 bg-fuchsia-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="6.5" cy="6.5" r="2.5" />
-                    <circle cx="17.5" cy="17.5" r="2.5" />
-                    <line x1="19" y1="5" x2="5" y2="19" />
-                </svg>
-            </div>
+            <div class="w-12 h-12 bg-fuchsia-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="6.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="17.5" r="2.5" /><line x1="19" y1="5" x2="5" y2="19" /></svg></div>
             <span class="text-sm font-medium ml-4">Калькулятор процентных соотношений</span>
         </a>
         <a href="?app=timer" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Таймер и обратный отсчет" data-module="timer">
-            <div class="w-12 h-12 bg-orange-400 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="9" />
-                    <line x1="12" y1="2" x2="12" y2="5" />
-                    <line x1="12" y1="12" x2="12" y2="7" />
-                    <line x1="12" y1="12" x2="15" y2="12" />
-                </svg>
-            </div>
+            <div class="w-12 h-12 bg-orange-400 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><line x1="12" y1="2" x2="12" y2="5" /><line x1="12" y1="12" x2="12" y2="7" /><line x1="12" y1="12" x2="15" y2="12" /></svg></div>
             <span class="text-sm font-medium ml-4">Таймер и обратный отсчет</span>
         </a>
         <a href="?app=fortuneWheel" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Колесо фортуны" data-module="fortuneWheel">
@@ -183,35 +149,33 @@
             <span class="text-sm font-medium ml-4">Калькулятор ИМТ</span>
         </a>
         <a href="?app=wordCounter" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Счетчик слов и символов" data-module="wordCounter">
-            <div class="w-12 h-12 bg-green-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 6h16M4 12h16M4 18h7"></path>
-                    <path d="M18 15l3 3-3 3"></path>
-                    <path d="M21 12v6"></path>
-                </svg>
-            </div>
+            <div class="w-12 h-12 bg-green-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h7"></path><path d="M18 15l3 3-3 3"></path><path d="M21 12v6"></path></svg></div>
             <span class="text-sm font-medium ml-4">Счетчик слов и символов</span>
         </a>
         <a href="?app=qrScanner" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Сканер QR-кодов" data-module="qrScanner">
-            <div class="w-12 h-12 bg-slate-600 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 7V5a2 2 0 012-2h2"></path>
-                    <path d="M17 3h2a2 2 0 012 2v2"></path>
-                    <path d="M21 17v2a2 2 0 01-2 2h-2"></path>
-                    <path d="M7 21H5a2 2 0 01-2-2v-2"></path>
-                    <rect x="7" y="7" width="10" height="10" rx="1"></rect>
-                </svg>
-            </div>
+            <div class="w-12 h-12 bg-slate-600 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 012-2h2"></path><path d="M17 3h2a2 2 0 012 2v2"></path><path d="M21 17v2a2 2 0 01-2 2h-2"></path><path d="M7 21H5a2 2 0 01-2-2v-2"></path><rect x="7" y="7" width="10" height="10" rx="1"></rect></svg></div>
             <span class="text-sm font-medium ml-4">Сканер QR-кодов</span>
         </a>
         <a href="?app=piano" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Пианино" data-module="piano">
-            <div class="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2 5a1 1 0 011-1h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V5zm1 0v8h2V5H3zm4 0v8h2V5H7zm4 0v8h2V5h-2zm4 0v8h2V5h-2z"></path>
-                    <path d="M4 5.5h.5v4H4v-4zm4 0h.5v4H8v-4zm4 0h.5v4h-2v-1H12v-3z"></path>
-                </svg>
-            </div>
+            <div class="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 5a1 1 0 011-1h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V5zm1 0v8h2V5H3zm4 0v8h2V5H7zm4 0v8h2V5h-2zm4 0v8h2V5h-2z"></path><path d="M4 5.5h.5v4H4v-4zm4 0h.5v4H8v-4zm4 0h.5v4h-2v-1H12v-3z"></path></svg></div>
             <span class="text-sm font-medium ml-4">Пианино</span>
+        </a>
+        <!-- НОВЫЕ КАРТОЧКИ ПРИЛОЖЕНИЙ -->
+        <a href="?app=caseConverter" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Конвертер регистра" data-module="caseConverter">
+            <div class="w-12 h-12 bg-teal-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M11 4v16M16 4v16"></path><path d="M4 8h5M9 8h5M14 8h5"></path><text x="6" y="15" font-family="Arial, sans-serif" font-size="10" fill="currentColor" style="text-transform: uppercase;">Aa</text></svg></div>
+            <span class="text-sm font-medium ml-4">Конвертер регистра</span>
+        </a>
+        <a href="?app=imageConverter" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Конвертер форматов изображений" data-module="imageConverter">
+            <div class="w-12 h-12 bg-orange-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+            <span class="text-sm font-medium ml-4">Конвертер форматов изображений</span>
+        </a>
+        <a href="?app=colorConverter" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Конвертер цветов" data-module="colorConverter">
+            <div class="w-12 h-12 bg-purple-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.32 0L12 2.69z"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
+            <span class="text-sm font-medium ml-4">Конвертер цветов</span>
+        </a>
+        <a href="?app=memoryGame" class="app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Игра на память" data-module="memoryGame">
+            <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5z"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
+            <span class="text-sm font-medium ml-4">Игра на память</span>
         </a>
     </template>
 
