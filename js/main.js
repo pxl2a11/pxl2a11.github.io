@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// --- 1Сопоставление имен приложений с файлами модулей ---
+// --- Сопоставление имен приложений с файлами модулей ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -23,23 +23,10 @@ const appNameToModuleFile = {
     'Конвертер величин': 'unitConverter',
     'Калькулятор дат': 'dateCalculator',
     'Калькулятор ИМТ': 'bmiCalculator',
-    // --- НОВЫЕ ПРИЛОЖЕНИЯ ---
     'Счетчик слов и символов': 'wordCounter',
     'Сканер QR-кодов': 'qrScanner',
     'Пианино': 'piano',
     'История изменений': 'changelogPage',
-};
-
-// --- Категории для приложений (используются для поиска похожих) ---
-const appCategories = {
-    'speedTest': 'Инструменты', 'radio': 'Мультимедиа', 'notesAndTasks': 'Органайзер',
-    'soundAndMicTest': 'Инструменты', 'audioCompressor': 'Мультимедиа', 'myIp': 'Инструменты',
-    'passwordGenerator': 'Безопасность', 'percentageCalculator': 'Калькуляторы', 'timer': 'Инструменты',
-    'fortuneWheel': 'Развлечения', 'magicBall': 'Развлечения', 'ticTacToe': 'Игры',
-    'minesweeper': 'Игры', 'stopwatch': 'Инструменты', 'randomColor': 'Дизайн',
-    'numberGenerator': 'Инструменты', 'qrCodeGenerator': 'Инструменты', 'emojiAndSymbols': 'Текст',
-    'unitConverter': 'Калькуляторы', 'dateCalculator': 'Калькуляторы', 'bmiCalculator': 'Здоровье',
-    'wordCounter': 'Текст', 'qrScanner': 'Инструменты', 'piano': 'Мультимедиа', 'changelogPage': 'Системное'
 };
 
 // --- Рейтинг популярности (условный) ---
@@ -53,7 +40,6 @@ const appPopularity = {
     'numberGenerator': 54, 'changelogPage': 10
 };
 
-
 // --- Ключевые слова и хэштеги для поиска ---
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] },
@@ -64,7 +50,7 @@ const appSearchMetadata = {
     'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] },
     'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] },
     'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] },
-    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', ' #tools'] },
+    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] },
     'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] },
     'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] },
     'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] },
@@ -77,19 +63,18 @@ const appSearchMetadata = {
     'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] },
     'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] },
     'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] },
-    // --- МЕТАДАННЫЕ ДЛЯ НОВЫХ ПРИЛОЖЕНИЙ ---
     'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] },
     'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] },
     'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] },
 };
 
 
-// --- Обратное сопоставление для поиска полного имени по файлу модуля ---
+// --- Обратное сопоставление ---
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
-// --- Глобальные переменные и константы ---
+// --- Глобальные переменные ---
 const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
@@ -125,24 +110,35 @@ function populateAppCardMap() {
 }
 
 function renderSimilarApps(currentModule, container) {
-    const currentCategory = appCategories[currentModule];
-    if (!currentCategory || currentCategory === 'Системное') {
+    const currentAppMeta = appSearchMetadata[currentModule];
+    // Если у текущего приложения нет метаданных или хэштегов, ничего не показываем
+    if (!currentAppMeta || !currentAppMeta.hashtags || currentAppMeta.hashtags.length === 0) {
+        container.innerHTML = '';
         container.classList.add('hidden');
         return;
     }
 
-    // Находим все модули в той же категории, исключая текущий
-    let similarModules = Object.keys(appCategories).filter(
-        module => appCategories[module] === currentCategory && module !== currentModule
-    );
+    const currentHashtags = new Set(currentAppMeta.hashtags);
+    
+    // Находим все модули, у которых есть хотя бы один общий хэштег
+    let similarModules = [];
+    for (const moduleName in appSearchMetadata) {
+        if (moduleName === currentModule) continue; // Пропускаем текущее приложение
 
-    // Сортируем их по популярности (от большего к меньшему)
+        const meta = appSearchMetadata[moduleName];
+        if (meta.hashtags && meta.hashtags.some(tag => currentHashtags.has(tag))) {
+            similarModules.push(moduleName);
+        }
+    }
+
+    // Сортируем найденные модули по популярности (от большего к меньшему)
     similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
 
     // Ограничиваем до 3-х самых популярных
     const topSimilar = similarModules.slice(0, 3);
 
     if (topSimilar.length === 0) {
+        container.innerHTML = '';
         container.classList.add('hidden');
         return;
     }
@@ -162,16 +158,15 @@ function renderSimilarApps(currentModule, container) {
     container.classList.remove('hidden');
 }
 
+
 // --- Основная функция-роутер ---
 async function router() {
-    // 1. Очищаем предыдущее приложение
     if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
         activeAppModule.cleanup();
         activeAppModule = null;
     }
     dynamicContentArea.innerHTML = '';
 
-    // 2. Определяем, какое приложение показать
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName]; 
@@ -217,7 +212,7 @@ async function router() {
         changelogContainer.classList.remove('hidden');
         document.title = 'Mini Apps';
         
-        setupFilters(); // Устанавливаем фильтры (которые сами отрисуют контент по умолчанию)
+        setupFilters();
         setupSearch();
         renderChangelog(null, 5, changelogContainer);
     }
@@ -335,11 +330,11 @@ function setupFilters() {
             });
         } else if (activeFilter === 'new') {
             sortedApps = [...originalOrder].reverse();
-        } else { // default
+        } else {
             sortedApps = originalOrder;
         }
         renderApps(sortedApps);
-        // После отрисовки нужно сбросить поиск, если он был
+        
         if (searchInput.value) {
             searchInput.value = '';
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -355,7 +350,6 @@ function setupFilters() {
         applyFilter();
     });
 
-    // Первоначальная отрисовка
     applyFilter();
 }
 
