@@ -45,18 +45,18 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
-    // --- НОВЫЕ ЗАПИСИ ---
+    { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Общее', description: 'реализовано множество улучшений для существующих приложений.' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Эмодзи и символы', description: 'добавлена вкладка "Недавно использованные" для быстрого доступа к скопированным символам.' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Эмодзи и символы', description: 'добавлено поле для поиска эмодзи и символов в реальном времени.' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Калькулятор процентных соотношений', description: 'добавлен калькулятор для расчета процентного изменения между двумя числами.' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Калькулятор процентных соотношений', description: 'расчеты теперь происходят автоматически при вводе чисел, без необходимости нажимать кнопку.' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Случайный цвет', description: 'добавлена история последних 5 сгенерированных цветов с возможностью вернуться к ним.' },
+    { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Таймер', description: 'приложение переименовано из "Таймер и обратный отсчет" в "Таймер".' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Таймер', description: 'добавлены кнопки быстрых пресетов для установки таймера на 1, 5, 10 и 15 минут.' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Калькулятор дат', description: 'добавлен калькулятор для точного расчета возраста по дате рождения.' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Калькулятор дат', description: 'результат разницы между датами теперь также отображается в неделях и днях.' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Генератор паролей', description: 'добавлена опция для исключения похожих символов (I, l, 1, O, 0).' },
     { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Генератор чисел', description: 'добавлена опция для генерации только уникальных чисел в заданном диапазоне.' },
-    // --- ПРЕДЫДУЩИЕ ЗАПИСИ ---
     { date: getRussianDate('2025-08-10T12:00:00Z'), appName: 'Конвертер регистра', description: 'добавлено новое приложение для быстрого преобразования текста в разные регистры.' },
     { date: getRussianDate('2025-08-10T12:00:00Z'), appName: 'Конвертер форматов изображений', description: 'добавлено новое приложение для конвертации изображений между форматами PNG, JPG и WebP.' },
     { date: getRussianDate('2025-08-10T12:00:00Z'), appName: 'Конвертер цветов', description: 'добавлено новое приложение для преобразования цветов между HEX, RGB и HSL.' },
@@ -65,10 +65,8 @@ const changelogData = [
     { date: getRussianDate('2025-08-09T10:00:00Z'), appName: 'Сканер QR-кодов', description: 'добавлено новое приложение для сканирования QR-кодов с помощью камеры.' },
     { date: getRussianDate('2025-08-09T10:00:00Z'), appName: 'Счетчик слов и символов', description: 'добавлено новое приложение для подсчета статистики текста (слова, символы, предложения).' },
     { date: getRussianDate('2025-08-08T15:00:00Z'), appName: 'Сжатие аудио', description: 'добавлено новое приложение для сжатия аудио-файлов с выбором битрейта.' },
-    // ... остальной лог без изменений
+    { date: getRussianDate('2025-08-04T00:00:00Z'), appName: 'Общее', description: 'начальная версия проекта.' }
 ];
-
-// --- Остальной код changelog.js остается без изменений ---
 
 function groupChangelogData(data) {
     const grouped = {};
@@ -109,13 +107,14 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
 
         const appNameLink = `<a href="${appHref}" data-app-name="${entry.appName}" class="changelog-link font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">${entry.appName}.</a>`;
         const capitalizedDescs = entry.descriptions.map(desc => desc.charAt(0).toUpperCase() + desc.slice(1));
-        const descriptionsHtml = capitalizedDescs.length > 1 
-            ? `<ul class="list-disc list-inside mt-1">${capitalizedDescs.map(d => `<li class="ml-4">${d}</li>`).join('')}</ul>`
-            : `<span class="ml-1">${capitalizedDescs[0]}</span>`;
+        
+        // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+        // Всегда используем <ul>, даже для одного элемента, чтобы он был на новой строке.
+        const descriptionsHtml = `<ul class="list-disc list-inside mt-1">${capitalizedDescs.map(d => `<li class="ml-4">${d}</li>`).join('')}</ul>`;
         
         const contentHtml = isMainChangelog 
-            ? (entry.appName === 'Общее' ? descriptionsHtml.replace('<span class="ml-1">', '<span>') : `${appNameLink} ${descriptionsHtml}`)
-            : descriptionsHtml.replace('<span class="ml-1">', '<span>');
+            ? (entry.appName === 'Общее' ? descriptionsHtml : `${appNameLink} ${descriptionsHtml}`)
+            : descriptionsHtml;
 
         return `
             <div class="border-t border-gray-300 dark:border-gray-700 pt-4 mt-4 first:mt-0 first:pt-0 first:border-0">
