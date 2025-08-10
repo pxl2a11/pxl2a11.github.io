@@ -10,7 +10,7 @@ const appNameToModuleFile = {
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
     'Калькулятор процентных соотношений': 'percentageCalculator',
-    'Таймер и обратный отсчет': 'timer',
+    'Таймер': 'timer', // <--- ИЗМЕНЕНО
     'Колесо фортуны': 'fortuneWheel',
     'Шар предсказаний': 'magicBall',
     'Крестики-нолики': 'ticTacToe',
@@ -27,7 +27,6 @@ const appNameToModuleFile = {
     'Сканер QR-кодов': 'qrScanner',
     'Пианино': 'piano',
     'История изменений': 'changelogPage',
-    // --- НОВЫЕ ПРИЛОЖЕНИЯ ---
     'Конвертер регистра': 'caseConverter',
     'Конвертер форматов изображений': 'imageConverter',
     'Конвертер цветов': 'colorConverter',
@@ -43,11 +42,7 @@ const appPopularity = {
     'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71,
     'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55,
     'numberGenerator': 54, 'changelogPage': 10,
-    // --- РЕЙТИНГИ ДЛЯ НОВЫХ ПРИЛОЖЕНИЙ ---
-    'imageConverter': 91,
-    'colorConverter': 87,
-    'memoryGame': 83,
-    'caseConverter': 76,
+    'imageConverter': 91, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76,
 };
 
 // --- Ключевые слова и хэштеги для поиска ---
@@ -60,7 +55,7 @@ const appSearchMetadata = {
     'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] },
     'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] },
     'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] },
-    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] },
+    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] }, // <--- Ключевое слово осталось для поиска
     'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] },
     'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] },
     'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] },
@@ -76,12 +71,13 @@ const appSearchMetadata = {
     'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] },
     'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] },
     'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] },
-    // --- МЕТАДАННЫЕ ДЛЯ НОВЫХ ПРИЛОЖЕНИЙ ---
     'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] },
     'imageConverter': { keywords: ['конвертер', 'изображения', 'картинки', 'png', 'jpg', 'webp', 'формат', 'преобразовать'], hashtags: ['#image', '#tools', '#converter'] },
     'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] },
     'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] },
 };
+
+// --- Остальной код main.js остается без изменений ---
 
 // --- Обратное сопоставление ---
 const moduleFileToAppName = Object.fromEntries(
@@ -316,7 +312,6 @@ function setupFilters() {
     const appsContainer = document.getElementById('apps-container');
     if (!filterContainer || !appsContainer) return;
     
-    // Получаем все карточки из <template>
     const allAppCards = Array.from(appCardElements.values());
 
     const renderApps = (appElements) => {
@@ -360,7 +355,6 @@ function setupFilters() {
 
     applyFilter();
 }
-
 
 // --- Инициализация при загрузке страницы ---
 document.addEventListener('DOMContentLoaded', () => {
