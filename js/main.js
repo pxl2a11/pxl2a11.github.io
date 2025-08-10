@@ -66,7 +66,7 @@ const appSearchMetadata = {
     'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] },
     'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] },
     'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] },
-    'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random'] },
+    'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random', '#color'] },
     'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] },
     'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] },
     'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] },
@@ -82,7 +82,6 @@ const appSearchMetadata = {
     'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] },
     'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] },
 };
-
 
 // --- Обратное сопоставление ---
 const moduleFileToAppName = Object.fromEntries(
@@ -116,31 +115,7 @@ function populateAppCardMap() {
     if (appCardElements.size > 0) return;
     const template = document.getElementById('all-apps-template');
     if (!template) return;
-    // Нужно создать новые карточки для новых приложений
-    for (const appName in appNameToModuleFile) {
-        if (moduleFileToAppName.hasOwnProperty(appNameToModuleFile[appName]) && !template.content.querySelector(`[data-module="${appNameToModuleFile[appName]}"]`)) {
-             const moduleName = appNameToModuleFile[appName];
-             const newCard = document.createElement('a');
-             newCard.href = `?app=${moduleName}`;
-             newCard.className = "app-item flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full";
-             newCard.dataset.name = appName;
-             newCard.dataset.module = moduleName;
-             
-             // Простая иконка-плейсхолдер
-             const iconDiv = document.createElement('div');
-             iconDiv.className = 'w-12 h-12 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl flex items-center justify-center flex-shrink-0';
-             iconDiv.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>`;
-             
-             const span = document.createElement('span');
-             span.className = "text-sm font-medium ml-4";
-             span.textContent = appName;
-
-             newCard.appendChild(iconDiv);
-             newCard.appendChild(span);
-             template.content.appendChild(newCard);
-        }
-    }
-
+    
     template.content.querySelectorAll('.app-item').forEach(card => {
         const moduleName = card.dataset.module;
         if (moduleName) {
@@ -197,8 +172,8 @@ function renderSimilarApps(currentModule, container) {
 async function router() {
     if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
         activeAppModule.cleanup();
-        activeAppModule = null;
     }
+    activeAppModule = null;
     dynamicContentArea.innerHTML = '';
 
     const params = new URLSearchParams(window.location.search);
@@ -225,8 +200,6 @@ async function router() {
             const appContentContainer = document.getElementById('app-content-container');
             if (typeof module.getHtml === 'function') { appContentContainer.innerHTML = module.getHtml(); }
             if (typeof module.init === 'function') { module.init(); }
-            if (typeof module.cleanup === 'function') { activeAppModule.cleanup = module.cleanup; }
-
 
             const appChangelogContainer = document.getElementById('app-changelog-container');
             const similarAppsContainer = document.getElementById('similar-apps-container');
@@ -342,8 +315,9 @@ function setupFilters() {
     const filterContainer = document.getElementById('filter-container');
     const appsContainer = document.getElementById('apps-container');
     if (!filterContainer || !appsContainer) return;
-
-    let originalOrder = Array.from(appCardElements.values());
+    
+    // Получаем все карточки из <template>
+    const allAppCards = Array.from(appCardElements.values());
 
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
@@ -357,17 +331,15 @@ function setupFilters() {
         let sortedApps;
 
         if (activeFilter === 'popular') {
-            sortedApps = [...originalOrder].sort((a, b) => {
+            sortedApps = [...allAppCards].sort((a, b) => {
                 const popA = appPopularity[a.dataset.module] || 0;
                 const popB = appPopularity[b.dataset.module] || 0;
                 return popB - popA;
             });
         } else if (activeFilter === 'new') {
-            const moduleNames = Object.values(appNameToModuleFile);
-            sortedApps = moduleNames.map(moduleName => appCardElements.get(moduleName)).reverse();
-        } else {
-            const moduleNames = Object.values(appNameToModuleFile);
-            sortedApps = moduleNames.map(moduleName => appCardElements.get(moduleName));
+            sortedApps = [...allAppCards].reverse();
+        } else { 
+            sortedApps = allAppCards;
         }
         renderApps(sortedApps);
         
