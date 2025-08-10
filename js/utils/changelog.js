@@ -1,11 +1,11 @@
 // js/utils/changelog.js
 
-// --- ИЗМЕНЕНО: Добавлены новые приложения для корректной работы ссылок ---
 export const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
     'Заметки и задачи': 'notesAndTasks',
     'Тест звука и микрофона': 'soundAndMicTest',
+    'Сжатие аудио': 'audioCompressor',
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
     'Калькулятор процентных соотношений': 'percentageCalculator',
@@ -22,7 +22,6 @@ export const appNameToModuleFile = {
     'Конвертер величин': 'unitConverter',
     'Калькулятор дат': 'dateCalculator',
     'Калькулятор ИМТ': 'bmiCalculator',
-    'Сжатие аудио': 'audioCompressor',
     'Счетчик слов и символов': 'wordCounter',
     'Сканер QR-кодов': 'qrScanner',
     'Пианино': 'piano',
