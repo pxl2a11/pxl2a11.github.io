@@ -10,7 +10,7 @@ const appNameToModuleFile = {
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
     'Калькулятор процентных соотношений': 'percentageCalculator',
-    'Таймер': 'timer', // <--- ИЗМЕНЕНО
+    'Таймер': 'timer',
     'Колесо фортуны': 'fortuneWheel',
     'Шар предсказаний': 'magicBall',
     'Крестики-нолики': 'ticTacToe',
@@ -55,7 +55,7 @@ const appSearchMetadata = {
     'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] },
     'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] },
     'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] },
-    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] }, // <--- Ключевое слово осталось для поиска
+    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] },
     'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] },
     'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] },
     'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] },
@@ -77,14 +77,10 @@ const appSearchMetadata = {
     'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] },
 };
 
-// --- Остальной код main.js остается без изменений ---
-
-// --- Обратное сопоставление ---
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
-// --- Глобальные переменные ---
 const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
@@ -92,7 +88,6 @@ const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 
-// --- Шаблоны HTML ---
 const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
     <div id="app-screen" class="hidden">
@@ -104,8 +99,6 @@ const appScreenHtml = `
         <div id="similar-apps-container" class="mt-12"></div>
         <div id="app-changelog-container" class="mt-8"></div>
     </div>`;
-
-// --- Функции рендеринга ---
 
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
@@ -140,7 +133,6 @@ function renderSimilarApps(currentModule, container) {
     }
 
     similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
-
     const topSimilar = similarModules.slice(0, 3);
 
     if (topSimilar.length === 0) {
@@ -164,7 +156,6 @@ function renderSimilarApps(currentModule, container) {
     container.classList.remove('hidden');
 }
 
-// --- Основная функция-роутер ---
 async function router() {
     if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
         activeAppModule.cleanup();
@@ -217,11 +208,10 @@ async function router() {
         
         setupFilters();
         setupSearch();
-        renderChangelog(null, 5, changelogContainer);
+        renderChangelog(null, 3, changelogContainer); // <--- ИЗМЕНЕНИЕ ЗДЕСЬ (5 -> 3)
     }
 }
 
-// --- Обработка навигации ---
 function setupNavigationEvents() {
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a');
@@ -258,7 +248,6 @@ function setupNavigationEvents() {
     });
 }
 
-// --- Логика поиска ---
 function setupSearch() {
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.toLowerCase().trim();
@@ -306,7 +295,6 @@ function setupSearch() {
     });
 }
 
-// --- Логика фильтров ---
 function setupFilters() {
     const filterContainer = document.getElementById('filter-container');
     const appsContainer = document.getElementById('apps-container');
@@ -356,7 +344,6 @@ function setupFilters() {
     applyFilter();
 }
 
-// --- Инициализация при загрузке страницы ---
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
     
