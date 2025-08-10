@@ -1,5 +1,5 @@
 let timeoutId;
-// ИЗМЕНЕНИЕ: Разные ключи для хранения недавних символов и эмодзи
+// 1ИЗМЕНЕНИЕ: Разные ключи для хранения недавних символов и эмодзи
 const RECENT_SYMBOLS_KEY = 'recentSymbols';
 const RECENT_EMOJI_KEY = 'recentEmojis';
 const RECENT_LIMIT = 20;
