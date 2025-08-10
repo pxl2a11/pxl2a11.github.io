@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// --- Сопоставление имен приложений с файлами модулей ---
+// --- 1Сопоставление имен приложений с файлами модулей ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
