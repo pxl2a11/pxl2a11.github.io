@@ -1,16 +1,13 @@
 export function getHtml() {
     return `
         <div class="p-4 space-y-6 max-w-md mx-auto">
-            <!-- Блок вывода пароля и кнопки копирования -->
             <div class="relative">
                 <input id="password-output" type="text" readonly class="w-full p-4 pr-12 text-lg font-mono rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Нажмите 'Сгенерировать'">
                 <button id="copy-password-btn" title="Скопировать пароль" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <!-- Иконка будет меняться при клике -->
                     <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                 </button>
             </div>
             
-            <!-- Индикатор надежности пароля -->
             <div class="space-y-2">
                  <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5">
                     <div id="strength-bar" class="h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
@@ -18,7 +15,6 @@ export function getHtml() {
                 <p id="strength-text" class="text-center text-sm font-semibold text-gray-500 dark:text-gray-400"></p>
             </div>
             
-            <!-- Настройки генерации -->
             <div class="space-y-5">
                 <div>
                     <label for="length" class="flex justify-between text-sm font-medium dark:text-gray-300 mb-2">
@@ -32,15 +28,18 @@ export function getHtml() {
                     <label class="flex items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer"><input type="checkbox" id="numbers" class="h-4 w-4 rounded text-blue-500 focus:ring-blue-500" checked><span class="ml-3 dark:text-gray-300">Цифры</span></label>
                     <label class="flex items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer"><input type="checkbox" id="symbols" class="h-4 w-4 rounded text-blue-500 focus:ring-blue-500"><span class="ml-3 dark:text-gray-300">Символы</span></label>
                 </div>
+                 <!-- НОВЫЙ ЧЕКБОКС -->
+                <label class="flex items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer">
+                    <input type="checkbox" id="exclude-similar" class="h-4 w-4 rounded text-blue-500 focus:ring-blue-500">
+                    <span class="ml-3 dark:text-gray-300">Исключить похожие (I, l, 1, O, 0)</span>
+                </label>
             </div>
 
-            <!-- Кнопка генерации -->
             <button id="generate-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">Сгенерировать пароль</button>
         </div>`;
 }
 
 export function init() {
-    // Получение элементов
     const lengthSlider = document.getElementById('length');
     const lengthVal = document.getElementById('length-val');
     const outputEl = document.getElementById('password-output');
@@ -48,9 +47,8 @@ export function init() {
     const copyBtn = document.getElementById('copy-password-btn');
     const strengthBar = document.getElementById('strength-bar');
     const strengthText = document.getElementById('strength-text');
-    const options = ['uppercase', 'lowercase', 'numbers', 'symbols'];
+    const options = ['uppercase', 'lowercase', 'numbers', 'symbols', 'exclude-similar'];
 
-    // Наборы символов
     const charSets = {
         lower: 'abcdefghijklmnopqrstuvwxyz',
         upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -58,7 +56,6 @@ export function init() {
         sym: '!@#$%^&*(){}[]=<>/,.'
     };
     
-    // Функция оценки надежности
     function checkPasswordStrength(password, activeOptions) {
         let score = 0;
         if (!password) {
@@ -74,10 +71,8 @@ export function init() {
         if (activeOptions.lowercase) score++;
         if (activeOptions.numbers) score++;
         if (activeOptions.symbols) score++;
-        if (activeOptions.uppercase && activeOptions.lowercase && activeOptions.numbers && activeOptions.symbols && password.length >= 12) {
-            score++;
-        }
-
+        if (activeOptions.uppercase && activeOptions.lowercase && activeOptions.numbers && activeOptions.symbols && password.length >= 12) score++;
+        
         let strength = { text: 'Очень слабый', color: 'bg-red-700', width: '10%' };
         if (score >= 8) strength = { text: 'Очень надежный', color: 'bg-green-700', width: '100%' };
         else if (score >= 6) strength = { text: 'Надежный', color: 'bg-green-500', width: '75%' };
@@ -89,19 +84,25 @@ export function init() {
         strengthText.textContent = strength.text;
     }
 
-    // Основная функция генерации пароля
     function generatePassword() {
         const length = +lengthSlider.value;
         const activeOptions = {};
         let charset = '';
+        const similarCharsRegex = /[Il1O0]/g;
         
         options.forEach(opt => {
             const el = document.getElementById(opt);
             activeOptions[opt] = el.checked;
-            if (el.checked) {
-                charset += charSets[opt.slice(0, 3)];
-            }
         });
+
+        if (activeOptions.lowercase) charset += charSets.lower;
+        if (activeOptions.uppercase) charset += charSets.upper;
+        if (activeOptions.numbers) charset += charSets.num;
+        if (activeOptions.symbols) charset += charSets.sym;
+        
+        if (activeOptions['exclude-similar']) {
+            charset = charset.replace(similarCharsRegex, '');
+        }
 
         if (charset === '') {
             outputEl.value = '';
@@ -118,19 +119,15 @@ export function init() {
         checkPasswordStrength(password, activeOptions);
     }
     
-    // Обработчик копирования
     copyBtn.addEventListener('click', () => {
         if (!outputEl.value) return;
         navigator.clipboard.writeText(outputEl.value).then(() => {
             const originalIcon = copyBtn.innerHTML;
             copyBtn.innerHTML = `<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-            setTimeout(() => {
-                copyBtn.innerHTML = originalIcon;
-            }, 1500);
+            setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500);
         });
     });
 
-    // Слушатели событий
     lengthSlider.addEventListener('input', () => {
         lengthVal.textContent = lengthSlider.value;
         generatePassword();
@@ -142,7 +139,6 @@ export function init() {
 
     generateBtn.addEventListener('click', generatePassword);
 
-    // Первоначальная генерация
     generatePassword();
 }
 
