@@ -1,241 +1,354 @@
-let minesweeperTimer;
+/**
+ * Файл: minesweeper.js
+ * Описание: Реализация игры "Сапер" с уровнями сложности, таймером и функцией "аккорда".
+ */
 
-export function getHtml() {
-    return `
-        <div id="minesweeper-game" class="p-4 flex flex-col items-center bg-gray-100 dark:bg-gray-900 rounded-xl shadow-2xl font-sans">
-            <div id="ms-settings" class="flex flex-wrap justify-center gap-3 mb-5">
-                <button data-difficulty="easy" class="ms-difficulty-btn text-white font-bold py-2 px-5 rounded-full bg-blue-500 hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-md">Новичок</button>
-                <button data-difficulty="medium" class="ms-difficulty-btn text-white font-bold py-2 px-5 rounded-full bg-purple-500 hover:bg-purple-600 transition-all duration-300 transform hover:scale-105 shadow-md">Любитель</button>
-                <button data-difficulty="hard" class="ms-difficulty-btn text-white font-bold py-2 px-5 rounded-full bg-red-500 hover:bg-red-600 transition-all duration-300 transform hover:scale-105 shadow-md">Профи</button>
-            </div>
-            <div id="ms-status-bar" class="w-full max-w-md flex justify-between items-center bg-gray-200 dark:bg-gray-800 p-2 rounded-lg mb-4 hidden shadow-inner">
-                <div class="w-24 font-mono text-xl text-center text-white bg-gray-800 dark:bg-black/20 p-2 rounded-md">🚩 <span id="ms-mines-left">0</span></div>
-                <div class="flex-1 text-center"><button id="ms-face-btn" class="text-4xl transform transition-transform duration-200 hover:scale-110 focus:outline-none">🙂</button></div>
-                <div id="ms-timer" class="w-24 font-mono text-xl text-center text-white bg-gray-800 dark:bg-black/20 p-2 rounded-md">0</div>
-            </div>
-            <div id="ms-board-container" class="bg-gray-400/50 dark:bg-gray-700/50 p-2 rounded-md shadow-lg">
-                <div id="ms-board" class="grid" style="grid-template-columns: repeat(var(--ms-width, 10), 1fr); gap: 2px;"></div>
-            </div>
-            <p id="ms-instructions" class="mt-4 text-center text-gray-600 dark:text-gray-400">Выберите уровень сложности, чтобы начать игру.</p>
-        </div>`;
+// --- НАСТРОЙКИ СЛОЖНОСТИ ---
+const DIFFICULTIES = {
+    beginner: { rows: 9, cols: 9, mines: 10 },
+    intermediate: { rows: 16, cols: 16, mines: 40 },
+    expert: { rows: 30, cols: 16, mines: 99 },
+};
+
+let rows, cols, minesCount;
+let board = []; // { isMine, isRevealed, isFlagged, neighbors }
+let mineLocations = [];
+let revealedCount = 0;
+let flagsPlaced = 0;
+let isGameOver = false;
+let isFirstClick = true;
+let timerInterval;
+let timeElapsed = 0;
+
+// --- ЭЛЕМЕНТЫ DOM ---
+const gameContainer = document.getElementById('game-container'); // Убедитесь, что у вас есть <div id="game-container"></div> в HTML
+const timerElement = document.getElementById('timer');
+const mineCounterElement = document.getElementById('mine-counter');
+const restartButton = document.getElementById('restart-btn');
+const difficultySelector = document.getElementById('difficulty-selector');
+
+/**
+ * Инициализация игры
+ * @param {string} difficulty - Название уровня сложности ('beginner', 'intermediate', 'expert')
+ */
+function init(difficulty = 'beginner') {
+    const settings = DIFFICULTIES[difficulty];
+    rows = settings.rows;
+    cols = settings.cols;
+    minesCount = settings.mines;
+
+    resetGame();
+    createBoard();
+    updateMineCounter();
 }
 
-export function init() {
-    const difficulties = {
-        easy: { width: 10, height: 10, bombs: 10, name: 'easy' },
-        medium: { width: 16, height: 16, bombs: 40, name: 'medium' },
-        hard: { width: 20, height: 16, bombs: 60, name: 'hard' }
-    };
-    let currentDifficulty;
-    let board = [], cells = [];
-    let isGameOver = false, isFirstClick = true, flags = 0, time = 0;
+/**
+ * Сброс всех игровых переменных в начальное состояние
+ */
+function resetGame() {
+    isGameOver = false;
+    isFirstClick = true;
+    revealedCount = 0;
+    flagsPlaced = 0;
+    timeElapsed = 0;
+    board = [];
+    mineLocations = [];
 
-    const boardEl = document.getElementById('ms-board');
-    const minesLeftEl = document.getElementById('ms-mines-left');
-    const faceBtn = document.getElementById('ms-face-btn');
-    const timerEl = document.getElementById('ms-timer');
-    const settingsEl = document.getElementById('ms-settings');
-    const statusBarEl = document.getElementById('ms-status-bar');
-    const instructionsEl = document.getElementById('ms-instructions');
-    
-    const bombSVG = `<svg class="w-full h-full text-black dark:text-white" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.23858 2 7 4.23858 7 7C7 9.45862 8.79815 11.5168 11.0625 11.9375L7.5 19H16.5L12.9375 11.9375C15.2018 11.5168 17 9.45862 17 7C17 4.23858 14.7614 2 12 2ZM12 4C13.6569 4 15 5.34315 15 7C15 8.65685 13.6569 10 12 10C10.3431 10 9 8.65685 9 7C9 5.34315 10.3431 4 12 4Z"/></svg>`;
+    // Сброс таймера
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timerElement.textContent = '000';
 
-    const getNeighbors = (id) => {
-        const neighbors = [];
-        const isLeftEdge = (id % currentDifficulty.width === 0);
-        const isRightEdge = (id % currentDifficulty.width === currentDifficulty.width - 1);
-        const width = currentDifficulty.width;
-        const totalCells = currentDifficulty.width * currentDifficulty.height;
+    // Сброс кнопки перезапуска
+    restartButton.textContent = '😊';
+}
 
-        const offsets = [-width - 1, -width, -width + 1, -1, 1, width - 1, width, width + 1];
+/**
+ * Создание и отрисовка игрового поля в DOM
+ */
+function createBoard() {
+    gameContainer.innerHTML = '';
+    gameContainer.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
 
-        offsets.forEach(offset => {
-            const neighborIndex = id + offset;
-            if (neighborIndex >= 0 && neighborIndex < totalCells) {
-                 if (isLeftEdge && ((id + offset) % width === width - 1)) return;
-                 if (isRightEdge && ((id + offset) % width === 0)) return;
-                 neighbors.push(neighborIndex);
-            }
-        });
-        return neighbors.filter(nId => board[nId] !== undefined);
-    };
+    for (let r = 0; r < rows; r++) {
+        board[r] = [];
+        for (let c = 0; c < cols; c++) {
+            board[r][c] = {
+                isMine: false,
+                isRevealed: false,
+                isFlagged: false,
+                neighborCount: 0,
+            };
 
-    const startGame = (difficulty) => {
-        if (minesweeperTimer) clearInterval(minesweeperTimer);
-        currentDifficulty = difficulty;
-        isGameOver = false; isFirstClick = true; flags = 0; time = 0; board = [];
-        
-        statusBarEl.classList.remove('hidden');
-        instructionsEl.classList.add('hidden');
-        faceBtn.classList.remove('animate-bounce', 'animate-spin');
-        minesLeftEl.textContent = currentDifficulty.bombs;
-        timerEl.textContent = time;
-        faceBtn.textContent = '🙂';
-        
-        boardEl.innerHTML = '';
-        boardEl.style.setProperty('--ms-width', currentDifficulty.width);
-        cells = [];
-
-        board = Array.from({ length: currentDifficulty.width * currentDifficulty.height }, (_, i) => ({ id: i, isBomb: false, isRevealed: false, isFlagged: false, neighbors: 0 }));
-
-        for (let i = 0; i < currentDifficulty.width * currentDifficulty.height; i++) {
             const cell = document.createElement('div');
-            cell.dataset.id = i;
-            // FIX: Added 'aspect-square' to ensure cells are visible
-            cell.className = `ms-cell aspect-square ms-${difficulty.name} flex items-center justify-center font-bold text-xl bg-gray-400 dark:bg-gray-600 rounded-sm cursor-pointer transition-colors duration-200 hover:bg-gray-500/80 dark:hover:bg-gray-500/80`;
-            boardEl.appendChild(cell);
-            cells.push(cell);
-            cell.addEventListener('click', onCellClick);
-            cell.addEventListener('contextmenu', onRightClick);
-        }
-    };
+            cell.classList.add('cell');
+            cell.dataset.row = r;
+            cell.dataset.col = c;
 
-    const createBoard = (firstClickId) => {
-        const totalCells = currentDifficulty.width * currentDifficulty.height;
-        const bombsArray = Array(currentDifficulty.bombs).fill('bomb');
-        const emptyArray = Array(totalCells - currentDifficulty.bombs).fill('valid');
-        let gameArray = emptyArray.concat(bombsArray).sort(() => Math.random() - 0.5);
-        
-        while (gameArray[firstClickId] === 'bomb' || getNeighbors(firstClickId).some(n => gameArray[n] === 'bomb')) {
-             gameArray.sort(() => Math.random() - 0.5);
-        }
-
-        for(let i=0; i < totalCells; i++) {
-            board[i].isBomb = (gameArray[i] === 'bomb');
-        }
-        
-        for (let i = 0; i < totalCells; i++) {
-            if (board[i].isBomb) continue;
-            let total = 0;
-            getNeighbors(i).forEach(neighborId => { if(board[neighborId]?.isBomb) total++; });
-            board[i].neighbors = total;
-        }
-    };
-    
-    const revealCell = (id) => {
-        const cell = board[id];
-        if (!cell || cell.isRevealed || cell.isFlagged) return;
-        
-        cell.isRevealed = true;
-        const cellEl = cells[id];
-        cellEl.classList.remove('bg-gray-400', 'dark:bg-gray-600', 'hover:bg-gray-500/80', 'dark:hover:bg-gray-500/80');
-        cellEl.classList.add('bg-gray-300', 'dark:bg-gray-800/60');
-        cellEl.style.cursor = 'default';
-
-        if (cell.isBomb) { gameOver(false, id); return; }
-        if (cell.neighbors > 0) {
-            cellEl.textContent = cell.neighbors;
-            // Added text colors for numbers
-            const colorClasses = ['', 'text-blue-500', 'text-green-600', 'text-red-500', 'text-blue-800', 'text-red-800', 'text-teal-500', 'text-black', 'text-gray-500'];
-            cellEl.classList.add(colorClasses[cell.neighbors]);
-        } else {
-            setTimeout(() => getNeighbors(id).forEach(neighborId => revealCell(neighborId)), 10);
-        }
-        checkForWin();
-    };
-    
-    const chord = (id) => {
-        const cell = board[id];
-        if (!cell.isRevealed || cell.neighbors === 0) return;
-
-        const neighbors = getNeighbors(id);
-        const flaggedNeighbors = neighbors.filter(nId => board[nId].isFlagged).length;
-
-        if (cell.neighbors === flaggedNeighbors) {
-            neighbors.forEach(nId => {
-                if (!board[nId].isFlagged && !board[nId].isRevealed) {
-                    revealCell(nId);
-                }
+            // Обработчики событий
+            cell.addEventListener('click', handleCellClick);
+            cell.addEventListener('contextmenu', handleRightClick);
+            cell.addEventListener('mousedown', () => {
+                if (!isGameOver) restartButton.textContent = '😮';
             });
+            cell.addEventListener('mouseup', () => {
+                if (!isGameOver) restartButton.textContent = '😊';
+            });
+
+            gameContainer.appendChild(cell);
         }
-    };
-
-    const gameOver = (win, clickedBombId) => {
-        if(isGameOver) return;
-        isGameOver = true;
-        clearInterval(minesweeperTimer);
-        faceBtn.textContent = win ? '😎' : '😵';
-        faceBtn.classList.add(win ? 'animate-bounce' : 'animate-spin');
-
-        board.forEach((cell, i) => {
-            cells[i].removeEventListener('click', onCellClick);
-            cells[i].removeEventListener('contextmenu', onRightClick);
-
-            if (cell.isBomb && !cell.isFlagged) {
-                cells[i].classList.remove('bg-gray-400', 'dark:bg-gray-600');
-                cells[i].classList.add('bg-gray-300', 'dark:bg-gray-700', 'p-1');
-                cells[i].innerHTML = bombSVG;
-            }
-            if (cell.isFlagged && !cell.isBomb) {
-                 cells[i].classList.add('bg-yellow-400'); // Wrong flag
-            }
-            if (i === clickedBombId) {
-                cells[i].classList.add('bg-red-500/70', 'animate-pulse');
-            }
-        });
-    };
-
-    const checkForWin = () => {
-        if(isGameOver) return;
-        const revealedCount = board.filter(cell => cell.isRevealed).length;
-        if (revealedCount === (currentDifficulty.width * currentDifficulty.height - currentDifficulty.bombs)) {
-            gameOver(true);
-        }
-    };
-
-    const onCellClick = (e) => {
-        const cellEl = e.target.closest('.ms-cell');
-        if (!cellEl) return;
-        const id = parseInt(cellEl.dataset.id);
-        
-        if (isGameOver) return;
-
-        if (isFirstClick) {
-            createBoard(id);
-            isFirstClick = false;
-            minesweeperTimer = setInterval(() => { time++; timerEl.textContent = time; }, 1000);
-        }
-        
-        const cell = board[id];
-        if (cell.isRevealed) {
-            chord(id);
-        } else if (!cell.isFlagged) {
-            revealCell(id);
-        }
-    };
-
-    const onRightClick = (e) => {
-        e.preventDefault();
-        const cellEl = e.target.closest('.ms-cell');
-        if (!cellEl) return;
-        const id = parseInt(cellEl.dataset.id);
-        
-        if (isGameOver || board[id].isRevealed) return;
-        
-        if (!isFirstClick && !board[id].isFlagged && flags >= currentDifficulty.bombs) return;
-
-        board[id].isFlagged = !board[id].isFlagged;
-        flags += board[id].isFlagged ? 1 : -1;
-        cells[id].textContent = board[id].isFlagged ? '🚩' : '';
-        cells[id].classList.toggle('text-xl', board[id].isFlagged);
-        minesLeftEl.textContent = currentDifficulty.bombs - flags;
-    };
-    
-    settingsEl.addEventListener('click', e => {
-        const btn = e.target.closest('.ms-difficulty-btn');
-        if (btn && difficulties[btn.dataset.difficulty]) {
-            startGame(difficulties[btn.dataset.difficulty]);
-        }
-    });
-
-    faceBtn.addEventListener('click', () => {
-        if (currentDifficulty) startGame(currentDifficulty);
-    });
-}
-
-export function cleanup() {
-    if (minesweeperTimer) {
-        clearInterval(minesweeperTimer);
-        minesweeperTimer = null;
     }
 }
+
+/**
+ * Расстановка мин на поле после первого клика
+ * @param {number} initialRow - Ряд, по которому кликнули
+ * @param {number} initialCol - Колонка, по которой кликнули
+ */
+function placeMines(initialRow, initialCol) {
+    let minesToPlace = minesCount;
+    while (minesToPlace > 0) {
+        const r = Math.floor(Math.random() * rows);
+        const c = Math.floor(Math.random() * cols);
+
+        // Не ставим мину на первый клик и если она там уже есть
+        if ((r === initialRow && c === initialCol) || board[r][c].isMine) {
+            continue;
+        }
+
+        board[r][c].isMine = true;
+        mineLocations.push({ r, c });
+        minesToPlace--;
+    }
+
+    // Рассчитываем количество соседей-мин для каждой ячейки
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (!board[r][c].isMine) {
+                board[r][c].neighborCount = countNeighborMines(r, c);
+            }
+        }
+    }
+}
+
+/**
+ * Подсчет мин вокруг ячейки
+ * @param {number} row
+ * @param {number} col
+ * @returns {number} Количество мин
+ */
+function countNeighborMines(row, col) {
+    let count = 0;
+    for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+            if (i === 0 && j === 0) continue;
+            const r = row + i;
+            const c = col + j;
+            if (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c].isMine) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+
+/**
+ * Обработчик клика по ячейке
+ * @param {MouseEvent} event
+ */
+function handleCellClick(event) {
+    const cellElement = event.target;
+    const row = parseInt(cellElement.dataset.row);
+    const col = parseInt(cellElement.dataset.col);
+    const cellData = board[row][col];
+
+    if (isGameOver || cellData.isFlagged) return;
+
+    // Первый клик
+    if (isFirstClick) {
+        placeMines(row, col);
+        startTimer();
+        isFirstClick = false;
+    }
+    
+    // Если ячейка уже открыта, пробуем "аккорд"
+    if (cellData.isRevealed && cellData.neighborCount > 0) {
+        handleChord(row, col);
+        return;
+    }
+
+    if (cellData.isMine) {
+        endGame(false); // Проигрыш
+        return;
+    }
+
+    revealCell(row, col);
+    checkWinCondition();
+}
+
+/**
+ * Обработчик правого клика (установка флага)
+ * @param {MouseEvent} event
+ */
+function handleRightClick(event) {
+    event.preventDefault();
+    if (isGameOver) return;
+
+    const cellElement = event.target;
+    const row = parseInt(cellElement.dataset.row);
+    const col = parseInt(cellElement.dataset.col);
+    const cellData = board[row][col];
+
+    if (cellData.isRevealed) return;
+    
+    if (!isFirstClick && !timerInterval) {
+        startTimer();
+    }
+
+    cellData.isFlagged = !cellData.isFlagged;
+    cellElement.classList.toggle('flagged', cellData.isFlagged);
+    cellElement.textContent = cellData.isFlagged ? '🚩' : '';
+
+    flagsPlaced += cellData.isFlagged ? 1 : -1;
+    updateMineCounter();
+}
+
+/**
+ * Открытие ячейки
+ * @param {number} row
+ * @param {number} col
+ */
+function revealCell(row, col) {
+    const cellData = board[row][col];
+    if (row < 0 || row >= rows || col < 0 || col >= cols || cellData.isRevealed || cellData.isFlagged) {
+        return;
+    }
+
+    cellData.isRevealed = true;
+    revealedCount++;
+    const cellElement = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
+    cellElement.classList.add('revealed');
+
+    if (cellData.neighborCount > 0) {
+        cellElement.textContent = cellData.neighborCount;
+        cellElement.classList.add(`c${cellData.neighborCount}`);
+    } else {
+        // Рекурсивно открываем соседей, если ячейка пустая
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                if (i === 0 && j === 0) continue;
+                revealCell(row + i, col + j);
+            }
+        }
+    }
+}
+
+/**
+ * Реализация "аккорда"
+ * @param {number} row
+ * @param {number} col
+ */
+function handleChord(row, col) {
+    let flaggedNeighbors = 0;
+    const neighbors = [];
+
+    for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+            if (i === 0 && j === 0) continue;
+            const r = row + i;
+            const c = col + j;
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                neighbors.push({r, c});
+                if (board[r][c].isFlagged) {
+                    flaggedNeighbors++;
+                }
+            }
+        }
+    }
+    
+    // Если количество флагов совпадает с цифрой, открываем остальных соседей
+    if (flaggedNeighbors === board[row][col].neighborCount) {
+        neighbors.forEach(n => {
+            const neighborData = board[n.r][n.c];
+            if (!neighborData.isRevealed && !neighborData.isFlagged) {
+                 if (neighborData.isMine) {
+                    endGame(false);
+                    return;
+                }
+                revealCell(n.r, n.c);
+            }
+        });
+        checkWinCondition();
+    }
+}
+
+/**
+ * Обновление счетчика мин
+ */
+function updateMineCounter() {
+    const remaining = minesCount - flagsPlaced;
+    mineCounterElement.textContent = String(remaining).padStart(3, '0');
+}
+
+/**
+ * Логика завершения игры
+ * @param {boolean} isWin - true, если игрок выиграл
+ */
+function endGame(isWin) {
+    isGameOver = true;
+    clearInterval(timerInterval);
+    timerInterval = null;
+
+    if (isWin) {
+        restartButton.textContent = '😎';
+        // Можно добавить дополнительную логику для победы
+    } else {
+        restartButton.textContent = '😵';
+        // Показываем все мины
+        mineLocations.forEach(loc => {
+            const cellElement = document.querySelector(`[data-row='${loc.r}'][data-col='${loc.c}']`);
+            if (!board[loc.r][loc.c].isFlagged) {
+                cellElement.classList.add('mine');
+                cellElement.textContent = '💣';
+            }
+        });
+        // Показываем неверно поставленные флаги
+         for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (board[r][c].isFlagged && !board[r][c].isMine) {
+                    const cellElement = document.querySelector(`[data-row='${r}'][data-col='${c}']`);
+                    cellElement.classList.add('mine-wrong');
+                }
+            }
+         }
+    }
+}
+
+/**
+ * Проверка условия победы
+ */
+function checkWinCondition() {
+    if (!isGameOver && (rows * cols - revealedCount) === minesCount) {
+        endGame(true);
+    }
+}
+
+// --- Таймер ---
+function startTimer() {
+    if (timerInterval) return;
+    timerInterval = setInterval(() => {
+        timeElapsed++;
+        timerElement.textContent = String(timeElapsed).padStart(3, '0');
+    }, 1000);
+}
+
+// --- Привязка событий к элементам управления ---
+restartButton.addEventListener('click', () => init(difficultySelector.value));
+difficultySelector.addEventListener('change', (e) => init(e.target.value));
+
+
+// --- Первый запуск ---
+document.addEventListener('DOMContentLoaded', () => {
+    init('beginner');
+});
