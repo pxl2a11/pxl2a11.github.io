@@ -180,8 +180,7 @@
 /* 2. Взорванная мина */
 .ms-cell.mine-hit {
     background-color: #ef4444 !important; /* Красный фон. */
-    /* ИЗМЕНЕНО: цвет иконки теперь тоже черный */
-    color: #1f2937; 
+    color: #1f2937; /* Черный цвет иконки */
 }
 
 .ms-cell.wrong-flag {
