@@ -45,17 +45,22 @@ export function init() {
         const isLeftEdge = (id % currentDifficulty.width === 0);
         const isRightEdge = (id % currentDifficulty.width === currentDifficulty.width - 1);
         const width = currentDifficulty.width;
-        const offsets = [-width-1, -width, -width+1, -1, 1, width-1, width, width+1];
+        const totalCells = currentDifficulty.width * currentDifficulty.height;
+        
+        const offsets = [-width - 1, -width, -width + 1, -1, 1, width - 1, width, width + 1];
+
         offsets.forEach(offset => {
             const neighborIndex = id + offset;
-            if (neighborIndex >= 0 && neighborIndex < (currentDifficulty.width * currentDifficulty.height) ) {
+            
+            if (neighborIndex >= 0 && neighborIndex < totalCells) {
                  if (isLeftEdge && (neighborIndex % width === width - 1)) return;
                  if (isRightEdge && (neighborIndex % width === 0)) return;
                  neighbors.push(neighborIndex);
             }
         });
-        return neighbors.filter(nId => board[nId]);
+        return neighbors;
     };
+
 
     const startGame = (difficulty) => {
         if (minesweeperTimer) clearInterval(minesweeperTimer);
@@ -72,7 +77,6 @@ export function init() {
         boardEl.style.setProperty('--ms-width', currentDifficulty.width);
         cells = [];
 
-        // Создаем доску из "пустых" ячеек для инициализации
         board = Array.from({ length: currentDifficulty.width * currentDifficulty.height }, (_, i) => ({ id: i, isBomb: false, isRevealed: false, isFlagged: false, neighbors: 0 }));
 
         for (let i = 0; i < currentDifficulty.width * currentDifficulty.height; i++) {
@@ -91,7 +95,6 @@ export function init() {
         const emptyArray = Array(currentDifficulty.width * currentDifficulty.height - currentDifficulty.bombs).fill('valid');
         let gameArray = emptyArray.concat(bombsArray).sort(() => Math.random() - 0.5);
         
-        // Гарантируем, что первый клик не будет по бомбе
         while (gameArray[firstClickId] === 'bomb') {
              gameArray.sort(() => Math.random() - 0.5);
         }
@@ -121,20 +124,25 @@ export function init() {
         if (cell.neighbors > 0) {
             cellEl.textContent = cell.neighbors;
             cellEl.classList.add(`ms-cell-${cell.neighbors}`);
-        } else { // Пустая ячейка, рекурсивно открываем соседей
+        } else { 
             setTimeout(() => getNeighbors(id).forEach(neighborId => revealCell(neighborId)), 10);
         }
         checkForWin();
     };
     
-    // Новая функция "Аккорд"
+    // ИСПРАВЛЕННАЯ функция "Аккорд"
     const chord = (id) => {
         const cell = board[id];
-        const neighbors = getNeighbors(id);
+        const neighbors = getNeighbors(id); // Ошибка была здесь: переменная neighbors не была определена
         const flaggedNeighbors = neighbors.filter(nId => board[nId].isFlagged).length;
 
-        if (cell.neighbors === flaggedNeighbors) {
-            neighbors.forEach(nId => revealCell(nId));
+        if (cell.isRevealed && cell.neighbors > 0 && cell.neighbors === flaggedNeighbors) {
+            neighbors.forEach(nId => {
+                // Дополнительно проверяем, чтобы не открывать уже помеченные ячейки
+                if (!board[nId].isFlagged && !board[nId].isRevealed) {
+                    revealCell(nId);
+                }
+            });
         }
     };
 
@@ -176,7 +184,7 @@ export function init() {
         
         const cell = board[id];
         if (cell.isRevealed && cell.neighbors > 0) {
-            chord(id); // Выполняем "аккорд", если клик по открытой ячейке
+            chord(id);
         } else if (!cell.isFlagged) {
             revealCell(id);
         }
@@ -193,6 +201,7 @@ export function init() {
         board[id].isFlagged = !board[id].isFlagged;
         flags += board[id].isFlagged ? 1 : -1;
         cells[id].textContent = board[id].isFlagged ? '🚩' : '';
+        cells[id].classList.toggle('text-xl', board[id].isFlagged);
         minesLeftEl.textContent = currentDifficulty.bombs - flags;
     };
     
