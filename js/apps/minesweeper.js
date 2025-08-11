@@ -1,5 +1,3 @@
-// minesweeper.js
-
 let minesweeperTimer;
 
 export function getHtml() {
