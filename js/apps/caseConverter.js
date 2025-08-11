@@ -1,3 +1,5 @@
+// js/modules/caseConverter.js
+
 export function getHtml() {
     return `
         <div class="flex flex-col gap-4">
@@ -10,6 +12,7 @@ export function getHtml() {
             </div>
             <div class="flex gap-2">
                 <button id="btn-copy" class="p-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 flex-grow">Копировать</button>
+                <button id="btn-download" class="p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 flex-grow">Скачать (.txt)</button>
                 <button id="btn-clear" class="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600">Очистить</button>
             </div>
         </div>
@@ -42,6 +45,21 @@ export function init() {
             btn.textContent = 'Скопировано!';
             setTimeout(() => (btn.textContent = originalText), 2000);
         });
+    });
+    
+    document.getElementById('btn-download').addEventListener('click', () => {
+        const text = textarea.value;
+        if (text) {
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted-text.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
     });
 
     document.getElementById('btn-clear').addEventListener('click', () => {
