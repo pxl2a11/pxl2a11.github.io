@@ -183,8 +183,25 @@
     color: #1f2937; /* Черный цвет иконки */
 }
 
+/* 
+ * 3. Неправильно установленный флаг 
+ * ИЗМЕНЕНО: фон убран, добавлен красный крестик
+ */
 .ms-cell.wrong-flag {
-    background-color: #fca5a5; /* red-300 */
+    position: relative; /* Необходимо для позиционирования псевдоэлемента */
+}
+
+.ms-cell.wrong-flag::after {
+    content: '\00D7'; /* Символ "×" */
+    position: absolute;
+    inset: 0; /* Растягивает псевдоэлемент на всю ячейку */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em; /* Размер крестика */
+    line-height: 1; /* Для лучшего вертикального центрирования */
+    color: #ef4444; /* red-500 */
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.7); /* Тень для читаемости */
 }
 
 
