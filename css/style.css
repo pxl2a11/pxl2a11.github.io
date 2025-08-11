@@ -124,14 +124,3 @@
     opacity: 0.7;
 }
 
-/* --- Стили для цифр в игре "Сапер" --- */
-.minesweeper-container .c1 { color: #1c64f2; } /* blue-600 */
-.minesweeper-container .c2 { color: #059669; } /* green-600 */
-.minesweeper-container .c3 { color: #e11d48; } /* red-600 */
-.minesweeper-container .c4 { color: #7e22ce; } /* purple-700 */
-.minesweeper-container .c5 { color: #b91c1c; } /* red-800 */
-.minesweeper-container .c6 { color: #0d9488; } /* teal-600 */
-.minesweeper-container .c7 { color: #1e293b; } /* gray-800 */
-.dark .minesweeper-container .c7 { color: #e2e8f0; } /* dark:gray-200 */
-.minesweeper-container .c8 { color: #4b5563; } /* gray-600 */
-.dark .minesweeper-container .c8 { color: #9ca3af; } /* dark:gray-400 */
