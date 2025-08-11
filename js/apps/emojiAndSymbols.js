@@ -76,7 +76,7 @@ export function getHtml() {
             </div>
             <div class="flex border-b border-gray-300 dark:border-gray-600">
                 <button data-tab="symbols" class="tab-btn py-2 px-4 font-semibold border-b-2 active">Символы</button>
-                <button data-tab="emoji" class="tab-btn py-2 px-4 font-semibold border-b-2">Эмодзи</button>
+                <button data-tab="emojis" class="tab-btn py-2 px-4 font-semibold border-b-2">Эмодзи</button>
             </div>
             <div class="flex flex-col md:flex-row gap-8">
                 <nav id="categories-nav" class="w-full md:w-48 flex-shrink-0"></nav>
@@ -216,9 +216,11 @@ export function init() {
             entries.forEach(entry => {
                 const id = entry.target.id;
                 const navLink = navArea.querySelector(`a[href="#${id}"]`);
-                if (entry.isIntersecting) {
-                    navLinks.forEach(link => link.classList.remove('font-bold', 'bg-gray-200', 'dark:bg-gray-700'));
-                    navLink.classList.add('font-bold', 'bg-gray-200', 'dark:bg-gray-700');
+                if(navLink) {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => link.classList.remove('font-bold', 'bg-gray-200', 'dark:bg-gray-700'));
+                        navLink.classList.add('font-bold', 'bg-gray-200', 'dark:bg-gray-700');
+                    }
                 }
             });
         }, observerOptions);
