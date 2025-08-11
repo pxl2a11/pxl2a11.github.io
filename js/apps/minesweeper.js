@@ -1,7 +1,7 @@
 /**
- * 59Файл: /apps/minesweeper.js
- * Описание: Компактная реализация игры "Сапер" для проекта Mini Apps.
- * Все управление интегрировано в единую панель над игровым полем.
+ * Файл: /apps/minesweeper.js
+ * Описание: Компактная и исправленная реализация игры "Сапер".
+ * Устранены синтаксические ошибки и улучшена стабильность.
  */
 
 // --- КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
@@ -23,17 +23,14 @@ let revealedCount = 0, flagsPlaced = 0;
 let isGameOver = false, isFirstClick = true;
 let timerInterval = null, timeElapsed = 0;
 
-/**
- * Возвращает HTML-структуру для игры.
- */
+// Ссылки на DOM-элементы на уровне модуля для стабильности
+let gameBoardElement, mineCounterElement, timerElement, restartButton, difficultySelector;
+
 export function getHtml() {
     return `
         <div class="minesweeper-container bg-gray-200 dark:bg-gray-700 p-2 sm:p-4 rounded-lg shadow-inner flex flex-col items-center w-full">
-            
-            <!-- Компактная панель управления -->
             <div class="grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-4 items-center mb-4 p-2 bg-gray-300 dark:bg-gray-800 rounded-md w-full">
                 <div id="mine-counter" class="font-mono text-2xl sm:text-3xl text-red-500 bg-black rounded-md text-center py-1"></div>
-                
                 <div class="flex items-center gap-2 sm:gap-4">
                     <button id="restart-btn" class="text-3xl sm:text-4xl text-center hover:scale-110 transition-transform">😊</button>
                     <select id="difficulty-selector" class="p-2 h-12 text-base rounded-md bg-white dark:bg-gray-600 border-gray-400 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -42,44 +39,30 @@ export function getHtml() {
                         <option value="expert">Эксперт</option>
                     </select>
                 </div>
-
                 <div id="timer" class="font-mono text-2xl sm:text-3xl text-red-500 bg-black rounded-md text-center py-1"></div>
             </div>
-
-            <!-- Адаптивное игровое поле -->
-            <div id="minesweeper-board" class="mx-auto w-full max-w-full select-none">
-                <!-- Ячейки будут сгенерированы здесь -->
-            </div>
+            <div id="minesweeper-board" class="mx-auto w-full max-w-full select-none"></div>
         </div>
     `;
 }
 
-/**
- * Инициализирует игру, находит элементы и вешает обработчики.
- */
 export function init() {
-    const gameBoardElement = document.getElementById('minesweeper-board');
-    const mineCounterElement = document.getElementById('mine-counter');
-    const timerElement = document.getElementById('timer');
-    const restartButton = document.getElementById('restart-btn');
-    const difficultySelector = document.getElementById('difficulty-selector');
+    // Находим элементы один раз и сохраняем ссылки
+    gameBoardElement = document.getElementById('minesweeper-board');
+    mineCounterElement = document.getElementById('mine-counter');
+    timerElement = document.getElementById('timer');
+    restartButton = document.getElementById('restart-btn');
+    difficultySelector = document.getElementById('difficulty-selector');
     
-    const restartGame = () => {
-        const difficulty = difficultySelector.value;
-        startGame(difficulty, { gameBoardElement, mineCounterElement, timerElement, restartButton });
-    };
+    const restartGame = () => startGame(difficultySelector.value);
 
     restartButton.addEventListener('click', restartGame);
     difficultySelector.addEventListener('change', restartGame);
     gameBoardElement.addEventListener('contextmenu', e => e.preventDefault());
 
-    // Первый запуск
-    restartGame();
+    restartGame(); // Первый запуск
 }
 
-/**
- * Очищает ресурсы (таймеры) при уходе со страницы или рестарте.
- */
 export function cleanup() {
     if (timerInterval) {
         clearInterval(timerInterval);
@@ -87,34 +70,22 @@ export function cleanup() {
     }
 }
 
-/**
- * Начинает или перезапускает игру с выбранной сложностью.
- */
-function startGame(difficultyKey, elements) {
+function startGame(difficultyKey) {
     const settings = DIFFICULTIES[difficultyKey];
     rows = settings.rows;
     cols = settings.cols;
     minesCount = settings.mines;
 
-    isGameOver = false;
-    isFirstClick = true;
-    revealedCount = 0;
-    flagsPlaced = 0;
-    timeElapsed = 0;
-    board = [];
-    mineLocations = [];
+    Object.assign(window, { isGameOver: false, isFirstClick: true, revealedCount: 0, flagsPlaced: 0, timeElapsed: 0, board: [], mineLocations: [] });
 
     cleanup();
-    elements.timerElement.textContent = String(timeElapsed).padStart(3, '0');
-    elements.restartButton.textContent = '😊';
-    updateMineCounter(elements.mineCounterElement);
-    createBoard(elements.gameBoardElement, elements.restartButton);
+    timerElement.textContent = String(timeElapsed).padStart(3, '0');
+    restartButton.textContent = '😊';
+    updateMineCounter();
+    createBoard();
 }
 
-/**
- * Создает АДАПТИВНОЕ игровое поле в DOM.
- */
-function createBoard(gameBoardElement, restartButton) {
+function createBoard() {
     gameBoardElement.innerHTML = '';
     gameBoardElement.style.display = 'grid';
     gameBoardElement.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
@@ -127,7 +98,7 @@ function createBoard(gameBoardElement, restartButton) {
             cell.className = "aspect-square w-full flex items-center justify-center font-bold text-base sm:text-lg bg-gray-400 dark:bg-gray-600 rounded-sm shadow-[inset_1px_1px_1px_rgba(255,255,255,0.4),inset_-1px_-1px_1px_rgba(0,0,0,0.4)] transition-all duration-100";
             cell.dataset.row = r;
             cell.dataset.col = c;
-
+            
             cell.addEventListener('mousedown', (e) => {
                 if (!isGameOver && e.button === 0) restartButton.textContent = '😮';
             });
@@ -145,20 +116,17 @@ function handleCellClick(event) {
     const cellElement = event.target.closest('div[data-row]');
     if (!cellElement) return;
 
-    const row = parseInt(cellElement.dataset.row);
-    const col = parseInt(cellElement.dataset.col);
+    const row = parseInt(cellElement.dataset.row), col = parseInt(cellElement.dataset.col);
     const cellData = board[row][col];
 
     if (isGameOver || cellData.isFlagged) return;
-
     if (isFirstClick) {
         placeMines(row, col);
-        startTimer(document.getElementById('timer'));
+        startTimer();
         isFirstClick = false;
     }
-
-    if (cellData.isRevealed && cellData.neighborCount > 0) {
-        handleChord(row, col);
+    if (cellData.isRevealed) {
+        if (cellData.neighborCount > 0) handleChord(row, col);
         return;
     }
     if (cellData.isMine) {
@@ -176,28 +144,142 @@ function handleRightClick(event) {
     const cellElement = event.target.closest('div[data-row]');
     if (!cellElement) return;
 
-    const row = parseInt(cellElement.dataset.row);
-    const col = parseInt(cellElement.dataset.col);
+    const row = parseInt(cellElement.dataset.row), col = parseInt(cellElement.dataset.col);
     const cellData = board[row][col];
 
     if (cellData.isRevealed) return;
     if (isFirstClick) {
-        startTimer(document.getElementById('timer'));
+        startTimer();
         isFirstClick = false;
     }
-
     cellData.isFlagged = !cellData.isFlagged;
     cellElement.innerHTML = cellData.isFlagged ? '🚩' : '';
     flagsPlaced += cellData.isFlagged ? 1 : -1;
-    updateMineCounter(document.getElementById('mine-counter'));
+    updateMineCounter();
 }
 
 function revealCell(row, col) {
-    if (row < 0 || row >= rows || col < 0 || col >= cols || board[row][col].isRevealed || board[row][col].isFlagged) {
-        return;
-    }
+    if (row < 0 || row >= rows || col < 0 || col >= cols || board[row][col].isRevealed || board[row][col].isFlagged) return;
+    
     const cellData = board[row][col];
     cellData.isRevealed = true;
     revealedCount++;
 
-    const cellElement = document.querySelector(`
+    const cellElement = gameBoardElement.querySelector(`[data-row='${row}'][data-col='${col}']`);
+    cellElement.className = "aspect-square w-full flex items-center justify-center font-bold text-base sm:text-lg bg-gray-300 dark:bg-gray-500 rounded-sm border-gray-400/50 border";
+
+    if (cellData.neighborCount > 0) {
+        cellElement.textContent = cellData.neighborCount;
+        cellElement.classList.add(`c${cellData.neighborCount}`);
+    } else {
+        for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) if (i !== 0 || j !== 0) revealCell(row + i, col + j);
+    }
+}
+
+function handleChord(row, col) {
+    let flaggedNeighbors = 0;
+    const neighbors = [];
+    for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+            if (i === 0 && j === 0) continue;
+            const r = row + i, c = col + j;
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                neighbors.push({ r, c });
+                if (board[r][c].isFlagged) flaggedNeighbors++;
+            }
+        }
+    }
+    if (flaggedNeighbors === board[row][col].neighborCount) {
+        for (const n of neighbors) {
+            if (!board[n.r][n.c].isRevealed && !board[n.r][n.c].isFlagged) {
+                if (board[n.r][n.c].isMine) {
+                    endGame(false);
+                    revealMine(gameBoardElement.querySelector(`[data-row='${n.r}'][data-col='${n.c}']`), true);
+                    return; 
+                }
+                revealCell(n.r, n.c);
+            }
+        }
+        checkWinCondition();
+    }
+}
+
+function endGame(isWin) {
+    isGameOver = true;
+    cleanup();
+    restartButton.textContent = isWin ? '😎' : '😵';
+
+    if (isWin) {
+        mineCounterElement.textContent = 'WIN!';
+    } else {
+        mineLocations.forEach(loc => {
+            const cell = gameBoardElement.querySelector(`[data-row='${loc.r}'][data-col='${loc.c}']`);
+            if (!board[loc.r][loc.c].isFlagged) revealMine(cell, false);
+        });
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (board[r][c].isFlagged && !board[r][c].isMine) {
+                    gameBoardElement.querySelector(`[data-row='${r}'][data-col='${c}']`).innerHTML = '❌';
+                }
+            }
+        }
+    }
+}
+
+function revealMine(cellElement, isTrigger) {
+    cellElement.innerHTML = MINE_SVG_ICON;
+    cellElement.className = `aspect-square w-full flex items-center justify-center rounded-sm ${isTrigger ? 'bg-red-500' : 'bg-gray-400 dark:bg-gray-500'}`;
+}
+
+function checkWinCondition() {
+    if (!isGameOver && (rows * cols - revealedCount) === minesCount) {
+        endGame(true);
+    }
+}
+
+function updateMineCounter() {
+    const remaining = minesCount - flagsPlaced;
+    mineCounterElement.textContent = String(remaining).padStart(3, '0');
+}
+
+function startTimer() {
+    cleanup();
+    timerInterval = setInterval(() => {
+        timeElapsed++;
+        if (timeElapsed <= 999) {
+            timerElement.textContent = String(timeElapsed).padStart(3, '0');
+        }
+    }, 1000);
+}
+
+function placeMines(initialRow, initialCol) {
+    let minesToPlace = minesCount;
+    while (minesToPlace > 0) {
+        const r = Math.floor(Math.random() * rows);
+        const c = Math.floor(Math.random() * cols);
+        if ((r === initialRow && c === initialCol) || board[r][c].isMine) continue;
+        board[r][c].isMine = true;
+        mineLocations.push({ r, c });
+        minesToPlace--;
+    }
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (!board[r][c].isMine) {
+                board[r][c].neighborCount = countNeighborMines(r, c);
+            }
+        }
+    }
+}
+
+function countNeighborMines(row, col) {
+    let count = 0;
+    for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+            const r = row + i, c = col + j;
+            if (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c].isMine) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
