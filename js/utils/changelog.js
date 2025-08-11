@@ -1,4 +1,4 @@
-// 1js/utils/changelog.js
+// js/utils/changelog.js
 
 export const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
@@ -8,7 +8,7 @@ export const appNameToModuleFile = {
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
     'Калькулятор процентных соотношений': 'percentageCalculator',
-    'Таймер': 'timer',
+    'Таймер': 'timer', 
     'Колесо фортуны': 'fortuneWheel',
     'Шар предсказаний': 'magicBall',
     'Крестики-нолики': 'ticTacToe',
@@ -45,7 +45,6 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
-    // --- АКТУАЛЬНЫЕ ЗАПИСИ ---
     { date: getRussianDate('2025-08-13T10:00:00Z'), appName: 'Эмодзи и символы', description: 'приложение полностью переписано с нуля с новым двухколоночным интерфейсом, плавной прокруткой и интеллектуальной навигацией по категориям.' },
     { date: getRussianDate('2025-08-13T10:00:00Z'), appName: 'Эмодзи и символы', description: 'значительно расширены списки символов и эмодзи. Добавлены новые категории: Активности, Путешествия, Объекты, Флаги и другие.' },
     { date: getRussianDate('2025-08-13T10:00:00Z'), appName: 'Эмодзи и символы', description: 'реализован полноценный поиск по ключевым словам для каждого символа и эмодзи.' },
@@ -117,6 +116,7 @@ const changelogData = [
 function groupChangelogData(data) {
     const grouped = {};
     data.forEach(entry => {
+        if (!entry || !entry.date || !entry.appName) return; // Защита от некорректных записей
         const key = `${entry.date}-${entry.appName}`;
         if (!grouped[key]) {
             grouped[key] = { date: entry.date, appName: entry.appName, descriptions: [] };
