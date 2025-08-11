@@ -1,4 +1,4 @@
-// js/apps/emojiAndSymbols.js
+// j1s/apps/emojiAndSymbols.js
 
 // --- State Management ---
 let timeoutId;
