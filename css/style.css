@@ -179,6 +179,12 @@
     background-color: #fca5a5; /* red-300 */
 }
 
+.dark .ms-cell.mine,
+.dark .ms-cell.mine-hit {
+    color: #111827; /* Черный цвет для SVG мины в темной теме */
+}
+
+
 /* Цвета для цифр */
 .ms-c1 { color: #2563eb; } /* blue-600 */
 .ms-c2 { color: #16a34a; } /* green-600 */
