@@ -1,4 +1,4 @@
-// 1js/utils/changelog.js
+// 11js/utils/changelog.js
 
 export const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
