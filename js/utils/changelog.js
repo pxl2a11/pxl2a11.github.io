@@ -1,4 +1,4 @@
-// 11js/utils/changelog.js
+// js/utils/changelog.js
 
 export const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
@@ -8,7 +8,7 @@ export const appNameToModuleFile = {
     'Мой IP': 'myIp',
     'Генератор паролей': 'passwordGenerator',
     'Калькулятор процентных соотношений': 'percentageCalculator',
-    'Таймер': 'timer', 
+    'Таймер': 'timer', // Обновленное имя
     'Колесо фортуны': 'fortuneWheel',
     'Шар предсказаний': 'magicBall',
     'Крестики-нолики': 'ticTacToe',
@@ -109,7 +109,7 @@ const changelogData = [
 function groupChangelogData(data) {
     const grouped = {};
     data.forEach(entry => {
-        if (!entry || !entry.date || !entry.appName) return; // Защита от некорректных записей
+        if (!entry || !entry.date || !entry.appName) return;
         const key = `${entry.date}-${entry.appName}`;
         if (!grouped[key]) {
             grouped[key] = { date: entry.date, appName: entry.appName, descriptions: [] };
