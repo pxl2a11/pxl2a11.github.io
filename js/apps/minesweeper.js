@@ -17,7 +17,6 @@ const mineSvg = `
 </svg>
 `;
 
-// *** НОВАЯ ИКОНКА ФЛАГА ***
 const flagSvg = `
 <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" class="w-full h-full p-1">
     <path d="M26.2 61.5c0 1.4-4.3 2.5-9.7 2.5c-5.4 0-9.7-1.1-9.7-2.5s4.3-2.5 9.7-2.5c5.3 0 9.7 1.2 9.7 2.5" fill="#ccc"></path>
@@ -32,30 +31,31 @@ let boardContainer, flagsCountEl, timerEl, statusEl;
 
 export function getHtml() {
     return `
-        <div class="space-y-4 max-w-2xl mx-auto">
-            <!-- Панель управления -->
-            <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
-                 <div class="flex justify-center gap-2 sm:gap-4 flex-wrap">
-                    <button class="ms-difficulty-btn" data-rows="9" data-cols="9" data-mines="10">Легко</button>
-                    <button class="ms-difficulty-btn" data-rows="16" data-cols="16" data-mines="40">Средне</button>
-                    <button class="ms-difficulty-btn" data-rows="16" data-cols="30" data-mines="99">Сложно</button>
+        <div class="space-y-4">
+            <!-- Элементы управления с ограничением по ширине -->
+            <div class="max-w-2xl mx-auto">
+                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+                     <div class="flex justify-center gap-2 sm:gap-4 flex-wrap">
+                        <button class="ms-difficulty-btn" data-rows="9" data-cols="9" data-mines="10">Легко</button>
+                        <button class="ms-difficulty-btn" data-rows="16" data-cols="16" data-mines="40">Средне</button>
+                        <button class="ms-difficulty-btn" data-rows="16" data-cols="30" data-mines="99">Сложно</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center p-3 mt-4 bg-white dark:bg-gray-900 rounded-lg shadow">
+                    <div class="flex items-center gap-2 text-red-500">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                        <span id="ms-flags-count" class="font-mono text-xl font-bold w-12 text-center">0</span>
+                    </div>
+                    <button id="ms-status-indicator" class="font-bold text-3xl transform hover:scale-110 transition-transform">🙂</button>
+                    <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span id="ms-timer" class="font-mono text-xl font-bold w-12 text-center">0</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Статус игры -->
-            <div class="flex justify-between items-center p-3 bg-white dark:bg-gray-900 rounded-lg shadow">
-                <div class="flex items-center gap-2 text-red-500">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
-                    <span id="ms-flags-count" class="font-mono text-xl font-bold w-12 text-center">0</span>
-                </div>
-                <button id="ms-status-indicator" class="font-bold text-3xl transform hover:scale-110 transition-transform">🙂</button>
-                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span id="ms-timer" class="font-mono text-xl font-bold w-12 text-center">0</span>
-                </div>
-            </div>
-
-            <!-- Игровое поле -->
+            <!-- Игровое поле БЕЗ ограничения по ширине -->
             <div id="minesweeper-board-container" class="flex justify-center p-2 bg-gray-400 dark:bg-gray-700 rounded-lg shadow-inner">
                  <div id="minesweeper-board" class="grid" style="user-select: none;"></div>
             </div>
@@ -110,11 +110,10 @@ function startGame() {
 
 function createBoardDOM() {
     boardContainer.innerHTML = '';
-    boardContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    boardContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; // Используем фракции для гибкости
     
-    const containerWidth = Math.min(window.innerWidth - 40, 800);
-    const MAX_COLS_FOR_SIZING = 30;
-    const cellSize = Math.floor(containerWidth / MAX_COLS_FOR_SIZING);
+    // ИЗМЕНЕНО: Фиксированный размер ячеек для консистентности
+    const cellSize = 26; 
 
     for (let r = 0; r < rows; r++) {
         board[r] = [];
@@ -125,7 +124,7 @@ function createBoardDOM() {
             cellEl.className = 'ms-cell';
             cellEl.style.width = `${cellSize}px`;
             cellEl.style.height = `${cellSize}px`;
-            cellEl.style.fontSize = `${Math.max(12, cellSize * 0.5)}px`;
+            cellEl.style.fontSize = `${Math.max(12, cellSize * 0.6)}px`;
 
             boardContainer.appendChild(cellEl);
             board[r][c] = {
@@ -186,7 +185,6 @@ function toggleFlag(cell) {
     if (!cell.isRevealed) {
         if (!cell.isFlagged && flagsPlaced < mineCount) {
             cell.isFlagged = true;
-            // ИЗМЕНЕНО: Используем SVG вместо эмодзи
             cell.element.innerHTML = flagSvg; 
             flagsPlaced++;
         } else if (cell.isFlagged) {
@@ -293,7 +291,6 @@ function endGame(isWin) {
             const cell = board[loc.row][loc.col];
             if (!cell.isFlagged) {
                 cell.isFlagged = true;
-                 // ИЗМЕНЕНО: Используем SVG вместо эмодзи
                 cell.element.innerHTML = flagSvg;
             }
         }
