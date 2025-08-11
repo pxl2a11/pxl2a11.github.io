@@ -124,7 +124,12 @@
     opacity: 0.7;
 }
 
-/* --- Стили для "Сапера" --- */
+/* 
+ * =======================================================
+ * Новая цветовая гамма для "Сапера"
+ * =======================================================
+ */
+
 .ms-cell {
     display: flex;
     align-items: center;
@@ -132,92 +137,91 @@
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.1s ease;
-    /* 3D-эффект для светлой темы */
-    background-color: #d1d5db; /* gray-300 */
+    /* Светлая тема: закрытая ячейка */
+    background-color: #cbd5e1; /* slate-300 */
     border-style: solid;
     border-width: 2px;
-    border-color: #f9fafb #6b7280 #6b7280 #f9fafb; /* white, gray-500 */
+    border-color: #e2e8f0 #94a3b8 #94a3b8 #e2e8f0; /* slate-200, slate-400 */
+    border-radius: 2px;
 }
 
 .dark .ms-cell {
-    /* 3D-эффект для темной темы */
-    background-color: #4b5563; /* gray-600 */
-    border-color: #6b7280 #374151 #374151 #6b7280; /* gray-500, gray-700 */
+    /* Темная тема: закрытая ячейка */
+    background-color: #334155; /* slate-700 */
+    border-color: #475569 #1e293b #1e293b #475569; /* slate-600, slate-800 */
 }
 
-/* При нажатии кнопка "вдавливается" */
 .ms-cell:active:not(.revealed) {
-    background-color: #9ca3af; /* gray-400 */
-    border-color: #6b7280;
+    /* Нажатие на ячейку */
+    background-color: #e2e8f0; /* slate-200 */
+    border-color: #94a3b8;
 }
 .dark .ms-cell:active:not(.revealed) {
-    background-color: #374151; /* gray-700 */
-    border-color: #1f2937;
+    background-color: #1e293b; /* slate-800 */
+    border-color: #0f172a; /* slate-900 */
 }
 
 .ms-cell.revealed {
-    background-color: #e5e7eb; /* gray-200 */
-    border: 1px solid #d1d5db; /* gray-300 */
+    /* Светлая тема: открытая ячейка */
+    background-color: #f1f5f9; /* slate-100 */
+    border: 1px solid #e2e8f0; /* slate-200 */
     cursor: default;
 }
 
 .dark .ms-cell.revealed {
-    background-color: #374151; /* gray-700 */
-    border: 1px solid #4b5563; /* gray-600 */
+    /* Темная тема: открытая ячейка */
+    background-color: #273345; /* более темный slate-700/800 */
+    border: 1px solid #1e293b; /* slate-800 */
 }
 
-/*
- * =======================================================
- * Стили для мин
- * =======================================================
- */
-
-/* 1. Цвет иконки ненайденных мин */
+/* --- Стили для мин и флагов (сохраняем ваши SVG) --- */
 .ms-cell.mine {
-    color: #1f2937; /* Темно-серый (почти черный) цвет для SVG-иконки. */
+    color: #1f2937; /* Черный цвет иконки ненайденной мины в обеих темах */
 }
-
-/* 2. Взорванная мина */
 .ms-cell.mine-hit {
-    background-color: #ef4444 !important; /* Красный фон. */
-    color: #1f2937; /* Черный цвет иконки */
+    background-color: #ef4444 !important; /* Красный фон в обеих темах */
+    color: #1f2937; /* Черный цвет иконки взорванной мины в обеих темах */
 }
-
-/* 
- * 3. Неправильно установленный флаг 
- * ИЗМЕНЕНО: фон убран, добавлен красный крестик
- */
 .ms-cell.wrong-flag {
-    position: relative; /* Необходимо для позиционирования псевдоэлемента */
+    position: relative;
 }
-
 .ms-cell.wrong-flag::after {
-    content: '\00D7'; /* Символ "×" */
+    content: '\00D7';
     position: absolute;
-    inset: 0; /* Растягивает псевдоэлемент на всю ячейку */
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5em; /* Размер крестика */
-    line-height: 1; /* Для лучшего вертикального центрирования */
-    color: #ef4444; /* red-500 */
-    text-shadow: 0 0 2px rgba(255, 255, 255, 0.7); /* Тень для читаемости */
+    font-size: 1.5em;
+    line-height: 1;
+    color: #ef4444;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.7);
 }
 
 
-/* Цвета для цифр */
+/* --- Новая палитра для цифр --- */
+/* Светлая тема */
 .ms-c1 { color: #2563eb; } /* blue-600 */
 .ms-c2 { color: #16a34a; } /* green-600 */
 .ms-c3 { color: #dc2626; } /* red-600 */
-.ms-c4 { color: #4338ca; } /* indigo-700 */
-.ms-c5 { color: #86198f; } /* fuchsia-800 */
-.ms-c6 { color: #0891b2; } /* cyan-600 */
-.ms-c7 { color: #1f2937; } /* gray-800 */
-.ms-c8 { color: #718096; } /* gray-500 */
-.dark .ms-c7 { color: #f9fafb; } /* dark:gray-50 */
-.dark .ms-c8 { color: #9ca3af; } /* dark:gray-400 */
+.ms-c4 { color: #0f172a; } /* slate-900 */
+.ms-c5 { color: #9a3412; } /* orange-800 */
+.ms-c6 { color: #0e7490; } /* cyan-700 */
+.ms-c7 { color: #581c87; } /* purple-900 */
+.ms-c8 { color: #7f1d1d; } /* red-900 */
 
-/* Кнопки выбора сложности */
+/* Темная тема */
+.dark .ms-c1 { color: #60a5fa; } /* blue-400 */
+.dark .ms-c2 { color: #4ade80; } /* green-400 */
+.dark .ms-c3 { color: #f87171; } /* red-400 */
+.dark .ms-c4 { color: #e2e8f0; } /* slate-200 */
+.dark .ms-c5 { color: #fb923c; } /* orange-400 */
+.dark .ms-c6 { color: #67e8f9; } /* cyan-300 */
+.dark .ms-c7 { color: #d8b4fe; } /* purple-300 */
+.dark .ms-c8 { color: #fca5a5; } /* red-300 */
+
+
+/* --- Кнопки выбора сложности (без изменений) --- */
 .ms-difficulty-btn {
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
