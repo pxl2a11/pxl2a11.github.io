@@ -1,7 +1,6 @@
 /**
- * 10Файл: /apps/minesweeper.js
- * Описание: Финальная, компактная и полностью адаптивная реализация игры "Сапер".
- * Ячейки автоматически изменяют размер, чтобы поле всегда помещалось на экране без горизонтальной прокрутки.
+ * Файл: /apps/minesweeper.js
+ * Описание: Финальная, рабочая реализация с фиксированным размером ячеек и локальной прокруткой поля.
  */
 
 // --- КОНСТАНТЫ И СОСТОЯНИЕ ---
@@ -12,9 +11,10 @@ const DIFFICULTIES = {
     intermediate: { rows: 16, cols: 16, mines: 40 },
     expert: { rows: 16, cols: 30, mines: 99 },
 };
+const CELL_SIZE = 28; // Фиксированный размер ячейки, как в режиме "Эксперт"
 
-let state = {}; // Объект для хранения всего состояния игры
-const dom = {}; // Объект для хранения ссылок на DOM-элементы
+let state = {};
+const dom = {};
 
 export function getHtml() {
     return `
@@ -31,8 +31,10 @@ export function getHtml() {
                 </div>
                 <div id="timer" class="font-mono text-2xl sm:text-3xl text-red-500 bg-black rounded-md text-center py-1"></div>
             </div>
-            <!-- Адаптивное поле без прокрутки -->
-            <div id="minesweeper-board" class="w-full max-w-full select-none" style="display: grid;"></div>
+            <!-- Обертка для корректной прокрутки -->
+            <div class="w-full overflow-x-auto">
+                <div id="minesweeper-board" class="select-none" style="display: grid; width: max-content;"></div>
+            </div>
         </div>
     `;
 }
@@ -48,10 +50,11 @@ export function init() {
 
     const restartGame = () => startGame(dom.difficultySelector.value);
 
-    dom.board.addEventListener('click', handleBoardClick);
-    dom.board.addEventListener('contextmenu', handleBoardClick);
-    dom.board.addEventListener('mousedown', handleBoardMouseDown);
-    dom.board.addEventListener('mouseup', handleBoardMouseUp);
+    dom.board.addEventListener('click', handleLeftClick);
+    dom.board.addEventListener('contextmenu', handleRightClick);
+    dom.board.addEventListener('mousedown', (e) => { if (!state.isGameOver && e.button === 0) dom.restartButton.textContent = '😮'; });
+    dom.board.addEventListener('mouseup', () => { if (!state.isGameOver) dom.restartButton.textContent = '😊'; });
+    
     dom.restartButton.addEventListener('click', restartGame);
     dom.difficultySelector.addEventListener('change', restartGame);
 
@@ -68,17 +71,7 @@ export function cleanup() {
 function startGame(difficultyKey) {
     cleanup();
     const settings = DIFFICULTIES[difficultyKey];
-    state = {
-        ...settings,
-        board: [],
-        mineLocations: [],
-        revealedCount: 0,
-        flagsPlaced: 0,
-        isGameOver: false,
-        isFirstClick: true,
-        timerInterval: null,
-        timeElapsed: 0,
-    };
+    state = { ...settings, board: [], mineLocations: [], revealedCount: 0, flagsPlaced: 0, isGameOver: false, isFirstClick: true, timerInterval: null, timeElapsed: 0 };
 
     dom.timer.textContent = '000';
     dom.restartButton.textContent = '😊';
@@ -88,9 +81,7 @@ function startGame(difficultyKey) {
 
 function createBoard() {
     dom.board.innerHTML = '';
-    // Адаптивная сетка: делим всю ширину на количество колонок
-    dom.board.style.gridTemplateColumns = `repeat(${state.cols}, 1fr)`;
-    // Добавляем отступ между ячейками
+    dom.board.style.gridTemplateColumns = `repeat(${state.cols}, ${CELL_SIZE}px)`;
     dom.board.style.gap = '2px';
 
     for (let r = 0; r < state.rows; r++) {
@@ -98,8 +89,9 @@ function createBoard() {
         for (let c = 0; c < state.cols; c++) {
             state.board[r][c] = { isMine: false, isRevealed: false, isFlagged: false, neighborCount: 0 };
             const cell = document.createElement('div');
-            // Класс aspect-square (aspect-ratio: 1/1) заставляет ячейку быть квадратной
-            cell.className = "aspect-square w-full flex items-center justify-center font-bold bg-gray-400 dark:bg-gray-600 rounded-sm shadow-[inset_1px_1px_1px_rgba(255,255,255,0.4),inset_-1px_-1px_1px_rgba(0,0,0,0.4)]";
+            cell.className = "flex items-center justify-center font-bold text-lg bg-gray-400 dark:bg-gray-600 rounded-sm shadow-[inset_1px_1px_1px_rgba(255,255,255,0.4),inset_-1px_-1px_1px_rgba(0,0,0,0.4)]";
+            cell.style.width = `${CELL_SIZE}px`;
+            cell.style.height = `${CELL_SIZE}px`;
             cell.dataset.row = r;
             cell.dataset.col = c;
             dom.board.appendChild(cell);
@@ -119,57 +111,48 @@ function placeMines(initialRow, initialCol) {
     }
     for (let r = 0; r < state.rows; r++) {
         for (let c = 0; c < state.cols; c++) {
-            if (!state.board[r][c].isMine) {
-                state.board[r][c].neighborCount = countNeighborMines(r, c);
-            }
+            if (!state.board[r][c].isMine) state.board[r][c].neighborCount = countNeighborMines(r, c);
         }
     }
 }
 
-function handleBoardClick(event) {
-    event.preventDefault();
+function handleLeftClick(event) {
     const cellElement = event.target.closest('[data-row]');
     if (!cellElement || state.isGameOver) return;
-
-    const row = parseInt(cellElement.dataset.row);
-    const col = parseInt(cellElement.dataset.col);
+    const row = parseInt(cellElement.dataset.row), col = parseInt(cellElement.dataset.col);
     const cellData = state.board[row][col];
+    if (cellData.isFlagged) return;
 
-    if (event.type === 'contextmenu') {
-        if (cellData.isRevealed) return;
-        cellData.isFlagged = !cellData.isFlagged;
-        cellElement.innerHTML = cellData.isFlagged ? '🚩' : '';
-        cellElement.style.fontSize = `clamp(0.75rem, 5vw, 1.5rem)`; // Динамический размер для флага
-        state.flagsPlaced += cellData.isFlagged ? 1 : -1;
-        updateMineCounter();
-    } else if (event.type === 'click') {
-        if (cellData.isFlagged) return;
-        if (state.isFirstClick) {
-            placeMines(row, col);
-            startTimer();
-            state.isFirstClick = false;
-        }
-        if (cellData.isRevealed) {
-            if (cellData.neighborCount > 0) handleChord(row, col);
-        } else if (cellData.isMine) {
-            endGame(false);
-            revealMine(cellElement, true);
-        } else {
-            revealCell(row, col);
-        }
+    if (state.isFirstClick) {
+        placeMines(row, col);
+        startTimer();
+        state.isFirstClick = false;
+    }
+    if (cellData.isRevealed) {
+        if (cellData.neighborCount > 0) handleChord(row, col);
+    } else if (cellData.isMine) {
+        endGame(false);
+        revealMine(cellElement, true);
+    } else {
+        revealCell(row, col);
     }
     checkWinCondition();
 }
 
-function handleBoardMouseDown(event) {
-    if (!state.isGameOver && event.button === 0) {
-        dom.restartButton.textContent = '😮';
-    }
-}
-function handleBoardMouseUp() {
-    if (!state.isGameOver) {
-        dom.restartButton.textContent = '😊';
-    }
+function handleRightClick(event) {
+    event.preventDefault();
+    const cellElement = event.target.closest('[data-row]');
+    if (!cellElement || state.isGameOver) return;
+    const row = parseInt(cellElement.dataset.row), col = parseInt(cellElement.dataset.col);
+    const cellData = state.board[row][col];
+    if (cellData.isRevealed) return;
+
+    if (state.isFirstClick) startTimer();
+    
+    cellData.isFlagged = !cellData.isFlagged;
+    cellElement.innerHTML = cellData.isFlagged ? '🚩' : '';
+    state.flagsPlaced += cellData.isFlagged ? 1 : -1;
+    updateMineCounter();
 }
 
 function revealCell(row, col) {
@@ -180,8 +163,8 @@ function revealCell(row, col) {
     cellData.isRevealed = true;
     state.revealedCount++;
     const cellElement = dom.board.querySelector(`[data-row='${row}'][data-col='${col}']`);
-    cellElement.className = "aspect-square w-full flex items-center justify-center font-bold bg-gray-300 dark:bg-gray-500 rounded-sm border-gray-400/50 border";
-    cellElement.style.fontSize = `clamp(0.75rem, 4vw, 1.25rem)`; // Динамический размер для цифр
+    cellElement.className = "flex items-center justify-center font-bold text-lg bg-gray-300 dark:bg-gray-500 rounded-sm border-gray-400/50 border";
+    cellElement.style.width = `${CELL_SIZE}px`; cellElement.style.height = `${CELL_SIZE}px`;
 
     if (cellData.neighborCount > 0) {
         cellElement.textContent = cellData.neighborCount;
@@ -222,9 +205,8 @@ function endGame(isWin) {
     state.isGameOver = true;
     cleanup();
     dom.restartButton.textContent = isWin ? '😎' : '😵';
-
     if (isWin) {
-        dom.mineCounter.textContent = 'WIN!';
+        dom.mineCounter.textContent = 'ПОБЕДА!';
     } else {
         state.mineLocations.forEach(loc => {
             const cell = dom.board.querySelector(`[data-row='${loc.r}'][data-col='${loc.c}']`);
@@ -242,7 +224,8 @@ function endGame(isWin) {
 
 function revealMine(cellElement, isTrigger) {
     cellElement.innerHTML = MINE_SVG_ICON;
-    cellElement.className = `aspect-square w-full flex items-center justify-center rounded-sm ${isTrigger ? 'bg-red-500' : 'bg-gray-400 dark:bg-gray-500'}`;
+    cellElement.className = `flex items-center justify-center rounded-sm ${isTrigger ? 'bg-red-500' : 'bg-gray-400 dark:bg-gray-500'}`;
+    cellElement.style.width = `${CELL_SIZE}px`; cellElement.style.height = `${CELL_SIZE}px`;
 }
 
 function checkWinCondition() {
@@ -260,9 +243,7 @@ function startTimer() {
     cleanup();
     state.timerInterval = setInterval(() => {
         state.timeElapsed++;
-        if (state.timeElapsed <= 999) {
-            dom.timer.textContent = String(state.timeElapsed).padStart(3, '0');
-        }
+        if (state.timeElapsed <= 999) dom.timer.textContent = String(state.timeElapsed).padStart(3, '0');
     }, 1000);
 }
 
@@ -271,9 +252,7 @@ function countNeighborMines(row, col) {
     for (let i = -1; i <= 1; i++) {
         for (let j = -1; j <= 1; j++) {
             const r = row + i, c = col + j;
-            if (r >= 0 && r < state.rows && c >= 0 && c < state.cols && state.board[r][c].isMine) {
-                count++;
-            }
+            if (r >= 0 && r < state.rows && c >= 0 && c < state.cols && state.board[r][c].isMine) count++;
         }
     }
     return count;
