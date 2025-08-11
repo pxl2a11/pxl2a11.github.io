@@ -1,4 +1,4 @@
-// 24js/utils/changelog.js
+// js/utils/changelog.js
 
 export const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
@@ -45,6 +45,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-08-11T14:00:00Z'), appName: 'Конвертер регистра', description: 'добавлена кнопка для скачивания отформатированного текста в виде файла .txt.' },
     { date: getRussianDate('2025-08-11T13:00:00Z'), appName: 'Эмодзи и символы', description: 'значительно расширены списки символов и эмодзи. Добавлены новые категории: Активности, Путешествия, Объекты, Флаги и другие.' },
     { date: getRussianDate('2025-08-11T13:00:00Z'), appName: 'Эмодзи и символы', description: 'реализован полноценный поиск по ключевым словам для каждого символа и эмодзи.' },
     { date: getRussianDate('2025-08-11T12:00:00Z'), appName: 'Эмодзи и символы', description: 'добавлена вкладка "Недавно использованные" для быстрого доступа к скопированным символам.' },
