@@ -9,6 +9,7 @@ let gameOver = false;
 let firstClick = true;
 let timerInterval;
 let startTime;
+let highlightedCells = []; // **НОВОЕ**: Хранит ячейки для подсветки
 
 // SVG иконка для мины
 const mineSvg = `
@@ -25,14 +26,12 @@ const flagSvg = `
 </svg>
 `;
 
-
 // --- DOM-элементы ---
 let boardContainer, flagsCountEl, timerEl, statusEl;
 
 export function getHtml() {
     return `
         <div class="space-y-4">
-            <!-- Элементы управления с ограничением по ширине -->
             <div class="max-w-2xl mx-auto">
                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
                      <div class="flex justify-center gap-2 sm:gap-4 flex-wrap">
@@ -41,7 +40,6 @@ export function getHtml() {
                         <button class="ms-difficulty-btn" data-rows="16" data-cols="30" data-mines="99">Сложно</button>
                     </div>
                 </div>
-
                 <div class="flex justify-between items-center p-3 mt-4 bg-white dark:bg-gray-900 rounded-lg shadow">
                     <div class="flex items-center gap-2 text-red-500">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
@@ -54,8 +52,6 @@ export function getHtml() {
                     </div>
                 </div>
             </div>
-
-            <!-- Игровое поле БЕЗ ограничения по ширине -->
             <div id="minesweeper-board-container" class="flex justify-center p-2 bg-gray-400 dark:bg-gray-700 rounded-lg shadow-inner">
                  <div id="minesweeper-board" class="grid" style="user-select: none;"></div>
             </div>
@@ -70,7 +66,10 @@ export function init() {
     statusEl = document.getElementById('ms-status-indicator');
 
     statusEl.addEventListener('click', startGame);
-    boardContainer.addEventListener('click', handleCellClick);
+    // **ИЗМЕНЕНО**: Заменяем 'click' на 'mousedown' и 'mouseup' для новой логики
+    boardContainer.addEventListener('mousedown', handleMouseDown);
+    boardContainer.addEventListener('mouseup', handleMouseUp);
+    boardContainer.addEventListener('mouseleave', clearHighlights); // Убираем подсветку, если мышь ушла с поля
     boardContainer.addEventListener('contextmenu', handleRightClick);
 
     document.querySelectorAll('.ms-difficulty-btn').forEach(btn => {
@@ -110,9 +109,7 @@ function startGame() {
 
 function createBoardDOM() {
     boardContainer.innerHTML = '';
-    boardContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; // Используем фракции для гибкости
-    
-    // ИЗМЕНЕНО: Фиксированный размер ячеек для консистентности
+    boardContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     const cellSize = 26; 
 
     for (let r = 0; r < rows; r++) {
@@ -135,8 +132,9 @@ function createBoardDOM() {
     }
 }
 
-function handleCellClick(e) {
-    if (gameOver) return;
+// **НОВАЯ ФУНКЦИЯ**: Обрабатывает нажатие кнопки мыши для подсветки
+function handleMouseDown(e) {
+    if (gameOver || e.button !== 0) return; // Только левая кнопка
 
     const cellEl = e.target.closest('.ms-cell');
     if (!cellEl) return;
@@ -146,12 +144,33 @@ function handleCellClick(e) {
     const cell = board[row][col];
 
     if (cell.isRevealed && cell.neighborMines > 0) {
+        highlightNeighbors(row, col);
+    }
+}
+
+// **НОВАЯ ФУНКЦИЯ**: Обрабатывает отпускание кнопки мыши для выполнения действия
+function handleMouseUp(e) {
+    // Всегда убираем подсветку после действия
+    clearHighlights();
+
+    if (gameOver) return;
+
+    const cellEl = e.target.closest('.ms-cell');
+    if (!cellEl) return;
+    
+    const row = parseInt(cellEl.dataset.row);
+    const col = parseInt(cellEl.dataset.col);
+    const cell = board[row][col];
+
+    // Логика аккорда
+    if (cell.isRevealed && cell.neighborMines > 0) {
         performChord(row, col);
         return;
     }
 
     if (cell.isRevealed || cell.isFlagged) return;
 
+    // Логика первого клика
     if (firstClick) {
         placeMines(row, col);
         calculateAllNeighbors();
@@ -159,6 +178,7 @@ function handleCellClick(e) {
         firstClick = false;
     }
 
+    // Открытие ячейки
     if (cell.isMine) {
         cell.element.classList.add('mine-hit');
         endGame(false);
@@ -223,6 +243,31 @@ function revealCell(row, col) {
             }
         }
     }
+}
+
+// **НОВАЯ ФУНКЦИЯ**: Подсвечивает соседние ячейки
+function highlightNeighbors(row, col) {
+    for (let rOffset = -1; rOffset <= 1; rOffset++) {
+        for (let cOffset = -1; cOffset <= 1; cOffset++) {
+            const newR = row + rOffset;
+            const newC = col + cOffset;
+            if (newR >= 0 && newR < rows && newC >= 0 && newC < cols) {
+                const neighbor = board[newR][newC];
+                if (!neighbor.isRevealed && !neighbor.isFlagged) {
+                    neighbor.element.classList.add('ms-cell-highlight');
+                    highlightedCells.push(neighbor);
+                }
+            }
+        }
+    }
+}
+
+// **НОВАЯ ФУНКЦИЯ**: Убирает всю подсветку
+function clearHighlights() {
+    for (const cell of highlightedCells) {
+        cell.element.classList.remove('ms-cell-highlight');
+    }
+    highlightedCells = [];
 }
 
 function performChord(row, col) {
