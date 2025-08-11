@@ -1,4 +1,4 @@
-// ---6 Переменные состояния модуля ---
+// --- Переменные состояния модуля ---
 // Устанавливаем сложность по умолчанию
 let rows = 9, cols = 9, mineCount = 10;
 let board = []; // 2D массив объектов ячеек
@@ -9,7 +9,7 @@ let gameOver = false;
 let firstClick = true;
 let timerInterval;
 let startTime;
-let highlightedCells = []; // **НОВОЕ**: Хранит ячейки для подсветки
+let highlightedCells = [];
 
 // SVG иконка для мины
 const mineSvg = `
@@ -66,10 +66,9 @@ export function init() {
     statusEl = document.getElementById('ms-status-indicator');
 
     statusEl.addEventListener('click', startGame);
-    // **ИЗМЕНЕНО**: Заменяем 'click' на 'mousedown' и 'mouseup' для новой логики
     boardContainer.addEventListener('mousedown', handleMouseDown);
     boardContainer.addEventListener('mouseup', handleMouseUp);
-    boardContainer.addEventListener('mouseleave', clearHighlights); // Убираем подсветку, если мышь ушла с поля
+    boardContainer.addEventListener('mouseleave', clearHighlights);
     boardContainer.addEventListener('contextmenu', handleRightClick);
 
     document.querySelectorAll('.ms-difficulty-btn').forEach(btn => {
@@ -132,9 +131,8 @@ function createBoardDOM() {
     }
 }
 
-// **НОВАЯ ФУНКЦИЯ**: Обрабатывает нажатие кнопки мыши для подсветки
 function handleMouseDown(e) {
-    if (gameOver || e.button !== 0) return; // Только левая кнопка
+    if (gameOver || e.button !== 0) return;
 
     const cellEl = e.target.closest('.ms-cell');
     if (!cellEl) return;
@@ -148,9 +146,13 @@ function handleMouseDown(e) {
     }
 }
 
-// **НОВАЯ ФУНКЦИЯ**: Обрабатывает отпускание кнопки мыши для выполнения действия
 function handleMouseUp(e) {
-    // Всегда убираем подсветку после действия
+    // **ИСПРАВЛЕНИЕ**: Добавляем проверку на левую кнопку мыши
+    if (e.button !== 0) {
+        clearHighlights();
+        return;
+    }
+
     clearHighlights();
 
     if (gameOver) return;
@@ -162,7 +164,6 @@ function handleMouseUp(e) {
     const col = parseInt(cellEl.dataset.col);
     const cell = board[row][col];
 
-    // Логика аккорда
     if (cell.isRevealed && cell.neighborMines > 0) {
         performChord(row, col);
         return;
@@ -170,7 +171,6 @@ function handleMouseUp(e) {
 
     if (cell.isRevealed || cell.isFlagged) return;
 
-    // Логика первого клика
     if (firstClick) {
         placeMines(row, col);
         calculateAllNeighbors();
@@ -178,7 +178,6 @@ function handleMouseUp(e) {
         firstClick = false;
     }
 
-    // Открытие ячейки
     if (cell.isMine) {
         cell.element.classList.add('mine-hit');
         endGame(false);
@@ -245,7 +244,6 @@ function revealCell(row, col) {
     }
 }
 
-// **НОВАЯ ФУНКЦИЯ**: Подсвечивает соседние ячейки
 function highlightNeighbors(row, col) {
     for (let rOffset = -1; rOffset <= 1; rOffset++) {
         for (let cOffset = -1; cOffset <= 1; cOffset++) {
@@ -262,7 +260,6 @@ function highlightNeighbors(row, col) {
     }
 }
 
-// **НОВАЯ ФУНКЦИЯ**: Убирает всю подсветку
 function clearHighlights() {
     for (const cell of highlightedCells) {
         cell.element.classList.remove('ms-cell-highlight');
