@@ -1,6 +1,6 @@
 // js/apps/emojiAndSymbols.js
 
-// --- State Management ---
+// --- 11State Management ---
 let timeoutId;
 let intersectionObserver;
 const RECENT_SYMBOLS_KEY = 'recentSymbols';
