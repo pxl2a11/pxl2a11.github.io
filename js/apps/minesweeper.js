@@ -1,4 +1,4 @@
-// --- Переменные состояния модуля ---
+// ---05 Переменные состояния модуля ---
 // Устанавливаем сложность по умолчанию
 let rows = 9, cols = 9, mineCount = 10;
 let board = []; // 2D массив объектов ячеек
@@ -73,7 +73,7 @@ export function init() {
         });
     });
 
-    startGame(); // Начать игру с настройками по умолчанию
+    startGame();
 }
 
 export function cleanup() {
@@ -103,7 +103,6 @@ function createBoardDOM() {
     boardContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     
     const containerWidth = Math.min(window.innerWidth - 40, 800);
-    // Размер ячейки всегда рассчитывается исходя из максимального количества колонок (30)
     const MAX_COLS_FOR_SIZING = 30;
     const cellSize = Math.floor(containerWidth / MAX_COLS_FOR_SIZING);
 
@@ -128,14 +127,22 @@ function createBoardDOM() {
 }
 
 function handleCellClick(e) {
-    const cellEl = e.target.closest('.ms-cell');
-    if (gameOver || !cellEl || cellEl.classList.contains('revealed')) return;
+    if (gameOver) return;
 
+    const cellEl = e.target.closest('.ms-cell');
+    if (!cellEl) return;
+    
     const row = parseInt(cellEl.dataset.row);
     const col = parseInt(cellEl.dataset.col);
     const cell = board[row][col];
 
-    if (cell.isFlagged) return;
+    // **НОВАЯ ЛОГИКА: Аккорд**
+    if (cell.isRevealed && cell.neighborMines > 0) {
+        performChord(row, col);
+        return;
+    }
+
+    if (cell.isRevealed || cell.isFlagged) return;
 
     if (firstClick) {
         placeMines(row, col);
@@ -191,6 +198,12 @@ function revealCell(row, col) {
     cell.element.classList.add('revealed');
     cellsRevealed++;
 
+    if (cell.isMine) {
+        cell.element.classList.add('mine-hit');
+        endGame(false);
+        return;
+    }
+
     if (cell.neighborMines > 0) {
         cell.element.textContent = cell.neighborMines;
         cell.element.classList.add(`ms-c${cell.neighborMines}`);
@@ -204,8 +217,43 @@ function revealCell(row, col) {
     }
 }
 
+function performChord(row, col) {
+    const cell = board[row][col];
+    let flaggedNeighbors = 0;
+    
+    // Считаем флаги вокруг
+    for (let rOffset = -1; rOffset <= 1; rOffset++) {
+        for (let cOffset = -1; cOffset <= 1; cOffset++) {
+            const newR = row + rOffset;
+            const newC = col + cOffset;
+            if (newR >= 0 && newR < rows && newC >= 0 && newC < cols && board[newR][newC].isFlagged) {
+                flaggedNeighbors++;
+            }
+        }
+    }
+
+    // Если количество флагов совпадает с цифрой, открываем остальных соседей
+    if (flaggedNeighbors === cell.neighborMines) {
+        for (let rOffset = -1; rOffset <= 1; rOffset++) {
+            for (let cOffset = -1; cOffset <= 1; cOffset++) {
+                if (rOffset === 0 && cOffset === 0) continue;
+                const newR = row + rOffset;
+                const newC = col + cOffset;
+                // Открываем только неоткрытые и не отмеченные флагом ячейки
+                if (newR >= 0 && newR < rows && newC >= 0 && newC < cols) {
+                    const neighbor = board[newR][newC];
+                    if (!neighbor.isRevealed && !neighbor.isFlagged) {
+                        revealCell(newR, newC);
+                    }
+                }
+            }
+        }
+        checkWinCondition();
+    }
+}
+
 function checkWinCondition() {
-    if (cellsRevealed === rows * cols - mineCount) {
+    if (!gameOver && cellsRevealed === rows * cols - mineCount) {
         endGame(true);
     }
 }
@@ -218,11 +266,10 @@ function endGame(isWin) {
 
     for (const loc of mineLocations) {
         const cell = board[loc.row][loc.col];
-        if (!cell.isRevealed) {
-            cell.element.classList.add('mine');
-            if (!cell.isFlagged) {
-                cell.element.innerHTML = mineSvg;
-            }
+        if (!cell.isRevealed && !cell.isFlagged) {
+            // ИЗМЕНЕНО: Добавляем класс revealed для фона и mine для иконки
+            cell.element.classList.add('revealed', 'mine');
+            cell.element.innerHTML = mineSvg;
         }
     }
 
