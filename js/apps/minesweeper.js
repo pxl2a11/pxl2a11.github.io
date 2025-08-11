@@ -26,9 +26,9 @@ export function getHtml() {
             <!-- Панель управления -->
             <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
                  <div class="flex justify-center gap-2 sm:gap-4 flex-wrap">
-                    <button class="ms-difficulty-btn" data-rows="9" data-cols="9" data-mines="10">🙂 Легко</button>
-                    <button class="ms-difficulty-btn" data-rows="16" data-cols="16" data-mines="40">😎 Средне</button>
-                    <button class="ms-difficulty-btn" data-rows="16" data-cols="30" data-mines="99">🤯 Сложно</button>
+                    <button class="ms-difficulty-btn" data-rows="9" data-cols="9" data-mines="10">Легко</button>
+                    <button class="ms-difficulty-btn" data-rows="16" data-cols="16" data-mines="40">Средне</button>
+                    <button class="ms-difficulty-btn" data-rows="16" data-cols="30" data-mines="99">Сложно</button>
                 </div>
             </div>
 
@@ -46,7 +46,7 @@ export function getHtml() {
             </div>
 
             <!-- Игровое поле -->
-            <div id="minesweeper-board-container" class="flex justify-center p-2 bg-gray-400 dark:bg-gray-700 rounded-lg shadow-inner overflow-auto">
+            <div id="minesweeper-board-container" class="flex justify-center p-2 bg-gray-400 dark:bg-gray-700 rounded-lg shadow-inner">
                  <div id="minesweeper-board" class="grid" style="user-select: none;"></div>
             </div>
         </div>
@@ -102,9 +102,10 @@ function createBoardDOM() {
     boardContainer.innerHTML = '';
     boardContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     
-    // Определяем максимальную ширину контейнера и вычисляем размер ячейки
     const containerWidth = Math.min(window.innerWidth - 40, 800);
-    const cellSize = Math.floor(containerWidth / cols);
+    // Размер ячейки всегда рассчитывается исходя из максимального количества колонок (30)
+    const MAX_COLS_FOR_SIZING = 30;
+    const cellSize = Math.floor(containerWidth / MAX_COLS_FOR_SIZING);
 
     for (let r = 0; r < rows; r++) {
         board[r] = [];
