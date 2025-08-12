@@ -5,7 +5,7 @@ let snake, food, score, direction, gameActive, gamePaused;
 
 // --- ПАРАМЕТРЫ СКОРОСТИ ---
 // ИЗМЕНЕНО: Начальная скорость значительно замедлена
-const INITIAL_SPEED = 800; // Начальный интервал в мс (чем больше, тем медленнее)
+const INITIAL_SPEED = 666; // Начальный интервал в мс (чем больше, тем медленнее)
 const SPEED_INCREMENT = 12;  // На сколько мс уменьшать интервал за каждое очко
 const MAX_SPEED = 60;        // Максимальная скорость (минимальный интервал)
 let currentSpeed;
