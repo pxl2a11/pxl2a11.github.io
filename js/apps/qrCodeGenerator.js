@@ -103,10 +103,15 @@ function getHtml() {
                  <p class="text-gray-500 dark:text-gray-400 text-center">Здесь появится ваш QR-код</p>
             </div>
 
-            <!-- Кнопка скачивания -->
-            <a id="download-qr-btn" class="hidden w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors mt-2" download="qrcode.png">
-                Скачать PNG
-            </a>
+            <!-- Кнопки действий: Скачать и Печать -->
+            <div id="qr-actions-container" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                <a id="download-qr-btn" class="w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors" download="qrcode.png">
+                    Скачать PNG
+                </a>
+                <button id="print-qr-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors">
+                    Печать
+                </button>
+            </div>
         </div>
 
         <style>
@@ -136,7 +141,7 @@ function getHtml() {
  */
 async function handleGenerateQr() {
     const container = document.getElementById('qr-code-container');
-    const downloadLink = document.getElementById('download-qr-btn');
+    const actionsContainer = document.getElementById('qr-actions-container');
     let textToEncode = '';
     let errorMessage = '';
 
@@ -187,7 +192,7 @@ async function handleGenerateQr() {
     // Проверка на ошибки или пустые данные
     if (errorMessage) {
         container.innerHTML = `<p class="text-red-500">${errorMessage}</p>`;
-        downloadLink.classList.add('hidden');
+        actionsContainer.classList.add('hidden');
         return;
     }
 
@@ -198,6 +203,7 @@ async function handleGenerateQr() {
     const colorDark = document.getElementById('qr-color-dark').value;
     const colorLight = document.getElementById('qr-color-light').value;
     const canvas = document.createElement('canvas');
+    const downloadLink = document.getElementById('download-qr-btn');
 
     try {
         await QRCode.toCanvas(canvas, textToEncode, {
@@ -212,12 +218,12 @@ async function handleGenerateQr() {
         
         const dataUrl = canvas.toDataURL('image/png');
         downloadLink.href = dataUrl;
-        downloadLink.classList.remove('hidden');
+        actionsContainer.classList.remove('hidden');
 
     } catch (err) {
         console.error('Ошибка генерации QR-кода:', err);
         container.innerHTML = `<p class="text-red-500 text-center">Не удалось сгенерировать QR-код. <br> Возможно, данные слишком длинные.</p>`;
-        downloadLink.classList.add('hidden');
+        actionsContainer.classList.add('hidden');
     }
 };
 
@@ -239,11 +245,51 @@ async function init() {
 
     const generateBtn = document.getElementById('generate-qr-btn');
     const templateTabsContainer = document.getElementById('template-tabs');
+    const printBtn = document.getElementById('print-qr-btn');
 
-    if (!generateBtn || !templateTabsContainer) return;
+    if (!generateBtn || !templateTabsContainer || !printBtn) return;
 
     // Обработчик для кнопки генерации
     generateBtn.addEventListener('click', handleGenerateQr, { signal });
+    
+    // Обработчик для кнопки печати
+    printBtn.addEventListener('click', () => {
+        const canvas = document.querySelector('#qr-code-container canvas');
+        if (!canvas) {
+            console.error('Не найден canvas QR-кода для печати.');
+            alert('Сначала сгенерируйте QR-код, чтобы его можно было распечатать.');
+            return;
+        }
+
+        const dataUrl = canvas.toDataURL('image/png');
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Печать QR-кода</title>
+                    <style>
+                        @media print {
+                           body { margin: 0; }
+                           img { max-width: 100%; page-break-inside: avoid; }
+                           @page { size: auto; margin: 25mm; }
+                        }
+                        body {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0;
+                            font-family: sans-serif;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <img src="${dataUrl}" onload="window.print(); setTimeout(function(){window.close()}, 100);" alt="QR-код">
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }, { signal });
     
     // Обработчик для переключения вкладок шаблонов
     templateTabsContainer.addEventListener('click', (e) => {
