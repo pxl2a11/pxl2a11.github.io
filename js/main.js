@@ -96,7 +96,7 @@ const searchInput = document.getElementById('search-input');
 const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
-let allAppCards = []; // НОВЫЙ МАССИВ ДЛЯ ХРАНЕНИЯ ОРИГИНАЛЬНОГО ПОРЯДКА
+let allAppCards = [];
 
 const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
@@ -110,7 +110,6 @@ const appScreenHtml = `
         <div id="app-changelog-container" class="mt-8"></div>
     </div>`;
 
-// --- НОВЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ С ЗАКРЕПЛЕННЫМИ ПРИЛОЖЕНИЯМИ ---
 function getPinnedApps() {
     try {
         const pinned = localStorage.getItem('pinnedApps');
@@ -124,7 +123,6 @@ function getPinnedApps() {
 function savePinnedApps(pinnedModules) {
     localStorage.setItem('pinnedApps', JSON.stringify(pinnedModules));
 }
-// --- КОНЕЦ НОВЫХ ФУНКЦИЙ ---
 
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
@@ -242,11 +240,7 @@ async function router() {
 function setupNavigationEvents() {
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a');
-        if (!link) return;
-        
-        // Предотвращаем навигацию при клике на кнопку закрепления
-        if(e.target.closest('.pin-btn')) {
-            e.preventDefault();
+        if (!link || e.target.closest('.pin-btn')) {
             return;
         }
 
@@ -328,7 +322,6 @@ function setupSearch() {
     });
 }
 
-// --- ОБНОВЛЕННАЯ ФУНКЦИЯ ФИЛЬТРАЦИИ И РЕНДЕРИНГА ---
 function applyAppListFilterAndRender() {
     const filterContainer = document.getElementById('filter-container');
     const appsContainer = document.getElementById('apps-container');
@@ -444,11 +437,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- НОВЫЙ ОБРАБОТЧИК ДЛЯ ЗАКРЕПЛЕНИЯ ---
     dynamicContentArea.addEventListener('click', e => {
         const pinBtn = e.target.closest('.pin-btn');
         if (pinBtn) {
-            e.stopPropagation(); // Важно, чтобы не сработал клик по ссылке-родителю
+            e.preventDefault(); // ГЛАВНОЕ ИСПРАВЛЕНИЕ: Предотвращает переход по ссылке
+            e.stopPropagation();
+
             const appCard = pinBtn.closest('.app-item');
             const moduleName = appCard?.dataset.module;
             if (!moduleName) return;
@@ -460,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pinnedApps.push(moduleName);
             }
             savePinnedApps(pinnedApps);
-            applyAppListFilterAndRender(); // Перерисовываем список
+            applyAppListFilterAndRender();
         }
     });
 
