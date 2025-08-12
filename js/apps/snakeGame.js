@@ -1,7 +1,8 @@
 let canvas, ctx;
 let gameInterval, keydownHandler, resizeObserver;
 const gridSize = 20;
-let snake, food, score, direction, gameActive, gamePaused;
+// --- ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлена переменная nextDirection ---
+let snake, food, score, direction, nextDirection, gameActive, gamePaused;
 
 // --- ПАРАМЕТРЫ СКОРОСТИ ---
 const INITIAL_SPEED = 666; // Начальный интервал в мс (чем больше, тем медленнее)
@@ -38,8 +39,10 @@ function resetAndDraw() {
     snake = [{ x: Math.floor(tileCountX / 2), y: Math.floor(tileCountY / 2) }];
     
     score = 0;
-    currentSpeed = INITIAL_SPEED; // Сбрасываем скорость
+    currentSpeed = INITIAL_SPEED;
+    // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Инициализируем оба направления ---
     direction = 'right';
+    nextDirection = 'right';
     document.getElementById('snake-score').textContent = score;
     placeFood();
     draw();
@@ -83,6 +86,14 @@ function updateGameSpeed() {
 
 function gameLoop() {
     if (!gameActive || gamePaused) return;
+    
+    // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Логика буфера направления ---
+    // Прежде чем двигаться, мы проверяем, не является ли следующее направление
+    // противоположным текущему. Если нет, мы обновляем текущее направление.
+    const oppositeDirections = { 'up': 'down', 'down': 'up', 'left': 'right', 'right': 'left' };
+    if (nextDirection !== oppositeDirections[direction]) {
+        direction = nextDirection;
+    }
 
     const head = { x: snake[0].x, y: snake[0].y };
 
@@ -180,18 +191,15 @@ export function init() {
     keydownHandler = (e) => {
         const key = e.key;
 
-        // --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
-        // Проверяем, является ли нажатая клавиша одной из стрелок
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
-            // Отменяем стандартное поведение браузера (скроллинг)
             e.preventDefault();
         }
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
-
-        if (key === 'ArrowUp' && direction !== 'down') direction = 'up';
-        else if (key === 'ArrowDown' && direction !== 'up') direction = 'down';
-        else if (key === 'ArrowLeft' && direction !== 'right') direction = 'left';
-        else if (key === 'ArrowRight' && direction !== 'left') direction = 'right';
+        
+        // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Мы меняем не 'direction', а 'nextDirection' ---
+        if (key === 'ArrowUp') nextDirection = 'up';
+        else if (key === 'ArrowDown') nextDirection = 'down';
+        else if (key === 'ArrowLeft') nextDirection = 'left';
+        else if (key === 'ArrowRight') nextDirection = 'right';
     };
 
     window.addEventListener('keydown', keydownHandler);
