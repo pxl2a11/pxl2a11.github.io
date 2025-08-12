@@ -4,7 +4,6 @@ const gridSize = 20;
 let snake, food, score, direction, gameActive, gamePaused;
 
 // --- ПАРАМЕТРЫ СКОРОСТИ ---
-// ИЗМЕНЕНО: Начальная скорость значительно замедлена
 const INITIAL_SPEED = 666; // Начальный интервал в мс (чем больше, тем медленнее)
 const SPEED_INCREMENT = 12;  // На сколько мс уменьшать интервал за каждое очко
 const MAX_SPEED = 60;        // Максимальная скорость (минимальный интервал)
@@ -180,6 +179,15 @@ export function init() {
     
     keydownHandler = (e) => {
         const key = e.key;
+
+        // --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+        // Проверяем, является ли нажатая клавиша одной из стрелок
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+            // Отменяем стандартное поведение браузера (скроллинг)
+            e.preventDefault();
+        }
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
         if (key === 'ArrowUp' && direction !== 'down') direction = 'up';
         else if (key === 'ArrowDown' && direction !== 'up') direction = 'down';
         else if (key === 'ArrowLeft' && direction !== 'right') direction = 'left';
