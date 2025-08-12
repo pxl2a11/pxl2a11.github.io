@@ -76,11 +76,11 @@ export function getHtml() {
 // Переменная для хранения загруженных курсов
 let rates = {};
 
-// Функция для получения данных с API Frankfurter.app
+// Функция для получения данных с нового, более полного API
 async function fetchRates() {
     const rateInfo = document.getElementById('rate-info');
-    // Используем Frankfurter API, который не требует ключа
-    const url = `https://api.frankfurter.app/latest?from=USD`;
+    // Используем API на базе CDN, которое включает RUB и не требует ключа
+    const url = `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json`;
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -88,9 +88,15 @@ async function fetchRates() {
         }
         const data = await response.json();
         
-        // Добавляем базовую валюту (USD) в список курсов, так как API ее не возвращает в 'rates'
-        data.rates['USD'] = 1; 
-        return data.rates;
+        // API возвращает ключи в нижнем регистре. Приводим их к верхнему для единообразия.
+        const uppercaseRates = {};
+        for (const key in data.usd) {
+            uppercaseRates[key.toUpperCase()] = data.usd[key];
+        }
+
+        // Добавляем базовую валюту (USD), т.к. она не включена в список
+        uppercaseRates['USD'] = 1; 
+        return uppercaseRates;
 
     } catch (error) {
         console.error("Не удалось загрузить курсы валют:", error);
@@ -108,11 +114,9 @@ export async function init() {
     const swapBtn = document.getElementById('swap-btn');
     const rateInfo = document.getElementById('rate-info');
 
-    // Загружаем курсы и выходим, если произошла ошибка
     rates = await fetchRates();
     if (!rates) return;
 
-    // Активируем поля после успешной загрузки
     [amount1, currency1, amount2, currency2].forEach(el => el.disabled = false);
 
     function populateCurrencies() {
@@ -133,8 +137,8 @@ export async function init() {
             currency2.appendChild(option2);
         });
         
-        // Устанавливаем значения по умолчанию, если они доступны
         if (availableCurrencies.includes('USD')) currency1.value = 'USD';
+        // Теперь RUB гарантированно будет в списке
         if (availableCurrencies.includes('RUB')) currency2.value = 'RUB';
     }
 
@@ -149,7 +153,6 @@ export async function init() {
             return;
         }
 
-        // Все курсы уже даны относительно USD, поэтому конвертация проста
         const rateFrom = rates[c1];
         const rateTo = rates[c2];
 
@@ -168,7 +171,6 @@ export async function init() {
         calculate();
     }
 
-    // Добавляем обработчики событий
     amount1.addEventListener('input', calculate);
     currency1.addEventListener('change', calculate);
     currency2.addEventListener('change', calculate);
