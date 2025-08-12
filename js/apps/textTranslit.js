@@ -63,38 +63,39 @@ export function init() {
     const latToCyrBtn = document.getElementById('lat-to-cyr-btn');
     const copyBtn = document.getElementById('copy-btn');
 
-    const schema = {
+    const cyrToLatSchema = {
         'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
         'з': 'z', 'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
         'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'c',
         'ч': 'ch', 'ш': 'sh', 'щ': 'shh', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
     };
+    
+    const latToCyrSchema = {
+        'a': 'а', 'b': 'б', 'c': 'ц', 'd': 'д', 'e': 'е', 'f': 'ф', 'g': 'г', 'h': 'х',
+        'i': 'и', 'j': 'й', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о', 'p': 'п',
+        'r': 'р', 's': 'с', 't': 'т', 'u': 'у', 'v': 'в', 'y': 'ы', 'z': 'з'
+        // Двойные символы обрабатываются отдельно
+    };
 
     function transliterate(text, direction) {
-        const fromSchema = direction === 'cyr-to-lat' ? schema : Object.fromEntries(Object.entries(schema).map(([k, v]) => [v, k]));
-        // Специальные случаи для обратного преобразования
-        if (direction === 'lat-to-cyr') {
-            Object.assign(fromSchema, { 'yo': 'ё', 'zh': 'ж', 'ch': 'ч', 'sh': 'ш', 'shh': 'щ', 'yu': 'ю', 'ya': 'я'});
-        }
-
-        let result = '';
         text = text.toLowerCase();
+        let result = text;
         
-        if (direction === 'lat-to-cyr') {
-             // Сначала заменяем длинные сочетания
-            const longReplacements = ['yo', 'zh', 'ch', 'shh', 'sh', 'yu', 'ya'];
-            longReplacements.forEach(key => {
-                const regex = new RegExp(key, 'g');
-                text = text.replace(regex, fromSchema[key]);
-            });
+        if (direction === 'cyr-to-lat') {
+            // Заменяем сложные случаи сначала
+            result = result.replace(/ё/g, 'yo').replace(/ж/g, 'zh').replace(/ч/g, 'ch')
+                         .replace(/ш/g, 'sh').replace(/щ/g, 'shh').replace(/ю/g, 'yu')
+                         .replace(/я/g, 'ya').replace(/ь/g, '').replace(/ъ/g, '');
+            // Затем простые буквы
+            return result.split('').map(char => cyrToLatSchema[char] || char).join('');
+        } else { // lat-to-cyr
+            // Заменяем сложные случаи сначала
+             result = result.replace(/yo/g, 'ё').replace(/zh/g, 'ж').replace(/ch/g, 'ч')
+                         .replace(/shh/g, 'щ').replace(/sh/g, 'ш').replace(/yu/g, 'ю')
+                         .replace(/ya/g, 'я');
+            // Затем простые буквы
+            return result.split('').map(char => latToCyrSchema[char] || char).join('');
         }
-       
-        for (let i = 0; i < text.length; i++) {
-             const char = text[i];
-             result += fromSchema[char] || char;
-        }
-
-        return result;
     }
     
     cyrToLatBtn.addEventListener('click', () => {
