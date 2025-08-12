@@ -96,6 +96,7 @@ const searchInput = document.getElementById('search-input');
 const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
+let allAppCards = []; // НОВЫЙ МАССИВ ДЛЯ ХРАНЕНИЯ ОРИГИНАЛЬНОГО ПОРЯДКА
 
 const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
@@ -109,6 +110,22 @@ const appScreenHtml = `
         <div id="app-changelog-container" class="mt-8"></div>
     </div>`;
 
+// --- НОВЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ С ЗАКРЕПЛЕННЫМИ ПРИЛОЖЕНИЯМИ ---
+function getPinnedApps() {
+    try {
+        const pinned = localStorage.getItem('pinnedApps');
+        return pinned ? JSON.parse(pinned) : [];
+    } catch (e) {
+        console.error("Failed to parse pinned apps from localStorage", e);
+        return [];
+    }
+}
+
+function savePinnedApps(pinnedModules) {
+    localStorage.setItem('pinnedApps', JSON.stringify(pinnedModules));
+}
+// --- КОНЕЦ НОВЫХ ФУНКЦИЙ ---
+
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
     const template = document.getElementById('all-apps-template');
@@ -120,6 +137,7 @@ function populateAppCardMap() {
             appCardElements.set(moduleName, card);
         }
     });
+    allAppCards = Array.from(appCardElements.values());
 }
 
 function renderSimilarApps(currentModule, container) {
@@ -225,6 +243,12 @@ function setupNavigationEvents() {
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a');
         if (!link) return;
+        
+        // Предотвращаем навигацию при клике на кнопку закрепления
+        if(e.target.closest('.pin-btn')) {
+            e.preventDefault();
+            return;
+        }
 
         if (link.id === 'back-button') {
             e.preventDefault();
@@ -262,7 +286,6 @@ function setupSearch() {
     if (!appsContainer) return;
 
     searchInput.addEventListener('input', () => {
-        // ИСПРАВЛЕНИЕ: Получаем актуальный список приложений ПРИ КАЖДОМ ВВОДЕ
         const allApps = appsContainer.querySelectorAll('.app-item');
         const searchTerm = searchInput.value.toLowerCase().trim();
         const suggestions = [];
@@ -305,53 +328,78 @@ function setupSearch() {
     });
 }
 
-function setupFilters() {
+// --- ОБНОВЛЕННАЯ ФУНКЦИЯ ФИЛЬТРАЦИИ И РЕНДЕРИНГА ---
+function applyAppListFilterAndRender() {
     const filterContainer = document.getElementById('filter-container');
     const appsContainer = document.getElementById('apps-container');
     if (!filterContainer || !appsContainer) return;
-    
-    const allAppCards = Array.from(appCardElements.values());
+
+    const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
+    const pinnedModules = getPinnedApps();
 
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
         appElements.forEach(app => {
-            appsContainer.appendChild(app.cloneNode(true));
+            const appClone = app.cloneNode(true);
+            const pinBtn = appClone.querySelector('.pin-btn');
+            if (pinBtn && pinnedModules.includes(app.dataset.module)) {
+                pinBtn.classList.add('pinned');
+            }
+            appsContainer.appendChild(appClone);
         });
     };
 
-    const applyFilter = () => {
-        const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
-        let sortedApps;
+    let unpinnedAppCards = [];
+    const pinnedAppCardsMap = new Map();
+    pinnedModules.forEach(module => pinnedAppCardsMap.set(module, null));
 
-        if (activeFilter === 'popular') {
-            sortedApps = [...allAppCards].sort((a, b) => {
-                const popA = appPopularity[a.dataset.module] || 0;
-                const popB = appPopularity[b.dataset.module] || 0;
-                return popB - popA;
-            });
-        } else if (activeFilter === 'new') {
-            sortedApps = [...allAppCards].reverse();
-        } else { 
-            sortedApps = allAppCards;
+    allAppCards.forEach(card => {
+        const module = card.dataset.module;
+        if (pinnedModules.includes(module)) {
+            pinnedAppCardsMap.set(module, card);
+        } else {
+            unpinnedAppCards.push(card);
         }
-        renderApps(sortedApps);
-        
-        if (searchInput.value) {
-            searchInput.value = '';
-            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-    };
-    
+    });
+
+    const pinnedAppCards = Array.from(pinnedAppCardsMap.values()).filter(Boolean);
+
+    let sortedUnpinned;
+    if (activeFilter === 'popular') {
+        sortedUnpinned = [...unpinnedAppCards].sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
+    } else if (activeFilter === 'new') {
+        sortedUnpinned = [...unpinnedAppCards].sort((a, b) => {
+            const indexA = allAppCards.indexOf(a);
+            const indexB = allAppCards.indexOf(b);
+            return indexB - indexA;
+        });
+    } else {
+        sortedUnpinned = unpinnedAppCards;
+    }
+
+    const finalAppList = [...pinnedAppCards, ...sortedUnpinned];
+    renderApps(finalAppList);
+
+    if (searchInput.value) {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
+function setupFilters() {
+    const filterContainer = document.getElementById('filter-container');
+    if (!filterContainer) return;
+
     filterContainer.addEventListener('click', (e) => {
         const button = e.target.closest('.filter-btn');
         if (!button || button.classList.contains('active')) return;
 
         filterContainer.querySelector('.active')?.classList.remove('active');
         button.classList.add('active');
-        applyFilter();
+        applyAppListFilterAndRender();
     });
 
-    applyFilter();
+    applyAppListFilterAndRender();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -393,6 +441,26 @@ document.addEventListener('DOMContentLoaded', () => {
             history.pushState({}, '', `?app=${moduleFile}`);
             router();
             return;
+        }
+    });
+
+    // --- НОВЫЙ ОБРАБОТЧИК ДЛЯ ЗАКРЕПЛЕНИЯ ---
+    dynamicContentArea.addEventListener('click', e => {
+        const pinBtn = e.target.closest('.pin-btn');
+        if (pinBtn) {
+            e.stopPropagation(); // Важно, чтобы не сработал клик по ссылке-родителю
+            const appCard = pinBtn.closest('.app-item');
+            const moduleName = appCard?.dataset.module;
+            if (!moduleName) return;
+
+            let pinnedApps = getPinnedApps();
+            if (pinnedApps.includes(moduleName)) {
+                pinnedApps = pinnedApps.filter(m => m !== moduleName);
+            } else {
+                pinnedApps.push(moduleName);
+            }
+            savePinnedApps(pinnedApps);
+            applyAppListFilterAndRender(); // Перерисовываем список
         }
     });
 
