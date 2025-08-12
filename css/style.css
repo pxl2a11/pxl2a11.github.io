@@ -51,11 +51,11 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* --- НОВЫЕ СТИЛИ ДЛЯ КНОПКИ ЗАКРЕПЛЕНИЯ --- */
+/* --- ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ КНОПКИ ЗАКРЕПЛЕНИЯ --- */
 .pin-btn {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 0.25rem;
+    right: 0.25rem;
     z-index: 20;
     padding: 0.35rem;
     border-radius: 9999px;
@@ -75,26 +75,32 @@
 }
 
 .pin-btn svg {
-    width: 1.1rem;
-    height: 1.1rem;
-    transition: all 0.2s ease;
+    width: 1rem;
+    height: 1rem;
+    display: block;
 }
 
+/* Стили по умолчанию для иконки */
 .pin-btn .pin-icon-path {
+    fill: none;
     stroke: #9ca3af; /* gray-400 */
+    stroke-miterlimit: 10;
+    stroke-width: 2px;
 }
 .pin-btn .pin-icon-poly {
+    stroke: none;
     fill: #9ca3af; /* gray-400 */
 }
 
+/* Стили для темной темы */
 .dark .pin-btn .pin-icon-path {
-    stroke: #6b7280; /* gray-500 */
+    stroke: #9ca3af; /* gray-400, достаточно контрастный */
 }
 .dark .pin-btn .pin-icon-poly {
-    fill: #6b7280; /* gray-500 */
+    fill: #9ca3af; /* gray-400 */
 }
 
-/* Pinned state */
+/* Стили для закрепленного состояния */
 .pin-btn.pinned .pin-icon-path {
     stroke: #3b82f6; /* blue-500 */
 }
@@ -107,7 +113,7 @@
 .dark .pin-btn.pinned .pin-icon-poly {
     fill: #60a5fa; /* blue-400 */
 }
-/* --- КОНЕЦ НОВЫХ СТИЛЕЙ --- */
+/* --- КОНЕЦ ИСПРАВЛЕННЫХ СТИЛЕЙ --- */
 
 
 /* --- УЛУЧШЕННЫЕ СТИЛИ ДЛЯ ПИАНИНО --- */
