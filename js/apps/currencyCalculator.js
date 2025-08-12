@@ -1,5 +1,3 @@
---- START OF FILE js/apps/currencyCalculator.js ---
-
 const commonCSS = `
     .currency-select, .currency-input {
         padding: 0.75rem;
