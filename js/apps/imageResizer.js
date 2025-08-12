@@ -9,6 +9,15 @@ const commonCSS = `
         border: 1px solid #d1d5db;
         background-color: #f9fafb;
     }
+    /* Убираем стрелочки из input[type=number] */
+    .resizer-input {
+      -moz-appearance: textfield;
+    }
+    .resizer-input::-webkit-outer-spin-button,
+    .resizer-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
     .dark .resizer-input {
         background-color: #374151;
         border-color: #4b5563;
@@ -99,13 +108,13 @@ export function init() {
     });
 
     widthInput.addEventListener('input', () => {
-        if (aspectRatioLock.checked) {
+        if (aspectRatioLock.checked && originalWidth > 0) {
             heightInput.value = Math.round((widthInput.value / originalWidth) * originalHeight);
         }
     });
 
     heightInput.addEventListener('input', () => {
-        if (aspectRatioLock.checked) {
+        if (aspectRatioLock.checked && originalHeight > 0) {
             widthInput.value = Math.round((heightInput.value / originalHeight) * originalWidth);
         }
     });
@@ -114,8 +123,8 @@ export function init() {
         const newWidth = parseInt(widthInput.value, 10);
         const newHeight = parseInt(heightInput.value, 10);
 
-        if (!newWidth || !newHeight || !imageFile) {
-            alert('Пожалуйста, выберите файл и укажите размеры.');
+        if (!newWidth || !newHeight || !imageFile || newWidth <= 0 || newHeight <= 0) {
+            alert('Пожалуйста, выберите файл и укажите корректные размеры.');
             return;
         }
 
@@ -132,6 +141,7 @@ export function init() {
                 link.href = URL.createObjectURL(blob);
                 link.download = `resized-${imageFile.name}`;
                 link.click();
+                URL.revokeObjectURL(link.href);
             }, imageFile.type);
         };
         img.src = URL.createObjectURL(imageFile);
