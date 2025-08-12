@@ -51,6 +51,65 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* --- НОВЫЕ СТИЛИ ДЛЯ КНОПКИ ЗАКРЕПЛЕНИЯ --- */
+.pin-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 20;
+    padding: 0.35rem;
+    border-radius: 9999px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.pin-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: scale(1.1);
+}
+
+.dark .pin-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.pin-btn svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    transition: all 0.2s ease;
+}
+
+.pin-btn .pin-icon-path {
+    stroke: #9ca3af; /* gray-400 */
+}
+.pin-btn .pin-icon-poly {
+    fill: #9ca3af; /* gray-400 */
+}
+
+.dark .pin-btn .pin-icon-path {
+    stroke: #6b7280; /* gray-500 */
+}
+.dark .pin-btn .pin-icon-poly {
+    fill: #6b7280; /* gray-500 */
+}
+
+/* Pinned state */
+.pin-btn.pinned .pin-icon-path {
+    stroke: #3b82f6; /* blue-500 */
+}
+.pin-btn.pinned .pin-icon-poly {
+    fill: #3b82f6; /* blue-500 */
+}
+.dark .pin-btn.pinned .pin-icon-path {
+    stroke: #60a5fa; /* blue-400 */
+}
+.dark .pin-btn.pinned .pin-icon-poly {
+    fill: #60a5fa; /* blue-400 */
+}
+/* --- КОНЕЦ НОВЫХ СТИЛЕЙ --- */
+
+
 /* --- УЛУЧШЕННЫЕ СТИЛИ ДЛЯ ПИАНИНО --- */
 .piano-container {
     display: flex;
