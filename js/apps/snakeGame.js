@@ -1,13 +1,13 @@
 let canvas, ctx;
 let gameInterval, keydownHandler, resizeObserver;
 const gridSize = 20;
-// --- ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлена переменная nextDirection ---
-let snake, food, score, direction, nextDirection, gameActive, gamePaused;
+// --- ИЗМЕНЕНИЕ: Добавлена переменная 'canChangeDirection' ---
+let snake, food, score, direction, gameActive, gamePaused, canChangeDirection;
 
 // --- ПАРАМЕТРЫ СКОРОСТИ ---
-const INITIAL_SPEED = 666; // Начальный интервал в мс (чем больше, тем медленнее)
-const SPEED_INCREMENT = 12;  // На сколько мс уменьшать интервал за каждое очко
-const MAX_SPEED = 60;        // Максимальная скорость (минимальный интервал)
+const INITIAL_SPEED = 666;
+const SPEED_INCREMENT = 12;
+const MAX_SPEED = 60;
 let currentSpeed;
 
 export function getHtml() {
@@ -40,9 +40,7 @@ function resetAndDraw() {
     
     score = 0;
     currentSpeed = INITIAL_SPEED;
-    // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Инициализируем оба направления ---
     direction = 'right';
-    nextDirection = 'right';
     document.getElementById('snake-score').textContent = score;
     placeFood();
     draw();
@@ -86,14 +84,9 @@ function updateGameSpeed() {
 
 function gameLoop() {
     if (!gameActive || gamePaused) return;
-    
-    // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Логика буфера направления ---
-    // Прежде чем двигаться, мы проверяем, не является ли следующее направление
-    // противоположным текущему. Если нет, мы обновляем текущее направление.
-    const oppositeDirections = { 'up': 'down', 'down': 'up', 'left': 'right', 'right': 'left' };
-    if (nextDirection !== oppositeDirections[direction]) {
-        direction = nextDirection;
-    }
+
+    // --- ИЗМЕНЕНИЕ: В начале каждого шага, мы "разрешаем" изменить направление ---
+    canChangeDirection = true;
 
     const head = { x: snake[0].x, y: snake[0].y };
 
@@ -176,6 +169,7 @@ export function init() {
 
     gameActive = false;
     gamePaused = false;
+    canChangeDirection = true; // --- ИЗМЕНЕНИЕ: Начальное состояние ---
 
     overlay.addEventListener('click', () => {
         if (gameActive) {
@@ -195,11 +189,19 @@ export function init() {
             e.preventDefault();
         }
         
-        // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Мы меняем не 'direction', а 'nextDirection' ---
-        if (key === 'ArrowUp') nextDirection = 'up';
-        else if (key === 'ArrowDown') nextDirection = 'down';
-        else if (key === 'ArrowLeft') nextDirection = 'left';
-        else if (key === 'ArrowRight') nextDirection = 'right';
+        // --- ИЗМЕНЕНИЕ: Вся логика смены направления обернута в условие ---
+        if (!canChangeDirection) return; // Если менять направление нельзя, выходим
+
+        let newDirection = null;
+        if (key === 'ArrowUp' && direction !== 'down') newDirection = 'up';
+        else if (key === 'ArrowDown' && direction !== 'up') newDirection = 'down';
+        else if (key === 'ArrowLeft' && direction !== 'right') newDirection = 'left';
+        else if (key === 'ArrowRight' && direction !== 'left') newDirection = 'right';
+
+        if (newDirection) {
+            direction = newDirection;
+            canChangeDirection = false; // "Запираем" возможность смены до следующего шага
+        }
     };
 
     window.addEventListener('keydown', keydownHandler);
