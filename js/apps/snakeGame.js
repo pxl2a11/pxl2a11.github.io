@@ -1,5 +1,5 @@
 let canvas, ctx;
-let gameInterval, keydownHandler;
+let gameInterval, keydownHandler, resizeObserver;
 const gridSize = 20;
 let snake, food, score, direction, gameActive, gamePaused;
 
@@ -10,7 +10,7 @@ export function getHtml() {
                 <span class="font-bold text-lg">Счет: <span id="snake-score">0</span></span>
                 <button id="pause-btn" class="px-3 py-1 rounded bg-yellow-500 text-white">Пауза</button>
             </div>
-            <div class="relative w-full max-w-md" style="aspect-ratio: 1/1;">
+            <div id="snake-canvas-container" class="relative w-full max-w-md" style="aspect-ratio: 1/1;">
                  <canvas id="snake-canvas"></canvas>
                  <div id="game-overlay" class="snake-game-overlay">
                      <h3 id="overlay-title" class="text-2xl font-bold">Нажмите, чтобы начать</h3>
@@ -21,20 +21,23 @@ export function getHtml() {
     `;
 }
 
-function resetGame() {
+function resetAndDraw() {
     const container = canvas.parentElement;
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
 
-    const tileCount = Math.floor(canvas.width / gridSize);
-    snake = [{ x: Math.floor(tileCount / 2), y: Math.floor(tileCount / 2) }];
-    food = {};
+    const tileCountX = Math.floor(canvas.width / gridSize);
+    const tileCountY = Math.floor(canvas.height / gridSize);
+    
+    // Центрируем змейку
+    snake = [{ x: Math.floor(tileCountX / 2), y: Math.floor(tileCountY / 2) }];
+    
+    // Сбрасываем остальные параметры
     score = 0;
     direction = 'right';
-    gameActive = false;
-    gamePaused = false;
     document.getElementById('snake-score').textContent = score;
     placeFood();
+    draw();
 }
 
 function placeFood() {
@@ -44,7 +47,6 @@ function placeFood() {
         x: Math.floor(Math.random() * tileCountX),
         y: Math.floor(Math.random() * tileCountY)
     };
-    // Убедимся, что еда не появляется на змейке
     for (let segment of snake) {
         if (segment.x === food.x && segment.y === food.y) {
             placeFood();
@@ -54,15 +56,12 @@ function placeFood() {
 }
 
 function draw() {
-    // Очистка поля
     ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#0f172a' : '#f1f5f9';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Рисуем еду
     ctx.fillStyle = '#ef4444'; // red-500
     ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 
-    // Рисуем змейку
     for (let i = 0; i < snake.length; i++) {
         ctx.fillStyle = i === 0 ? '#10b981' : '#16a34a'; // emerald-500, green-600
         ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 2, gridSize - 2);
@@ -84,13 +83,11 @@ function gameLoop() {
     const tileCountX = Math.floor(canvas.width / gridSize);
     const tileCountY = Math.floor(canvas.height / gridSize);
 
-    // Проверка на столкновение со стенами
     if (head.x < 0 || head.x >= tileCountX || head.y < 0 || head.y >= tileCountY) {
         endGame();
         return;
     }
 
-    // Проверка на столкновение с собой
     for (let i = 1; i < snake.length; i++) {
         if (head.x === snake[i].x && head.y === snake[i].y) {
             endGame();
@@ -100,7 +97,6 @@ function gameLoop() {
 
     snake.unshift(head);
 
-    // Проверка на съедание еды
     if (head.x === food.x && head.y === food.y) {
         score++;
         document.getElementById('snake-score').textContent = score;
@@ -118,7 +114,7 @@ function startGame() {
     gameActive = true;
     gamePaused = false;
     document.getElementById('pause-btn').textContent = "Пауза";
-    gameInterval = setInterval(gameLoop, 120);
+    gameInterval = setInterval(gameLoop, 150); // Скорость уменьшена
 }
 
 function endGame() {
@@ -148,18 +144,19 @@ function togglePause() {
 
 export function init() {
     canvas = document.getElementById('snake-canvas');
+    const canvasContainer = document.getElementById('snake-canvas-container');
     ctx = canvas.getContext('2d');
     const overlay = document.getElementById('game-overlay');
     const pauseBtn = document.getElementById('pause-btn');
 
-    resetGame();
-    draw();
+    gameActive = false;
+    gamePaused = false;
 
     overlay.addEventListener('click', () => {
         if (gameActive) {
             if (gamePaused) togglePause();
         } else {
-            resetGame();
+            resetAndDraw();
             startGame();
         }
     });
@@ -175,9 +172,22 @@ export function init() {
     };
 
     window.addEventListener('keydown', keydownHandler);
+    
+    // Наблюдатель за размером контейнера
+    resizeObserver = new ResizeObserver(() => {
+        if (!gameActive) {
+            resetAndDraw();
+        }
+    });
+
+    resizeObserver.observe(canvasContainer);
+    resetAndDraw(); // Первоначальная отрисовка
 }
 
 export function cleanup() {
     clearInterval(gameInterval);
     window.removeEventListener('keydown', keydownHandler);
+    if (resizeObserver) {
+        resizeObserver.disconnect();
+    }
 }
