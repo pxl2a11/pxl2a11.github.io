@@ -31,6 +31,10 @@ const appNameToModuleFile = {
     'Конвертер форматов изображений': 'imageConverter',
     'Конвертер цветов': 'colorConverter',
     'Игра на память': 'memoryGame',
+    'Транслитерация текста': 'textTranslit',
+    'Изменение размера изображений': 'imageResizer',
+    'Калькулятор валют': 'currencyCalculator',
+    'Змейка': 'snakeGame',
 };
 
 // --- Рейтинг популярности (условный) ---
@@ -43,6 +47,7 @@ const appPopularity = {
     'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55,
     'numberGenerator': 54, 'changelogPage': 10,
     'imageConverter': 91, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76,
+    'imageResizer': 90, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74,
 };
 
 // --- Ключевые слова и хэштеги для поиска ---
@@ -75,6 +80,10 @@ const appSearchMetadata = {
     'imageConverter': { keywords: ['конвертер', 'изображения', 'картинки', 'png', 'jpg', 'webp', 'формат', 'преобразовать'], hashtags: ['#image', '#tools', '#converter'] },
     'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] },
     'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] },
+    'textTranslit': { keywords: ['транслит', 'латиница', 'кириллица', 'текст', 'перевод', 'cyrillic', 'latin'], hashtags: ['#text', '#tools'] },
+    'imageResizer': { keywords: ['изображение', 'картинка', 'размер', 'уменьшить', 'увеличить', 'ресайз', 'resize'], hashtags: ['#image', '#tools'] },
+    'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] },
+    'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },
 };
 
 const moduleFileToAppName = Object.fromEntries(
