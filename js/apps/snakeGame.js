@@ -3,9 +3,10 @@ let gameInterval, keydownHandler, resizeObserver;
 const gridSize = 20;
 let snake, food, score, direction, gameActive, gamePaused;
 
-// --- НОВЫЕ ПАРАМЕТРЫ СКОРОСТИ ---
-const INITIAL_SPEED = 200; // Начальный интервал в мс (чем больше, тем медленнее)
-const SPEED_INCREMENT = 4;   // На сколько мс уменьшать интервал за каждое очко
+// --- ПАРАМЕТРЫ СКОРОСТИ ---
+// ИЗМЕНЕНО: Начальная скорость значительно замедлена
+const INITIAL_SPEED = 800; // Начальный интервал в мс (чем больше, тем медленнее)
+const SPEED_INCREMENT = 12;  // На сколько мс уменьшать интервал за каждое очко
 const MAX_SPEED = 60;        // Максимальная скорость (минимальный интервал)
 let currentSpeed;
 
@@ -75,7 +76,7 @@ function draw() {
 
 function updateGameSpeed() {
     const newSpeed = INITIAL_SPEED - (score * SPEED_INCREMENT);
-    currentSpeed = Math.max(newSpeed, MAX_SPEED); // Убедимся, что скорость не превышает максимальную
+    currentSpeed = Math.max(newSpeed, MAX_SPEED);
     
     clearInterval(gameInterval);
     gameInterval = setInterval(gameLoop, currentSpeed);
@@ -113,7 +114,7 @@ function gameLoop() {
     if (head.x === food.x && head.y === food.y) {
         score++;
         document.getElementById('snake-score').textContent = score;
-        updateGameSpeed(); // Увеличиваем скорость
+        updateGameSpeed();
         placeFood();
     } else {
         snake.pop();
