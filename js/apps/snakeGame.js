@@ -3,6 +3,12 @@ let gameInterval, keydownHandler, resizeObserver;
 const gridSize = 20;
 let snake, food, score, direction, gameActive, gamePaused;
 
+// --- НОВЫЕ ПАРАМЕТРЫ СКОРОСТИ ---
+const INITIAL_SPEED = 200; // Начальный интервал в мс (чем больше, тем медленнее)
+const SPEED_INCREMENT = 4;   // На сколько мс уменьшать интервал за каждое очко
+const MAX_SPEED = 60;        // Максимальная скорость (минимальный интервал)
+let currentSpeed;
+
 export function getHtml() {
     return `
         <div class="snake-game-container">
@@ -29,11 +35,10 @@ function resetAndDraw() {
     const tileCountX = Math.floor(canvas.width / gridSize);
     const tileCountY = Math.floor(canvas.height / gridSize);
     
-    // Центрируем змейку
     snake = [{ x: Math.floor(tileCountX / 2), y: Math.floor(tileCountY / 2) }];
     
-    // Сбрасываем остальные параметры
     score = 0;
+    currentSpeed = INITIAL_SPEED; // Сбрасываем скорость
     direction = 'right';
     document.getElementById('snake-score').textContent = score;
     placeFood();
@@ -59,13 +64,21 @@ function draw() {
     ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#0f172a' : '#f1f5f9';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = '#ef4444'; // red-500
+    ctx.fillStyle = '#ef4444';
     ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 
     for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? '#10b981' : '#16a34a'; // emerald-500, green-600
+        ctx.fillStyle = i === 0 ? '#10b981' : '#16a34a';
         ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 2, gridSize - 2);
     }
+}
+
+function updateGameSpeed() {
+    const newSpeed = INITIAL_SPEED - (score * SPEED_INCREMENT);
+    currentSpeed = Math.max(newSpeed, MAX_SPEED); // Убедимся, что скорость не превышает максимальную
+    
+    clearInterval(gameInterval);
+    gameInterval = setInterval(gameLoop, currentSpeed);
 }
 
 function gameLoop() {
@@ -100,6 +113,7 @@ function gameLoop() {
     if (head.x === food.x && head.y === food.y) {
         score++;
         document.getElementById('snake-score').textContent = score;
+        updateGameSpeed(); // Увеличиваем скорость
         placeFood();
     } else {
         snake.pop();
@@ -114,7 +128,7 @@ function startGame() {
     gameActive = true;
     gamePaused = false;
     document.getElementById('pause-btn').textContent = "Пауза";
-    gameInterval = setInterval(gameLoop, 150); // Скорость уменьшена
+    gameInterval = setInterval(gameLoop, currentSpeed);
 }
 
 function endGame() {
@@ -173,7 +187,6 @@ export function init() {
 
     window.addEventListener('keydown', keydownHandler);
     
-    // Наблюдатель за размером контейнера
     resizeObserver = new ResizeObserver(() => {
         if (!gameActive) {
             resetAndDraw();
@@ -181,7 +194,7 @@ export function init() {
     });
 
     resizeObserver.observe(canvasContainer);
-    resetAndDraw(); // Первоначальная отрисовка
+    resetAndDraw();
 }
 
 export function cleanup() {
