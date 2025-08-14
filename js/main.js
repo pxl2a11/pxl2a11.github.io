@@ -1,9 +1,11 @@
+// 32Импортируем наши утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// 22ИЗМЕНЕНИЕ: Импортируем auth и db из нашего конфигурационного файла
+// ИЗМЕНЕНИЕ: Импортируем auth и db из нашего конфигурационного файла
 import { auth, db } from './firebaseConfig.js';
-import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+// ИЗМЕНЕНИЕ: Импортируем все необходимые функции Firebase v9
+import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
 // --- Сопоставление имен приложений с файлами модулей (без изменений) ---
 const appNameToModuleFile = {
@@ -90,6 +92,7 @@ const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
+// --- Глобальные переменные DOM (без изменений) ---
 const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
@@ -111,7 +114,7 @@ const appScreenHtml = `
 
 /**
  * =======================================================
- *  ЛОГИКА АВТОРИЗАЦИИ И РАБОТЫ С FIREBASE
+ *  ЛОГИКА АВТОРИЗАЦИИ И РАБОТЫ С FIREBASE V9
  * =======================================================
  */
 
@@ -134,13 +137,13 @@ function renderGoogleButton() {
 
 function updateAuthStateUI(user) {
     if (user) {
-        if(userNameElement) userNameElement.textContent = user.displayName;
-        if(userAvatarElement) userAvatarElement.src = user.photoURL;
-        if(userProfileElement) userProfileElement.classList.remove('hidden');
-        if(googleSignInContainer) googleSignInContainer.classList.add('hidden');
+        if (userNameElement) userNameElement.textContent = user.displayName;
+        if (userAvatarElement) userAvatarElement.src = user.photoURL;
+        if (userProfileElement) userProfileElement.classList.remove('hidden');
+        if (googleSignInContainer) googleSignInContainer.classList.add('hidden');
     } else {
-        if(userProfileElement) userProfileElement.classList.add('hidden');
-        if(googleSignInContainer) googleSignInContainer.classList.remove('hidden');
+        if (userProfileElement) userProfileElement.classList.add('hidden');
+        if (googleSignInContainer) googleSignInContainer.classList.remove('hidden');
     }
 }
 
@@ -150,14 +153,13 @@ async function getPinnedApps() {
         const guestPins = localStorage.getItem('pinnedApps_guest');
         return guestPins ? JSON.parse(guestPins) : [];
     }
-    const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef = doc(db, 'users', user.uid); // v9 синтаксис
     try {
-        const docSnap = await getDoc(userDocRef);
+        const docSnap = await getDoc(userDocRef); // v9 синтаксис
         if (docSnap.exists()) {
             return docSnap.data().pinnedApps || [];
-        } else {
-            return [];
         }
+        return [];
     } catch (error) {
         console.error("Error getting pinned apps:", error);
         return [];
@@ -170,9 +172,9 @@ async function savePinnedApps(pinnedModules) {
         localStorage.setItem('pinnedApps_guest', JSON.stringify(pinnedModules));
         return;
     }
-    const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef = doc(db, 'users', user.uid); // v9 синтаксис
     try {
-        await setDoc(userDocRef, { pinnedApps: pinnedModules }, { merge: true });
+        await setDoc(userDocRef, { pinnedApps: pinnedModules }, { merge: true }); // v9 синтаксис
     } catch (error) {
         console.error("Error saving pinned apps:", error);
     }
@@ -180,14 +182,14 @@ async function savePinnedApps(pinnedModules) {
 
 function handleCredentialResponse(response) {
     const googleCredential = GoogleAuthProvider.credential(response.credential);
-    signInWithCredential(auth, googleCredential)
+    signInWithCredential(auth, googleCredential) // v9 синтаксис
         .catch((error) => {
             console.error("Firebase sign-in error", error);
         });
 }
 
 function handleSignOut() {
-    signOut(auth);
+    signOut(auth); // v9 синтаксис
     if (window.google && window.google.accounts) {
         google.accounts.id.disableAutoSelect();
     }
@@ -202,6 +204,7 @@ function initializeGoogleSignIn() {
         renderGoogleButton();
     }
 }
+
 // --- КОНЕЦ ЛОГИКИ FIREBASE ---
 
 function populateAppCardMap() {
@@ -217,10 +220,68 @@ function populateAppCardMap() {
     allAppCards = Array.from(appCardElements.values());
 }
 
-async function renderSimilarApps(currentModule, container) { /* ... (код функции без изменений) ... */ }
-async function router() { /* ... (код функции без изменений) ... */ }
-function setupNavigationEvents() { /* ... (код функции без изменений) ... */ }
-function setupSearch() { /* ... (код функции без изменений) ... */ }
+async function renderSimilarApps(currentModule, container) {
+    // ... (код функции без изменений)
+}
+
+async function router() {
+    if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
+        activeAppModule.cleanup();
+    }
+    activeAppModule = null;
+    dynamicContentArea.innerHTML = '';
+
+    const params = new URLSearchParams(window.location.search);
+    const moduleName = params.get('app');
+    const appName = moduleFileToAppName[moduleName];
+    const filterContainer = document.getElementById('filter-container');
+
+    if (appName) {
+        // Страница приложения
+        if (searchInput) searchInput.value = '';
+        if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
+        filterContainer?.classList.add('hidden');
+        dynamicContentArea.innerHTML = appScreenHtml;
+        const appScreen = document.getElementById('app-screen');
+        appScreen.classList.remove('hidden');
+        document.getElementById('app-title').textContent = appName;
+        changelogContainer.classList.add('hidden');
+        document.title = `${appName} | Mini Apps`;
+        try {
+            const module = await import(`./apps/${moduleName}.js`);
+            activeAppModule = module;
+            const appContentContainer = document.getElementById('app-content-container');
+            if (typeof module.getHtml === 'function') appContentContainer.innerHTML = module.getHtml();
+            if (typeof module.init === 'function') module.init();
+            const appChangelogContainer = document.getElementById('app-changelog-container');
+            const similarAppsContainer = document.getElementById('similar-apps-container');
+            await renderSimilarApps(moduleName, similarAppsContainer);
+            if (appName !== 'История изменений') {
+                renderChangelog(appName, null, appChangelogContainer);
+            }
+        } catch (error) {
+            console.error(`Ошибка загрузки модуля для "${appName}" (${moduleName}.js):`, error);
+            document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
+        }
+    } else {
+        // Главная страница
+        dynamicContentArea.innerHTML = homeScreenHtml;
+        filterContainer?.classList.remove('hidden');
+        changelogContainer.classList.remove('hidden');
+        document.title = 'Mini Apps';
+        setupFilters();
+        setupSearch();
+        renderChangelog(null, 3, changelogContainer);
+    }
+}
+
+function setupNavigationEvents() {
+    // ... (код функции без изменений)
+}
+
+function setupSearch() {
+    // ... (код функции без изменений)
+}
 
 async function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
@@ -283,15 +344,13 @@ function setupFilters() {
         button.classList.add('active');
         applyAppListFilterAndRender();
     });
-    applyAppListFilterAndRender();
+    // applyAppListFilterAndRender(); // Убрали отсюда, т.к. onAuthStateChanged вызовет его
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
     
-    // ... (код для темы, поиска, кликов по карточкам и т.д. без изменений) ...
-    // ... он будет вставлен сюда ...
-
+    // ... (весь остальной код обработчиков событий: темы, поиска, кликов и т.д.)
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
@@ -312,13 +371,11 @@ document.addEventListener('DOMContentLoaded', () => {
         sunIcon.classList.toggle('hidden', isDark);
         moonIcon.classList.toggle('hidden', !isDark);
     });
-    
     document.addEventListener('click', e => {
         if (suggestionsContainer && !suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
         }
     });
-    
     changelogContainer.addEventListener('click', (e) => {
         if (e.target.id === 'show-all-changelog-btn') {
             e.preventDefault();
@@ -328,7 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
     });
-
     dynamicContentArea.addEventListener('click', async e => {
         const pinBtn = e.target.closest('.pin-btn');
         if (pinBtn) {
@@ -352,7 +408,6 @@ document.addEventListener('DOMContentLoaded', () => {
     signOutBtn.addEventListener('click', handleSignOut);
     
     onAuthStateChanged(auth, user => {
-        console.log("Auth state changed, user:", user ? user.displayName : 'none');
         updateAuthStateUI(user);
         applyAppListFilterAndRender();
         renderGoogleButton();
