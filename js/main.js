@@ -1,4 +1,4 @@
-// 36Импортируем наши утилиты
+// Импортируем наши утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
 // Импортируем auth и db из нашего конфигурационного файла
@@ -123,15 +123,19 @@ const userNameElement = document.getElementById('user-name');
 const signOutBtn = document.getElementById('sign-out-btn');
 const googleSignInContainer = document.getElementById('google-signin-top-right-container');
 
+// Флаг, чтобы убедиться, что GSI инициализирован
+let isGsiInitialized = false;
+
 function renderGoogleButton() {
-    if (googleSignInContainer && !auth.currentUser) {
-        googleSignInContainer.innerHTML = '';
-        window.google.accounts.id.renderButton(
-            googleSignInContainer,
-            { type: "icon", shape: "circle", theme: "outline", size: "large" }
-        );
-        googleSignInContainer.classList.remove('hidden');
+    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) {
+        return;
     }
+    googleSignInContainer.innerHTML = '';
+    window.google.accounts.id.renderButton(
+        googleSignInContainer,
+        { type: "icon", shape: "circle", theme: "outline", size: "large" }
+    );
+    googleSignInContainer.classList.remove('hidden');
 }
 
 function updateAuthStateUI(user) {
@@ -200,7 +204,8 @@ function initializeGoogleSignIn() {
             client_id: '327345325953-bubmv3lac6ctv2tgddin8mshdbceve27.apps.googleusercontent.com',
             callback: handleCredentialResponse
         });
-        renderGoogleButton();
+        isGsiInitialized = true; // Устанавливаем флаг
+        renderGoogleButton(); // Пробуем отрисовать кнопку сразу после инициализации
     }
 }
 
@@ -222,9 +227,7 @@ function populateAppCardMap() {
 async function renderSimilarApps(currentModule, container) {
     const currentAppMeta = appSearchMetadata[currentModule];
     if (!currentAppMeta || !currentAppMeta.hashtags || currentAppMeta.hashtags.length === 0) {
-        container.innerHTML = '';
-        container.classList.add('hidden');
-        return;
+        container.innerHTML = ''; container.classList.add('hidden'); return;
     }
     const currentHashtags = new Set(currentAppMeta.hashtags);
     let similarModules = [];
@@ -238,18 +241,14 @@ async function renderSimilarApps(currentModule, container) {
     similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
     const topSimilar = similarModules.slice(0, 3);
     if (topSimilar.length === 0) {
-        container.innerHTML = '';
-        container.classList.add('hidden');
-        return;
+        container.innerHTML = ''; container.classList.add('hidden'); return;
     }
     container.innerHTML = `<h3 class="text-xl font-bold mb-4">Похожие приложения</h3>`;
     const grid = document.createElement('div');
     grid.className = 'similar-apps-grid';
     topSimilar.forEach(module => {
         const card = appCardElements.get(module);
-        if (card) {
-            grid.appendChild(card.cloneNode(true));
-        }
+        if (card) grid.appendChild(card.cloneNode(true));
     });
     container.appendChild(grid);
     container.classList.remove('hidden');
@@ -286,9 +285,7 @@ async function router() {
             const appChangelogContainer = document.getElementById('app-changelog-container');
             const similarAppsContainer = document.getElementById('similar-apps-container');
             await renderSimilarApps(moduleName, similarAppsContainer);
-            if (appName !== 'История изменений') {
-                renderChangelog(appName, null, appChangelogContainer);
-            }
+            if (appName !== 'История изменений') renderChangelog(appName, null, appChangelogContainer);
         } catch (error) {
             console.error(`Ошибка загрузки модуля для "${appName}" (${moduleName}.js):`, error);
             document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
@@ -308,11 +305,7 @@ function setupNavigationEvents() {
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a');
         if (!link || e.target.closest('.pin-btn')) return;
-        if (link.id === 'back-button') {
-            e.preventDefault();
-            history.back();
-            return;
-        }
+        if (link.id === 'back-button') { e.preventDefault(); history.back(); return; }
         const url = new URL(link.href);
         if (url.origin === window.location.origin) {
             const isAppNavigation = url.search.startsWith('?app=') || (url.pathname === '/' && !url.search);
@@ -335,9 +328,10 @@ function setupNavigationEvents() {
 }
 
 function setupSearch() {
-    const appsContainer = document.getElementById('apps-container');
-    if (!appsContainer) return;
+    if (!searchInput) return;
     searchInput.addEventListener('input', () => {
+        const appsContainer = document.getElementById('apps-container');
+        if (!appsContainer) return;
         const allApps = appsContainer.querySelectorAll('.app-item');
         const searchTerm = searchInput.value.toLowerCase().trim();
         const suggestions = [];
@@ -437,7 +431,7 @@ function setupFilters() {
         button.classList.add('active');
         applyAppListFilterAndRender();
     });
-    applyAppListFilterAndRender();
+    // applyAppListFilterAndRender(); // Убрали, т.к. onAuthStateChanged вызовет его
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -505,7 +499,10 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, user => {
         updateAuthStateUI(user);
         applyAppListFilterAndRender();
-        renderGoogleButton();
+        // Рендерим кнопку только после того, как GSI будет готов
+        if (isGsiInitialized) {
+            renderGoogleButton();
+        }
     });
     
     const checkGoogle = setInterval(() => {
