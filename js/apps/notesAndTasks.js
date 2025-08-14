@@ -1,39 +1,4 @@
-import { auth, db } from '/js/firebaseConfig.js';
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
-
-// Утилита для управления хранилищем
-const getStorageManager = (dataKey, defaultValue = []) => {
-    return {
-        async getData() {
-            const user = auth.currentUser;
-            if (!user) {
-                const localData = localStorage.getItem(`${dataKey}_guest`);
-                return localData ? JSON.parse(localData) : defaultValue;
-            }
-            const userDocRef = doc(db, 'users', user.uid);
-            try {
-                const docSnap = await getDoc(userDocRef);
-                return (docSnap.exists() && docSnap.data()[dataKey]) ? docSnap.data()[dataKey] : defaultValue;
-            } catch (error) {
-                console.error(`Error getting ${dataKey}:`, error);
-                return defaultValue;
-            }
-        },
-        async saveData(data) {
-            const user = auth.currentUser;
-            if (!user) {
-                localStorage.setItem(`${dataKey}_guest`, JSON.stringify(data));
-                return;
-            }
-            const userDocRef = doc(db, 'users', user.uid);
-            try {
-                await setDoc(userDocRef, { [dataKey]: data }, { merge: true });
-            } catch (error) {
-                console.error(`Error saving ${dataKey}:`, error);
-            }
-        }
-    };
-};
+import { getUserData, saveUserData } from '/js/dataManager.js';
 
 export function getHtml() {
     return `
@@ -72,14 +37,12 @@ export async function init() {
     const addNoteBtn = document.getElementById('add-note-btn');
     const notesList = document.getElementById('notes-list');
 
-    const tasksManager = getStorageManager('tasks');
-    const notesManager = getStorageManager('notes');
+    // Получаем данные через dataManager
+    let tasks = getUserData('tasks', []);
+    let notes = getUserData('notes', []);
 
-    let tasks = await tasksManager.getData();
-    let notes = await notesManager.getData();
-
-    const saveTasks = () => tasksManager.saveData(tasks);
-    const saveNotes = () => notesManager.saveData(notes);
+    const saveTasks = () => saveUserData('tasks', tasks);
+    const saveNotes = () => saveUserData('notes', notes);
 
     const switchTab = (activeTab) => {
         tasksTab.classList.toggle('active', activeTab === 'tasks');
@@ -91,16 +54,16 @@ export async function init() {
     tasksTab.addEventListener('click', () => switchTab('tasks'));
     notesTab.addEventListener('click', () => switchTab('notes'));
 
-    // --- TASKS LOGIC ---
+    // --- ЛОГИКА ЗАДАЧ ---
     const renderTasks = () => {
         tasksList.innerHTML = tasks.length === 0 ? '<p class="text-center text-gray-500 dark:text-gray-400">Список задач пуст.</p>' :
             tasks.map((task, index) => `
                 <div class="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                    <div class="flex items-center">
-                        <input type="checkbox" data-index="${index}" class="task-checkbox h-5 w-5 rounded-full" ${task.completed ? 'checked' : ''}>
-                        <span class="ml-3 ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
+                    <div class="flex items-center flex-grow min-w-0">
+                        <input type="checkbox" data-index="${index}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
+                        <span class="ml-3 break-all ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
                     </div>
-                    <button data-index="${index}" class="task-delete-btn text-red-500 hover:text-red-700 font-bold">✖</button>
+                    <button data-index="${index}" class="task-delete-btn text-red-500 hover:text-red-700 font-bold ml-2 flex-shrink-0">✖</button>
                 </div>
             `).join('');
     };
@@ -128,7 +91,7 @@ export async function init() {
         }
     });
 
-    // --- NOTES LOGIC ---
+    // --- ЛОГИКА ЗАМЕТОК ---
     const renderNotes = () => {
         notesList.innerHTML = notes.length === 0 ? '<p class="text-center text-gray-500 dark:text-gray-400">Список заметок пуст.</p>' :
             notes.map((noteText, index) => `
@@ -158,7 +121,7 @@ export async function init() {
         }
     });
 
-    // Initial Render
+    // Первая отрисовка
     renderTasks();
     renderNotes();
 }
