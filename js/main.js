@@ -1,9 +1,9 @@
-// 32Импортируем наши утилиты
+// Импортируем наши утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// ИЗМЕНЕНИЕ: Импортируем auth и db из нашего конфигурационного файла
+// Импортируем auth и db из нашего конфигурационного файла
 import { auth, db } from './firebaseConfig.js';
-// ИЗМЕНЕНИЕ: Импортируем все необходимые функции Firebase v9
+// Импортируем все необходимые функции Firebase v9
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
@@ -92,7 +92,6 @@ const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
-// --- Глобальные переменные DOM (без изменений) ---
 const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
@@ -153,9 +152,9 @@ async function getPinnedApps() {
         const guestPins = localStorage.getItem('pinnedApps_guest');
         return guestPins ? JSON.parse(guestPins) : [];
     }
-    const userDocRef = doc(db, 'users', user.uid); // v9 синтаксис
+    const userDocRef = doc(db, 'users', user.uid);
     try {
-        const docSnap = await getDoc(userDocRef); // v9 синтаксис
+        const docSnap = await getDoc(userDocRef);
         if (docSnap.exists()) {
             return docSnap.data().pinnedApps || [];
         }
@@ -172,9 +171,9 @@ async function savePinnedApps(pinnedModules) {
         localStorage.setItem('pinnedApps_guest', JSON.stringify(pinnedModules));
         return;
     }
-    const userDocRef = doc(db, 'users', user.uid); // v9 синтаксис
+    const userDocRef = doc(db, 'users', user.uid);
     try {
-        await setDoc(userDocRef, { pinnedApps: pinnedModules }, { merge: true }); // v9 синтаксис
+        await setDoc(userDocRef, { pinnedApps: pinnedModules }, { merge: true });
     } catch (error) {
         console.error("Error saving pinned apps:", error);
     }
@@ -182,14 +181,14 @@ async function savePinnedApps(pinnedModules) {
 
 function handleCredentialResponse(response) {
     const googleCredential = GoogleAuthProvider.credential(response.credential);
-    signInWithCredential(auth, googleCredential) // v9 синтаксис
+    signInWithCredential(auth, googleCredential)
         .catch((error) => {
             console.error("Firebase sign-in error", error);
         });
 }
 
 function handleSignOut() {
-    signOut(auth); // v9 синтаксис
+    signOut(auth);
     if (window.google && window.google.accounts) {
         google.accounts.id.disableAutoSelect();
     }
@@ -221,7 +220,39 @@ function populateAppCardMap() {
 }
 
 async function renderSimilarApps(currentModule, container) {
-    // ... (код функции без изменений)
+    const currentAppMeta = appSearchMetadata[currentModule];
+    if (!currentAppMeta || !currentAppMeta.hashtags || currentAppMeta.hashtags.length === 0) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        return;
+    }
+    const currentHashtags = new Set(currentAppMeta.hashtags);
+    let similarModules = [];
+    for (const moduleName in appSearchMetadata) {
+        if (moduleName === currentModule) continue;
+        const meta = appSearchMetadata[moduleName];
+        if (meta.hashtags && meta.hashtags.some(tag => currentHashtags.has(tag))) {
+            similarModules.push(moduleName);
+        }
+    }
+    similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
+    const topSimilar = similarModules.slice(0, 3);
+    if (topSimilar.length === 0) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        return;
+    }
+    container.innerHTML = `<h3 class="text-xl font-bold mb-4">Похожие приложения</h3>`;
+    const grid = document.createElement('div');
+    grid.className = 'similar-apps-grid';
+    topSimilar.forEach(module => {
+        const card = appCardElements.get(module);
+        if (card) {
+            grid.appendChild(card.cloneNode(true));
+        }
+    });
+    container.appendChild(grid);
+    container.classList.remove('hidden');
 }
 
 async function router() {
@@ -237,7 +268,6 @@ async function router() {
     const filterContainer = document.getElementById('filter-container');
 
     if (appName) {
-        // Страница приложения
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         filterContainer?.classList.add('hidden');
@@ -264,7 +294,6 @@ async function router() {
             document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
         }
     } else {
-        // Главная страница
         dynamicContentArea.innerHTML = homeScreenHtml;
         filterContainer?.classList.remove('hidden');
         changelogContainer.classList.remove('hidden');
@@ -276,11 +305,75 @@ async function router() {
 }
 
 function setupNavigationEvents() {
-    // ... (код функции без изменений)
+    document.body.addEventListener('click', e => {
+        const link = e.target.closest('a');
+        if (!link || e.target.closest('.pin-btn')) return;
+        if (link.id === 'back-button') {
+            e.preventDefault();
+            history.back();
+            return;
+        }
+        const url = new URL(link.href);
+        if (url.origin === window.location.origin) {
+            const isAppNavigation = url.search.startsWith('?app=') || (url.pathname === '/' && !url.search);
+            const isChangelogLink = link.classList.contains('changelog-link');
+            if (isAppNavigation || isChangelogLink) {
+                e.preventDefault();
+                if (window.location.href === link.href) return;
+                const appNameToOpen = link.dataset.appName;
+                if (isChangelogLink && appNameToOpen) {
+                    const moduleFile = appNameToModuleFile[appNameToOpen];
+                    if (moduleFile) history.pushState({}, '', `?app=${moduleFile}`);
+                } else {
+                    history.pushState({}, '', link.href);
+                }
+                router();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
 }
 
 function setupSearch() {
-    // ... (код функции без изменений)
+    const appsContainer = document.getElementById('apps-container');
+    if (!appsContainer) return;
+    searchInput.addEventListener('input', () => {
+        const allApps = appsContainer.querySelectorAll('.app-item');
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const suggestions = [];
+        allApps.forEach(app => {
+            const appName = app.dataset.name.toLowerCase();
+            const moduleName = app.dataset.module;
+            const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
+            const searchCorpus = [appName, ...metadata.keywords].join(' ');
+            const isVisible = searchCorpus.includes(searchTerm);
+            app.style.display = isVisible ? 'flex' : 'none';
+            if (isVisible && searchTerm.length > 0) {
+                suggestions.push({
+                    name: app.dataset.name, module: moduleName,
+                    hashtags: metadata.hashtags || []
+                });
+            }
+        });
+        suggestionsContainer.innerHTML = '';
+        if (searchTerm.length > 0 && suggestions.length > 0) {
+            suggestionsContainer.classList.remove('hidden');
+            suggestions.slice(0, 7).forEach(suggestion => {
+                const suggestionEl = document.createElement('div');
+                suggestionEl.className = 'suggestion-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
+                suggestionEl.innerHTML = `<span class="suggestion-name">${suggestion.name}</span><span class="suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4">${suggestion.hashtags.join(' ')}</span>`;
+                suggestionEl.addEventListener('click', () => {
+                    if (suggestion.module) {
+                        history.pushState({}, '', `?app=${suggestion.module}`);
+                        router();
+                    }
+                });
+                suggestionsContainer.appendChild(suggestionEl);
+            });
+        } else {
+            suggestionsContainer.classList.add('hidden');
+        }
+    });
 }
 
 async function applyAppListFilterAndRender() {
@@ -344,13 +437,12 @@ function setupFilters() {
         button.classList.add('active');
         applyAppListFilterAndRender();
     });
-    // applyAppListFilterAndRender(); // Убрали отсюда, т.к. onAuthStateChanged вызовет его
+    applyAppListFilterAndRender();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
     
-    // ... (весь остальной код обработчиков событий: темы, поиска, кликов и т.д.)
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
@@ -371,11 +463,13 @@ document.addEventListener('DOMContentLoaded', () => {
         sunIcon.classList.toggle('hidden', isDark);
         moonIcon.classList.toggle('hidden', !isDark);
     });
+    
     document.addEventListener('click', e => {
         if (suggestionsContainer && !suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
         }
     });
+    
     changelogContainer.addEventListener('click', (e) => {
         if (e.target.id === 'show-all-changelog-btn') {
             e.preventDefault();
@@ -385,6 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
     });
+
     dynamicContentArea.addEventListener('click', async e => {
         const pinBtn = e.target.closest('.pin-btn');
         if (pinBtn) {
@@ -424,9 +519,3 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNavigationEvents();
     router();
 });
-
-// Мы оставляем эти функции здесь, чтобы не копировать их полный код снова
-async function router() { /* ... (код функции без изменений) ... */ }
-function setupNavigationEvents() { /* ... (код функции без изменений) ... */ }
-function setupSearch() { /* ... (код функции без изменений) ... */ }
-async function renderSimilarApps(currentModule, container) { /* ... (код функции без изменений) ... */ }
