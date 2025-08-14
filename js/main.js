@@ -1,4 +1,4 @@
-//51 Импортируем наши утилиты
+// Импортируем наши локальные утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
 // Импортируем auth и db из нашего конфигурационного файла
@@ -9,84 +9,13 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/f
 
 // --- Сопоставление имен приложений с файлами модулей (без изменений) ---
 const appNameToModuleFile = {
-    'Скорость интернета': 'speedTest',
-    'Радио': 'radio',
-    'Заметки и задачи': 'notesAndTasks',
-    'Тест звука и микрофона': 'soundAndMicTest',
-    'Сжатие аудио': 'audioCompressor',
-    'Мой IP': 'myIp',
-    'Генератор паролей': 'passwordGenerator',
-    'Калькулятор процентных соотношений': 'percentageCalculator',
-    'Таймер': 'timer',
-    'Колесо фортуны': 'fortuneWheel',
-    'Шар предсказаний': 'magicBall',
-    'Крестики-нолики': 'ticTacToe',
-    'Сапер': 'minesweeper',
-    'Секундомер': 'stopwatch',
-    'Случайный цвет': 'randomColor',
-    'Генератор чисел': 'numberGenerator',
-    'Генератор QR-кодов': 'qrCodeGenerator',
-    'Эмодзи и символы': 'emojiAndSymbols',
-    'Конвертер величин': 'unitConverter',
-    'Калькулятор дат': 'dateCalculator',
-    'Калькулятор ИМТ': 'bmiCalculator',
-    'Счетчик слов и символов': 'wordCounter',
-    'Сканер QR-кодов': 'qrScanner',
-    'Пианино': 'piano',
-    'История изменений': 'changelogPage',
-    'Конвертер регистра': 'caseConverter',
-    'Конвертер форматов изображений': 'imageConverter',
-    'Конвертер цветов': 'colorConverter',
-    'Игра на память': 'memoryGame',
-    'Транслитерация текста': 'textTranslit',
-    'Изменение размера изображений': 'imageResizer',
-    'Калькулятор валют': 'currencyCalculator',
-    'Змейка': 'snakeGame',
+    'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Калькулятор процентных соотношений': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Счетчик слов и символов': 'wordCounter', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер форматов изображений': 'imageConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Транслитерация текста': 'textTranslit', 'Изменение размера изображений': 'imageResizer', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame',
 };
 const appPopularity = {
-    'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94,
-    'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78,
-    'bmiCalculator': 75, 'wordCounter': 82, 'timer': 70, 'stopwatch': 68,
-    'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64,
-    'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71,
-    'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55,
-    'numberGenerator': 54, 'changelogPage': 10,
-    'imageConverter': 91, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76,
-    'imageResizer': 90, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74,
+    'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'wordCounter': 82, 'timer': 70, 'stopwatch': 68, 'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageConverter': 91, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'imageResizer': 90, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74,
 };
 const appSearchMetadata = {
-    'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] },
-    'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] },
-    'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] },
-    'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] },
-    'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] },
-    'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] },
-    'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] },
-    'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] },
-    'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] },
-    'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] },
-    'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] },
-    'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] },
-    'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] },
-    'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] },
-    'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random', '#color'] },
-    'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] },
-    'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] },
-    'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] },
-    'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] },
-    'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] },
-    'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] },
-    'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] },
-    'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] },
-    'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] },
-    'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] },
-    'imageConverter': { keywords: ['конвертер', 'изображения', 'картинки', 'png', 'jpg', 'webp', 'формат', 'преобразовать'], hashtags: ['#image', '#tools', '#converter'] },
-    'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] },
-    'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] },
-    'textTranslit': { keywords: ['транслит', 'латиница', 'кириллица', 'текст', 'перевод', 'cyrillic', 'latin'], hashtags: ['#text', '#tools'] },
-    'imageResizer': { keywords: ['изображение', 'картинка', 'размер', 'уменьшить', 'увеличить', 'ресайз', 'resize'], hashtags: ['#image', '#tools'] },
-    'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] },
-    'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },
+    'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] }, 'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] }, 'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] }, 'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] }, 'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] }, 'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] }, 'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] }, 'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] }, 'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] }, 'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] }, 'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] }, 'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] }, 'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] }, 'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random', '#color'] }, 'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] }, 'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] }, 'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] }, 'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] }, 'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] }, 'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] }, 'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] }, 'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] }, 'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] }, 'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] }, 'imageConverter': { keywords: ['конвертер', 'изображения', 'картинки', 'png', 'jpg', 'webp', 'формат', 'преобразовать'], hashtags: ['#image', '#tools', '#converter'] }, 'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] }, 'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] }, 'textTranslit': { keywords: ['транслит', 'латиница', 'кириллица', 'текст', 'перевод', 'cyrillic', 'latin'], hashtags: ['#text', '#tools'] }, 'imageResizer': { keywords: ['изображение', 'картинка', 'размер', 'уменьшить', 'увеличить', 'ресайз', 'resize'], hashtags: ['#image', '#tools'] }, 'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] }, 'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
@@ -126,7 +55,9 @@ const googleSignInContainer = document.getElementById('google-signin-top-right-c
 let isGsiInitialized = false;
 
 function renderGoogleButton() {
-    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) return;
+    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) {
+        return;
+    }
     googleSignInContainer.innerHTML = '';
     window.google.accounts.id.renderButton(
         googleSignInContainer,
@@ -223,7 +154,33 @@ function populateAppCardMap() {
 }
 
 async function renderSimilarApps(currentModule, container) {
-    // ... (код функции без изменений)
+    const currentAppMeta = appSearchMetadata[currentModule];
+    if (!currentAppMeta || !currentAppMeta.hashtags || !currentAppMeta.hashtags.length) {
+        container.innerHTML = ''; container.classList.add('hidden'); return;
+    }
+    const currentHashtags = new Set(currentAppMeta.hashtags);
+    let similarModules = [];
+    for (const moduleName in appSearchMetadata) {
+        if (moduleName === currentModule) continue;
+        const meta = appSearchMetadata[moduleName];
+        if (meta.hashtags && meta.hashtags.some(tag => currentHashtags.has(tag))) {
+            similarModules.push(moduleName);
+        }
+    }
+    similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
+    const topSimilar = similarModules.slice(0, 3);
+    if (topSimilar.length === 0) {
+        container.innerHTML = ''; container.classList.add('hidden'); return;
+    }
+    container.innerHTML = `<h3 class="text-xl font-bold mb-4">Похожие приложения</h3>`;
+    const grid = document.createElement('div');
+    grid.className = 'similar-apps-grid';
+    topSimilar.forEach(module => {
+        const card = appCardElements.get(module);
+        if (card) grid.appendChild(card.cloneNode(true));
+    });
+    container.appendChild(grid);
+    container.classList.remove('hidden');
 }
 
 async function router() {
@@ -251,7 +208,8 @@ async function router() {
             activeAppModule = module;
             const appContentContainer = document.getElementById('app-content-container');
             if (typeof module.getHtml === 'function') appContentContainer.innerHTML = module.getHtml();
-            if (typeof module.init === 'function') module.init();
+            // ИЗМЕНЕНИЕ: init теперь может быть асинхронной
+            if (typeof module.init === 'function') await module.init();
             const appChangelogContainer = document.getElementById('app-changelog-container');
             const similarAppsContainer = document.getElementById('similar-apps-container');
             await renderSimilarApps(moduleName, similarAppsContainer);
@@ -268,15 +226,77 @@ async function router() {
         setupFilters();
         setupSearch();
         renderChangelog(null, 3, changelogContainer);
+        await applyAppListFilterAndRender(); // Убедимся, что приложения отрисованы
     }
 }
 
 function setupNavigationEvents() {
-    // ... (код функции без изменений)
+    document.body.addEventListener('click', e => {
+        const link = e.target.closest('a');
+        if (!link || e.target.closest('.pin-btn')) return;
+        if (link.id === 'back-button') { e.preventDefault(); history.back(); return; }
+        const url = new URL(link.href);
+        if (url.origin === window.location.origin) {
+            const isAppNavigation = url.search.startsWith('?app=') || (url.pathname === '/' && !url.search);
+            const isChangelogLink = link.classList.contains('changelog-link');
+            if (isAppNavigation || isChangelogLink) {
+                e.preventDefault();
+                if (window.location.href === link.href) return;
+                const appNameToOpen = link.dataset.appName;
+                if (isChangelogLink && appNameToOpen) {
+                    const moduleFile = appNameToModuleFile[appNameToOpen];
+                    if (moduleFile) history.pushState({}, '', `?app=${moduleFile}`);
+                } else {
+                    history.pushState({}, '', link.href);
+                }
+                router();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
 }
 
 function setupSearch() {
-    // ... (код функции без изменений)
+    if (!searchInput) return;
+    searchInput.addEventListener('input', () => {
+        const appsContainer = document.getElementById('apps-container');
+        if (!appsContainer) return;
+        const allApps = appsContainer.querySelectorAll('.app-item');
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const suggestions = [];
+        allApps.forEach(app => {
+            const appName = app.dataset.name.toLowerCase();
+            const moduleName = app.dataset.module;
+            const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
+            const searchCorpus = [appName, ...metadata.keywords].join(' ');
+            const isVisible = searchCorpus.includes(searchTerm);
+            app.style.display = isVisible ? 'flex' : 'none';
+            if (isVisible && searchTerm.length > 0) {
+                suggestions.push({
+                    name: app.dataset.name, module: moduleName,
+                    hashtags: metadata.hashtags || []
+                });
+            }
+        });
+        suggestionsContainer.innerHTML = '';
+        if (searchTerm.length > 0 && suggestions.length > 0) {
+            suggestionsContainer.classList.remove('hidden');
+            suggestions.slice(0, 7).forEach(suggestion => {
+                const suggestionEl = document.createElement('div');
+                suggestionEl.className = 'suggestion-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
+                suggestionEl.innerHTML = `<span class="suggestion-name">${suggestion.name}</span><span class="suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4">${suggestion.hashtags.join(' ')}</span>`;
+                suggestionEl.addEventListener('click', () => {
+                    if (suggestion.module) {
+                        history.pushState({}, '', `?app=${suggestion.module}`);
+                        router();
+                    }
+                });
+                suggestionsContainer.appendChild(suggestionEl);
+            });
+        } else {
+            suggestionsContainer.classList.add('hidden');
+        }
+    });
 }
 
 async function applyAppListFilterAndRender() {
@@ -349,6 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
     window.addEventListener('popstate', router);
+
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
@@ -369,11 +390,13 @@ document.addEventListener('DOMContentLoaded', () => {
         sunIcon.classList.toggle('hidden', isDark);
         moonIcon.classList.toggle('hidden', !isDark);
     });
+    
     document.addEventListener('click', e => {
         if (suggestionsContainer && !suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
         }
     });
+    
     changelogContainer.addEventListener('click', (e) => {
         if (e.target.id === 'show-all-changelog-btn') {
             e.preventDefault();
@@ -383,6 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
     });
+
     dynamicContentArea.addEventListener('click', async e => {
         const pinBtn = e.target.closest('.pin-btn');
         if (pinBtn) {
@@ -402,18 +426,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- ИЗМЕНЕНИЕ: Центральная точка управления рендерингом ---
-    let initialAuthCheckDone = false;
+    // --- ИЗМЕНЕНИЕ: ГЛАВНЫЙ ИСПРАВЛЕННЫЙ ПОТОК ЗАГРУЗКИ ---
+    let isInitialLoad = true;
     onAuthStateChanged(auth, user => {
         updateAuthStateUI(user);
         
-        // Рендерим страницу только после первого ответа от Firebase
-        if (!initialAuthCheckDone) {
-            initialAuthCheckDone = true;
-            router(); // Первый запуск отрисовки
+        if (isInitialLoad) {
+            // Это первая проверка, после нее мы можем быть уверены в статусе
+            // и можем отрисовать страницу.
+            isInitialLoad = false;
+            router(); 
         } else {
-            // При последующих изменениях (вход/выход) просто обновляем список приложений
+            // Это изменение статуса (вход или выход)
+            // Обновляем список приложений и, если нужно, само приложение
             applyAppListFilterAndRender();
+            router(); 
         }
 
         if (isGsiInitialized) {
