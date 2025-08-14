@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// --- 1Сопоставление имен приложений с файлами модулей ---
+// --- Сопоставление имен приложений с файлами модулей ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -104,7 +104,8 @@ const userProfileElement = document.getElementById('user-profile');
 const userAvatarElement = document.getElementById('user-avatar');
 const userNameElement = document.getElementById('user-name');
 const signOutBtn = document.getElementById('sign-out-btn');
-const googleSignInContainer = document.getElementById('google-signin-container');
+// ИЗМЕНЕНИЕ: Получаем новый контейнер для кнопки
+const googleSignInContainer = document.getElementById('google-signin-button-container');
 
 const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
@@ -126,66 +127,56 @@ const appScreenHtml = `
 
 // Функция-обработчик учетных данных, полученных от Google
 function handleCredentialResponse(response) {
-    console.log("Encoded JWT ID token: " + response.credential);
-    
-    // ВНИМАНИЕ: Для реального приложения токен ID (response.credential)
-    // должен быть отправлен на ваш сервер для безопасной проверки.
-    // Декодирование JWT на стороне клиента подходит только для демонстрационных целей.
     const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
-
     const userProfile = {
         name: decodedToken.name,
         picture: decodedToken.picture,
         email: decodedToken.email
     };
-
-    // Сохраняем информацию о пользователе и обновляем UI
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
     updateUIForUser(userProfile);
 }
 
-// Функция для обновления UI после входа пользователя
+// Функция для обновления UI после входа/выхода
 function updateUIForUser(profile) {
-    if (profile && userProfileElement && userNameElement && userAvatarElement) {
+    if (profile) { // Пользователь вошел в систему
         userNameElement.textContent = profile.name;
         userAvatarElement.src = profile.picture;
         userProfileElement.classList.remove('hidden');
-        googleSignInContainer.classList.add('hidden'); // Скрываем кнопку входа
+        if(googleSignInContainer) googleSignInContainer.classList.add('hidden'); // Скрываем кнопку входа
+    } else { // Пользователь вышел
+        userProfileElement.classList.add('hidden');
+        userNameElement.textContent = '';
+        userAvatarElement.src = '';
+        if(googleSignInContainer) googleSignInContainer.classList.remove('hidden'); // Показываем кнопку входа
     }
 }
 
 // Функция для выхода из системы
 function handleSignOut() {
-    // Очищаем локальное хранилище
     localStorage.removeItem('userProfile');
-
-    // Отключаем автоматический выбор аккаунта для следующего входа
     google.accounts.id.disableAutoSelect();
-
-    // Обновляем UI до состояния "не авторизован"
-    userProfileElement.classList.add('hidden');
-    userNameElement.textContent = '';
-    userAvatarElement.src = '';
-    googleSignInContainer.classList.remove('hidden'); // Показываем кнопку входа
+    updateUIForUser(null);
 }
 
 // Инициализация Google Sign-In
 function initializeGoogleSignIn() {
     try {
         window.google.accounts.id.initialize({
-            client_id: '327345325953-bubmv3lac6ctv2tgddin8mshdbceve27.apps.googleusercontent.com', // <-- ВАШ CLIENT ID
+            client_id: '327345325953-bubmv3lac6ctv2tgddin8mshdbceve27.apps.googleusercontent.com',
             callback: handleCredentialResponse
         });
         
-        // Проверяем, есть ли сохраненный пользователь
-        const savedProfile = localStorage.getItem('userProfile');
-        if (savedProfile) {
-            updateUIForUser(JSON.parse(savedProfile));
+        const savedProfileJSON = localStorage.getItem('userProfile');
+        if (savedProfileJSON) {
+            updateUIForUser(JSON.parse(savedProfileJSON));
         } else {
+            updateUIForUser(null);
             // Рендерим кнопку входа, если пользователь не авторизован
             window.google.accounts.id.renderButton(
                 googleSignInContainer,
-                { theme: "outline", size: "large", text: "signin_with", shape: "pill" }
+                // ИЗМЕНЕНИЕ: Уменьшаем размер кнопки для панели фильтров
+                { theme: "outline", size: "medium", text: "signin_with", shape: "pill" }
             );
         }
     } catch (e) {
