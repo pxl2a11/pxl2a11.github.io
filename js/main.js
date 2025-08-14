@@ -114,7 +114,6 @@ const userProfileElement = document.getElementById('user-profile');
 const userAvatarElement = document.getElementById('user-avatar');
 const userNameElement = document.getElementById('user-name');
 const signOutBtn = document.getElementById('sign-out-btn');
-// ИЗМЕНЕНИЕ: Контейнер для кнопки теперь в правом верхнем углу
 const googleSignInContainer = document.getElementById('google-signin-top-right-container');
 
 function parseJwt(token) {
@@ -132,6 +131,17 @@ function parseJwt(token) {
     }
 }
 
+// ИЗМЕНЕНИЕ: Новая функция для перерисовки кнопки Google
+function renderGoogleButton() {
+    if (!localStorage.getItem('userProfile') && googleSignInContainer) {
+        googleSignInContainer.innerHTML = ''; // Очищаем контейнер перед рендерингом
+        window.google.accounts.id.renderButton(
+            googleSignInContainer,
+            { type: "icon", shape: "circle", theme: "outline", size: "large" }
+        );
+    }
+}
+
 function updateAuthStateUI(profile) {
     if (profile && profile.name) {
         if(userNameElement) userNameElement.textContent = profile.name;
@@ -144,12 +154,10 @@ function updateAuthStateUI(profile) {
     }
 }
 
-// ИЗМЕНЕНИЕ: Функции для работы с закрепленными приложениями теперь зависят от ID пользователя
 function getCurrentUserId() {
     const savedProfileJSON = localStorage.getItem('userProfile');
     if (savedProfileJSON) {
         const profile = JSON.parse(savedProfileJSON);
-        // 'sub' - это стандартное поле для уникального ID пользователя в JWT
         return profile.sub || 'guest';
     }
     return 'guest';
@@ -180,8 +188,6 @@ function handleCredentialResponse(response) {
 
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
     updateAuthStateUI(userProfile);
-    
-    // ИЗМЕНЕНИЕ: После входа обновляем список приложений, чтобы подгрузить пины пользователя
     applyAppListFilterAndRender();
 }
 
@@ -190,7 +196,9 @@ function handleSignOut() {
     google.accounts.id.disableAutoSelect();
     updateAuthStateUI(null);
 
-    // ИЗМЕНЕНИЕ: После выхода также обновляем список для отображения гостевых пинов
+    // ИЗМЕНЕНИЕ: Явно перерисовываем кнопку после выхода
+    renderGoogleButton(); 
+    
     applyAppListFilterAndRender();
 }
 
@@ -203,14 +211,10 @@ function initializeGoogleSignIn() {
 
         const savedProfileJSON = localStorage.getItem('userProfile');
         updateAuthStateUI(savedProfileJSON ? JSON.parse(savedProfileJSON) : null);
+        
+        // ИЗМЕНЕНИЕ: Вызываем рендер кнопки в любом случае (функция сама решит, нужно ли)
+        renderGoogleButton();
 
-        if (!savedProfileJSON && googleSignInContainer) {
-            // ИЗМЕНЕНИЕ: Отрисовываем компактную кнопку-иконку
-            window.google.accounts.id.renderButton(
-                googleSignInContainer,
-                { type: "icon", shape: "circle", theme: "outline", size: "large" }
-            );
-        }
     } catch (e) {
         console.error("Google Identity Services library error:", e);
     }
@@ -417,12 +421,15 @@ function setupSearch() {
 }
 
 function applyAppListFilterAndRender() {
-    const filterContainer = document.getElementById('filter-container');
     const appsContainer = document.getElementById('apps-container');
-    if (!filterContainer || !appsContainer) return;
+    // ИЗМЕНЕНИЕ: Добавлена проверка на наличие контейнера
+    if (!appsContainer) {
+        return; // Выходим, если мы не на главной странице
+    }
 
+    const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
-    const pinnedModules = getPinnedApps(); // Эта функция теперь зависит от пользователя
+    const pinnedModules = getPinnedApps();
 
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
