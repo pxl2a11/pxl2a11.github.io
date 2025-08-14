@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// --- Сопоставление имен приложений с файлами модулей ---
+// --- 1Сопоставление имен приложений с файлами модулей ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -86,6 +86,7 @@ const appSearchMetadata = {
     'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },
 };
 
+
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
@@ -98,6 +99,13 @@ let activeAppModule = null;
 const appCardElements = new Map();
 let allAppCards = [];
 
+// --- Глобальные переменные для аутентификации ---
+const userProfileElement = document.getElementById('user-profile');
+const userAvatarElement = document.getElementById('user-avatar');
+const userNameElement = document.getElementById('user-name');
+const signOutBtn = document.getElementById('sign-out-btn');
+const googleSignInContainer = document.getElementById('google-signin-container');
+
 const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
     <div id="app-screen" class="hidden">
@@ -109,6 +117,83 @@ const appScreenHtml = `
         <div id="similar-apps-container" class="mt-12"></div>
         <div id="app-changelog-container" class="mt-8"></div>
     </div>`;
+
+/**
+ * =======================================================
+ * ЛОГИКА АВТОРИЗАЦИИ GOOGLE SIGN-IN
+ * =======================================================
+ */
+
+// Функция-обработчик учетных данных, полученных от Google
+function handleCredentialResponse(response) {
+    console.log("Encoded JWT ID token: " + response.credential);
+    
+    // ВНИМАНИЕ: Для реального приложения токен ID (response.credential)
+    // должен быть отправлен на ваш сервер для безопасной проверки.
+    // Декодирование JWT на стороне клиента подходит только для демонстрационных целей.
+    const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
+
+    const userProfile = {
+        name: decodedToken.name,
+        picture: decodedToken.picture,
+        email: decodedToken.email
+    };
+
+    // Сохраняем информацию о пользователе и обновляем UI
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    updateUIForUser(userProfile);
+}
+
+// Функция для обновления UI после входа пользователя
+function updateUIForUser(profile) {
+    if (profile && userProfileElement && userNameElement && userAvatarElement) {
+        userNameElement.textContent = profile.name;
+        userAvatarElement.src = profile.picture;
+        userProfileElement.classList.remove('hidden');
+        googleSignInContainer.classList.add('hidden'); // Скрываем кнопку входа
+    }
+}
+
+// Функция для выхода из системы
+function handleSignOut() {
+    // Очищаем локальное хранилище
+    localStorage.removeItem('userProfile');
+
+    // Отключаем автоматический выбор аккаунта для следующего входа
+    google.accounts.id.disableAutoSelect();
+
+    // Обновляем UI до состояния "не авторизован"
+    userProfileElement.classList.add('hidden');
+    userNameElement.textContent = '';
+    userAvatarElement.src = '';
+    googleSignInContainer.classList.remove('hidden'); // Показываем кнопку входа
+}
+
+// Инициализация Google Sign-In
+function initializeGoogleSignIn() {
+    try {
+        window.google.accounts.id.initialize({
+            client_id: '327345325953-bubmv3lac6ctv2tgddin8mshdbceve27.apps.googleusercontent.com', // <-- ВАШ CLIENT ID
+            callback: handleCredentialResponse
+        });
+        
+        // Проверяем, есть ли сохраненный пользователь
+        const savedProfile = localStorage.getItem('userProfile');
+        if (savedProfile) {
+            updateUIForUser(JSON.parse(savedProfile));
+        } else {
+            // Рендерим кнопку входа, если пользователь не авторизован
+            window.google.accounts.id.renderButton(
+                googleSignInContainer,
+                { theme: "outline", size: "large", text: "signin_with", shape: "pill" }
+            );
+        }
+    } catch (e) {
+        console.error("Google Identity Services library not loaded yet.", e);
+    }
+}
+
+// --- КОНЕЦ ЛОГИКИ АВТОРИЗАЦИИ ---
 
 function getPinnedApps() {
     try {
@@ -440,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dynamicContentArea.addEventListener('click', e => {
         const pinBtn = e.target.closest('.pin-btn');
         if (pinBtn) {
-            e.preventDefault(); // ГЛАВНОЕ ИСПРАВЛЕНИЕ: Предотвращает переход по ссылке
+            e.preventDefault(); 
             e.stopPropagation();
 
             const appCard = pinBtn.closest('.app-item');
@@ -457,6 +542,17 @@ document.addEventListener('DOMContentLoaded', () => {
             applyAppListFilterAndRender();
         }
     });
+    
+    // --- Инициализация Google Sign-In и обработчики событий ---
+    // Дожидаемся загрузки глобального объекта google
+    const checkGoogle = setInterval(() => {
+        if (window.google && window.google.accounts) {
+            clearInterval(checkGoogle);
+            initializeGoogleSignIn();
+        }
+    }, 100);
+
+    signOutBtn.addEventListener('click', handleSignOut);
 
     window.addEventListener('popstate', router);
     setupNavigationEvents();
