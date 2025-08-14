@@ -1,4 +1,4 @@
-// 24Импортируем только наши локальные утилиты
+//29 Импортируем только наши локальные утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
 // Конфигурация Firebase находится здесь
@@ -135,9 +135,7 @@ const googleSignInContainer = document.getElementById('google-signin-top-right-c
 let isGsiInitialized = false;
 
 function renderGoogleButton() {
-    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) {
-        return;
-    }
+    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) return;
     googleSignInContainer.innerHTML = '';
     window.google.accounts.id.renderButton(
         googleSignInContainer,
@@ -200,8 +198,7 @@ function handleCredentialResponse(response) {
 }
 
 function handleSignOut() {
-    // ИЗМЕНЕНИЕ: Используем правильный синтаксис v8
-    auth.signOut(); 
+    auth.signOut();
     if (window.google && window.google.accounts) {
         google.accounts.id.disableAutoSelect();
     }
