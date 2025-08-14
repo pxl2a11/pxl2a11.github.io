@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// ---02 Сопоставление имен приложений с файлами модулей (без изменений) ---
+// --- Сопоставление имен приложений с файлами модулей (без изменений) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -106,7 +106,7 @@ const appScreenHtml = `
 
 /**
  * =======================================================
- *  ИСПРАВЛЕННАЯ ЛОГИКА АВТОРИЗАЦИИ GOOGLE SIGN-IN
+ *  ЛОГИКА АВТОРИЗАЦИИ И ПРИВЯЗКИ ДАННЫХ
  * =======================================================
  */
 
@@ -114,19 +114,17 @@ const userProfileElement = document.getElementById('user-profile');
 const userAvatarElement = document.getElementById('user-avatar');
 const userNameElement = document.getElementById('user-name');
 const signOutBtn = document.getElementById('sign-out-btn');
-const googleSignInContainer = document.getElementById('google-signin-button-container');
+// ИЗМЕНЕНИЕ: Контейнер для кнопки теперь в правом верхнем углу
+const googleSignInContainer = document.getElementById('google-signin-top-right-container');
 
-// **ИСПРАВЛЕННЫЙ ПАРСЕР JWT**
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        // Добавляем недостающие символы "=", чтобы длина строки была кратна 4
         const paddedBase64 = base64 + '=='.substring(0, (4 - base64.length % 4) % 4);
         const jsonPayload = decodeURIComponent(atob(paddedBase64).split('').map(function(c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
-
         return JSON.parse(jsonPayload);
     } catch (e) {
         console.error("Failed to parse JWT:", e);
@@ -136,37 +134,64 @@ function parseJwt(token) {
 
 function updateAuthStateUI(profile) {
     if (profile && profile.name) {
-        console.log('Updating UI for logged in user:', profile.name);
         if(userNameElement) userNameElement.textContent = profile.name;
         if(userAvatarElement) userAvatarElement.src = profile.picture;
         if(userProfileElement) userProfileElement.classList.remove('hidden');
         if(googleSignInContainer) googleSignInContainer.classList.add('hidden');
     } else {
-        console.log('Updating UI for logged out user.');
         if(userProfileElement) userProfileElement.classList.add('hidden');
         if(googleSignInContainer) googleSignInContainer.classList.remove('hidden');
     }
 }
 
-function handleCredentialResponse(response) {
-    console.log("Google response received.");
-    
-    // Используем исправленный парсер
-    const userProfile = parseJwt(response.credential);
-    if (!userProfile) {
-        console.error("Could not parse user profile from credential.");
-        return; 
+// ИЗМЕНЕНИЕ: Функции для работы с закрепленными приложениями теперь зависят от ID пользователя
+function getCurrentUserId() {
+    const savedProfileJSON = localStorage.getItem('userProfile');
+    if (savedProfileJSON) {
+        const profile = JSON.parse(savedProfileJSON);
+        // 'sub' - это стандартное поле для уникального ID пользователя в JWT
+        return profile.sub || 'guest';
     }
+    return 'guest';
+}
+
+function getPinnedApps() {
+    const userId = getCurrentUserId();
+    const key = `pinnedApps_${userId}`;
+    try {
+        const pinned = localStorage.getItem(key);
+        return pinned ? JSON.parse(pinned) : [];
+    } catch (e) {
+        console.error(`Failed to parse pinned apps from localStorage for key ${key}`, e);
+        return [];
+    }
+}
+
+function savePinnedApps(pinnedModules) {
+    const userId = getCurrentUserId();
+    const key = `pinnedApps_${userId}`;
+    localStorage.setItem(key, JSON.stringify(pinnedModules));
+}
+
+
+function handleCredentialResponse(response) {
+    const userProfile = parseJwt(response.credential);
+    if (!userProfile) return; 
 
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
     updateAuthStateUI(userProfile);
+    
+    // ИЗМЕНЕНИЕ: После входа обновляем список приложений, чтобы подгрузить пины пользователя
+    applyAppListFilterAndRender();
 }
 
 function handleSignOut() {
-    console.log('Signing out.');
     localStorage.removeItem('userProfile');
     google.accounts.id.disableAutoSelect();
     updateAuthStateUI(null);
+
+    // ИЗМЕНЕНИЕ: После выхода также обновляем список для отображения гостевых пинов
+    applyAppListFilterAndRender();
 }
 
 function initializeGoogleSignIn() {
@@ -177,16 +202,14 @@ function initializeGoogleSignIn() {
         });
 
         const savedProfileJSON = localStorage.getItem('userProfile');
-        if (savedProfileJSON) {
-            updateAuthStateUI(JSON.parse(savedProfileJSON));
-        } else {
-            updateAuthStateUI(null);
-            if(googleSignInContainer) {
-                window.google.accounts.id.renderButton(
-                    googleSignInContainer,
-                    { theme: "outline", size: "medium", text: "signin_with", shape: "pill" }
-                );
-            }
+        updateAuthStateUI(savedProfileJSON ? JSON.parse(savedProfileJSON) : null);
+
+        if (!savedProfileJSON && googleSignInContainer) {
+            // ИЗМЕНЕНИЕ: Отрисовываем компактную кнопку-иконку
+            window.google.accounts.id.renderButton(
+                googleSignInContainer,
+                { type: "icon", shape: "circle", theme: "outline", size: "large" }
+            );
         }
     } catch (e) {
         console.error("Google Identity Services library error:", e);
@@ -194,19 +217,6 @@ function initializeGoogleSignIn() {
 }
 // --- КОНЕЦ ЛОГИКИ АВТОРИЗАЦИИ ---
 
-function getPinnedApps() {
-    try {
-        const pinned = localStorage.getItem('pinnedApps');
-        return pinned ? JSON.parse(pinned) : [];
-    } catch (e) {
-        console.error("Failed to parse pinned apps from localStorage", e);
-        return [];
-    }
-}
-
-function savePinnedApps(pinnedModules) {
-    localStorage.setItem('pinnedApps', JSON.stringify(pinnedModules));
-}
 
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
@@ -281,8 +291,6 @@ async function router() {
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         filterContainer?.classList.add('hidden');
-        
-        if (googleSignInContainer) googleSignInContainer.classList.add('hidden');
 
         dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
@@ -314,12 +322,6 @@ async function router() {
     } else {
         dynamicContentArea.innerHTML = homeScreenHtml;
         filterContainer?.classList.remove('hidden');
-        
-        const savedProfileJSON = localStorage.getItem('userProfile');
-        if (!savedProfileJSON && googleSignInContainer) {
-            googleSignInContainer.classList.remove('hidden');
-        }
-
         changelogContainer.classList.remove('hidden');
         document.title = 'Mini Apps';
         
@@ -420,7 +422,7 @@ function applyAppListFilterAndRender() {
     if (!filterContainer || !appsContainer) return;
 
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
-    const pinnedModules = getPinnedApps();
+    const pinnedModules = getPinnedApps(); // Эта функция теперь зависит от пользователя
 
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
