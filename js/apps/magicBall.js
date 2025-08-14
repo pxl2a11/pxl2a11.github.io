@@ -1,38 +1,4 @@
-import { auth, db } from '/js/firebaseConfig.js';
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
-
-const getStorageManager = (dataKey, defaultValue = []) => {
-    return {
-        async getData() {
-            const user = auth.currentUser;
-            if (!user) {
-                const localData = localStorage.getItem(`${dataKey}_guest`);
-                return localData ? JSON.parse(localData) : defaultValue;
-            }
-            const userDocRef = doc(db, 'users', user.uid);
-            try {
-                const docSnap = await getDoc(userDocRef);
-                return (docSnap.exists() && docSnap.data()[dataKey]) ? docSnap.data()[dataKey] : defaultValue;
-            } catch (error) {
-                console.error(`Error getting ${dataKey}:`, error);
-                return defaultValue;
-            }
-        },
-        async saveData(data) {
-            const user = auth.currentUser;
-            if (!user) {
-                localStorage.setItem(`${dataKey}_guest`, JSON.stringify(data));
-                return;
-            }
-            const userDocRef = doc(db, 'users', user.uid);
-            try {
-                await setDoc(userDocRef, { [dataKey]: data }, { merge: true });
-            } catch (error) {
-                console.error(`Error saving ${dataKey}:`, error);
-            }
-        }
-    };
-};
+import { getUserData, saveUserData } from '/js/dataManager.js';
 
 export function getHtml() {
     return `
@@ -58,12 +24,10 @@ export async function init() {
     const customAnswersTextarea = document.getElementById('custom-answers-textarea');
     const saveAnswersBtn = document.getElementById('save-custom-answers-btn');
     
-    const answersManager = getStorageManager('magicBallCustomAnswers');
-    
     const defaultAnswers = [ "Бесспорно", "Предрешено", "Никаких сомнений", "Определённо да", "Можешь быть уверен в этом", "Мне кажется — «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят — «да»", "Да", "Пока не ясно, попробуй снова", "Спроси позже", "Лучше не рассказывать", "Сейчас нельзя предсказать", "Сконцентрируйся и спроси опять", "Даже не думай", "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие", "Весьма сомнительно" ];
 
     async function loadCustomAnswers() {
-        const answers = await answersManager.getData();
+        const answers = getUserData('magicBallCustomAnswers', []);
         if (answers && answers.length > 0) {
             customAnswersTextarea.value = answers.join('\n');
         }
@@ -71,7 +35,7 @@ export async function init() {
 
     async function saveCustomAnswers() {
         const answers = customAnswersTextarea.value.split('\n').map(a => a.trim()).filter(a => a.length > 0);
-        await answersManager.saveData(answers);
+        await saveUserData('magicBallCustomAnswers', answers);
         
         saveAnswersBtn.textContent = 'Сохранено!';
         saveAnswersBtn.classList.replace('bg-green-500', 'bg-blue-500');
@@ -84,7 +48,7 @@ export async function init() {
     }
 
     const getAnswer = async () => {
-        const customAnswers = await answersManager.getData();
+        const customAnswers = getUserData('magicBallCustomAnswers', []);
         const answersToUse = (customAnswers && customAnswers.length > 0) ? customAnswers : defaultAnswers;
         
         answerEl.textContent = '...';
