@@ -1,11 +1,20 @@
-//05 Импортируем наши утилиты
+// Импортируем только наши локальные утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// Импортируем auth и db из нашего конфигурационного файла
-import { auth, db } from './firebaseConfig.js';
-// Импортируем все необходимые функции Firebase v9
-import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+// ИЗМЕНЕНИЕ: Конфигурация Firebase теперь находится здесь
+const firebaseConfig = {
+  apiKey: "AIzaSyDks7wx8Lua2rX-BW6SL_OKd83oRdTRj_Q",
+  authDomain: "mini-apps-2c0ad.firebaseapp.com",
+  projectId: "mini-apps-2c0ad",
+  storageBucket: "mini-apps-2c0ad.appspot.com",
+  messagingSenderId: "420068130976",
+  appId: "1:420068130976:web:f4d61f2cd1d8d13adcc9c5"
+};
+
+// Инициализация Firebase через глобальный объект
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 // --- Сопоставление имен приложений с файлами модулей (без изменений) ---
 const appNameToModuleFile = {
@@ -113,7 +122,7 @@ const appScreenHtml = `
 
 /**
  * =======================================================
- *  ЛОГИКА АВТОРИЗАЦИИ И РАБОТЫ С FIREBASE V9
+ *  ЛОГИКА АВТОРИЗАЦИИ И РАБОТЫ С FIREBASE (V8 COMPAT SYNTAX)
  * =======================================================
  */
 
@@ -123,13 +132,10 @@ const userNameElement = document.getElementById('user-name');
 const signOutBtn = document.getElementById('sign-out-btn');
 const googleSignInContainer = document.getElementById('google-signin-top-right-container');
 
-// Флаг, чтобы убедиться, что GSI инициализирован
 let isGsiInitialized = false;
 
 function renderGoogleButton() {
-    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) {
-        return;
-    }
+    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) return;
     googleSignInContainer.innerHTML = '';
     window.google.accounts.id.renderButton(
         googleSignInContainer,
@@ -156,11 +162,11 @@ async function getPinnedApps() {
         const guestPins = localStorage.getItem('pinnedApps_guest');
         return guestPins ? JSON.parse(guestPins) : [];
     }
-    const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef = db.collection('users').doc(user.uid);
     try {
-        const docSnap = await getDoc(userDocRef);
-        if (docSnap.exists()) {
-            return docSnap.data().pinnedApps || [];
+        const doc = await userDocRef.get();
+        if (doc.exists) {
+            return doc.data().pinnedApps || [];
         }
         return [];
     } catch (error) {
@@ -175,24 +181,24 @@ async function savePinnedApps(pinnedModules) {
         localStorage.setItem('pinnedApps_guest', JSON.stringify(pinnedModules));
         return;
     }
-    const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef = db.collection('users').doc(user.uid);
     try {
-        await setDoc(userDocRef, { pinnedApps: pinnedModules }, { merge: true });
+        await userDocRef.set({ pinnedApps: pinnedModules }, { merge: true });
     } catch (error) {
         console.error("Error saving pinned apps:", error);
     }
 }
 
 function handleCredentialResponse(response) {
-    const googleCredential = GoogleAuthProvider.credential(response.credential);
-    signInWithCredential(auth, googleCredential)
+    const googleCredential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+    auth.signInWithCredential(googleCredential)
         .catch((error) => {
             console.error("Firebase sign-in error", error);
         });
 }
 
 function handleSignOut() {
-    signOut(auth);
+    auth.signOut();
     if (window.google && window.google.accounts) {
         google.accounts.id.disableAutoSelect();
     }
@@ -204,8 +210,8 @@ function initializeGoogleSignIn() {
             client_id: '327345325953-bubmv3lac6ctv2tgddin8mshdbceve27.apps.googleusercontent.com',
             callback: handleCredentialResponse
         });
-        isGsiInitialized = true; // Устанавливаем флаг
-        renderGoogleButton(); // Пробуем отрисовать кнопку сразу после инициализации
+        isGsiInitialized = true;
+        renderGoogleButton();
     }
 }
 
@@ -226,7 +232,7 @@ function populateAppCardMap() {
 
 async function renderSimilarApps(currentModule, container) {
     const currentAppMeta = appSearchMetadata[currentModule];
-    if (!currentAppMeta || !currentAppMeta.hashtags || currentAppMeta.hashtags.length === 0) {
+    if (!currentAppMeta || !currentAppMeta.hashtags || !currentAppMeta.hashtags.length) {
         container.innerHTML = ''; container.classList.add('hidden'); return;
     }
     const currentHashtags = new Set(currentAppMeta.hashtags);
@@ -260,12 +266,10 @@ async function router() {
     }
     activeAppModule = null;
     dynamicContentArea.innerHTML = '';
-
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName];
     const filterContainer = document.getElementById('filter-container');
-
     if (appName) {
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
@@ -431,7 +435,6 @@ function setupFilters() {
         button.classList.add('active');
         applyAppListFilterAndRender();
     });
-    // applyAppListFilterAndRender(); // Убрали, т.к. onAuthStateChanged вызовет его
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -499,7 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, user => {
         updateAuthStateUI(user);
         applyAppListFilterAndRender();
-        // Рендерим кнопку только после того, как GSI будет готов
         if (isGsiInitialized) {
             renderGoogleButton();
         }
