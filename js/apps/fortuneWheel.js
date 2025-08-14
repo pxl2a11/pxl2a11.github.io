@@ -1,38 +1,4 @@
-import { auth, db } from '/js/firebaseConfig.js';
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
-
-const getStorageManager = (dataKey, defaultValue = {}) => {
-    return {
-        async getData() {
-            const user = auth.currentUser;
-            if (!user) {
-                const localData = localStorage.getItem(`${dataKey}_guest`);
-                return localData ? JSON.parse(localData) : defaultValue;
-            }
-            const userDocRef = doc(db, 'users', user.uid);
-            try {
-                const docSnap = await getDoc(userDocRef);
-                return (docSnap.exists() && docSnap.data()[dataKey]) ? docSnap.data()[dataKey] : defaultValue;
-            } catch (error) {
-                console.error(`Error getting ${dataKey}:`, error);
-                return defaultValue;
-            }
-        },
-        async saveData(data) {
-            const user = auth.currentUser;
-            if (!user) {
-                localStorage.setItem(`${dataKey}_guest`, JSON.stringify(data));
-                return;
-            }
-            const userDocRef = doc(db, 'users', user.uid);
-            try {
-                await setDoc(userDocRef, { [dataKey]: data }, { merge: true });
-            } catch (error) {
-                console.error(`Error saving ${dataKey}:`, error);
-            }
-        }
-    };
-};
+import { getUserData, saveUserData } from '/js/dataManager.js';
 
 let spinTimeout;
 let spinSound, winSound;
@@ -106,8 +72,6 @@ export async function init() {
     const soundCheckbox = document.getElementById('sound-effects-checkbox');
     spinSound = document.getElementById('spin-sound');
     winSound = document.getElementById('win-sound');
-
-    const listsManager = getStorageManager('fortuneWheelLists');
     
     let options = ['Приз 1', 'Сектор 2', 'Шанс', 'Победа', 'Бонус', 'Удача'];
     const colorPalettes = {
@@ -119,7 +83,9 @@ export async function init() {
     let colors = colorPalettes.default;
     let startAngle = 0, arc, spinAngleStart, spinTime = 0, spinTimeTotal = 0;
 
-    const getSavedLists = async () => await listsManager.getData();
+    const getSavedLists = () => getUserData('fortuneWheelLists', {});
+    const saveLists = (lists) => saveUserData('fortuneWheelLists', lists);
+
     const populateSavedLists = async () => {
         const lists = await getSavedLists();
         savedListsSelect.innerHTML = '<option value="">-- Загрузить список --</option>';
@@ -127,16 +93,18 @@ export async function init() {
             savedListsSelect.innerHTML += `<option value="${name}">${name}</option>`;
         }
     };
+
     const saveCurrentList = async () => {
         const name = listNameInput.value.trim();
         if (!name || options.length === 0) return;
         const lists = await getSavedLists();
         lists[name] = options;
-        await listsManager.saveData(lists);
+        await saveLists(lists);
         listNameInput.value = '';
         await populateSavedLists();
         savedListsSelect.value = name;
     };
+
     const loadSelectedList = async () => {
         const name = savedListsSelect.value;
         if (!name) return;
@@ -146,12 +114,13 @@ export async function init() {
             updateOptionsUI();
         }
     };
+    
     const deleteSelectedList = async () => {
         const name = savedListsSelect.value;
         if (!name) return;
         const lists = await getSavedLists();
         delete lists[name];
-        await listsManager.saveData(lists);
+        await saveLists(lists);
         await populateSavedLists();
     };
 
@@ -279,7 +248,6 @@ export async function init() {
             winSound.load();
             isAudioUnlocked = true;
         }
-
         spinBtn.disabled = true;
         if (soundCheckbox.checked) {
             spinSound.currentTime = 0;
