@@ -1,4 +1,4 @@
-//27 Импортируем наши локальные утилиты
+// Импортируем наши локальные утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
 // Импортируем auth и db из нашего конфигурационного файла
@@ -55,9 +55,7 @@ const googleSignInContainer = document.getElementById('google-signin-top-right-c
 let isGsiInitialized = false;
 
 function renderGoogleButton() {
-    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) {
-        return;
-    }
+    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) return;
     googleSignInContainer.innerHTML = '';
     window.google.accounts.id.renderButton(
         googleSignInContainer,
@@ -196,7 +194,7 @@ async function router() {
     if (appName) {
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
-        filterContainer?.classList.add('hidden');
+        // Фильтры уже скрыты через HTML, здесь ничего делать не нужно
         dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
         appScreen.classList.remove('hidden');
@@ -208,7 +206,6 @@ async function router() {
             activeAppModule = module;
             const appContentContainer = document.getElementById('app-content-container');
             if (typeof module.getHtml === 'function') appContentContainer.innerHTML = module.getHtml();
-            // ИЗМЕНЕНИЕ: init теперь может быть асинхронной
             if (typeof module.init === 'function') await module.init();
             const appChangelogContainer = document.getElementById('app-changelog-container');
             const similarAppsContainer = document.getElementById('similar-apps-container');
@@ -220,13 +217,14 @@ async function router() {
         }
     } else {
         dynamicContentArea.innerHTML = homeScreenHtml;
+        // ИЗМЕНЕНИЕ: Показываем фильтры только на главной странице
         filterContainer?.classList.remove('hidden');
         changelogContainer.classList.remove('hidden');
         document.title = 'Mini Apps';
         setupFilters();
         setupSearch();
         renderChangelog(null, 3, changelogContainer);
-        await applyAppListFilterAndRender(); // Убедимся, что приложения отрисованы
+        await applyAppListFilterAndRender();
     }
 }
 
@@ -365,11 +363,13 @@ function setupFilters() {
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
     
-    // Навешиваем все обработчики событий, которые не зависят от авторизации
+    // --- ИСПОЛНЯЕМЫЙ КОД ---
+    
+    // 1. Навешиваем все обработчики событий
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
     window.addEventListener('popstate', router);
-
+    
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
@@ -426,32 +426,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- ИЗМЕНЕНИЕ: ГЛАВНЫЙ ИСПРАВЛЕННЫЙ ПОТОК ЗАГРУЗКИ ---
-    let isInitialLoad = true;
-    onAuthStateChanged(auth, user => {
-        updateAuthStateUI(user);
-        
-        if (isInitialLoad) {
-            // Это первая проверка, после нее мы можем быть уверены в статусе
-            // и можем отрисовать страницу.
-            isInitialLoad = false;
-            router(); 
-        } else {
-            // Это изменение статуса (вход или выход)
-            // Обновляем список приложений и, если нужно, само приложение
-            applyAppListFilterAndRender();
-            router(); 
-        }
-
-        if (isGsiInitialized) {
-            renderGoogleButton();
-        }
-    });
-    
+    // 2. Инициализируем Google Sign-In
     const checkGoogle = setInterval(() => {
         if (window.google && window.google.accounts) {
             clearInterval(checkGoogle);
             initializeGoogleSignIn();
         }
     }, 100);
+
+    // 3. ИЗМЕНЕНИЕ: Центральный контроллер, который ждет ответа Firebase
+    let isInitialAuthCheckDone = false;
+    onAuthStateChanged(auth, user => {
+        updateAuthStateUI(user);
+        
+        if (!isInitialAuthCheckDone) {
+            // Это первая и самая важная проверка. После нее можно рисовать страницу.
+            isInitialAuthCheckDone = true;
+            router(); 
+        } else {
+            // Это уже вход или выход пользователя. 
+            // Перерисовываем страницу, чтобы обновить данные.
+            router();
+        }
+
+        if (isGsiInitialized) {
+            renderGoogleButton();
+        }
+    });
 });
