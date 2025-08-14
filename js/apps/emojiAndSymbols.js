@@ -1,39 +1,4 @@
-import { auth, db } from '/js/firebaseConfig.js';
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
-
-// Утилита для управления хранилищем
-const getStorageManager = (dataKey, defaultValue = []) => {
-    return {
-        async getData() {
-            const user = auth.currentUser;
-            if (!user) {
-                const localData = localStorage.getItem(`${dataKey}_guest`);
-                return localData ? JSON.parse(localData) : defaultValue;
-            }
-            const userDocRef = doc(db, 'users', user.uid);
-            try {
-                const docSnap = await getDoc(userDocRef);
-                return (docSnap.exists() && docSnap.data()[dataKey]) ? docSnap.data()[dataKey] : defaultValue;
-            } catch (error) {
-                console.error(`Error getting ${dataKey}:`, error);
-                return defaultValue;
-            }
-        },
-        async saveData(data) {
-            const user = auth.currentUser;
-            if (!user) {
-                localStorage.setItem(`${dataKey}_guest`, JSON.stringify(data));
-                return;
-            }
-            const userDocRef = doc(db, 'users', user.uid);
-            try {
-                await setDoc(userDocRef, { [dataKey]: data }, { merge: true });
-            } catch (error) {
-                console.error(`Error saving ${dataKey}:`, error);
-            }
-        }
-    };
-};
+import { getUserData, saveUserData } from '/js/dataManager.js';
 
 // --- State Management ---
 let timeoutId;
@@ -42,13 +7,7 @@ const RECENT_SYMBOLS_KEY = 'recentSymbols';
 const RECENT_EMOJI_KEY = 'recentEmojis';
 const RECENT_LIMIT = 24;
 
-const recentSymbolsManager = getStorageManager(RECENT_SYMBOLS_KEY);
-const recentEmojisManager = getStorageManager(RECENT_EMOJI_KEY);
-
-const getRecent = (key) => {
-    return key === RECENT_SYMBOLS_KEY ? recentSymbolsManager.getData() : recentEmojisManager.getData();
-};
-
+const getRecent = (key) => getUserData(key, []);
 const addToRecent = async (key, symbol) => {
     let recent = await getRecent(key);
     recent = recent.filter(item => item.c !== symbol.c);
@@ -56,12 +15,12 @@ const addToRecent = async (key, symbol) => {
     if (recent.length > RECENT_LIMIT) {
         recent.pop();
     }
-    await (key === RECENT_SYMBOLS_KEY ? recentSymbolsManager.saveData(recent) : recentEmojisManager.saveData(recent));
+    await saveUserData(key, recent);
 };
 
-// --- ИСПРАВЛЕНИЕ: Данные теперь определяются с пустым массивом для "Недавних" ---
+// --- Data ---
 const symbols = [
-    { name: 'Недавно использованные', items: [] }, // Будет заполнено асинхронно
+    { name: 'Недавно использованные', items: [] },
     { name: 'Популярные', items: [{s:'✓',k:'галочка check'}, {s:'✗',k:'крестик x'}, {s:'★',k:'звезда star'}, {s:'☆',k:'звезда star'}, {s:'♥',k:'сердце heart love'}, {s:'₽',k:'рубль'}, {s:'€',k:'евро'}, {s:'$',k:'доллар'}, {s:'→',k:'стрелка вправо right arrow'}, {s:'←',k:'стрелка влево left arrow'}, {s:'©',k:'копирайт copyright'}, {s:'™',k:'тм trademark'}] },
     { name: 'Стрелки', items: [{s:'←',k:'стрелка влево'}, {s:'↑',k:'стрелка вверх'}, {s:'→',k:'стрелка вправо'}, {s:'↓',k:'стрелка вниз'}, {s:'↔',k:'стрелка влево вправо'}, {s:'↕',k:'стрелка вверх вниз'}, {s:'⇦',k:'стрелка'}, {s:'⇧',k:'стрелка'}, {s:'⇨',k:'стрелка'}, {s:'⇩',k:'стрелка'}, {s:'➥',k:'стрелка'}, {s:'↶',k:'стрелка'}, {s:'↷',k:'стрелка'}] },
     { name: 'Математические', items: [{s:'≈',k:'примерно'}, {s:'≠',k:'не равно'}, {s:'≤',k:'меньше или равно'}, {s:'≥',k:'больше или равно'}, {s:'÷',k:'деление'}, {s:'×',k:'умножение'}, {s:'−',k:'минус'}, {s:'+',k:'плюс'}, {s:'∞',k:'бесконечность'}, {s:'π',k:'пи'}, {s:'√',k:'корень'}, {s:'∫',k:'интеграл'}, {s:'∑',k:'сумма'}, {s:'°',k:'градус'}, {s:'¹',k:'1 степень'}, {s:'²',k:'2 степень'}, {s:'³',k:'3 степень'}, {s:'µ',k:'мю микро'}, {s:'∆',k:'дельта'}, {s:'¼',k:'одна четверть'}, {s:'½',k:'одна вторая'}, {s:'¾',k:'три четверти'}] },
@@ -70,7 +29,7 @@ const symbols = [
     { name: 'Шахматы', items: [{s:'♔',k:'король'}, {s:'♕',k:'ферзь'}, {s:'♖',k:'ладья'}, {s:'♗',k:'слон'}, {s:'♘',k:'конь'}, {s:'♙',k:'пешка'}, {s:'♚',k:'король'}, {s:'♛',k:'ферзь'}, {s:'♜',k:'ладья'}, {s:'♝',k:'слон'}, {s:'♞',k:'конь'}] }
 ];
 const emojis = [
-    { name: 'Недавно использованные', items: [] }, // Будет заполнено асинхронно
+    { name: 'Недавно использованные', items: [] },
     { name: 'Смайлики и эмоции', items: '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 🥰 😗 😙 😚 🙂 🤗 🤩 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 🥶 😳 🤪 😵 😡 😠 🤬 😷 🤒 🤕 🤢 🤮 🤧 😇 🤠 🥳 🥴 🥺 🤡 🤥 🤫 🤭 🧐 🤓'.split(/\s+/).map(s => ({s})) },
     { name: 'Люди и тело', items: '👋 🤚 🖐 ✋ 🖖 👌 🤏 ✌ 🤞 🤟 🤘 🤙 👈 👉 👆 🖕 👇 ☝ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍ 💅 🤳 💪 🦵 🦶 👂 👃 🧠 🦷 🦴 👀 👁 👅 👄 👶 🧒 👦 👧 🧑 👱 👨 🧔 👩 🧓 👴 👵'.split(/\s+/).map(s => ({s})) },
     { name: 'Животные и природа', items: '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐔 🐧 🐦 🐤 🦋 🐛 🐺 🐗 🐴 🦓 🦒 🐘 🦏 🐪 🐫 🐿 🦔 🐾 🌵 🎄 🌲 🌳 🌴 🌱 🌿 ☘ 🍀 🍁 🍄 🐚 🌾 💐 🌷 🌹 🥀 🌺 🌸 🌼 🌻 🌞 🌎 🌍 🌏 🌕 🌖 🌗 🌘 🌑 🌒 🌓 🌔 🌙 🌚 🌛 🌜 💫 ⭐ 🌟 ✨ ⚡ 🔥 💥 ☄ ☀ 🌤 ⛅ 🌥 🌦 🌈 ☁ 🌧 ⛈ 🌩 🌨 🌬 💨 🌪 🌫 🌊 💧 💦 ☔'.split(/\s+/).map(s => ({s})) },
@@ -174,7 +133,6 @@ export async function init() {
         const key = tab === 'symbols' ? RECENT_SYMBOLS_KEY : RECENT_EMOJI_KEY;
         const recentItems = await getRecent(key);
         
-        // ИСПРАВЛЕНИЕ: Безопасно обновляем массив `items`
         if (dataMap[tab] && dataMap[tab][0] && dataMap[tab][0].name === 'Недавно использованные') {
             dataMap[tab][0].items = recentItems;
         }
@@ -266,7 +224,7 @@ export async function init() {
         contentArea.querySelectorAll('section').forEach(section => intersectionObserver.observe(section));
     }
     
-    await updateRecentAndRender(activeTab); // Первый рендер
+    await updateRecentAndRender(activeTab);
 }
 
 export function cleanup() {
