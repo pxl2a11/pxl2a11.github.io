@@ -1,5 +1,5 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
-import { auth, db } from './firebaseConfig.js';
+import { auth, db } from '/js/firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
