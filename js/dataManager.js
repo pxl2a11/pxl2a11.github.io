@@ -12,7 +12,7 @@ let userAccountData = {};
  */
 export async function fetchUserAccountData(userId) {
     if (!userId) {
-        userAccountData = {};
+        userAccountData = {}; // Если ID нет, сбрасываем кэш
         return;
     }
     const userDocRef = doc(db, 'users', userId);
@@ -52,6 +52,10 @@ export function getUserData(key, defaultValue = []) {
     } else {
         // Гость - берем данные из localStorage
         const localData = localStorage.getItem(`${key}_guest`);
+        // Проверяем, соответствует ли тип данных значению по умолчанию
+        if (typeof defaultValue === 'object' && !Array.isArray(defaultValue)) {
+             return localData ? JSON.parse(localData) : defaultValue;
+        }
         return localData ? JSON.parse(localData) : defaultValue;
     }
 }
@@ -68,6 +72,7 @@ export async function saveUserData(key, data) {
         // Сохраняем в Firestore в фоновом режиме
         const userDocRef = doc(db, 'users', user.uid);
         try {
+            // set с { merge: true } создает документ, если его нет, или обновляет/добавляет поля
             await setDoc(userDocRef, { [key]: data }, { merge: true });
         } catch (error) {
             console.error(`Ошибка сохранения ${key}:`, error);
