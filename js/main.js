@@ -1,4 +1,4 @@
-// Импортируем только наши локальные утилиты
+//20 Импортируем только наши локальные утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
 // ИЗМЕНЕНИЕ: Конфигурация Firebase теперь находится здесь
