@@ -1,4 +1,4 @@
-// Импортируем наши локальные утилиты
+//27 Импортируем наши локальные утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
 // Импортируем auth и db из нашего конфигурационного файла
