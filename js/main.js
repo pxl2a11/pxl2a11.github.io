@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// ---33 Сопоставление имен приложений с файлами модулей (без изменений) ---
+// --- 38Сопоставление имен приложений с файлами модулей (без изменений) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -116,7 +116,7 @@ const userNameElement = document.getElementById('user-name');
 const signOutBtn = document.getElementById('sign-out-btn');
 const googleSignInContainer = document.getElementById('google-signin-top-right-container');
 
-// ИСПРАВЛЕННЫЙ ПАРСЕР JWT С КОРРЕКТНОЙ ОБРАБОТКОЙ UTF-8
+// ИСПРАВЛЕННЫЙ ПАРСЕР JWT, который корректно работает с UTF-8 (кириллицей)
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
@@ -134,14 +134,15 @@ function parseJwt(token) {
     }
 }
 
-// Новая функция для перерисовки кнопки Google
+// Отдельная функция для перерисовки кнопки Google
 function renderGoogleButton() {
     if (googleSignInContainer && !localStorage.getItem('userProfile')) {
-        googleSignInContainer.innerHTML = ''; 
+        googleSignInContainer.innerHTML = '';
         window.google.accounts.id.renderButton(
             googleSignInContainer,
             { type: "icon", shape: "circle", theme: "outline", size: "large" }
         );
+        googleSignInContainer.classList.remove('hidden');
     }
 }
 
@@ -160,8 +161,12 @@ function updateAuthStateUI(profile) {
 function getCurrentUserId() {
     const savedProfileJSON = localStorage.getItem('userProfile');
     if (savedProfileJSON) {
-        const profile = JSON.parse(savedProfileJSON);
-        return profile.sub || 'guest';
+        try {
+            const profile = JSON.parse(savedProfileJSON);
+            return profile.sub || 'guest';
+        } catch (e) {
+            return 'guest';
+        }
     }
     return 'guest';
 }
@@ -186,7 +191,7 @@ function savePinnedApps(pinnedModules) {
 
 function handleCredentialResponse(response) {
     const userProfile = parseJwt(response.credential);
-    if (!userProfile) return; 
+    if (!userProfile) return;
 
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
     updateAuthStateUI(userProfile);
@@ -195,9 +200,11 @@ function handleCredentialResponse(response) {
 
 function handleSignOut() {
     localStorage.removeItem('userProfile');
-    google.accounts.id.disableAutoSelect();
+    if (window.google && window.google.accounts) {
+        google.accounts.id.disableAutoSelect();
+    }
     updateAuthStateUI(null);
-    renderGoogleButton(); 
+    renderGoogleButton();
     applyAppListFilterAndRender();
 }
 
@@ -207,17 +214,14 @@ function initializeGoogleSignIn() {
             client_id: '327345325953-bubmv3lac6ctv2tgddin8mshdbceve27.apps.googleusercontent.com',
             callback: handleCredentialResponse
         });
-
         const savedProfileJSON = localStorage.getItem('userProfile');
         updateAuthStateUI(savedProfileJSON ? JSON.parse(savedProfileJSON) : null);
         renderGoogleButton();
-
     } catch (e) {
         console.error("Google Identity Services library error:", e);
     }
 }
 // --- КОНЕЦ ЛОГИКИ АВТОРИЗАЦИИ ---
-
 
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
@@ -240,38 +244,31 @@ function renderSimilarApps(currentModule, container) {
         container.classList.add('hidden');
         return;
     }
-
     const currentHashtags = new Set(currentAppMeta.hashtags);
-    
     let similarModules = [];
     for (const moduleName in appSearchMetadata) {
-        if (moduleName === currentModule) continue; 
+        if (moduleName === currentModule) continue;
         const meta = appSearchMetadata[moduleName];
         if (meta.hashtags && meta.hashtags.some(tag => currentHashtags.has(tag))) {
             similarModules.push(moduleName);
         }
     }
-
     similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
     const topSimilar = similarModules.slice(0, 3);
-
     if (topSimilar.length === 0) {
         container.innerHTML = '';
         container.classList.add('hidden');
         return;
     }
-    
     container.innerHTML = `<h3 class="text-xl font-bold mb-4">Похожие приложения</h3>`;
     const grid = document.createElement('div');
     grid.className = 'similar-apps-grid';
-
     topSimilar.forEach(module => {
         const card = appCardElements.get(module);
         if (card) {
             grid.appendChild(card.cloneNode(true));
         }
     });
-
     container.appendChild(grid);
     container.classList.remove('hidden');
 }
@@ -285,37 +282,31 @@ async function router() {
 
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
-    const appName = moduleFileToAppName[moduleName]; 
+    const appName = moduleFileToAppName[moduleName];
     const filterContainer = document.getElementById('filter-container');
 
     if (appName) {
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         filterContainer?.classList.add('hidden');
-
         dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
         appScreen.classList.remove('hidden');
         document.getElementById('app-title').textContent = appName;
         changelogContainer.classList.add('hidden');
         document.title = `${appName} | Mini Apps`;
-
         try {
             const module = await import(`./apps/${moduleName}.js`);
             activeAppModule = module;
-
             const appContentContainer = document.getElementById('app-content-container');
             if (typeof module.getHtml === 'function') { appContentContainer.innerHTML = module.getHtml(); }
             if (typeof module.init === 'function') { module.init(); }
-
             const appChangelogContainer = document.getElementById('app-changelog-container');
             const similarAppsContainer = document.getElementById('similar-apps-container');
-            
             renderSimilarApps(moduleName, similarAppsContainer);
             if (appName !== 'История изменений') {
                 renderChangelog(appName, null, appChangelogContainer);
             }
-
         } catch (error) {
             console.error(`Ошибка загрузки модуля для "${appName}" (${moduleName}.js):`, error);
             document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
@@ -325,7 +316,6 @@ async function router() {
         filterContainer?.classList.remove('hidden');
         changelogContainer.classList.remove('hidden');
         document.title = 'Mini Apps';
-        
         setupFilters();
         setupSearch();
         renderChangelog(null, 3, changelogContainer);
@@ -338,22 +328,18 @@ function setupNavigationEvents() {
         if (!link || e.target.closest('.pin-btn')) {
             return;
         }
-
         if (link.id === 'back-button') {
             e.preventDefault();
             history.back();
             return;
         }
-
         const url = new URL(link.href);
         if (url.origin === window.location.origin) {
             const isAppNavigation = url.search.startsWith('?app=') || (url.pathname === '/' && !url.search);
             const isChangelogLink = link.classList.contains('changelog-link');
-
             if (isAppNavigation || isChangelogLink) {
                 e.preventDefault();
                 if (window.location.href === link.href) return;
-
                 const appNameToOpen = link.dataset.appName;
                 if (isChangelogLink && appNameToOpen) {
                     const moduleFile = appNameToModuleFile[appNameToOpen];
@@ -373,21 +359,17 @@ function setupNavigationEvents() {
 function setupSearch() {
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer) return;
-
     searchInput.addEventListener('input', () => {
         const allApps = appsContainer.querySelectorAll('.app-item');
         const searchTerm = searchInput.value.toLowerCase().trim();
         const suggestions = [];
-        
         allApps.forEach(app => {
             const appName = app.dataset.name.toLowerCase();
             const moduleName = app.dataset.module;
             const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
             const searchCorpus = [appName, ...metadata.keywords].join(' ');
             const isVisible = searchCorpus.includes(searchTerm);
-            
             app.style.display = isVisible ? 'flex' : 'none';
-
             if (isVisible && searchTerm.length > 0) {
                 suggestions.push({
                     name: app.dataset.name, module: moduleName,
@@ -395,7 +377,6 @@ function setupSearch() {
                 });
             }
         });
-
         suggestionsContainer.innerHTML = '';
         if (searchTerm.length > 0 && suggestions.length > 0) {
             suggestionsContainer.classList.remove('hidden');
@@ -419,9 +400,7 @@ function setupSearch() {
 
 function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
-    if (!appsContainer) {
-        return; 
-    }
+    if (!appsContainer) return;
 
     const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
@@ -432,17 +411,19 @@ function applyAppListFilterAndRender() {
         appElements.forEach(app => {
             const appClone = app.cloneNode(true);
             const pinBtn = appClone.querySelector('.pin-btn');
-            if (pinBtn && pinnedModules.includes(app.dataset.module)) {
-                pinBtn.classList.add('pinned');
+            if (pinBtn) {
+                // Сбрасываем состояние pinned перед проверкой
+                pinBtn.classList.remove('pinned');
+                if (pinnedModules.includes(app.dataset.module)) {
+                    pinBtn.classList.add('pinned');
+                }
             }
             appsContainer.appendChild(appClone);
         });
     };
-
     let unpinnedAppCards = [];
     const pinnedAppCardsMap = new Map();
     pinnedModules.forEach(module => pinnedAppCardsMap.set(module, null));
-
     allAppCards.forEach(card => {
         const module = card.dataset.module;
         if (pinnedModules.includes(module)) {
@@ -451,9 +432,7 @@ function applyAppListFilterAndRender() {
             unpinnedAppCards.push(card);
         }
     });
-
     const pinnedAppCards = Array.from(pinnedAppCardsMap.values()).filter(Boolean);
-
     let sortedUnpinned;
     if (activeFilter === 'popular') {
         sortedUnpinned = [...unpinnedAppCards].sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
@@ -466,10 +445,8 @@ function applyAppListFilterAndRender() {
     } else {
         sortedUnpinned = unpinnedAppCards;
     }
-
     const finalAppList = [...pinnedAppCards, ...sortedUnpinned];
     renderApps(finalAppList);
-
     if (searchInput.value) {
         searchInput.value = '';
         searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -479,16 +456,14 @@ function applyAppListFilterAndRender() {
 function setupFilters() {
     const filterContainer = document.getElementById('filter-container');
     if (!filterContainer) return;
-
     filterContainer.addEventListener('click', (e) => {
         const button = e.target.closest('.filter-btn');
         if (!button || button.classList.contains('active')) return;
-
         filterContainer.querySelector('.active')?.classList.remove('active');
         button.classList.add('active');
         applyAppListFilterAndRender();
     });
-
+    // Изначально отрисовываем список приложений
     applyAppListFilterAndRender();
 }
 
@@ -499,7 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
     const savedTheme = localStorage.getItem('theme');
-
     if (savedTheme === 'dark') {
         document.documentElement.classList.add('dark');
         sunIcon.classList.add('hidden');
@@ -509,7 +483,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sunIcon.classList.remove('hidden');
         moonIcon.classList.add('hidden');
     }
-    
     themeToggleBtn.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
         const isDark = document.documentElement.classList.contains('dark');
@@ -539,11 +512,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pinBtn) {
             e.preventDefault(); 
             e.stopPropagation();
-
             const appCard = pinBtn.closest('.app-item');
             const moduleName = appCard?.dataset.module;
             if (!moduleName) return;
-
             let pinnedApps = getPinnedApps();
             if (pinnedApps.includes(moduleName)) {
                 pinnedApps = pinnedApps.filter(m => m !== moduleName);
