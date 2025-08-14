@@ -4,18 +4,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Mini Apps</title>
-    <!-- Tailwind CSS -->
-    <script src="js/tailwind.js"></script>
 
-    <!-- ИЗМЕНЕНИЕ: Добавляем подсказки для браузера -->
+    <!-- Подсказки для ускорения соединения -->
     <link rel="preconnect" href="https://accounts.google.com">
     <link rel="preconnect" href="https://www.gstatic.com">
     <link rel="preconnect" href="https://mini-apps-2c0ad.firebaseapp.com">
 
-    <!-- ИЗМЕНЕНИЕ: Добавляем Firebase SDK (совместимые версии v8) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="js/tailwind.js"></script>
 
     <!-- Внешние библиотеки -->
     <script src="js/lame.min.js"></script>
@@ -27,15 +23,23 @@
     <!-- Библиотека Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
+    <!-- Firebase SDK (совместимые версии v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js" defer></script>
+
     <!-- Наши собственные стили -->
     <link rel="stylesheet" href="css/style.css">
     <script>
         tailwind.config = { darkMode: 'class' };
     </script>
+    
+    <!-- ИЗМЕНЕНИЕ: Главный скрипт перемещен сюда для ранней загрузки -->
+    <script type="module" src="js/main.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-200 font-sans p-4">
 
-    <!-- Контейнер в правом верхнем углу (без изменений) -->
+    <!-- Контейнер в правом верхнем углу -->
     <div class="fixed top-4 right-4 flex items-center gap-4 z-50">
         <div id="google-signin-top-right-container"></div>
         <div id="user-profile" class="hidden flex items-center gap-3 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md">
@@ -51,7 +55,7 @@
         </button>
     </div>
 
-    <!-- Основной контейнер (без изменений) -->
+    <!-- Основной контейнер -->
     <div class="flex flex-col items-center min-h-screen pt-8 pb-8">
         <div class="w-full max-w-4xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-lg transition-colors">
             <h1 class="text-4xl font-bold text-center mb-6"><a href="/" id="home-link">Mini Apps</a></h1>
@@ -60,7 +64,6 @@
                 <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 <div id="suggestions-container" class="absolute w-full mt-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-lg hidden z-10"></div>
             </div>
-<!-- Фильтры -->
             <div id="filter-container" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-6 hidden">
                 <button data-sort="default" class="filter-btn active">Все</button>
                 <button data-sort="popular" class="filter-btn">Популярные</button>
@@ -291,8 +294,5 @@
             <span class="text-sm font-medium ml-4 pr-8">Змейка</span>
         </a>
     </template>
-
-    <!-- Главный скрипт. Type="module" ОБЯЗАТЕЛЕН -->
-    <script type="module" src="js/main.js"></script>
 </body>
 </html>
