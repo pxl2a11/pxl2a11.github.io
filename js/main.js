@@ -1,7 +1,7 @@
-//20 Импортируем только наши локальные утилиты
+// 24Импортируем только наши локальные утилиты
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// ИЗМЕНЕНИЕ: Конфигурация Firebase теперь находится здесь
+// Конфигурация Firebase находится здесь
 const firebaseConfig = {
   apiKey: "AIzaSyDks7wx8Lua2rX-BW6SL_OKd83oRdTRj_Q",
   authDomain: "mini-apps-2c0ad.firebaseapp.com",
@@ -135,7 +135,9 @@ const googleSignInContainer = document.getElementById('google-signin-top-right-c
 let isGsiInitialized = false;
 
 function renderGoogleButton() {
-    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) return;
+    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) {
+        return;
+    }
     googleSignInContainer.innerHTML = '';
     window.google.accounts.id.renderButton(
         googleSignInContainer,
@@ -198,7 +200,8 @@ function handleCredentialResponse(response) {
 }
 
 function handleSignOut() {
-    auth.signOut();
+    // ИЗМЕНЕНИЕ: Используем правильный синтаксис v8
+    auth.signOut(); 
     if (window.google && window.google.accounts) {
         google.accounts.id.disableAutoSelect();
     }
@@ -499,7 +502,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Инициализация ---
     signOutBtn.addEventListener('click', handleSignOut);
     
-    onAuthStateChanged(auth, user => {
+    // ИЗМЕНЕНИЕ: Используем правильный синтаксис v8
+    auth.onAuthStateChanged(user => {
         updateAuthStateUI(user);
         applyAppListFilterAndRender();
         if (isGsiInitialized) {
