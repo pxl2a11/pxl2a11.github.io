@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// --- Сопоставление имен приложений с файлами модулей ---
+// ---52 Сопоставление имен приложений с файлами модулей (без изменений) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -36,8 +36,6 @@ const appNameToModuleFile = {
     'Калькулятор валют': 'currencyCalculator',
     'Змейка': 'snakeGame',
 };
-
-// --- Рейтинг популярности (условный) ---
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94,
     'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78,
@@ -49,8 +47,6 @@ const appPopularity = {
     'imageConverter': 91, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76,
     'imageResizer': 90, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74,
 };
-
-// --- Ключевые слова и хэштеги для поиска ---
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] },
     'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] },
@@ -85,12 +81,11 @@ const appSearchMetadata = {
     'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] },
     'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },
 };
-
-
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
+// --- Глобальные переменные DOM (без изменений) ---
 const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
@@ -98,15 +93,6 @@ const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 let allAppCards = [];
-
-// --- Глобальные переменные для аутентификации ---
-const userProfileElement = document.getElementById('user-profile');
-const userAvatarElement = document.getElementById('user-avatar');
-const userNameElement = document.getElementById('user-name');
-const signOutBtn = document.getElementById('sign-out-btn');
-// ИЗМЕНЕНИЕ: Получаем новый контейнер для кнопки
-const googleSignInContainer = document.getElementById('google-signin-button-container');
-
 const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
     <div id="app-screen" class="hidden">
@@ -121,42 +107,56 @@ const appScreenHtml = `
 
 /**
  * =======================================================
- * ЛОГИКА АВТОРИЗАЦИИ GOOGLE SIGN-IN
+ *  ИСПРАВЛЕННАЯ ЛОГИКА АВТОРИЗАЦИИ GOOGLE SIGN-IN
  * =======================================================
  */
 
-// Функция-обработчик учетных данных, полученных от Google
+// Получаем элементы для управления UI авторизации
+const userProfileElement = document.getElementById('user-profile');
+const userAvatarElement = document.getElementById('user-avatar');
+const userNameElement = document.getElementById('user-name');
+const signOutBtn = document.getElementById('sign-out-btn');
+const googleSignInContainer = document.getElementById('google-signin-button-container');
+
+// **НОВАЯ ЕДИНАЯ ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ UI**
+function updateAuthStateUI(profile) {
+    if (profile && profile.name) { // Пользователь авторизован
+        console.log('Updating UI for logged in user:', profile.name);
+        if(userNameElement) userNameElement.textContent = profile.name;
+        if(userAvatarElement) userAvatarElement.src = profile.picture;
+        if(userProfileElement) userProfileElement.classList.remove('hidden');
+        if(googleSignInContainer) googleSignInContainer.classList.add('hidden');
+    } else { // Пользователь не авторизован
+        console.log('Updating UI for logged out user.');
+        if(userProfileElement) userProfileElement.classList.add('hidden');
+        if(googleSignInContainer) googleSignInContainer.classList.remove('hidden');
+    }
+}
+
+// Обработчик ответа от Google
 function handleCredentialResponse(response) {
+    console.log("Google response received. Credential:", response.credential);
+    // Декодируем токен для получения информации о пользователе
     const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
     const userProfile = {
         name: decodedToken.name,
         picture: decodedToken.picture,
         email: decodedToken.email
     };
+    
+    // Сохраняем профиль в localStorage
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
-    updateUIForUser(userProfile);
+    
+    // Обновляем UI
+    updateAuthStateUI(userProfile);
 }
 
-// Функция для обновления UI после входа/выхода
-function updateUIForUser(profile) {
-    if (profile) { // Пользователь вошел в систему
-        userNameElement.textContent = profile.name;
-        userAvatarElement.src = profile.picture;
-        userProfileElement.classList.remove('hidden');
-        if(googleSignInContainer) googleSignInContainer.classList.add('hidden'); // Скрываем кнопку входа
-    } else { // Пользователь вышел
-        userProfileElement.classList.add('hidden');
-        userNameElement.textContent = '';
-        userAvatarElement.src = '';
-        if(googleSignInContainer) googleSignInContainer.classList.remove('hidden'); // Показываем кнопку входа
-    }
-}
-
-// Функция для выхода из системы
+// Функция выхода
 function handleSignOut() {
+    console.log('Signing out.');
     localStorage.removeItem('userProfile');
     google.accounts.id.disableAutoSelect();
-    updateUIForUser(null);
+    updateAuthStateUI(null); // Обновляем UI для неавторизованного пользователя
 }
 
 // Инициализация Google Sign-In
@@ -166,25 +166,29 @@ function initializeGoogleSignIn() {
             client_id: '327345325953-bubmv3lac6ctv2tgddin8mshdbceve27.apps.googleusercontent.com',
             callback: handleCredentialResponse
         });
-        
+
+        // Проверяем, есть ли сохраненная сессия
         const savedProfileJSON = localStorage.getItem('userProfile');
         if (savedProfileJSON) {
-            updateUIForUser(JSON.parse(savedProfileJSON));
+            updateAuthStateUI(JSON.parse(savedProfileJSON));
         } else {
-            updateUIForUser(null);
-            // Рендерим кнопку входа, если пользователь не авторизован
-            window.google.accounts.id.renderButton(
-                googleSignInContainer,
-                // ИЗМЕНЕНИЕ: Уменьшаем размер кнопки для панели фильтров
-                { theme: "outline", size: "medium", text: "signin_with", shape: "pill" }
-            );
+            updateAuthStateUI(null);
+            // Отрисовываем кнопку только если пользователь не вошел
+            // и если контейнер для кнопки существует на странице
+            if(googleSignInContainer) {
+                window.google.accounts.id.renderButton(
+                    googleSignInContainer,
+                    { theme: "outline", size: "medium", text: "signin_with", shape: "pill" }
+                );
+            }
         }
     } catch (e) {
-        console.error("Google Identity Services library not loaded yet.", e);
+        console.error("Google Identity Services library error:", e);
     }
 }
 
 // --- КОНЕЦ ЛОГИКИ АВТОРИЗАЦИИ ---
+
 
 function getPinnedApps() {
     try {
@@ -274,6 +278,9 @@ async function router() {
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         filterContainer?.classList.add('hidden');
         
+        // Прячем кнопку логина на страницах приложений
+        if (googleSignInContainer) googleSignInContainer.classList.add('hidden');
+
         dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
         appScreen.classList.remove('hidden');
@@ -304,6 +311,13 @@ async function router() {
     } else {
         dynamicContentArea.innerHTML = homeScreenHtml;
         filterContainer?.classList.remove('hidden');
+        
+        // Показываем кнопку логина на главной (если пользователь не вошел)
+        const savedProfileJSON = localStorage.getItem('userProfile');
+        if (!savedProfileJSON && googleSignInContainer) {
+            googleSignInContainer.classList.remove('hidden');
+        }
+
         changelogContainer.classList.remove('hidden');
         document.title = 'Mini Apps';
         
@@ -498,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     document.addEventListener('click', e => {
-        if (!suggestionsContainer.contains(e.target) && e.target !== searchInput) {
+        if (suggestionsContainer && !suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
         }
     });
@@ -535,6 +549,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // --- Инициализация Google Sign-In и обработчики событий ---
+    signOutBtn.addEventListener('click', handleSignOut);
+    
     // Дожидаемся загрузки глобального объекта google
     const checkGoogle = setInterval(() => {
         if (window.google && window.google.accounts) {
@@ -542,8 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
             initializeGoogleSignIn();
         }
     }, 100);
-
-    signOutBtn.addEventListener('click', handleSignOut);
 
     window.addEventListener('popstate', router);
     setupNavigationEvents();
