@@ -1,4 +1,4 @@
-import { auth, db } from '../firebaseConfig.js';
+import { auth, db } from '/js/firebaseConfig.js';
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
 // Утилита для управления хранилищем
