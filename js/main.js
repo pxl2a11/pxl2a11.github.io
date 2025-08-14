@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// ---27 Сопоставление имен приложений с файлами модулей (без изменений) ---
+// --- Сопоставление имен приложений с файлами модулей (без изменений) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -116,14 +116,17 @@ const userNameElement = document.getElementById('user-name');
 const signOutBtn = document.getElementById('sign-out-btn');
 const googleSignInContainer = document.getElementById('google-signin-top-right-container');
 
+// ИСПРАВЛЕННЫЙ ПАРСЕР JWT С КОРРЕКТНОЙ ОБРАБОТКОЙ UTF-8
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const paddedBase64 = base64 + '=='.substring(0, (4 - base64.length % 4) % 4);
-        const jsonPayload = decodeURIComponent(atob(paddedBase64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
+        const binaryString = atob(base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        const jsonPayload = new TextDecoder('utf-8').decode(bytes);
         return JSON.parse(jsonPayload);
     } catch (e) {
         console.error("Failed to parse JWT:", e);
@@ -131,10 +134,10 @@ function parseJwt(token) {
     }
 }
 
-// ИЗМЕНЕНИЕ: Новая функция для перерисовки кнопки Google
+// Новая функция для перерисовки кнопки Google
 function renderGoogleButton() {
-    if (!localStorage.getItem('userProfile') && googleSignInContainer) {
-        googleSignInContainer.innerHTML = ''; // Очищаем контейнер перед рендерингом
+    if (googleSignInContainer && !localStorage.getItem('userProfile')) {
+        googleSignInContainer.innerHTML = ''; 
         window.google.accounts.id.renderButton(
             googleSignInContainer,
             { type: "icon", shape: "circle", theme: "outline", size: "large" }
@@ -181,7 +184,6 @@ function savePinnedApps(pinnedModules) {
     localStorage.setItem(key, JSON.stringify(pinnedModules));
 }
 
-
 function handleCredentialResponse(response) {
     const userProfile = parseJwt(response.credential);
     if (!userProfile) return; 
@@ -195,10 +197,7 @@ function handleSignOut() {
     localStorage.removeItem('userProfile');
     google.accounts.id.disableAutoSelect();
     updateAuthStateUI(null);
-
-    // ИЗМЕНЕНИЕ: Явно перерисовываем кнопку после выхода
     renderGoogleButton(); 
-    
     applyAppListFilterAndRender();
 }
 
@@ -211,8 +210,6 @@ function initializeGoogleSignIn() {
 
         const savedProfileJSON = localStorage.getItem('userProfile');
         updateAuthStateUI(savedProfileJSON ? JSON.parse(savedProfileJSON) : null);
-        
-        // ИЗМЕНЕНИЕ: Вызываем рендер кнопки в любом случае (функция сама решит, нужно ли)
         renderGoogleButton();
 
     } catch (e) {
@@ -422,9 +419,8 @@ function setupSearch() {
 
 function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
-    // ИЗМЕНЕНИЕ: Добавлена проверка на наличие контейнера
     if (!appsContainer) {
-        return; // Выходим, если мы не на главной странице
+        return; 
     }
 
     const filterContainer = document.getElementById('filter-container');
