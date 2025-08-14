@@ -1,6 +1,6 @@
 import { renderChangelog, getChangelogData } from './utils/changelog.js';
 
-// ---52 Сопоставление имен приложений с файлами модулей (без изменений) ---
+// ---02 Сопоставление имен приложений с файлами модулей (без изменений) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -85,7 +85,6 @@ const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
-// --- Глобальные переменные DOM (без изменений) ---
 const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
@@ -111,55 +110,65 @@ const appScreenHtml = `
  * =======================================================
  */
 
-// Получаем элементы для управления UI авторизации
 const userProfileElement = document.getElementById('user-profile');
 const userAvatarElement = document.getElementById('user-avatar');
 const userNameElement = document.getElementById('user-name');
 const signOutBtn = document.getElementById('sign-out-btn');
 const googleSignInContainer = document.getElementById('google-signin-button-container');
 
-// **НОВАЯ ЕДИНАЯ ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ UI**
+// **ИСПРАВЛЕННЫЙ ПАРСЕР JWT**
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        // Добавляем недостающие символы "=", чтобы длина строки была кратна 4
+        const paddedBase64 = base64 + '=='.substring(0, (4 - base64.length % 4) % 4);
+        const jsonPayload = decodeURIComponent(atob(paddedBase64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error("Failed to parse JWT:", e);
+        return null;
+    }
+}
+
 function updateAuthStateUI(profile) {
-    if (profile && profile.name) { // Пользователь авторизован
+    if (profile && profile.name) {
         console.log('Updating UI for logged in user:', profile.name);
         if(userNameElement) userNameElement.textContent = profile.name;
         if(userAvatarElement) userAvatarElement.src = profile.picture;
         if(userProfileElement) userProfileElement.classList.remove('hidden');
         if(googleSignInContainer) googleSignInContainer.classList.add('hidden');
-    } else { // Пользователь не авторизован
+    } else {
         console.log('Updating UI for logged out user.');
         if(userProfileElement) userProfileElement.classList.add('hidden');
         if(googleSignInContainer) googleSignInContainer.classList.remove('hidden');
     }
 }
 
-// Обработчик ответа от Google
 function handleCredentialResponse(response) {
-    console.log("Google response received. Credential:", response.credential);
-    // Декодируем токен для получения информации о пользователе
-    const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
-    const userProfile = {
-        name: decodedToken.name,
-        picture: decodedToken.picture,
-        email: decodedToken.email
-    };
+    console.log("Google response received.");
     
-    // Сохраняем профиль в localStorage
+    // Используем исправленный парсер
+    const userProfile = parseJwt(response.credential);
+    if (!userProfile) {
+        console.error("Could not parse user profile from credential.");
+        return; 
+    }
+
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
-    
-    // Обновляем UI
     updateAuthStateUI(userProfile);
 }
 
-// Функция выхода
 function handleSignOut() {
     console.log('Signing out.');
     localStorage.removeItem('userProfile');
     google.accounts.id.disableAutoSelect();
-    updateAuthStateUI(null); // Обновляем UI для неавторизованного пользователя
+    updateAuthStateUI(null);
 }
 
-// Инициализация Google Sign-In
 function initializeGoogleSignIn() {
     try {
         window.google.accounts.id.initialize({
@@ -167,14 +176,11 @@ function initializeGoogleSignIn() {
             callback: handleCredentialResponse
         });
 
-        // Проверяем, есть ли сохраненная сессия
         const savedProfileJSON = localStorage.getItem('userProfile');
         if (savedProfileJSON) {
             updateAuthStateUI(JSON.parse(savedProfileJSON));
         } else {
             updateAuthStateUI(null);
-            // Отрисовываем кнопку только если пользователь не вошел
-            // и если контейнер для кнопки существует на странице
             if(googleSignInContainer) {
                 window.google.accounts.id.renderButton(
                     googleSignInContainer,
@@ -186,9 +192,7 @@ function initializeGoogleSignIn() {
         console.error("Google Identity Services library error:", e);
     }
 }
-
 // --- КОНЕЦ ЛОГИКИ АВТОРИЗАЦИИ ---
-
 
 function getPinnedApps() {
     try {
@@ -278,7 +282,6 @@ async function router() {
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         filterContainer?.classList.add('hidden');
         
-        // Прячем кнопку логина на страницах приложений
         if (googleSignInContainer) googleSignInContainer.classList.add('hidden');
 
         dynamicContentArea.innerHTML = appScreenHtml;
@@ -312,7 +315,6 @@ async function router() {
         dynamicContentArea.innerHTML = homeScreenHtml;
         filterContainer?.classList.remove('hidden');
         
-        // Показываем кнопку логина на главной (если пользователь не вошел)
         const savedProfileJSON = localStorage.getItem('userProfile');
         if (!savedProfileJSON && googleSignInContainer) {
             googleSignInContainer.classList.remove('hidden');
@@ -548,10 +550,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // --- Инициализация Google Sign-In и обработчики событий ---
     signOutBtn.addEventListener('click', handleSignOut);
     
-    // Дожидаемся загрузки глобального объекта google
     const checkGoogle = setInterval(() => {
         if (window.google && window.google.accounts) {
             clearInterval(checkGoogle);
