@@ -1,4 +1,4 @@
-/* ---01 Стили для кнопок фильтрации --- */
+/* --- Стили для кнопок фильтрации --- */
 .filter-btn {
     padding: 0.5rem 1rem;
     border-radius: 9999px; /* pill shape */
@@ -542,6 +542,7 @@
     color: #9ca3af; /* gray-400 */
 }
 
+
 /* 
  * =======================================================
  * Стили для игры "2048" (С АНИМАЦИЕЙ)
@@ -606,6 +607,7 @@
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 2;
 }
 
 .game2048-tile {
@@ -615,24 +617,22 @@
     justify-content: center;
     font-weight: bold;
     border-radius: 3px;
-    font-size: 1.5em; /* Базовый размер шрифта */
     transition: transform 100ms ease-in-out;
+    transform: scale(0);
 }
 
-.tile-new {
+.game2048-tile.tile-new {
+    transform: scale(1);
     animation: appear 200ms ease-in-out;
 }
 
-.tile-merged {
+.game2048-tile.tile-merged {
     animation: pulse 200ms ease-in-out;
 }
 
 @keyframes appear {
     from {
         transform: scale(0);
-    }
-    to {
-        transform: scale(1);
     }
 }
 
