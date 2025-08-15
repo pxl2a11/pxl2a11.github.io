@@ -1,290 +1,264 @@
 // js/apps/game2048.js
 
-// Глобальные переменные модуля, чтобы к ним был доступ из всех функций
-let gameContainer;
-let scoreValueEl;
-let descriptionEl;
-let statusEl;
+let scoreEl, boardEl, tileContainerEl, descriptionEl, statusEl;
+const size = 4;
+let grid = [];
+let score = 0;
+let isGameOver = false;
+let isMoving = false;
+let tileIdCounter = 0;
 
 function getHtml() {
-    // Возвращаем HTML-структуру, адаптированную для вставки в контейнер приложения
     return `
-        <div class="game-2048-new-container">
-            <div class="head">
-                <div class="a">2048 <button class="info">i</button> <button id="repeat" class="info repeat">↻</button></div>
-                <div class="score">Score<br/><span id="value">0</span></div>
-            </div>
-            <div class="description" id="description">
-                How to play:<br/><br/>
-                Use your arrow-keys to slide the tiles. <br/>
-                Two tiles with the same value in line can be merged. The goal is to merge the tiles and get the 2048 tile.<br/><br/>
-                The score is a sum of the merged tiles.<br><br/>
-                <span>_______________________________</span><br/><br/>
-                Made by Fabian Richter 01/2017
-            </div>
-            <div class="field">
-                <div class="row">
-                    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-                </div>
-                <div class="row">
-                    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-                </div>
-                <div class="row">
-                    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-                </div>
-                <div class="row">
-                    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-                </div>
-            </div>
-            <div class='' id='status'></div>
+      <div class="game-2048-new-container">
+        <div class="head">
+          <div class="a">2048 <button class="info">i</button> <button id="repeat" class="info repeat">↻</button></div>
+          <div class="score">Score<br/><span id="value">0</span></div>
         </div>
+        <div class="description" id="description">
+          How to play:<br/><br/>
+          Use your arrow-keys or swipe to slide the tiles. <br/>
+          Two tiles with the same value in line can be merged. The goal is to merge the tiles and get the 2048 tile.<br/><br/>
+          The score is a sum of the merged tiles.
+        </div>
+        <div class="field" id="game-2048-board">
+            <div id="game-2048-tile-container"></div>
+        </div>
+        <div class="status-overlay" id='status'></div>
+      </div>
     `;
 }
 
-
 function init() {
-    // Находим основные элементы внутри контейнера приложения
-    gameContainer = document.querySelector('.game-2048-new-container');
-    scoreValueEl = gameContainer.querySelector('#value');
+    const gameContainer = document.querySelector('.game-2048-new-container');
+    boardEl = gameContainer.querySelector('#game-2048-board');
+    tileContainerEl = gameContainer.querySelector('#game-2048-tile-container');
+    scoreEl = gameContainer.querySelector('#value');
     descriptionEl = gameContainer.querySelector('#description');
     statusEl = gameContainer.querySelector('#status');
+    
+    gameContainer.querySelector('.info').addEventListener('click', toggleInfo);
+    gameContainer.querySelector('#repeat').addEventListener('click', setupGame);
+    
+    setupGame();
+    
+    document.addEventListener('keydown', handleKeydown);
 
-    // Привязываем события к кнопкам
-    gameContainer.querySelector('.info').addEventListener('click', info);
-    gameContainer.querySelector('#repeat').addEventListener('click', reset);
+    let touchStartX = 0, touchStartY = 0;
+    boardEl.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    });
+    boardEl.addEventListener('touchend', e => {
+        if (isMoving) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
+    });
+}
 
-    // Запускаем игровую логику
-    buildGridOverlay();
-    cellCreator(2, 0);
-    document.addEventListener('keydown', directions);
-    updateScoreDisplay(0);
+function setupGame() {
+    isGameOver = false;
+    isMoving = false;
+    tileIdCounter = 0;
+    score = 0;
+    updateScore();
+    
+    statusEl.className = 'status-overlay'; // Сброс статуса
+    descriptionEl.classList.remove('show');
+    tileContainerEl.innerHTML = '';
+    grid = Array.from({ length: size }, () => Array(size).fill(null));
+
+    // Создаем ячейки фона, только если их еще нет
+    if (boardEl.querySelectorAll('.cell').length === 0) {
+        for (let i = 0; i < size * size; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            boardEl.prepend(cell);
+        }
+    }
+
+    addRandomTile();
+    addRandomTile();
+}
+
+function addRandomTile() {
+    const emptyCells = [];
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (grid[r][c] === null) emptyCells.push({ r, c });
+        }
+    }
+
+    if (emptyCells.length > 0) {
+        const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        const value = Math.random() < 0.9 ? 2 : 4;
+        const newTile = { id: tileIdCounter++, value, r, c };
+        grid[r][c] = newTile;
+        createTileElement(newTile);
+    }
+}
+
+function createTileElement(tile) {
+    const tileEl = document.createElement('div');
+    tileEl.classList.add('tile');
+    tileEl.dataset.id = tile.id;
+    updateTileElement(tileEl, tile);
+    tileContainerEl.appendChild(tileEl);
+    
+    requestAnimationFrame(() => {
+        tileEl.classList.add('tile-new');
+    });
+}
+
+function updateTileElement(tileEl, tile) {
+    tileEl.textContent = tile.value;
+    tileEl.className = `tile v${tile.value}`; // Устанавливаем класс для цвета
+    
+    const cellSize = (boardEl.clientWidth - 10 * (size + 1)) / size;
+    const gap = 10;
+    
+    tileEl.style.width = `${cellSize}px`;
+    tileEl.style.height = `${cellSize}px`;
+    tileEl.style.transform = `translate(${tile.c * (cellSize + gap) + gap}px, ${tile.r * (cellSize + gap) + gap}px)`;
+}
+
+function handleKeydown(e) {
+    if (isMoving || isGameOver) return;
+    switch (e.key) {
+        case 'ArrowUp': move('up'); break;
+        case 'ArrowDown': move('down'); break;
+        case 'ArrowLeft': move('left'); break;
+        case 'ArrowRight': move('right'); break;
+    }
+}
+
+function handleSwipe(startX, startY, endX, endY) {
+    const dx = endX - startX;
+    const dy = endY - startY;
+    if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+        if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 'right' : 'left');
+        else move(dy > 0 ? 'down' : 'up');
+    }
+}
+
+async function move(direction) {
+    isMoving = true;
+    const vector = { up: { r: -1, c: 0 }, down: { r: 1, c: 0 }, left: { r: 0, c: -1 }, right: { r: 0, c: 1 } }[direction];
+    
+    const rows = direction === 'down' ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
+    const cols = direction === 'right' ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
+    
+    let hasMoved = false;
+    const promises = [];
+
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (grid[r][c]) grid[r][c].mergedFrom = null;
+        }
+    }
+
+    for (const r of rows) {
+        for (const c of cols) {
+            const tile = grid[r][c];
+            if (tile) {
+                let currentR = r, currentC = c;
+                let nextR, nextC;
+                
+                do {
+                    nextR = currentR + vector.r;
+                    nextC = currentC + vector.c;
+                } while (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && !grid[nextR][nextC]);
+                
+                if (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && grid[nextR][nextC].value === tile.value && !grid[nextR][nextC].mergedFrom) {
+                    const targetTile = grid[nextR][nextC];
+                    promises.push(animateTileMove(tile, nextR, nextC));
+                    targetTile.mergedFrom = tile;
+                    grid[r][c] = null;
+                    hasMoved = true;
+                } else {
+                    nextR -= vector.r;
+                    nextC -= vector.c;
+                    if (nextR !== r || nextC !== c) {
+                        promises.push(animateTileMove(tile, nextR, nextC));
+                        grid[nextR][nextC] = tile;
+                        grid[r][c] = null;
+                        hasMoved = true;
+                    }
+                }
+            }
+        }
+    }
+
+    await Promise.all(promises);
+
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            const tile = grid[r][c];
+            if (tile && tile.mergedFrom) {
+                tile.value *= 2;
+                score += tile.value;
+                const targetEl = document.querySelector(`[data-id="${tile.id}"]`);
+                const mergedEl = document.querySelector(`[data-id="${tile.mergedFrom.id}"]`);
+                mergedEl.remove();
+                updateTileElement(targetEl, tile);
+                targetEl.classList.add('tile-merged');
+                targetEl.addEventListener('animationend', () => targetEl.classList.remove('tile-merged'), {once: true});
+            }
+        }
+    }
+
+    if (hasMoved) {
+        updateScore();
+        addRandomTile();
+        if (checkGameOver()) {
+            gameOver();
+        }
+    }
+    
+    isMoving = false;
+}
+
+function animateTileMove(tile, r, c) {
+    return new Promise(resolve => {
+        const tileEl = document.querySelector(`[data-id="${tile.id}"]`);
+        tile.r = r;
+        tile.c = c;
+        updateTileElement(tileEl, tile);
+        
+        tileEl.addEventListener('transitionend', resolve, { once: true });
+    });
+}
+
+function checkGameOver() {
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (!grid[r][c]) return false;
+            if (c < size - 1 && grid[r][c].value === grid[r][c + 1].value) return false;
+            if (r < size - 1 && grid[r][c].value === grid[r + 1][c].value) return false;
+        }
+    }
+    return true;
+}
+
+function gameOver() {
+    isGameOver = true;
+    statusEl.classList.add('lose');
+}
+
+function updateScore() {
+    scoreEl.textContent = score;
+    if (score > 0 && grid.flat().some(t => t && t.value === 2048)) {
+        statusEl.classList.add('won');
+    }
+}
+
+function toggleInfo() {
+    descriptionEl.classList.toggle('show');
 }
 
 function cleanup() {
-    // Удаляем глобальный слушатель событий клавиатуры при выходе из приложения
-    document.removeEventListener('keydown', directions);
+    document.removeEventListener('keydown', handleKeydown);
 }
 
-// --- ВСЯ ИГРОВАЯ ЛОГИКА ИЗ ПРЕДОСТАВЛЕННОГО КОДА ---
-
-function buildGridOverlay() {
-  var size = 4;
-  var table = document.createElement('DIV');
-
-  table.className = 'grid';
-  table.id = 'grid-overlay';
-  table.dataset.value = 0;
-  
-  for (var i = 0; i < size; i++) {
-    var tr = document.createElement('DIV');
-    table.appendChild(tr);
-    tr.id = 'row_' + (i+1);
-    tr.className = 'grid_row';
-    
-    for (var j = 0; j < size; j++) {
-      var td = document.createElement('DIV');
-      td.id = '' +(i+1) +(j+1);
-      td.className = 'grid_cell';
-      tr.appendChild(td);
-    }
-  }
-  // Вставляем сетку в наш основной контейнер, а не в body
-  gameContainer.appendChild(table);
-  return table;
-}
-
-function cellCreator(c, timeOut) {
-  for (var i = 0; i < c; i++) {
-    var value = 1;
-    var randomX, randomY, checker;
-    do {
-      randomX = Math.floor((Math.random()*4)+1);
-      randomY = Math.floor((Math.random()*4)+1);
-      checker = gameContainer.querySelector('#' + CSS.escape(randomX) + CSS.escape(randomY));
-    } while (checker && checker.innerHTML !== '');
-
-    var randomValue = Math.random() < 0.9 ? 2 : 4;
-    var position = checker;
-    var tile = document.createElement('DIV');
-    position.appendChild(tile);
-    tile.innerHTML = ''+randomValue;
-    
-    colorSet(randomValue, tile);
-    tile.dataset.value = ''+randomValue;
-    tile.id = 'tile_'+randomX +randomY;
-    position.className += ' active';
-    
-    if (timeOut == 0) {
-      tile.className = 'tile v'+randomValue;
-    } else {
-      setTimeout(() => {
-        tile.className = 'tile v'+randomValue;
-      }, 10);
-    }
-  }
-}
-
-function directions(e) {
-  e = e || window.event;
-  var gridOverlay = gameContainer.querySelector('#grid-overlay');
-  if (!gridOverlay) return; // Проверка, что мы находимся в игре
-  gridOverlay.id = '';
-
-  if (e.keyCode == '38') { // UP
-    for (let i=0; i<3; i++) {
-      for (let x = 2; x < 5; x++) {
-        for (let y = 1; y < 5; y++) {
-          moveTilesMain(x, y, -1, 0);
-        }
-      }
-    }
-  } else if (e.keyCode == '40') { // DOWN
-    for (let i=0; i<3; i++) {
-      for (let x = 3; x > 0; x--) {
-        for (let y = 1; y < 5; y++) {
-          moveTilesMain(x, y, 1, 0);
-        }
-      }
-    }
-  } else if (e.keyCode == '37') { // LEFT
-    for (let i=0; i<3; i++) {
-      for (let y = 2; y < 5; y++) {
-        for (let x = 1; x < 5; x++) {
-          moveTilesMain(x, y, 0, -1);
-        }
-      }
-    }
-  } else if (e.keyCode == '39') { // RIGHT
-    for (let i=0; i<3; i++) {
-      for (let y = 3; y > 0; y--) {
-        for (let x = 1; x < 5; x++) {
-          moveTilesMain(x, y, 0, 1);
-        }
-      }
-    }
-  }
-  
-  if(['37','38','39','40'].includes(e.keyCode.toString())) {
-      cellReset();
-  }
-}
-
-function moveTilesMain(x, y, X, Y) {
-  var tile = gameContainer.querySelector('#tile_'+x +y);
-  var checker = gameContainer.querySelector('#' + CSS.escape(x) + CSS.escape(y));
-  
-  if (!tile) return;
-
-  var xAround = x + X;
-  var yAround = y + Y;
-
-  if (xAround > 0 && xAround < 5 && yAround > 0 && yAround < 5) {
-    var around = gameContainer.querySelector('#' + CSS.escape(xAround) + CSS.escape(yAround));
-    var aroundTile = gameContainer.querySelector('#tile_'+xAround +yAround);
-
-    if (!aroundTile) { // Move
-      around.appendChild(tile);
-      around.className = 'grid_cell active';
-      tile.id = 'tile_'+xAround +yAround;
-      checker.className = 'grid_cell';
-      gameContainer.querySelector('#grid-overlay').id = 'moved';
-    } else if (aroundTile.innerHTML == tile.innerHTML && around.className.indexOf('merged') === -1) { // Merge
-      var value = parseInt(tile.dataset.value) * 2;
-      aroundTile.dataset.value = value;
-      aroundTile.className = 'tile v'+value;
-      aroundTile.innerHTML = value;
-      colorSet(value, aroundTile);
-      checker.removeChild(tile);
-      checker.className = 'grid_cell';
-      around.className = 'grid_cell active merged';
-      gameContainer.querySelector('#grid-overlay').id = 'moved';
-      
-      var grid = gameContainer.querySelector('#grid-overlay');
-      var scoreValue = parseInt(grid.dataset.value);
-      var newScore = value + scoreValue;
-      grid.dataset.value = newScore;
-      updateScoreDisplay(newScore);
-    }
-  }
-}
-
-function cellReset() {
-  var count = 0;
-  var gridOverlay = gameContainer.querySelector('#grid-overlay');
-  var moved = gridOverlay.id === 'moved';
-  
-  for (var x=1; x<5; x++) {
-    for (var y=1; y<5; y++) {
-      var resetter = gameContainer.querySelector('#' + CSS.escape(x) + CSS.escape(y));
-      if (resetter.innerHTML !== '') count++;
-      if (resetter.className.indexOf('merged') !== -1) {
-        resetter.className = 'grid_cell active';
-      }
-    }
-  }
-  
-  if (count === 16) {
-    statusEl.className = 'lose';
-  } else if (moved) {
-    cellCreator(1, 1); 
-  }
-  gridOverlay.id = '';
-}
-
-function updateScoreDisplay(newScore) {
-    if(scoreValueEl) scoreValueEl.innerHTML = newScore;
-}
-
-function colorSet(value, tile) {
-  const colors = {
-    2:    { bg: '#fbfced', color: 'black' },
-    4:    { bg: '#ecefc6', color: 'black' },
-    8:    { bg: '#ffb296', color: 'black' },
-    16:   { bg: '#ff7373', color: 'black' },
-    32:   { bg: '#f6546a', color: 'white' },
-    64:   { bg: '#8b0000', color: 'white' },
-    128:  { bg: '#794044', color: 'white', fs: '50px' },
-    256:  { bg: '#31698a', color: 'white', fs: '50px' },
-    512:  { bg: '#297A76', color: 'white', fs: '50px' },
-    1024: { bg: '#2D8A68', color: 'white', fs: '40px' },
-    2048: { bg: '#1C9F4E', color: 'white', fs: '40px' },
-    4096: { bg: '#468499', color: 'white', fs: '40px' },
-    8192: { bg: '#0E2F44', color: 'white', fs: '40px' }
-  };
-  
-  const style = colors[value];
-  if (style) {
-    tile.style.background = style.bg;
-    tile.style.color = style.color;
-    if (style.fs) tile.style.fontSize = style.fs;
-  }
-
-  if (value === 2048 && statusEl) {
-      statusEl.className = 'won';
-  }
-}
-
-function info() {
-  if (descriptionEl) descriptionEl.classList.toggle('show');
-}
-
-function reset() {
-  for (var x = 1; x < 5; x++) {
-    for (var y = 1; y < 5; y++) {
-      var resetter = gameContainer.querySelector('#' + CSS.escape(x) + CSS.escape(y));
-      if (resetter && resetter.className.indexOf('active') !== -1) {
-        resetter.innerHTML = '';
-      }
-    }
-  }
-  if(statusEl) statusEl.className = '';
-  const grid = gameContainer.querySelector('#grid-overlay');
-  if(grid) grid.dataset.value = 0;
-  
-  updateScoreDisplay(0);
-  cellReset();
-  cellCreator(2, 0);
-}
-
-// Экспортируем функции, необходимые для работы с main.js
 export { getHtml, init, cleanup };
