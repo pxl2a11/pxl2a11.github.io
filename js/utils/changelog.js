@@ -1,5 +1,3 @@
-// js/utils/changelog.js
-
 export const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
     'Радио': 'radio',
@@ -30,6 +28,14 @@ export const appNameToModuleFile = {
     'Конвертер форматов изображений': 'imageConverter',
     'Конвертер цветов': 'colorConverter',
     'Игра на память': 'memoryGame',
+    'Транслитерация текста': 'textTranslit',
+    'Изменение размера изображений': 'imageResizer',
+    'Калькулятор валют': 'currencyCalculator',
+    'Змейка': 'snakeGame',
+    'Простой фоторедактор': 'photoEditor',
+    'Форматирование JSON/XML': 'jsonFormatter',
+    'Калькулятор скидок': 'discountCalculator',
+    'Игра \'2048\'': 'game2048',
     'Общее': null, 
 };
 
@@ -45,6 +51,10 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-08-13T10:00:00Z'), appName: 'Игра \'2048\'', description: 'добавлена новая популярная игра-головоломка.' },
+    { date: getRussianDate('2025-08-13T10:00:00Z'), appName: 'Калькулятор скидок', description: 'добавлено новое приложение для расчета цены товара после применения скидки.' },
+    { date: getRussianDate('2025-08-13T09:00:00Z'), appName: 'Форматирование JSON/XML', description: 'добавлен новый инструмент для разработчиков для форматирования и проверки JSON/XML.' },
+    { date: getRussianDate('2025-08-13T09:00:00Z'), appName: 'Простой фоторедактор', description: 'добавлено новое приложение для базового редактирования изображений: обрезка, поворот и фильтры.' },
     { date: getRussianDate('2025-08-12T08:00:00Z'), appName: 'Генератор QR-кодов', description: 'добавлена кнопка для печати сгенерированного QR-кода.' },
     { date: getRussianDate('2025-08-12T11:00:00Z'), appName: 'Змейка', description: 'добавлена новая классическая игра.' },
     { date: getRussianDate('2025-08-12T10:00:00Z'), appName: 'Калькулятор валют', description: 'добавлено новое приложение для конвертации валют с использованием реальных курсов.' },
