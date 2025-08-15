@@ -1,241 +1,486 @@
-// js/apps/game2048.js
+// apps/game2048.js
 
-let gameContainer;
+// Constants
+const GRID_SIZE = 4;
+const START_TILES = 2; // Number of tiles to spawn at the start
+const TILE_APPEAR_ANIMATION_DURATION = 200; // ms
 
-function getHtml() {
+// DOM Elements (will be set in init)
+let gameContainer2048;
+let gridContainer2048;
+let tileContainer2048;
+let scoreElement2048;
+let bestScoreElement2048;
+let newGameButton2048;
+let undoButton2048;
+let gameMessage2048;
+let messageText2048;
+let keepPlayingButton2048;
+let tryAgainButton2048;
+
+// Game State
+let grid = [];
+let score = 0;
+let bestScore = 0;
+let gameOver = false;
+let gameWon = false;
+let gameStateHistory = []; // To store previous states for undo
+
+// Helper Functions
+// Function to generate a random integer up to (but not including) max
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+// Function to initialize the grid with empty cells
+function initializeGrid() {
+    grid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+    score = 0;
+    gameOver = false;
+    gameWon = false;
+    gameStateHistory = []; // Clear history for new game
+    updateScore(0);
+    hideGameMessage();
+    renderGrid(); // Render the empty grid cells
+    addStartTiles(); // Add initial tiles
+    saveGameState(); // Save initial state
+}
+
+// Function to update the score display
+function updateScore(newScore) {
+    score = newScore;
+    scoreElement2048.textContent = score;
+    if (score > bestScore) {
+        bestScore = score;
+        bestScoreElement2048.textContent = bestScore;
+        localStorage.setItem('2048_best_score', bestScore); // Save best score to local storage
+    }
+}
+
+// Function to add a random tile (2 or 4) to an empty cell
+function addRandomTile() {
+    const emptyCells = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            if (grid[r][c] === 0) {
+                emptyCells.push({ r, c });
+            }
+        }
+    }
+
+    if (emptyCells.length > 0) {
+        const randomCell = emptyCells[getRandomInt(emptyCells.length)];
+        const newValue = Math.random() < 0.9 ? 2 : 4; // 90% chance of 2, 10% chance of 4
+        grid[randomCell.r][randomCell.c] = newValue;
+        renderTile(randomCell.r, randomCell.c, newValue, true); // Render as new tile
+    }
+}
+
+// Function to add the initial tiles at the start of the game
+function addStartTiles() {
+    for (let i = 0; i < START_TILES; i++) {
+        addRandomTile();
+    }
+}
+
+// Function to render the grid cells (static background elements)
+function renderGrid() {
+    gridContainer2048.innerHTML = '';
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const cell = document.createElement('div');
+            cell.classList.add('grid-cell-2048'); // Updated class name
+            gridContainer2048.appendChild(cell);
+        }
+    }
+    tileContainer2048.innerHTML = ''; // Clear existing tiles
+}
+
+// Function to render a single tile on the board
+function renderTile(row, col, value, isNew = false, isMerged = false) {
+    const tile = document.createElement('div');
+    tile.classList.add('tile-2048', `tile-${value}`); // Updated class name
+    if (isNew) tile.classList.add('tile-new');
+    if (isMerged) tile.classList.add('tile-merged');
+
+    // Handle larger numbers for font size
+    if (value >= 128 && value < 1024) {
+        tile.style.fontSize = '45px';
+    } else if (value >= 1024) {
+        tile.style.fontSize = '35px';
+    } else if (value > 2048) { // For numbers beyond 2048
+        tile.classList.add('super');
+    }
+
+    tile.textContent = value;
+    tile.dataset.x = col;
+    tile.dataset.y = row;
+    tile.style.left = `${col * (100 / GRID_SIZE)}%`;
+    tile.style.top = `${row * (100 / GRID_SIZE)}%`;
+
+    // Slight adjustment for gap (since tiles are smaller than cells)
+    const offset = 10 / (GRID_SIZE * 2); // Half of the gap size relative to cell size
+    tile.style.left = `calc(${col * (100 / GRID_SIZE)}% + ${offset}px)`;
+    tile.style.top = `calc(${row * (100 / GRID_SIZE)}% + ${offset}px)`;
+    tile.style.width = `calc(${100 / GRID_SIZE}% - ${10}px)`;
+    tile.style.height = `calc(${100 / GRID_SIZE}% - ${10}px)`;
+
+
+    tileContainer2048.appendChild(tile);
+}
+
+// Function to re-render all tiles after a move
+function refreshTiles() {
+    tileContainer2048.innerHTML = ''; // Clear all existing tiles
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            if (grid[r][c] !== 0) {
+                renderTile(r, c, grid[r][c]);
+            }
+        }
+    }
+}
+
+// Function to display the game message (win/lose)
+function showGameMessage(type) {
+    gameMessage2048.style.display = 'flex';
+    if (type === 'win') {
+        messageText2048.textContent = 'Ты победил!';
+        keepPlayingButton2048.style.display = 'inline-block';
+        tryAgainButton2048.style.display = 'none';
+    } else if (type === 'lose') {
+        messageText2048.textContent = 'Игра окончена!';
+        keepPlayingButton2048.style.display = 'none';
+        tryAgainButton2048.style.display = 'inline-block';
+    }
+}
+
+// Function to hide the game message
+function hideGameMessage() {
+    gameMessage2048.style.display = 'none';
+}
+
+// Game Logic
+// Function to check if the game is over (no more moves possible)
+function isGameOver() {
+    // Check for empty cells
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            if (grid[r][c] === 0) return false;
+        }
+    }
+
+    // Check for possible merges (horizontal and vertical)
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const value = grid[r][c];
+            // Check right
+            if (c < GRID_SIZE - 1 && grid[r][c + 1] === value) return false;
+            // Check down
+            if (r < GRID_SIZE - 1 && grid[r + 1][c] === value) return false;
+        }
+    }
+    return true;
+}
+
+// Function to save the current game state to history
+function saveGameState() {
+    if (gameStateHistory.length >= 10) { // Limit history to 10 states
+        gameStateHistory.shift();
+    }
+    gameStateHistory.push({
+        grid: JSON.parse(JSON.stringify(grid)), // Deep copy
+        score: score,
+        bestScore: bestScore,
+        gameWon: gameWon
+    });
+}
+
+// Function to restore the previous game state
+function undoMove() {
+    if (gameStateHistory.length > 1) { // Need at least two states (current + previous)
+        gameStateHistory.pop(); // Remove current state
+        const prevState = gameStateHistory[gameStateHistory.length - 1]; // Get previous state
+        grid = JSON.parse(JSON.stringify(prevState.grid));
+        score = prevState.score;
+        bestScore = prevState.bestScore;
+        gameWon = prevState.gameWon;
+        scoreElement2048.textContent = score;
+        bestScoreElement2048.textContent = bestScore;
+        hideGameMessage();
+        refreshTiles(); // Re-render tiles based on restored grid
+    } else {
+        console.warn("No more moves to undo.");
+    }
+}
+
+// Core move logic (applies to a single row/column based on direction)
+function operateLine(line) {
+    let changed = false;
+    let newScoreAdd = 0;
+
+    // 1. Move all non-zero numbers to the left
+    let filteredLine = line.filter(val => val !== 0);
+    let newLine = Array(GRID_SIZE).fill(0);
+    for (let i = 0; i < filteredLine.length; i++) {
+        newLine[i] = filteredLine[i];
+    }
+
+    if (JSON.stringify(line) !== JSON.stringify(newLine)) {
+        changed = true;
+    }
+
+    // 2. Merge adjacent identical numbers
+    for (let i = 0; i < GRID_SIZE - 1; i++) {
+        if (newLine[i] !== 0 && newLine[i] === newLine[i + 1]) {
+            newLine[i] *= 2;
+            newScoreAdd += newLine[i]; // Add merged tile value to score
+            newLine[i + 1] = 0; // Remove the merged tile
+            changed = true;
+            if (newLine[i] === 2048) {
+                gameWon = true; // Set game won flag
+            }
+        }
+    }
+
+    // 3. Move all non-zero numbers to the left again after merging
+    filteredLine = newLine.filter(val => val !== 0);
+    newLine = Array(GRID_SIZE).fill(0);
+    for (let i = 0; i < filteredLine.length; i++) {
+        newLine[i] = filteredLine[i];
+    }
+
+    return { newLine, changed, newScoreAdd };
+}
+
+// Function to handle a move in any direction
+function move(direction) {
+    if (gameOver || gameWon) return;
+
+    saveGameState(); // Save state before attempting a move
+
+    let gridChanged = false;
+    let currentMoveScore = 0;
+
+    if (direction === 'left' || direction === 'right') {
+        for (let r = 0; r < GRID_SIZE; r++) {
+            let line = grid[r];
+            if (direction === 'right') {
+                line.reverse(); // Reverse for right move
+            }
+
+            const { newLine, changed, newScoreAdd } = operateLine(line);
+            currentMoveScore += newScoreAdd;
+
+            if (direction === 'right') {
+                newLine.reverse(); // Reverse back for right move
+            }
+
+            if (changed) {
+                gridChanged = true;
+                grid[r] = newLine;
+            }
+        }
+    } else if (direction === 'up' || direction === 'down') {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            let line = [];
+            for (let r = 0; r < GRID_SIZE; r++) {
+                line.push(grid[r][c]);
+            }
+
+            if (direction === 'down') {
+                line.reverse(); // Reverse for down move
+            }
+
+            const { newLine, changed, newScoreAdd } = operateLine(line);
+            currentMoveScore += newScoreAdd;
+
+            if (direction === 'down') {
+                newLine.reverse(); // Reverse back for down move
+            }
+
+            if (changed) {
+                gridChanged = true;
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    grid[r][c] = newLine[r];
+                }
+            }
+        }
+    }
+
+    if (gridChanged) {
+        updateScore(score + currentMoveScore);
+        // After successful move, add a new tile and then refresh
+        setTimeout(() => {
+            addRandomTile();
+            refreshTiles();
+            // Check win/lose conditions after rendering new tile
+            if (gameWon && !gameOver) {
+                showGameMessage('win');
+                gameOver = true; // Prevent further moves
+            } else if (isGameOver() && !gameWon) {
+                showGameMessage('lose');
+                gameOver = true; // Prevent further moves
+            }
+        }, TILE_APPEAR_ANIMATION_DURATION); // Wait for tile animations
+    } else {
+        // If no tiles moved or merged, revert the state as it was not a valid move
+        gameStateHistory.pop();
+        // Optionally, give visual feedback that no move was possible
+    }
+}
+
+// Event Handlers
+function handleKeyDown(e) {
+    if (gameOver || gameWon) return; // Ignore input if game is over or won
+
+    switch (e.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'ф': // Russian 'f'
+            e.preventDefault();
+            move('left');
+            break;
+        case 'ArrowRight':
+        case 'd':
+        case 'в': // Russian 'v'
+            e.preventDefault();
+            move('right');
+            break;
+        case 'ArrowUp':
+        case 'w':
+        case 'ц': // Russian 'c'
+            e.preventDefault();
+            move('up');
+            break;
+        case 'ArrowDown':
+        case 's':
+        case 'ы': // Russian 'y'
+            e.preventDefault();
+            move('down');
+            break;
+        case 'z': // Undo key
+        case 'я': // Russian 'z'
+            e.preventDefault();
+            undoMove();
+            break;
+    }
+}
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+function handleTouchStart(e) {
+    if (gameOver || gameWon) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    e.preventDefault(); // Prevent default scrolling/zooming
+}
+
+function handleTouchEnd(e) {
+    if (gameOver || gameWon) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+
+    // Determine if horizontal or vertical swipe and apply a threshold
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) { // Horizontal swipe
+        if (dx > 0) {
+            move('right');
+        } else {
+            move('left');
+        }
+    } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 30) { // Vertical swipe
+        if (dy > 0) {
+            move('down');
+        } else {
+            move('up');
+        }
+    }
+    e.preventDefault(); // Prevent default scrolling/zooming
+}
+
+export function getHtml() {
     return `
-      <div class="game-2048-new-design">
-        <div class="head">
-          <div class="a">2048 <button class="info">i</button> <button class="info repeat">↻</button></div>
-          <div class="score">Score<br/><span id="value"></span></div>
+        <div class="game-container-2048">
+            <div class="heading-2048">
+                <h1 class="title-2048">2048</h1>
+                <div class="scores-container">
+                    <div class="score-container-2048" id="score-2048">0</div>
+                    <div class="best-container-2048" id="best-score-2048">0</div>
+                </div>
+            </div>
+
+            <div class="buttons-container-2048">
+                <button class="button-2048" id="new-game-button-2048">Новая игра</button>
+                <button class="button-2048" id="undo-button-2048">Отменить</button>
+            </div>
+
+            <div class="game-board">
+                <div class="grid-container-2048" id="grid-container-2048">
+                    <!-- Grid cells will be generated by JavaScript -->
+                </div>
+                <div class="tile-container-2048" id="tile-container-2048">
+                    <!-- Tiles will be generated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="game-message-2048" id="game-message-2048" style="display: none;">
+                <p id="message-text-2048"></p>
+                <button class="button-2048" id="keep-playing-button-2048" style="display: none;">Продолжить</button>
+                <button class="button-2048" id="try-again-button-2048" style="display: none;">Попробовать снова</button>
+            </div>
         </div>
-        <div class="description">
-          How to play:<br/><br/>
-          Use your arrow-keys to slide the tiles. <br/>
-          Two tiles with the same value in line can be merged. The goal is to merge the tiles and get the 2048 tile.<br/><br/>
-          The score is a sum of the merged tiles.<br/><br/>
-          <span>_______________________________</span><br/><br/>
-          Made by Fabian Richter 01/2017
-        </div>
-        <div class="field">
-          <!-- Фоновые ячейки будут здесь -->
-        </div>
-        <div class='status' id='status'></div>
-      </div>
     `;
 }
 
-function init() {
-    gameContainer = document.querySelector('.game-2048-new-design');
-    if (!gameContainer) return;
+export function init() {
+    // Get DOM elements after HTML is loaded
+    gameContainer2048 = document.querySelector('.game-container-2048');
+    gridContainer2048 = document.getElementById('grid-container-2048');
+    tileContainer2048 = document.getElementById('tile-container-2048');
+    scoreElement2048 = document.getElementById('score-2048');
+    bestScoreElement2048 = document.getElementById('best-score-2048');
+    newGameButton2048 = document.getElementById('new-game-button-2048');
+    undoButton2048 = document.getElementById('undo-button-2048');
+    gameMessage2048 = document.getElementById('game-message-2048');
+    messageText2048 = document.getElementById('message-text-2048');
+    keepPlayingButton2048 = document.getElementById('keep-playing-button-2048');
+    tryAgainButton2048 = document.getElementById('try-again-button-2048');
 
-    // --- Адаптированный код ---
-    let grid;
+    // Add event listeners
+    document.addEventListener('keydown', handleKeyDown);
+    gameContainer2048.addEventListener('touchstart', handleTouchStart, { passive: false });
+    gameContainer2048.addEventListener('touchend', handleTouchEnd, { passive: false });
+    newGameButton2048.addEventListener('click', initializeGrid);
+    undoButton2048.addEventListener('click', undoMove);
+    keepPlayingButton2048.addEventListener('click', () => {
+        gameWon = false; // Allow further moves
+        hideGameMessage();
+    });
+    tryAgainButton2048.addEventListener('click', initializeGrid);
 
-    function buildGridOverlay() {
-        const field = gameContainer.querySelector('.field');
-        field.innerHTML = ''; // Очищаем на случай рестарта
-        const size = 4;
-        grid = document.createElement('DIV');
-        grid.className = 'grid';
-        grid.dataset.value = 0;
+    // Load best score and initialize grid
+    bestScore = parseInt(localStorage.getItem('2048_best_score') || '0', 10);
+    bestScoreElement2048.textContent = bestScore;
+    initializeGrid();
 
-        for (let i = 0; i < size; i++) {
-            const tr = document.createElement('DIV');
-            tr.className = 'grid_row';
-            for (let j = 0; j < size; j++) {
-                const td = document.createElement('DIV');
-                td.id = '' + (i + 1) + (j + 1);
-                td.className = 'grid_cell';
-                tr.appendChild(td);
-            }
-            grid.appendChild(tr);
-        }
-        field.appendChild(grid);
+    // Apply dark mode class to body if needed (main.js handles the toggle button)
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+    } else {
+        document.body.classList.remove('dark');
     }
-
-    function cellCreator(c, timeOut) {
-        for (let i = 0; i < c; i++) {
-            let randomX, randomY, checker;
-            do {
-                randomX = Math.floor((Math.random() * 4) + 1);
-                randomY = Math.floor((Math.random() * 4) + 1);
-                checker = gameContainer.querySelector('#' + CSS.escape(randomX) + CSS.escape(randomY));
-            } while (checker && checker.innerHTML !== '');
-
-            const randomValue = Math.random() < 0.9 ? 2 : 4;
-            const position = checker;
-            const tile = document.createElement('DIV');
-            position.appendChild(tile);
-            tile.innerHTML = '' + randomValue;
-            colorSet(randomValue, tile);
-            tile.dataset.value = '' + randomValue;
-            tile.id = 'tile_' + randomX + randomY;
-            position.classList.add('active');
-
-            setTimeout(() => {
-                tile.className = 'tile v' + randomValue;
-            }, timeOut);
-        }
-    }
-
-    function directions(e) {
-        e = e || window.event;
-        if (!['37', '38', '39', '40'].includes(e.keyCode.toString())) return;
-        
-        const gridOverlay = gameContainer.querySelector('.grid');
-        if (!gridOverlay) return;
-        gridOverlay.dataset.moved = 'false';
-
-        // Создаем копию сетки до хода
-        const gridBefore = Array.from(grid.querySelectorAll('.grid_cell')).map(cell => cell.innerHTML);
-
-        if (e.keyCode == '38') { // UP
-            for (let i = 0; i < 4; i++) for (let x = 2; x < 5; x++) for (let y = 1; y < 5; y++) moveTilesMain(x, y, -1, 0);
-        } else if (e.keyCode == '40') { // DOWN
-            for (let i = 0; i < 4; i++) for (let x = 3; x > 0; x--) for (let y = 1; y < 5; y++) moveTilesMain(x, y, 1, 0);
-        } else if (e.keyCode == '37') { // LEFT
-            for (let i = 0; i < 4; i++) for (let y = 2; y < 5; y++) for (let x = 1; x < 5; x++) moveTilesMain(x, y, 0, -1);
-        } else if (e.keyCode == '39') { // RIGHT
-            for (let i = 0; i < 4; i++) for (let y = 3; y > 0; y--) for (let x = 1; x < 5; x++) moveTilesMain(x, y, 0, 1);
-        }
-        
-        // Сравниваем сетку до и после хода
-        const gridAfter = Array.from(grid.querySelectorAll('.grid_cell')).map(cell => cell.innerHTML);
-        if (gridBefore.join('') !== gridAfter.join('')) {
-            gridOverlay.dataset.moved = 'true';
-        }
-
-        cellReset();
-    }
-
-    function moveTilesMain(x, y, X, Y) {
-        const tile = gameContainer.querySelector('#tile_' + x + y);
-        const checker = gameContainer.querySelector('#' + CSS.escape(x) + CSS.escape(y));
-        if (!tile) return;
-
-        const xAround = x + X;
-        const yAround = y + Y;
-
-        if (xAround > 0 && xAround < 5 && yAround > 0 && yAround < 5) {
-            const around = gameContainer.querySelector('#' + CSS.escape(xAround) + CSS.escape(yAround));
-            const aroundTile = gameContainer.querySelector('#tile_' + xAround + yAround);
-
-            if (!aroundTile) {
-                around.appendChild(tile);
-                around.classList.add('active');
-                tile.id = 'tile_' + xAround + yAround;
-                checker.classList.remove('active');
-            } else if (aroundTile.innerHTML === tile.innerHTML && !around.classList.contains('merged')) {
-                const value = parseInt(tile.dataset.value) * 2;
-                aroundTile.dataset.value = value;
-                aroundTile.innerHTML = value;
-                aroundTile.className = `tile v${value}`;
-                colorSet(value, aroundTile);
-                checker.removeChild(tile);
-                checker.classList.remove('active');
-                around.classList.add('merged');
-                
-                const gridOverlay = gameContainer.querySelector('.grid');
-                const scoreValue = parseInt(gridOverlay.dataset.value);
-                const newScore = value + scoreValue;
-                gridOverlay.dataset.value = newScore;
-                gameContainer.querySelector('#value').innerHTML = newScore;
-            }
-        }
-    }
-
-    function cellReset() {
-        let count = 0;
-        const gridOverlay = gameContainer.querySelector('.grid');
-
-        for (let x = 1; x < 5; x++) {
-            for (let y = 1; y < 5; y++) {
-                const resetter = gameContainer.querySelector('#' + CSS.escape(x) + CSS.escape(y));
-                if (resetter.innerHTML !== '') count++;
-                resetter.classList.remove('merged');
-            }
-        }
-        
-        if (count === 16 && !canMerge()) {
-            gameContainer.querySelector('#status').classList.add('lose');
-        } else if (gridOverlay.dataset.moved === 'true') {
-            cellCreator(1, 150);
-        }
-    }
-
-    function canMerge() {
-        for (let r = 1; r < 5; r++) {
-            for (let c = 1; c < 5; c++) {
-                const tile = gameContainer.querySelector('#tile_' + r + c);
-                if (!tile) continue;
-                // Check right
-                if (c < 4) {
-                    const rightTile = gameContainer.querySelector('#tile_' + r + (c + 1));
-                    if (rightTile && rightTile.innerHTML === tile.innerHTML) return true;
-                }
-                // Check down
-                if (r < 4) {
-                    const downTile = gameContainer.querySelector('#tile_' + (r + 1) + c);
-                    if (downTile && downTile.innerHTML === tile.innerHTML) return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    function updateScoreDisplay() {
-        const gridOverlay = gameContainer.querySelector('.grid');
-        gameContainer.querySelector('#value').innerHTML = gridOverlay.dataset.value;
-    }
-
-    function colorSet(value, tile) {
-        const styles = {
-            2: { bg: '#fbfced', color: 'black' }, 4: { bg: '#ecefc6', color: 'black' },
-            8: { bg: '#ffb296', color: 'black' }, 16: { bg: '#ff7373', color: 'black' },
-            32: { bg: '#f6546a', color: 'white' }, 64: { bg: '#8b0000', color: 'white' },
-            128: { bg: '#794044', color: 'white', fs: '45px' }, 256: { bg: '#31698a', color: 'white', fs: '45px' },
-            512: { bg: '#297A76', color: 'white', fs: '45px' }, 1024: { bg: '#2D8A68', color: 'white', fs: '35px' },
-            2048: { bg: '#1C9F4E', color: 'white', fs: '35px' }, 4096: { bg: '#468499', color: 'white', fs: '35px' },
-            8192: { bg: '#0E2F44', color: 'white', fs: '35px' }
-        };
-        const style = styles[value];
-        if (style) {
-            tile.style.backgroundColor = style.bg;
-            tile.style.color = style.color;
-            if (style.fs) tile.style.fontSize = style.fs;
-        }
-        if (value === 2048) gameContainer.querySelector('#status').classList.add('won');
-    }
-
-    function toggleInfo() {
-        gameContainer.querySelector('.description').classList.toggle('show');
-    }
-
-    function reset() {
-        const gridOverlay = gameContainer.querySelector('.grid');
-        if (gridOverlay) gridOverlay.remove();
-        gameContainer.querySelector('#status').className = 'status';
-        buildGridOverlay();
-        updateScoreDisplay();
-        cellCreator(2, 0);
-    }
-    
-    // Initial setup
-    buildGridOverlay();
-    cellCreator(2, 0);
-    updateScoreDisplay();
-    document.addEventListener('keydown', directions);
-    gameContainer.querySelector('.info').addEventListener('click', toggleInfo);
-    gameContainer.querySelector('.repeat').addEventListener('click', reset);
 }
 
-function cleanup() {
-    // This function is crucial to prevent game logic from running in the background
-    // We need to find the correct way to remove the event listener
-    document.removeEventListener('keydown', window.directions); // This might not work if 'directions' is not global
+export function cleanup() {
+    // Remove event listeners to prevent memory leaks or unexpected behavior
+    document.removeEventListener('keydown', handleKeyDown);
+    if (gameContainer2048) { // Check if element exists before removing listener
+        gameContainer2048.removeEventListener('touchstart', handleTouchStart);
+        gameContainer2048.removeEventListener('touchend', handleTouchEnd);
+    }
+    // No need to remove click listeners from buttons as they are removed with innerHTML
 }
-
-
-// Exporting for the main script
-export { getHtml, init, cleanup };
