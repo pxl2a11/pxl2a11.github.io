@@ -1,266 +1,241 @@
 // js/apps/game2048.js
 
-let scoreEl, boardEl, tileContainerEl, descriptionEl, statusEl;
-const size = 4;
-let grid = [];
-let score = 0;
-let isGameOver = false;
-let isMoving = false;
-let tileIdCounter = 0;
+let gameContainer;
 
 function getHtml() {
     return `
-      <div class="game-2048-new-container">
+      <div class="game-2048-new-design">
         <div class="head">
-          <div class="a">2048 <button class="info">i</button> <button id="repeat" class="info repeat">↻</button></div>
-          <div class="score">Score<br/><span id="value">0</span></div>
+          <div class="a">2048 <button class="info">i</button> <button class="info repeat">↻</button></div>
+          <div class="score">Score<br/><span id="value"></span></div>
         </div>
-        <div class="description" id="description">
+        <div class="description">
           How to play:<br/><br/>
-          Use your arrow-keys or swipe to slide the tiles. <br/>
+          Use your arrow-keys to slide the tiles. <br/>
           Two tiles with the same value in line can be merged. The goal is to merge the tiles and get the 2048 tile.<br/><br/>
-          The score is a sum of the merged tiles.
+          The score is a sum of the merged tiles.<br/><br/>
+          <span>_______________________________</span><br/><br/>
+          Made by Fabian Richter 01/2017
         </div>
-        <div class="field" id="game-2048-board">
-            <div id="game-2048-tile-container"></div>
+        <div class="field">
+          <!-- Фоновые ячейки будут здесь -->
         </div>
-        <div class="status-overlay" id="status"></div>
+        <div class='status' id='status'></div>
       </div>
     `;
 }
 
 function init() {
-    const gameContainer = document.querySelector('.game-2048-new-container');
-    boardEl = gameContainer.querySelector('#game-2048-board');
-    tileContainerEl = gameContainer.querySelector('#game-2048-tile-container');
-    scoreEl = gameContainer.querySelector('#value');
-    descriptionEl = gameContainer.querySelector('#description');
-    statusEl = gameContainer.querySelector('#status');
-    
-    gameContainer.querySelector('.info').addEventListener('click', toggleInfo);
-    gameContainer.querySelector('#repeat').addEventListener('click', setupGame);
-    
-    setupGame();
-    
-    document.addEventListener('keydown', handleKeydown);
+    gameContainer = document.querySelector('.game-2048-new-design');
+    if (!gameContainer) return;
 
-    let touchStartX = 0, touchStartY = 0;
-    boardEl.addEventListener('touchstart', e => {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-    });
-    boardEl.addEventListener('touchend', e => {
-        if (isMoving) return;
-        const touchEndX = e.changedTouches[0].clientX;
-        const touchEndY = e.changedTouches[0].clientY;
-        handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
-    });
-}
+    // --- Адаптированный код ---
+    let grid;
 
-function setupGame() {
-    isGameOver = false;
-    isMoving = false;
-    tileIdCounter = 0;
-    score = 0;
-    updateScore();
-    
-    statusEl.className = 'status-overlay';
-    descriptionEl.classList.remove('show');
-    tileContainerEl.innerHTML = '';
-    grid = Array.from({ length: size }, () => Array(size).fill(null));
+    function buildGridOverlay() {
+        const field = gameContainer.querySelector('.field');
+        field.innerHTML = ''; // Очищаем на случай рестарта
+        const size = 4;
+        grid = document.createElement('DIV');
+        grid.className = 'grid';
+        grid.dataset.value = 0;
 
-    if (boardEl.querySelectorAll('.cell').length === 0) {
-        for (let i = 0; i < size * size; i++) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            boardEl.prepend(cell);
+        for (let i = 0; i < size; i++) {
+            const tr = document.createElement('DIV');
+            tr.className = 'grid_row';
+            for (let j = 0; j < size; j++) {
+                const td = document.createElement('DIV');
+                td.id = '' + (i + 1) + (j + 1);
+                td.className = 'grid_cell';
+                tr.appendChild(td);
+            }
+            grid.appendChild(tr);
+        }
+        field.appendChild(grid);
+    }
+
+    function cellCreator(c, timeOut) {
+        for (let i = 0; i < c; i++) {
+            let randomX, randomY, checker;
+            do {
+                randomX = Math.floor((Math.random() * 4) + 1);
+                randomY = Math.floor((Math.random() * 4) + 1);
+                checker = gameContainer.querySelector('#' + CSS.escape(randomX) + CSS.escape(randomY));
+            } while (checker && checker.innerHTML !== '');
+
+            const randomValue = Math.random() < 0.9 ? 2 : 4;
+            const position = checker;
+            const tile = document.createElement('DIV');
+            position.appendChild(tile);
+            tile.innerHTML = '' + randomValue;
+            colorSet(randomValue, tile);
+            tile.dataset.value = '' + randomValue;
+            tile.id = 'tile_' + randomX + randomY;
+            position.classList.add('active');
+
+            setTimeout(() => {
+                tile.className = 'tile v' + randomValue;
+            }, timeOut);
         }
     }
 
-    addRandomTile();
-    addRandomTile();
-}
+    function directions(e) {
+        e = e || window.event;
+        if (!['37', '38', '39', '40'].includes(e.keyCode.toString())) return;
+        
+        const gridOverlay = gameContainer.querySelector('.grid');
+        if (!gridOverlay) return;
+        gridOverlay.dataset.moved = 'false';
 
-function addRandomTile() {
-    const emptyCells = [];
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            if (grid[r][c] === null) emptyCells.push({ r, c });
+        // Создаем копию сетки до хода
+        const gridBefore = Array.from(grid.querySelectorAll('.grid_cell')).map(cell => cell.innerHTML);
+
+        if (e.keyCode == '38') { // UP
+            for (let i = 0; i < 4; i++) for (let x = 2; x < 5; x++) for (let y = 1; y < 5; y++) moveTilesMain(x, y, -1, 0);
+        } else if (e.keyCode == '40') { // DOWN
+            for (let i = 0; i < 4; i++) for (let x = 3; x > 0; x--) for (let y = 1; y < 5; y++) moveTilesMain(x, y, 1, 0);
+        } else if (e.keyCode == '37') { // LEFT
+            for (let i = 0; i < 4; i++) for (let y = 2; y < 5; y++) for (let x = 1; x < 5; x++) moveTilesMain(x, y, 0, -1);
+        } else if (e.keyCode == '39') { // RIGHT
+            for (let i = 0; i < 4; i++) for (let y = 3; y > 0; y--) for (let x = 1; x < 5; x++) moveTilesMain(x, y, 0, 1);
         }
-    }
-
-    if (emptyCells.length > 0) {
-        const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        const value = Math.random() < 0.9 ? 2 : 4;
-        const newTile = { id: tileIdCounter++, value, r, c };
-        grid[r][c] = newTile;
-        createTileElement(newTile);
-    }
-}
-
-function createTileElement(tile) {
-    const tileEl = document.createElement('div');
-    tileEl.classList.add('tile');
-    tileEl.dataset.id = tile.id;
-    updateTileElement(tileEl, tile);
-    tileContainerEl.appendChild(tileEl);
-    
-    requestAnimationFrame(() => {
-        tileEl.classList.add('tile-new');
-    });
-}
-
-function updateTileElement(tileEl, tile) {
-    tileEl.textContent = tile.value;
-    tileEl.className = `tile v${tile.value}`;
-    
-    const cellSize = (boardEl.clientWidth - 10 * (size + 1)) / size;
-    const gap = 10;
-    
-    tileEl.style.width = `${cellSize}px`;
-    tileEl.style.height = `${cellSize}px`;
-    tileEl.style.transform = `translate(${tile.c * (cellSize + gap) + gap}px, ${tile.r * (cellSize + gap) + gap}px)`;
-}
-
-function handleKeydown(e) {
-    if (isMoving || isGameOver) return;
-    switch (e.key) {
-        case 'ArrowUp': move('up'); break;
-        case 'ArrowDown': move('down'); break;
-        case 'ArrowLeft': move('left'); break;
-        case 'ArrowRight': move('right'); break;
-    }
-}
-
-function handleSwipe(startX, startY, endX, endY) {
-    const dx = endX - startX;
-    const dy = endY - startY;
-    if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
-        if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 'right' : 'left');
-        else move(dy > 0 ? 'down' : 'up');
-    }
-}
-
-async function move(direction) {
-    isMoving = true;
-    const vector = { up: { r: -1, c: 0 }, down: { r: 1, c: 0 }, left: { r: 0, c: -1 }, right: { r: 0, c: 1 } }[direction];
-    
-    const rows = direction === 'down' ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
-    const cols = direction === 'right' ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
-    
-    let hasMoved = false;
-    const promises = [];
-
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            if (grid[r][c]) grid[r][c].mergedFrom = null;
+        
+        // Сравниваем сетку до и после хода
+        const gridAfter = Array.from(grid.querySelectorAll('.grid_cell')).map(cell => cell.innerHTML);
+        if (gridBefore.join('') !== gridAfter.join('')) {
+            gridOverlay.dataset.moved = 'true';
         }
+
+        cellReset();
     }
 
-    for (const r of rows) {
-        for (const c of cols) {
-            const tile = grid[r][c];
-            if (tile) {
-                let currentR = r, currentC = c;
-                let nextR, nextC;
+    function moveTilesMain(x, y, X, Y) {
+        const tile = gameContainer.querySelector('#tile_' + x + y);
+        const checker = gameContainer.querySelector('#' + CSS.escape(x) + CSS.escape(y));
+        if (!tile) return;
+
+        const xAround = x + X;
+        const yAround = y + Y;
+
+        if (xAround > 0 && xAround < 5 && yAround > 0 && yAround < 5) {
+            const around = gameContainer.querySelector('#' + CSS.escape(xAround) + CSS.escape(yAround));
+            const aroundTile = gameContainer.querySelector('#tile_' + xAround + yAround);
+
+            if (!aroundTile) {
+                around.appendChild(tile);
+                around.classList.add('active');
+                tile.id = 'tile_' + xAround + yAround;
+                checker.classList.remove('active');
+            } else if (aroundTile.innerHTML === tile.innerHTML && !around.classList.contains('merged')) {
+                const value = parseInt(tile.dataset.value) * 2;
+                aroundTile.dataset.value = value;
+                aroundTile.innerHTML = value;
+                aroundTile.className = `tile v${value}`;
+                colorSet(value, aroundTile);
+                checker.removeChild(tile);
+                checker.classList.remove('active');
+                around.classList.add('merged');
                 
-                do {
-                    nextR = currentR + vector.r;
-                    nextC = currentC + vector.c;
-                } while (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && !grid[nextR][nextC]);
-                
-                if (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && grid[nextR][nextC].value === tile.value && !grid[nextR][nextC].mergedFrom) {
-                    const targetTile = grid[nextR][nextC];
-                    promises.push(animateTileMove(tile, nextR, nextC));
-                    targetTile.mergedFrom = tile;
-                    grid[r][c] = null;
-                    hasMoved = true;
-                } else {
-                    nextR -= vector.r;
-                    nextC -= vector.c;
-                    if (nextR !== r || nextC !== c) {
-                        promises.push(animateTileMove(tile, nextR, nextC));
-                        grid[nextR][nextC] = tile;
-                        grid[r][c] = null;
-                        hasMoved = true;
-                    }
+                const gridOverlay = gameContainer.querySelector('.grid');
+                const scoreValue = parseInt(gridOverlay.dataset.value);
+                const newScore = value + scoreValue;
+                gridOverlay.dataset.value = newScore;
+                gameContainer.querySelector('#value').innerHTML = newScore;
+            }
+        }
+    }
+
+    function cellReset() {
+        let count = 0;
+        const gridOverlay = gameContainer.querySelector('.grid');
+
+        for (let x = 1; x < 5; x++) {
+            for (let y = 1; y < 5; y++) {
+                const resetter = gameContainer.querySelector('#' + CSS.escape(x) + CSS.escape(y));
+                if (resetter.innerHTML !== '') count++;
+                resetter.classList.remove('merged');
+            }
+        }
+        
+        if (count === 16 && !canMerge()) {
+            gameContainer.querySelector('#status').classList.add('lose');
+        } else if (gridOverlay.dataset.moved === 'true') {
+            cellCreator(1, 150);
+        }
+    }
+
+    function canMerge() {
+        for (let r = 1; r < 5; r++) {
+            for (let c = 1; c < 5; c++) {
+                const tile = gameContainer.querySelector('#tile_' + r + c);
+                if (!tile) continue;
+                // Check right
+                if (c < 4) {
+                    const rightTile = gameContainer.querySelector('#tile_' + r + (c + 1));
+                    if (rightTile && rightTile.innerHTML === tile.innerHTML) return true;
+                }
+                // Check down
+                if (r < 4) {
+                    const downTile = gameContainer.querySelector('#tile_' + (r + 1) + c);
+                    if (downTile && downTile.innerHTML === tile.innerHTML) return true;
                 }
             }
         }
+        return false;
     }
 
-    await Promise.all(promises);
-
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            const tile = grid[r][c];
-            if (tile && tile.mergedFrom) {
-                tile.value *= 2;
-                score += tile.value;
-                const targetEl = document.querySelector(`[data-id="${tile.id}"]`);
-                const mergedEl = document.querySelector(`[data-id="${tile.mergedFrom.id}"]`);
-                if (mergedEl) mergedEl.remove();
-                updateTileElement(targetEl, tile);
-                targetEl.classList.add('tile-merged');
-                targetEl.addEventListener('animationend', () => targetEl.classList.remove('tile-merged'), {once: true});
-            }
-        }
+    function updateScoreDisplay() {
+        const gridOverlay = gameContainer.querySelector('.grid');
+        gameContainer.querySelector('#value').innerHTML = gridOverlay.dataset.value;
     }
 
-    if (hasMoved) {
-        updateScore();
-        addRandomTile();
-        if (checkGameOver()) {
-            gameOver();
+    function colorSet(value, tile) {
+        const styles = {
+            2: { bg: '#fbfced', color: 'black' }, 4: { bg: '#ecefc6', color: 'black' },
+            8: { bg: '#ffb296', color: 'black' }, 16: { bg: '#ff7373', color: 'black' },
+            32: { bg: '#f6546a', color: 'white' }, 64: { bg: '#8b0000', color: 'white' },
+            128: { bg: '#794044', color: 'white', fs: '45px' }, 256: { bg: '#31698a', color: 'white', fs: '45px' },
+            512: { bg: '#297A76', color: 'white', fs: '45px' }, 1024: { bg: '#2D8A68', color: 'white', fs: '35px' },
+            2048: { bg: '#1C9F4E', color: 'white', fs: '35px' }, 4096: { bg: '#468499', color: 'white', fs: '35px' },
+            8192: { bg: '#0E2F44', color: 'white', fs: '35px' }
+        };
+        const style = styles[value];
+        if (style) {
+            tile.style.backgroundColor = style.bg;
+            tile.style.color = style.color;
+            if (style.fs) tile.style.fontSize = style.fs;
         }
+        if (value === 2048) gameContainer.querySelector('#status').classList.add('won');
+    }
+
+    function toggleInfo() {
+        gameContainer.querySelector('.description').classList.toggle('show');
+    }
+
+    function reset() {
+        const gridOverlay = gameContainer.querySelector('.grid');
+        if (gridOverlay) gridOverlay.remove();
+        gameContainer.querySelector('#status').className = 'status';
+        buildGridOverlay();
+        updateScoreDisplay();
+        cellCreator(2, 0);
     }
     
-    isMoving = false;
-}
-
-function animateTileMove(tile, r, c) {
-    return new Promise(resolve => {
-        const tileEl = document.querySelector(`[data-id="${tile.id}"]`);
-        if (tileEl) {
-            tile.r = r;
-            tile.c = c;
-            updateTileElement(tileEl, tile);
-            tileEl.addEventListener('transitionend', resolve, { once: true });
-        } else {
-            resolve();
-        }
-    });
-}
-
-function checkGameOver() {
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            if (!grid[r][c]) return false;
-            if (c < size - 1 && grid[r][c].value === grid[r][c + 1].value) return false;
-            if (r < size - 1 && grid[r][c].value === grid[r + 1][c].value) return false;
-        }
-    }
-    return true;
-}
-
-function gameOver() {
-    isGameOver = true;
-    statusEl.classList.add('lose');
-}
-
-function updateScore() {
-    scoreEl.textContent = score;
-    if (!isGameOver && score > 0 && grid.flat().some(t => t && t.value === 2048)) {
-        statusEl.classList.add('won');
-    }
-}
-
-function toggleInfo() {
-    descriptionEl.classList.toggle('show');
+    // Initial setup
+    buildGridOverlay();
+    cellCreator(2, 0);
+    updateScoreDisplay();
+    document.addEventListener('keydown', directions);
+    gameContainer.querySelector('.info').addEventListener('click', toggleInfo);
+    gameContainer.querySelector('.repeat').addEventListener('click', reset);
 }
 
 function cleanup() {
-    document.removeEventListener('keydown', handleKeydown);
+    // This function is crucial to prevent game logic from running in the background
+    // We need to find the correct way to remove the event listener
+    document.removeEventListener('keydown', window.directions); // This might not work if 'directions' is not global
 }
 
+
+// Exporting for the main script
 export { getHtml, init, cleanup };
