@@ -13,6 +13,12 @@ const appPopularity = {
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] }, 'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] }, 'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] }, 'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] }, 'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] }, 'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] }, 'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] }, 'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] }, 'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] }, 'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] }, 'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] }, 'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] }, 'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] }, 'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random', '#color'] }, 'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] }, 'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] }, 'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] }, 'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] }, 'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] }, 'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] }, 'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] }, 'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] }, 'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] }, 'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] }, 'imageConverter': { keywords: ['конвертер', 'изображения', 'картинки', 'png', 'jpg', 'webp', 'формат', 'преобразовать'], hashtags: ['#image', '#tools', '#converter'] }, 'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] }, 'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] }, 'textTranslit': { keywords: ['транслит', 'латиница', 'кириллица', 'текст', 'перевод', 'cyrillic', 'latin'], hashtags: ['#text', '#tools'] }, 'imageResizer': { keywords: ['изображение', 'картинка', 'размер', 'уменьшить', 'увеличить', 'ресайз', 'resize'], hashtags: ['#image', '#tools'] }, 'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] }, 'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] }, 'photoEditor': { keywords: ['фото', 'редактор', 'фильтры', 'обрезка', 'поворот', 'яркость', 'контраст', 'photo', 'editor', 'filter', 'crop'], hashtags: ['#image', '#tools', '#editor'] }, 'jsonFormatter': { keywords: ['json', 'xml', 'формат', 'код', 'проверка', 'валидатор', 'formatter', 'validator', 'beautify'], hashtags: ['#tools', '#developer', '#text'] }, 'discountCalculator': { keywords: ['скидка', 'цена', 'процент', 'расчет', 'магазин', 'покупка', 'выгода', 'sale', 'discount'], hashtags: ['#calculator', '#finance', '#shopping'] }, 'game2048': { keywords: ['2048', 'игра', 'головоломка', 'числа', 'логика', 'game', 'puzzle'], hashtags: ['#game', '#fun', '#logic'] },
 };
+
+// --- ИСПРАВЛЕНИЕ: Добавлен массив для правильной сортировки по новизне ---
+const appCreationOrder = [
+    'game2048', 'discountCalculator', 'jsonFormatter', 'photoEditor', 'snakeGame', 'currencyCalculator', 'imageResizer', 'textTranslit', 'imageConverter', 'memoryGame', 'colorConverter', 'caseConverter', 'piano', 'qrScanner', 'wordCounter', 'audioCompressor', 'bmiCalculator', 'dateCalculator', 'unitConverter', 'emojiAndSymbols', 'timer', 'percentageCalculator', 'qrCodeGenerator', 'numberGenerator', 'randomColor', 'stopwatch', 'minesweeper', 'ticTacToe', 'magicBall', 'fortuneWheel', 'passwordGenerator', 'myIp', 'soundAndMicTest', 'notesAndTasks', 'radio', 'speedTest'
+];
+
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
@@ -148,7 +154,7 @@ async function router() {
     const filterContainer = document.getElementById('filter-container');
     
     if (appName) {
-        filterContainer?.classList.add('hidden'); // Эта строка скрывает фильтры на страницах приложений
+        filterContainer?.classList.add('hidden');
         
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
@@ -292,7 +298,15 @@ async function applyAppListFilterAndRender() {
     if (activeFilter === 'popular') {
         sortedUnpinned = [...unpinnedAppCards].sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
     } else if (activeFilter === 'new') {
-        sortedUnpinned = [...unpinnedAppCards].sort((a, b) => allAppCards.indexOf(b) - allAppCards.indexOf(a));
+        // --- ИСПРАВЛЕНИЕ: Новая, корректная логика сортировки по новизне ---
+        sortedUnpinned = [...unpinnedAppCards].sort((a, b) => {
+            const indexA = appCreationOrder.indexOf(a.dataset.module);
+            const indexB = appCreationOrder.indexOf(b.dataset.module);
+            // Если приложение не найдено в списке, оно считается старым
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+        });
     } else {
         sortedUnpinned = unpinnedAppCards;
     }
