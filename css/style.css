@@ -1,682 +1,267 @@
-/* --- Стили для кнопок фильтрации --- */
-.filter-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 9999px; /* pill shape */
-    border: 1px solid transparent;
-    background-color: #f3f4f6; /* gray-100 */
-    color: #374151; /* gray-700 */
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-}
-
-.dark .filter-btn {
-    background-color: #374151; /* dark:gray-700 */
-    color: #d1d5db; /* dark:gray-300 */
-}
-
-.filter-btn:hover {
-    background-color: #e5e7eb; /* gray-200 */
-    border-color: #60a5fa; /* blue-400 */
-}
-
-.dark .filter-btn:hover {
-    background-color: #4b5563; /* dark:gray-600 */
-}
-
-.filter-btn.active {
-    background-color: #3b82f6; /* blue-500 */
-    color: #ffffff; /* white */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.dark .filter-btn.active {
-    background-color: #60a5fa; /* dark:blue-400 */
-    color: #1f2937; /* dark:gray-800 */
-}
-
-/* --- Стили для похожих приложений --- */
-.similar-apps-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
-}
-
-.similar-apps-grid .app-item {
-    transition: all 0.2s ease-in-out !important;
-}
-
-.similar-apps-grid .app-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* --- Стили для кнопки закрепления --- */
-.pin-btn {
-    position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
-    z-index: 20;
-    padding: 0.35rem;
-    border-radius: 9999px;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
-}
-
-.pin-btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    transform: scale(1.1);
-}
-
-.dark .pin-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.pin-btn svg {
-    width: 1rem;
-    height: 1rem;
-    display: block;
-}
-
-/* Стили по умолчанию для иконки */
-.pin-btn .pin-icon-path {
-    fill: none;
-    stroke: #9ca3af; /* gray-400 */
-    stroke-miterlimit: 10;
-    stroke-width: 2px;
-}
-.pin-btn .pin-icon-poly {
-    stroke: none;
-    fill: #9ca3af; /* gray-400 */
-}
-
-/* Стили для темной темы */
-.dark .pin-btn .pin-icon-path {
-    stroke: #9ca3af; /* gray-400, достаточно контрастный */
-}
-.dark .pin-btn .pin-icon-poly {
-    fill: #9ca3af; /* gray-400 */
-}
-
-/* Стили для закрепленного состояния */
-.pin-btn.pinned .pin-icon-path {
-    stroke: #3b82f6; /* blue-500 */
-}
-.pin-btn.pinned .pin-icon-poly {
-    fill: #3b82f6; /* blue-500 */
-}
-.dark .pin-btn.pinned .pin-icon-path {
-    stroke: #60a5fa; /* blue-400 */
-}
-.dark .pin-btn.pinned .pin-icon-poly {
-    fill: #60a5fa; /* blue-400 */
-}
-
-
-/* --- Стили для пианино --- */
-.piano-container {
-    display: flex;
-    justify-content: center;
-    padding: 1rem;
-    background: linear-gradient(to bottom, #4a5568, #2d3748); /* gray-600 to gray-800 */
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-    overflow-x: auto; /* Позволяет скроллить на маленьких экранах */
-    -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
-}
-
-.piano-key {
-    position: relative;
-    box-sizing: border-box;
-    cursor: pointer;
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none; /* Standard */
-    transition: all 0.07s ease;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 12px;
-    font-weight: 500;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-.piano-key.white {
-    height: 240px;
-    flex-grow: 1; /* Растягиваться */
-    flex-shrink: 0;
-    min-width: 50px;
-    max-width: 70px; /* Ограничение максимальной ширины */
-    background: linear-gradient(to bottom, #ffffff, #e8e8e8);
-    color: #4a5568;
-    border: 1px solid #b0b0b0;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 5px 2px -2px rgba(0,0,0,0.2);
-    margin: 0 2px;
-}
-
-.piano-key.black {
-    position: absolute;
-    width: 30px;
-    height: 140px;
-    background: linear-gradient(to bottom, #374151, #1f2937); /* gray-700 to gray-800 */
-    color: #d1d5db; /* gray-300 */
-    left: -17px; /* (30/2) + 2px margin */
-    top: -1px;
-    z-index: 10;
-    border-radius: 0 0 6px 6px;
-    border: 2px solid #111827;
-    box-shadow: 0 4px 1px -1px rgba(0,0,0,0.5);
-    font-size: 0.8em;
-}
-
-.piano-key.white:active, .piano-key.white.active {
-    background: linear-gradient(to bottom, #d1d5db, #e5e7eb); /* gray-300 to gray-200 */
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
-    transform: scale(0.98, 0.99);
-}
-
-.piano-key.black:active, .piano-key.black.active {
-    background: linear-gradient(to bottom, #4b5563, #374151); /* gray-600 to gray-700 */
-    box-shadow: inset 0 3px 4px rgba(0,0,0,0.4);
-    transform: translateY(2px);
-}
-
-.piano-key span {
-    opacity: 0.7;
-}
-
-/* 
- * =======================================================
- * Цветовая гамма для "Сапера"
- * =======================================================
- */
-
-.ms-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.1s ease;
-    /* Светлая тема: закрытая ячейка */
-    background-color: #cbd5e1; /* slate-300 */
-    border-style: solid;
-    border-width: 2px;
-    border-color: #e2e8f0 #94a3b8 #94a3b8 #e2e8f0; /* slate-200, slate-400 */
-    border-radius: 2px;
-}
-
-.dark .ms-cell {
-    /* Темная тема: закрытая ячейка */
-    background-color: #334155; /* slate-700 */
-    border-color: #475569 #1e293b #1e293b #475569; /* slate-600, slate-800 */
-}
-
-/* **НОВЫЙ СТИЛЬ**: Для подсветки ячеек */
-.ms-cell-highlight {
-    background-color: #e2e8f0; /* slate-200 */
-    border-style: inset;
-    border-color: #94a3b8;
-}
-.dark .ms-cell-highlight {
-    background-color: #1e293b; /* slate-800 */
-    border-color: #0f172a;
-}
-
-.ms-cell.revealed {
-    /* Светлая тема: открытая ячейка */
-    background-color: #f1f5f9; /* slate-100 */
-    border: 1px solid #e2e8f0; /* slate-200 */
-    cursor: default;
-}
-
-.dark .ms-cell.revealed {
-    /* Темная тема: открытая ячейка */
-    background-color: #273345;
-    border: 1px solid #1e293b; /* slate-800 */
-}
-
-/* --- Стили для мин и флагов --- */
-.ms-cell.mine {
-    color: #1f2937;
-}
-.dark .ms-cell.mine {
-    color: #e2e8f0;
-}
-
-.ms-cell.mine-hit {
-    background-color: #ef4444 !important;
-    color: #1f2937;
-}
-
-.ms-cell.wrong-flag {
-    position: relative;
-}
-.ms-cell.wrong-flag svg {
-    visibility: hidden;
-}
-.ms-cell.wrong-flag::after {
-    content: '\00D7';
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5em;
-    line-height: 1;
-    color: #ef4444;
-}
-
-
-/* --- Палитра для цифр --- */
-.ms-c1 { color: #2563eb; }
-.ms-c2 { color: #16a34a; }
-.ms-c3 { color: #dc2626; }
-.ms-c4 { color: #0f172a; }
-.ms-c5 { color: #9a3412; }
-.ms-c6 { color: #0e7490; }
-.ms-c7 { color: #581c87; }
-.ms-c8 { color: #7f1d1d; }
-
-.dark .ms-c1 { color: #60a5fa; }
-.dark .ms-c2 { color: #4ade80; }
-.dark .ms-c3 { color: #f87171; }
-.dark .ms-c4 { color: #e2e8f0; }
-.dark .ms-c5 { color: #fb923c; }
-.dark .ms-c6 { color: #67e8f9; }
-.dark .ms-c7 { color: #d8b4fe; }
-.dark .ms-c8 { color: #fca5a5; }
-
-/* --- Кнопки выбора сложности --- */
-.ms-difficulty-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid transparent;
-    font-weight: 600;
-    color: #4b5563;
-    background-color: #e5e7eb;
-    transition: all 0.2s;
-}
-.ms-difficulty-btn:hover {
-    border-color: #3b82f6;
-    background-color: #dbeafe;
-    color: #1e40af;
-}
-.dark .ms-difficulty-btn {
-    color: #d1d5db;
-    background-color: #374151;
-}
-.dark .ms-difficulty-btn:hover {
-    border-color: #60a5fa;
-    background-color: #4b5563;
-    color: #eff6ff;
-}
-
-/* 
- * =======================================================
- * Стили для игры "Змейка"
- * =======================================================
- */
-
-.snake-game-container {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-
-#snake-canvas {
-    background-color: #f1f5f9; /* slate-100 */
-    border-radius: 0.5rem;
-    border: 2px solid #94a3b8; /* slate-400 */
-}
-
-.dark #snake-canvas {
-    background-color: #0f172a; /* slate-900 */
-    border-color: #334155; /* slate-700 */
-}
-
-.snake-game-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(31, 41, 55, 0.7); /* gray-800 with opacity */
-    color: white;
-    text-align: center;
-    border-radius: 0.5rem;
-    cursor: pointer;
-}
-
-.dark .snake-game-overlay {
-    background-color: rgba(226, 232, 240, 0.7); /* slate-200 with opacity */
-    color: #1e293b; /* gray-800 */
-}
-
-/* 
- * =======================================================
- * Стили для "Простого фоторедактора"
- * =======================================================
- */
-
-.photo-editor-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-#photo-editor-canvas {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.75rem;
-    border: 2px dashed #9ca3af; /* gray-400 */
-    background-color: #f3f4f6; /* gray-100 */
-}
-
-.dark #photo-editor-canvas {
-    border-color: #4b5563; /* dark:gray-600 */
-    background-color: #1f2937; /* dark:gray-800 */
-}
-
-#photo-editor-controls, #photo-editor-filters {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
-}
-
-.photo-editor-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db; /* gray-300 */
-    background-color: #ffffff; /* white */
-    color: #374151; /* gray-700 */
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.dark .photo-editor-btn {
-    border-color: #4b5563; /* dark:gray-600 */
-    background-color: #374151; /* dark:gray-700 */
-    color: #e5e7eb; /* dark:gray-200 */
-}
-
-.photo-editor-btn:hover:not(:disabled) {
-    background-color: #f3f4f6; /* gray-100 */
-    border-color: #3b82f6; /* blue-500 */
-}
-
-.dark .photo-editor-btn:hover:not(:disabled) {
-    background-color: #4b5563; /* dark:gray-600 */
-    border-color: #60a5fa; /* blue-400 */
-}
-
-.photo-editor-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-#photo-editor-download-btn {
-    background-color: #2563eb; /* blue-600 */
-    color: white;
-    border-color: transparent;
-}
-.dark #photo-editor-download-btn {
-    background-color: #3b82f6; /* blue-500 */
-}
-#photo-editor-download-btn:hover:not(:disabled) {
-    background-color: #1d4ed8; /* blue-700 */
-}
-.dark #photo-editor-download-btn:hover:not(:disabled) {
-    background-color: #2563eb; /* blue-600 */
-}
-
-/* 
- * =======================================================
- * Стили для "Форматирования JSON/XML"
- * =======================================================
- */
-.formatter-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-.formatter-io {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-height: 400px;
-}
-
-.formatter-textarea {
-    width: 100%;
-    flex-grow: 1;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db; /* gray-300 */
-    background-color: #f9fafb; /* gray-50 */
-    font-family: monospace;
-    font-size: 0.875rem;
-    resize: vertical;
-}
-
-.dark .formatter-textarea {
-    background-color: #1f2937; /* gray-800 */
-    border-color: #4b5563; /* gray-600 */
-    color: #d1d5db; /* gray-300 */
-}
-
-.formatter-textarea.error {
-    border-color: #ef4444; /* red-500 */
-    box-shadow: 0 0 0 2px #f87171; /* red-400 */
-}
-
-/* 
- * =======================================================
- * Стили для "Калькулятора скидок"
- * =======================================================
- */
-.discount-calculator-container {
-    max-width: 400px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.dc-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.dc-input {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db; /* gray-300 */
-    background-color: #f9fafb; /* gray-50 */
-    font-size: 1.25rem;
-}
-
-.dark .dc-input {
-    background-color: #1f2937; /* gray-800 */
-    border-color: #4b5563; /* gray-600 */
-    color: #d1d5db; /* gray-300 */
-}
-
-#dc-results {
-    background-color: #f3f4f6; /* gray-100 */
-    padding: 1rem;
-    border-radius: 0.75rem;
-    text-align: center;
-}
-.dark #dc-results {
-    background-color: #111827; /* gray-900 */
-}
-
-#dc-final-price {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #16a34a; /* green-600 */
-}
-.dark #dc-final-price {
-    color: #4ade80; /* green-400 */
-}
-
-#dc-saved-amount {
-    color: #6b7280; /* gray-500 */
-}
-.dark #dc-saved-amount {
-    color: #9ca3af; /* gray-400 */
-}
-
-
-/* 
- * =======================================================
- * Стили для игры "2048" (С АНИМАЦИЕЙ)
- * =======================================================
- */
-
-.game2048-container {
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.game2048-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.game2048-score-box {
-    padding: 0.5rem 1rem;
-    background-color: #bbada0;
-    color: white;
-    border-radius: 0.25rem;
-    text-align: center;
-    font-weight: bold;
-}
-
-.game2048-score-box span {
-    display: block;
-    font-size: 0.8rem;
-    color: #eee4da;
-}
-
-#game2048-board {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 10px;
-    padding: 10px;
-    background-color: #bbada0;
-    border-radius: 6px;
-    position: relative;
-    user-select: none;
-    touch-action: none; /* Для правильной работы жестов */
-}
-
-.game2048-cell {
-    width: 100%;
-    padding-bottom: 100%; /* Сохраняет квадратную форму */
-    background-color: rgba(238, 228, 218, 0.35);
-    border-radius: 3px;
-    grid-column: span 1;
-    grid-row: span 1;
-}
-
-#game2048-tile-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 2;
-}
-
-.game2048-tile {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    border-radius: 3px;
-    transition: transform 100ms ease-in-out;
-    transform: scale(0);
-}
-
-.game2048-tile.tile-new {
-    transform: scale(1);
-    animation: appear 200ms ease-in-out;
-}
-
-.game2048-tile.tile-merged {
-    animation: pulse 200ms ease-in-out;
-}
-
-@keyframes appear {
-    from {
-        transform: scale(0);
+// js/apps/game2048.js
+
+let scoreEl, boardEl, tileContainerEl;
+const size = 4;
+let grid = []; // Сетка для хранения объектов плиток
+let score = 0;
+let isGameOver = false;
+let isMoving = false; // Флаг для блокировки ввода во время анимации
+let tileIdCounter = 0;
+
+function getHtml() {
+    return `
+        <div class="game2048-container">
+            <div class="game2048-header">
+                <div class="game2048-score-box">
+                    <span>СЧЕТ</span>
+                    <div id="game2048-score">0</div>
+                </div>
+                <button id="game2048-new-game-btn" class="filter-btn">Новая игра</button>
+            </div>
+            <div id="game2048-board">
+                <div id="game2048-tile-container"></div>
+            </div>
+        </div>
+    `;
+}
+
+function init() {
+    boardEl = document.getElementById('game2048-board');
+    tileContainerEl = document.getElementById('game2048-tile-container');
+    scoreEl = document.getElementById('game2048-score');
+    document.getElementById('game2048-new-game-btn').addEventListener('click', setupGame);
+    
+    setupGame();
+    
+    document.addEventListener('keydown', handleKeydown);
+
+    let touchStartX = 0, touchStartY = 0;
+    boardEl.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    });
+    boardEl.addEventListener('touchend', e => {
+        if (isMoving) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
+    });
+}
+
+function setupGame() {
+    isGameOver = false;
+    isMoving = false;
+    tileIdCounter = 0;
+    score = 0;
+    updateScore();
+    
+    boardEl.querySelector('.game2048-overlay')?.remove();
+    tileContainerEl.innerHTML = '';
+    grid = Array.from({ length: size }, () => Array(size).fill(null));
+
+    // Создаем ячейки фона, только если их еще нет
+    if (boardEl.childElementCount <= 1) {
+        for (let i = 0; i < size * size; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('game2048-cell');
+            boardEl.prepend(cell);
+        }
+    }
+
+    addRandomTile();
+    addRandomTile();
+}
+
+function addRandomTile() {
+    const emptyCells = [];
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (grid[r][c] === null) {
+                emptyCells.push({ r, c });
+            }
+        }
+    }
+
+    if (emptyCells.length > 0) {
+        const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        const value = Math.random() < 0.9 ? 2 : 4;
+        const newTile = {
+            id: tileIdCounter++,
+            value: value,
+            r: r,
+            c: c,
+        };
+        grid[r][c] = newTile;
+        createTileElement(newTile);
     }
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+function createTileElement(tile) {
+    const tileEl = document.createElement('div');
+    tileEl.classList.add('game2048-tile');
+    tileEl.dataset.id = tile.id;
+    updateTileElement(tileEl, tile);
+    tileContainerEl.appendChild(tileEl);
+    
+    requestAnimationFrame(() => {
+        tileEl.classList.add('tile-new');
+    });
 }
 
-.game2048-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(238, 228, 218, 0.73);
-    color: #776e65;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    animation: fade-in 0.5s ease;
-    z-index: 100;
+function updateTileElement(tileEl, tile) {
+    tileEl.textContent = tile.value;
+    tileEl.dataset.value = tile.value;
+    
+    const cellSize = boardEl.clientWidth / size;
+    const gap = 10;
+    
+    tileEl.style.width = `${cellSize - gap}px`;
+    tileEl.style.height = `${cellSize - gap}px`;
+    // Новая позиция задается через CSS transform для плавной анимации
+    tileEl.style.transform = `translate(${tile.c * cellSize + gap/2}px, ${tile.r * cellSize + gap/2}px)`;
+    
+    if (tile.value > 9999) tileEl.style.fontSize = "0.8em";
+    else if (tile.value > 999) tileEl.style.fontSize = "1em";
+    else if (tile.value > 99) tileEl.style.fontSize = "1.3em";
+    else tileEl.style.fontSize = "1.5em";
 }
 
-@keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+function handleKeydown(e) {
+    if (isMoving || isGameOver) return;
+    switch (e.key) {
+        case 'ArrowUp': move('up'); break;
+        case 'ArrowDown': move('down'); break;
+        case 'ArrowLeft': move('left'); break;
+        case 'ArrowRight': move('right'); break;
+    }
 }
 
-.game2048-overlay h2 {
-    font-size: 2rem;
-    font-weight: bold;
+function handleSwipe(startX, startY, endX, endY) {
+    const dx = endX - startX;
+    const dy = endY - startY;
+    if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+            move(dx > 0 ? 'right' : 'left');
+        } else {
+            move(dy > 0 ? 'down' : 'up');
+        }
+    }
 }
 
-/* Цвета и размеры шрифтов для плиток */
-[data-value="2"] { background-color: #eee4da; color: #776e65; }
-[data-value="4"] { background-color: #ede0c8; color: #776e65; }
-[data-value="8"] { background-color: #f2b179; color: #f9f6f2; }
-[data-value="16"] { background-color: #f59563; color: #f9f6f2; }
-[data-value="32"] { background-color: #f67c5f; color: #f9f6f2; }
-[data-value="64"] { background-color: #f65e3b; color: #f9f6f2; }
-[data-value="128"] { background-color: #edcf72; color: #f9f6f2; font-size: 1.3em; }
-[data-value="256"] { background-color: #edcc61; color: #f9f6f2; font-size: 1.3em; }
-[data-value="512"] { background-color: #edc850; color: #f9f6f2; font-size: 1.3em; }
-[data-value="1024"] { background-color: #edc53f; color: #f9f6f2; font-size: 1em; }
-[data-value="2048"] { background-color: #edc22e; color: #f9f6f2; font-size: 1em; }
-[data-value="4096"] { background-color: #3c3a32; color: #f9f6f2; font-size: 1em; }
-[data-value="8192"] { background-color: #3c3a32; color: #f9f6f2; font-size: 1em; }
+async function move(direction) {
+    isMoving = true;
+    const vector = { up: { r: -1, c: 0 }, down: { r: 1, c: 0 }, left: { r: 0, c: -1 }, right: { r: 0, c: 1 } }[direction];
+    
+    const rows = direction === 'down' ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
+    const cols = direction === 'right' ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
+    
+    let hasMoved = false;
+    const promises = [];
+
+    // Сбрасываем флаги слияния
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (grid[r][c]) grid[r][c].mergedFrom = null;
+        }
+    }
+
+    for (const r of rows) {
+        for (const c of cols) {
+            const tile = grid[r][c];
+            if (tile) {
+                let currentR = r, currentC = c;
+                let nextR, nextC;
+                
+                do {
+                    nextR = currentR + vector.r;
+                    nextC = currentC + vector.c;
+                } while (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && !grid[nextR][nextC]);
+
+                if (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && grid[nextR][nextC].value === tile.value && !grid[nextR][nextC].mergedFrom) {
+                    const targetTile = grid[nextR][nextC];
+                    promises.push(animateTileMove(tile, nextR, nextC, true));
+                    targetTile.mergedFrom = tile;
+                    grid[r][c] = null;
+                    hasMoved = true;
+                } else {
+                    nextR -= vector.r;
+                    nextC -= vector.c;
+                    if (nextR !== r || nextC !== c) {
+                        promises.push(animateTileMove(tile, nextR, nextC, false));
+                        grid[nextR][nextC] = tile;
+                        grid[r][c] = null;
+                        hasMoved = true;
+                    }
+                }
+            }
+        }
+    }
+
+    await Promise.all(promises);
+
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            const tile = grid[r][c];
+            if (tile && tile.mergedFrom) {
+                tile.value *= 2;
+                score += tile.value;
+                const targetEl = document.querySelector(`[data-id="${tile.id}"]`);
+                const mergedEl = document.querySelector(`[data-id="${tile.mergedFrom.id}"]`);
+                mergedEl.remove();
+                updateTileElement(targetEl, tile);
+                targetEl.classList.add('tile-merged');
+                targetEl.addEventListener('animationend', () => targetEl.classList.remove('tile-merged'), {once: true});
+            }
+        }
+    }
+
+    if (hasMoved) {
+        updateScore();
+        addRandomTile();
+        if (checkGameOver()) {
+            gameOver();
+        }
+    }
+    
+    isMoving = false;
+}
+
+function animateTileMove(tile, r, c, isMerging) {
+    return new Promise(resolve => {
+        const tileEl = document.querySelector(`[data-id="${tile.id}"]`);
+        tile.r = r;
+        tile.c = c;
+        updateTileElement(tileEl, tile);
+        
+        tileEl.addEventListener('transitionend', resolve, { once: true });
+    });
+}
+
+function checkGameOver() {
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (!grid[r][c]) return false;
+            if (c < size - 1 && grid[r][c].value === grid[r][c + 1].value) return false;
+            if (r < size - 1 && grid[r][c].value === grid[r + 1][c].value) return false;
+        }
+    }
+    return true;
+}
+
+function gameOver() {
+    isGameOver = true;
+    const overlay = document.createElement('div');
+    overlay.classList.add('game2048-overlay');
+    overlay.innerHTML = `<h2>Игра окончена!</h2><p>Ваш счет: ${score}</p>`;
+    boardEl.appendChild(overlay);
+}
+
+function updateScore() {
+    scoreEl.textContent = score;
+}
+
+function cleanup() {
+    document.removeEventListener('keydown', handleKeydown);
+}
+
+export { getHtml, init, cleanup };
