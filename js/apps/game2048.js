@@ -2,13 +2,12 @@
 
 let scoreEl, boardEl, tileContainerEl;
 const size = 4;
-let grid = [];
+let grid = []; // Сетка для хранения объектов плиток
 let score = 0;
 let isGameOver = false;
 let isMoving = false; // Флаг для блокировки ввода во время анимации
-let tileIdCounter = 0; // Для уникальных ID каждой плитки
+let tileIdCounter = 0;
 
-// --- HTML-структура приложения ---
 function getHtml() {
     return `
         <div class="game2048-container">
@@ -26,7 +25,6 @@ function getHtml() {
     `;
 }
 
-// --- Инициализация игры ---
 function init() {
     boardEl = document.getElementById('game2048-board');
     tileContainerEl = document.getElementById('game2048-tile-container');
@@ -37,7 +35,6 @@ function init() {
     
     document.addEventListener('keydown', handleKeydown);
 
-    // Обработка свайпов для мобильных устройств
     let touchStartX = 0, touchStartY = 0;
     boardEl.addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;
@@ -51,7 +48,6 @@ function init() {
     });
 }
 
-// --- Настройка новой игры ---
 function setupGame() {
     isGameOver = false;
     isMoving = false;
@@ -59,13 +55,11 @@ function setupGame() {
     score = 0;
     updateScore();
     
-    // Очищаем игровое поле и сетку
     boardEl.querySelector('.game2048-overlay')?.remove();
     tileContainerEl.innerHTML = '';
     grid = Array.from({ length: size }, () => Array(size).fill(null));
 
-    // Создаем ячейки фона
-    if (boardEl.childElementCount <= 1) { // Добавляем фон только один раз
+    if (boardEl.childElementCount <= 1) {
         for (let i = 0; i < size * size; i++) {
             const cell = document.createElement('div');
             cell.classList.add('game2048-cell');
@@ -77,8 +71,6 @@ function setupGame() {
     addRandomTile();
 }
 
-
-// --- Добавление новой плитки на поле ---
 function addRandomTile() {
     const emptyCells = [];
     for (let r = 0; r < size; r++) {
@@ -103,28 +95,38 @@ function addRandomTile() {
     }
 }
 
-// --- Создание DOM-элемента для плитки ---
 function createTileElement(tile) {
     const tileEl = document.createElement('div');
-    tileEl.classList.add('game2048-tile', 'tile-new');
+    tileEl.classList.add('game2048-tile');
     tileEl.dataset.id = tile.id;
     updateTileElement(tileEl, tile);
     tileContainerEl.appendChild(tileEl);
+    
+    // Добавляем класс для анимации появления после короткой задержки
+    requestAnimationFrame(() => {
+        tileEl.classList.add('tile-new');
+    });
 }
 
-// --- Обновление вида и позиции плитки ---
 function updateTileElement(tileEl, tile) {
     tileEl.textContent = tile.value;
     tileEl.dataset.value = tile.value;
+    
     const cellSize = boardEl.clientWidth / size;
     const gap = 10;
+    
     tileEl.style.width = `${cellSize - gap}px`;
     tileEl.style.height = `${cellSize - gap}px`;
     tileEl.style.transform = `translate(${tile.c * cellSize + gap/2}px, ${tile.r * cellSize + gap/2}px)`;
+    
+    // Адаптивный размер шрифта
+    if (tile.value > 9999) tileEl.style.fontSize = "0.8em";
+    else if (tile.value > 999) tileEl.style.fontSize = "1em";
+    else if (tile.value > 99) tileEl.style.fontSize = "1.3em";
+    else tileEl.style.fontSize = "1.5em";
 }
 
 
-// --- Обработка ввода ---
 function handleKeydown(e) {
     if (isMoving || isGameOver) return;
     switch (e.key) {
@@ -147,72 +149,80 @@ function handleSwipe(startX, startY, endX, endY) {
     }
 }
 
-// --- Главная функция движения ---
 async function move(direction) {
     isMoving = true;
     const vector = { up: { r: -1, c: 0 }, down: { r: 1, c: 0 }, left: { r: 0, c: -1 }, right: { r: 0, c: 1 } }[direction];
     
-    // Определяем порядок обхода ячеек
     const rows = direction === 'down' ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
     const cols = direction === 'right' ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
     
-    let moved = false;
-    const mergePromises = [];
+    let hasMoved = false;
+    const promises = [];
+    
+    // Сброс флагов слияния перед каждым ходом
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (grid[r][c]) grid[r][c].mergedFrom = null;
+        }
+    }
 
     for (const r of rows) {
         for (const c of cols) {
             const tile = grid[r][c];
             if (tile) {
                 let currentR = r, currentC = c;
-                let nextR = currentR + vector.r, nextC = currentC + vector.c;
-
-                // Находим самую дальнюю пустую ячейку или ячейку для слияния
-                while (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size) {
-                    const nextTile = grid[nextR][nextC];
-                    if (nextTile) {
-                        if (nextTile.value === tile.value && !nextTile.mergedThisTurn) {
-                            currentR = nextR;
-                            currentC = nextC;
-                        }
-                        break;
-                    }
-                    currentR = nextR;
-                    currentC = nextC;
-                    nextR += vector.r;
-                    nextC += vector.c;
-                }
-
-                if (currentR !== r || currentC !== c) {
-                    const targetTile = grid[currentR][currentC];
-                    if (targetTile && targetTile.value === tile.value) {
-                        // Слияние
-                        const tileToMerge = tile;
-                        targetTile.value *= 2;
-                        targetTile.mergedThisTurn = true;
+                let nextR, nextC;
+                
+                // Находим конечную позицию плитки
+                do {
+                    nextR = currentR + vector.r;
+                    nextC = currentC + vector.c;
+                } while (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && !grid[nextR][nextC]);
+                
+                // Проверяем возможность слияния
+                if (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && grid[nextR][nextC].value === tile.value && !grid[nextR][nextC].mergedFrom) {
+                    const targetTile = grid[nextR][nextC];
+                    targetTile.value *= 2;
+                    targetTile.mergedFrom = tile; // Помечаем, какая плитка влилась
+                    grid[r][c] = null;
+                    score += targetTile.value;
+                    hasMoved = true;
+                    promises.push(animateTileMove(tile, nextR, nextC, true));
+                } else { // Простое перемещение
+                    nextR -= vector.r;
+                    nextC -= vector.c;
+                    if (nextR !== r || nextC !== c) {
+                        grid[nextR][nextC] = tile;
                         grid[r][c] = null;
-                        score += targetTile.value;
-                        
-                        mergePromises.push(animateMerge(tileToMerge, targetTile));
-
-                    } else {
-                        // Перемещение
-                        grid[currentR][currentC] = tile;
-                        grid[r][c] = null;
-                        tile.r = currentR;
-                        tile.c = currentC;
-                        const tileEl = document.querySelector(`[data-id="${tile.id}"]`);
-                        updateTileElement(tileEl, tile);
+                        tile.r = nextR;
+                        tile.c = nextC;
+                        hasMoved = true;
+                        promises.push(animateTileMove(tile, nextR, nextC, false));
                     }
-                    moved = true;
                 }
             }
         }
     }
 
-    // Ждем завершения всех анимаций слияния
-    await Promise.all(mergePromises);
+    await Promise.all(promises); // Ждем завершения всех анимаций
 
-    if (moved) {
+    // Обновляем DOM после слияний
+    for (const tileEl of tileContainerEl.children) {
+        const id = parseInt(tileEl.dataset.id);
+        for(let r=0; r<size; r++) {
+            for(let c=0; c<size; c++) {
+                if (grid[r][c] && grid[r][c].id === id) {
+                    updateTileElement(tileEl, grid[r][c]);
+                    if(grid[r][c].mergedFrom) {
+                        tileEl.classList.add('tile-merged');
+                        tileEl.addEventListener('animationend', () => tileEl.classList.remove('tile-merged'), {once: true});
+                    }
+                }
+            }
+        }
+    }
+
+    if (hasMoved) {
         updateScore();
         addRandomTile();
         if (checkGameOver()) {
@@ -220,44 +230,27 @@ async function move(direction) {
         }
     }
     
-    // Сбрасываем флаги слияния
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            if (grid[r][c]) grid[r][c].mergedThisTurn = false;
-        }
-    }
     isMoving = false;
 }
 
-// --- Анимация слияния ---
-function animateMerge(tileToMerge, targetTile) {
+function animateTileMove(tile, r, c, isMerging) {
     return new Promise(resolve => {
-        const mergingEl = document.querySelector(`[data-id="${tileToMerge.id}"]`);
-        const targetEl = document.querySelector(`[data-id="${targetTile.id}"]`);
+        const tileEl = document.querySelector(`[data-id="${tile.id}"]`);
+        tile.r = r;
+        tile.c = c;
+        updateTileElement(tileEl, tile);
         
-        // Перемещаем плитку на позицию целевой плитки
-        updateTileElement(mergingEl, targetTile);
-
-        // Ждем завершения анимации перемещения
-        mergingEl.addEventListener('transitionend', () => {
-            mergingEl.remove(); // Удаляем элемент сливаемой плитки
-            targetEl.textContent = targetTile.value; // Обновляем значение целевой
-            targetEl.dataset.value = targetTile.value;
-            targetEl.classList.add('tile-merged'); // Добавляем класс для анимации "пульсации"
-            targetEl.addEventListener('animationend', () => {
-                targetEl.classList.remove('tile-merged');
-                resolve();
-            }, { once: true });
+        tileEl.addEventListener('transitionend', () => {
+            if (isMerging) tileEl.remove();
+            resolve();
         }, { once: true });
     });
 }
 
-
-// --- Проверка на конец игры ---
 function checkGameOver() {
     for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
-            if (!grid[r][c]) return false; // Есть пустые ячейки
+            if (!grid[r][c]) return false;
             if (c < size - 1 && grid[r][c].value === grid[r][c + 1].value) return false;
             if (r < size - 1 && grid[r][c].value === grid[r + 1][c].value) return false;
         }
@@ -277,7 +270,6 @@ function updateScore() {
     scoreEl.textContent = score;
 }
 
-// --- Очистка при выходе из приложения ---
 function cleanup() {
     document.removeEventListener('keydown', handleKeydown);
 }
