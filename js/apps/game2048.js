@@ -24,7 +24,7 @@ function getHtml() {
         <div class="field" id="game-2048-board">
             <div id="game-2048-tile-container"></div>
         </div>
-        <div class="status-overlay" id='status'></div>
+        <div class="status-overlay" id="status"></div>
       </div>
     `;
 }
@@ -64,12 +64,11 @@ function setupGame() {
     score = 0;
     updateScore();
     
-    statusEl.className = 'status-overlay'; // Сброс статуса
+    statusEl.className = 'status-overlay';
     descriptionEl.classList.remove('show');
     tileContainerEl.innerHTML = '';
     grid = Array.from({ length: size }, () => Array(size).fill(null));
 
-    // Создаем ячейки фона, только если их еще нет
     if (boardEl.querySelectorAll('.cell').length === 0) {
         for (let i = 0; i < size * size; i++) {
             const cell = document.createElement('div');
@@ -113,7 +112,7 @@ function createTileElement(tile) {
 
 function updateTileElement(tileEl, tile) {
     tileEl.textContent = tile.value;
-    tileEl.className = `tile v${tile.value}`; // Устанавливаем класс для цвета
+    tileEl.className = `tile v${tile.value}`;
     
     const cellSize = (boardEl.clientWidth - 10 * (size + 1)) / size;
     const gap = 10;
@@ -200,7 +199,7 @@ async function move(direction) {
                 score += tile.value;
                 const targetEl = document.querySelector(`[data-id="${tile.id}"]`);
                 const mergedEl = document.querySelector(`[data-id="${tile.mergedFrom.id}"]`);
-                mergedEl.remove();
+                if (mergedEl) mergedEl.remove();
                 updateTileElement(targetEl, tile);
                 targetEl.classList.add('tile-merged');
                 targetEl.addEventListener('animationend', () => targetEl.classList.remove('tile-merged'), {once: true});
@@ -222,11 +221,14 @@ async function move(direction) {
 function animateTileMove(tile, r, c) {
     return new Promise(resolve => {
         const tileEl = document.querySelector(`[data-id="${tile.id}"]`);
-        tile.r = r;
-        tile.c = c;
-        updateTileElement(tileEl, tile);
-        
-        tileEl.addEventListener('transitionend', resolve, { once: true });
+        if (tileEl) {
+            tile.r = r;
+            tile.c = c;
+            updateTileElement(tileEl, tile);
+            tileEl.addEventListener('transitionend', resolve, { once: true });
+        } else {
+            resolve();
+        }
     });
 }
 
@@ -248,7 +250,7 @@ function gameOver() {
 
 function updateScore() {
     scoreEl.textContent = score;
-    if (score > 0 && grid.flat().some(t => t && t.value === 2048)) {
+    if (!isGameOver && score > 0 && grid.flat().some(t => t && t.value === 2048)) {
         statusEl.classList.add('won');
     }
 }
