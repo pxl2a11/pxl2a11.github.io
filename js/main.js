@@ -3,7 +3,7 @@ import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { fetchUserAccountData, clearUserData, getUserData, saveUserData } from './dataManager.js';
 
-// --- Сопоставление имен приложений и другие метаданные (без изменений) ---
+// --- Сопоставление имен приложений и другие метаданные ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Калькулятор процентных соотношений': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Счетчик слов и символов': 'wordCounter', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер форматов изображений': 'imageConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Транслитерация текста': 'textTranslit', 'Изменение размера изображений': 'imageResizer', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Простой фоторедактор': 'photoEditor', 'Форматирование JSON/XML': 'jsonFormatter', 'Калькулятор скидок': 'discountCalculator', 'Игра \'2048\'': 'game2048',
 };
@@ -148,6 +148,8 @@ async function router() {
     const filterContainer = document.getElementById('filter-container');
     
     if (appName) {
+        filterContainer?.classList.add('hidden'); // Эта строка скрывает фильтры на страницах приложений
+        
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         dynamicContentArea.innerHTML = appScreenHtml;
@@ -372,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- ГЛАВНЫЙ ИСПРАВЛЕННЫЙ ПОТОК ЗАГРУЗКИ ---
+    // --- Главный поток загрузки ---
     let isInitialAuthCheckDone = false;
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -387,6 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isInitialAuthCheckDone = true;
             await router(); 
         } else {
+            // При изменении состояния авторизации (вход/выход) перерисовываем текущий вид
             await router();
         }
 
