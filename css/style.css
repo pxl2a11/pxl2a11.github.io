@@ -80,600 +80,211 @@
     display: block;
 }
 
-/* Стили по умолчанию для иконки */
 .pin-btn .pin-icon-path {
     fill: none;
-    stroke: #9ca3af; /* gray-400 */
+    stroke: #9ca3af;
     stroke-miterlimit: 10;
     stroke-width: 2px;
 }
 .pin-btn .pin-icon-poly {
     stroke: none;
-    fill: #9ca3af; /* gray-400 */
+    fill: #9ca3af;
 }
+.dark .pin-btn .pin-icon-path, .dark .pin-btn .pin-icon-poly {
+    stroke: #9ca3af;
+    fill: #9ca3af;
+}
+.pin-btn.pinned .pin-icon-path { stroke: #3b82f6; }
+.pin-btn.pinned .pin-icon-poly { fill: #3b82f6; }
+.dark .pin-btn.pinned .pin-icon-path { stroke: #60a5fa; }
+.dark .pin-btn.pinned .pin-icon-poly { fill: #60a5fa; }
 
-/* Стили для темной темы */
-.dark .pin-btn .pin-icon-path {
-    stroke: #9ca3af; /* gray-400, достаточно контрастный */
-}
-.dark .pin-btn .pin-icon-poly {
-    fill: #9ca3af; /* gray-400 */
-}
-
-/* Стили для закрепленного состояния */
-.pin-btn.pinned .pin-icon-path {
-    stroke: #3b82f6; /* blue-500 */
-}
-.pin-btn.pinned .pin-icon-poly {
-    fill: #3b82f6; /* blue-500 */
-}
-.dark .pin-btn.pinned .pin-icon-path {
-    stroke: #60a5fa; /* blue-400 */
-}
-.dark .pin-btn.pinned .pin-icon-poly {
-    fill: #60a5fa; /* blue-400 */
-}
-
-
-/* --- Стили для пианино --- */
-.piano-container {
-    display: flex;
-    justify-content: center;
-    padding: 1rem;
-    background: linear-gradient(to bottom, #4a5568, #2d3748); /* gray-600 to gray-800 */
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-    overflow-x: auto; /* Позволяет скроллить на маленьких экранах */
-    -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
-}
-
-.piano-key {
-    position: relative;
-    box-sizing: border-box;
-    cursor: pointer;
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none; /* Standard */
-    transition: all 0.07s ease;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 12px;
-    font-weight: 500;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-.piano-key.white {
-    height: 240px;
-    flex-grow: 1; /* Растягиваться */
-    flex-shrink: 0;
-    min-width: 50px;
-    max-width: 70px; /* Ограничение максимальной ширины */
-    background: linear-gradient(to bottom, #ffffff, #e8e8e8);
-    color: #4a5568;
-    border: 1px solid #b0b0b0;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 5px 2px -2px rgba(0,0,0,0.2);
-    margin: 0 2px;
-}
-
-.piano-key.black {
-    position: absolute;
-    width: 30px;
-    height: 140px;
-    background: linear-gradient(to bottom, #374151, #1f2937); /* gray-700 to gray-800 */
-    color: #d1d5db; /* gray-300 */
-    left: -17px; /* (30/2) + 2px margin */
-    top: -1px;
-    z-index: 10;
-    border-radius: 0 0 6px 6px;
-    border: 2px solid #111827;
-    box-shadow: 0 4px 1px -1px rgba(0,0,0,0.5);
-    font-size: 0.8em;
-}
-
-.piano-key.white:active, .piano-key.white.active {
-    background: linear-gradient(to bottom, #d1d5db, #e5e7eb); /* gray-300 to gray-200 */
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
-    transform: scale(0.98, 0.99);
-}
-
-.piano-key.black:active, .piano-key.black.active {
-    background: linear-gradient(to bottom, #4b5563, #374151); /* gray-600 to gray-700 */
-    box-shadow: inset 0 3px 4px rgba(0,0,0,0.4);
-    transform: translateY(2px);
-}
-
-.piano-key span {
-    opacity: 0.7;
-}
+/* --- Остальные стили ... --- */
 
 /* 
  * =======================================================
- * Цветовая гамма для "Сапера"
+ * СТИЛИ ДЛЯ НОВОЙ ВЕРСИИ ИГРЫ 2048
  * =======================================================
  */
 
-.ms-cell {
+ .game-2048-new-container {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    font-family: 'Nunito', sans-serif;
+    position: relative; /* Для позиционирования оверлеев */
+    height: 680px; /* Фиксированная высота для предотвращения скачков */
+ }
+
+.game-2048-new-container .head {
+    height: 120px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.1s ease;
-    /* Светлая тема: закрытая ячейка */
-    background-color: #cbd5e1; /* slate-300 */
-    border-style: solid;
-    border-width: 2px;
-    border-color: #e2e8f0 #94a3b8 #94a3b8 #e2e8f0; /* slate-200, slate-400 */
-    border-radius: 2px;
 }
 
-.dark .ms-cell {
-    /* Темная тема: закрытая ячейка */
-    background-color: #334155; /* slate-700 */
-    border-color: #475569 #1e293b #1e293b #475569; /* slate-600, slate-800 */
-}
-
-.ms-cell-highlight {
-    background-color: #e2e8f0; /* slate-200 */
-    border-style: inset;
-    border-color: #94a3b8;
-}
-.dark .ms-cell-highlight {
-    background-color: #1e293b; /* slate-800 */
-    border-color: #0f172a;
-}
-
-.ms-cell.revealed {
-    /* Светлая тема: открытая ячейка */
-    background-color: #f1f5f9; /* slate-100 */
-    border: 1px solid #e2e8f0; /* slate-200 */
-    cursor: default;
-}
-
-.dark .ms-cell.revealed {
-    /* Темная тема: открытая ячейка */
-    background-color: #273345;
-    border: 1px solid #1e293b; /* slate-800 */
-}
-
-/* --- Стили для мин и флагов --- */
-.ms-cell.mine {
-    color: #1f2937;
-}
-.dark .ms-cell.mine {
-    color: #e2e8f0;
-}
-
-.ms-cell.mine-hit {
-    background-color: #ef4444 !important;
-    color: #1f2937;
-}
-
-.ms-cell.wrong-flag {
-    position: relative;
-}
-.ms-cell.wrong-flag svg {
+.game-2048-new-container .description {
+    height: 250px;
+    width: 300px;
+    color: #333;
+    transform: translate(-50%, -50%) scale(0);
+    position: absolute;
+    left: 50%;
+    top: 425px;
+    background: #fff;
+    padding: 50px;
+    border-radius: 10px;
+    z-index: 1000;
+    box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+    text-align: center;
     visibility: hidden;
-}
-.ms-cell.wrong-flag::after {
-    content: '\00D7';
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5em;
-    line-height: 1;
-    color: #ef4444;
+    opacity: 0;
+    font-size: 15px;
+    transition: 0.3s all ease-in-out;
 }
 
-
-/* --- Палитра для цифр --- */
-.ms-c1 { color: #2563eb; }
-.ms-c2 { color: #16a34a; }
-.ms-c3 { color: #dc2626; }
-.ms-c4 { color: #0f172a; }
-.ms-c5 { color: #9a3412; }
-.ms-c6 { color: #0e7490; }
-.ms-c7 { color: #581c87; }
-.ms-c8 { color: #7f1d1d; }
-
-.dark .ms-c1 { color: #60a5fa; }
-.dark .ms-c2 { color: #4ade80; }
-.dark .ms-c3 { color: #f87171; }
-.dark .ms-c4 { color: #e2e8f0; }
-.dark .ms-c5 { color: #fb923c; }
-.dark .ms-c6 { color: #67e8f9; }
-.dark .ms-c7 { color: #d8b4fe; }
-.dark .ms-c8 { color: #fca5a5; }
-
-/* --- Кнопки выбора сложности --- */
-.ms-difficulty-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid transparent;
-    font-weight: 600;
-    color: #4b5563;
-    background-color: #e5e7eb;
-    transition: all 0.2s;
-}
-.ms-difficulty-btn:hover {
-    border-color: #3b82f6;
-    background-color: #dbeafe;
-    color: #1e40af;
-}
-.dark .ms-difficulty-btn {
-    color: #d1d5db;
-    background-color: #374151;
-}
-.dark .ms-difficulty-btn:hover {
-    border-color: #60a5fa;
-    background-color: #4b5563;
-    color: #eff6ff;
+.game-2048-new-container .description.show {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
 }
 
-/* 
- * =======================================================
- * Стили для игры "Змейка"
- * =======================================================
- */
-
-.snake-game-container {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-
-#snake-canvas {
-    background-color: #f1f5f9; /* slate-100 */
-    border-radius: 0.5rem;
-    border: 2px solid #94a3b8; /* slate-400 */
-}
-
-.dark #snake-canvas {
-    background-color: #0f172a; /* slate-900 */
-    border-color: #334155; /* slate-700 */
-}
-
-.snake-game-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(31, 41, 55, 0.7); /* gray-800 with opacity */
-    color: white;
-    text-align: center;
-    border-radius: 0.5rem;
+.game-2048-new-container .info {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-weight: 100;
     cursor: pointer;
+    border: none;
+    background-color: #88b1ef;
+    color: #fff;
+    font-size: 20px;
+    transform: translateY(-5px);
+    margin-left: 15px;
+    transition: 0.1s background-color;
 }
 
-.dark .snake-game-overlay {
-    background-color: rgba(226, 232, 240, 0.7); /* slate-200 with opacity */
-    color: #1e293b; /* gray-800 */
+.game-2048-new-container .info:hover {
+    background-color: #6593d8;
 }
 
-/* 
- * =======================================================
- * Стили для "Простого фоторедактора"
- * =======================================================
- */
-
-.photo-editor-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+.game-2048-new-container .repeat {
+    margin: 0 !important;
 }
 
-#photo-editor-canvas {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.75rem;
-    border: 2px dashed #9ca3af; /* gray-400 */
-    background-color: #f3f4f6; /* gray-100 */
+.game-2048-new-container .a {
+    font-size: 80px;
+    font-weight: 800;
+    color: #555;
+    margin-right: 25px;
 }
 
-.dark #photo-editor-canvas {
-    border-color: #4b5563; /* dark:gray-600 */
-    background-color: #1f2937; /* dark:gray-800 */
-}
-
-#photo-editor-controls, #photo-editor-filters {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
-}
-
-.photo-editor-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db; /* gray-300 */
-    background-color: #ffffff; /* white */
-    color: #374151; /* gray-700 */
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.dark .photo-editor-btn {
-    border-color: #4b5563; /* dark:gray-600 */
-    background-color: #374151; /* dark:gray-700 */
-    color: #e5e7eb; /* dark:gray-200 */
-}
-
-.photo-editor-btn:hover:not(:disabled) {
-    background-color: #f3f4f6; /* gray-100 */
-    border-color: #3b82f6; /* blue-500 */
-}
-
-.dark .photo-editor-btn:hover:not(:disabled) {
-    background-color: #4b5563; /* dark:gray-600 */
-    border-color: #60a5fa; /* blue-400 */
-}
-
-.photo-editor-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-#photo-editor-download-btn {
-    background-color: #2563eb; /* blue-600 */
-    color: white;
-    border-color: transparent;
-}
-.dark #photo-editor-download-btn {
-    background-color: #3b82f6; /* blue-500 */
-}
-#photo-editor-download-btn:hover:not(:disabled) {
-    background-color: #1d4ed8; /* blue-700 */
-}
-.dark #photo-editor-download-btn:hover:not(:disabled) {
-    background-color: #2563eb; /* blue-600 */
-}
-
-/* 
- * =======================================================
- * Стили для "Форматирования JSON/XML"
- * =======================================================
- */
-.formatter-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-.formatter-io {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-height: 400px;
-}
-
-.formatter-textarea {
-    width: 100%;
-    flex-grow: 1;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db; /* gray-300 */
-    background-color: #f9fafb; /* gray-50 */
-    font-family: monospace;
-    font-size: 0.875rem;
-    resize: vertical;
-}
-
-.dark .formatter-textarea {
-    background-color: #1f2937; /* gray-800 */
-    border-color: #4b5563; /* gray-600 */
-    color: #d1d5db; /* gray-300 */
-}
-
-.formatter-textarea.error {
-    border-color: #ef4444; /* red-500 */
-    box-shadow: 0 0 0 2px #f87171; /* red-400 */
-}
-
-/* 
- * =======================================================
- * Стили для "Калькулятора скидок"
- * =======================================================
- */
-.discount-calculator-container {
-    max-width: 400px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.dc-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.dc-input {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db; /* gray-300 */
-    background-color: #f9fafb; /* gray-50 */
-    font-size: 1.25rem;
-}
-
-.dark .dc-input {
-    background-color: #1f2937; /* gray-800 */
-    border-color: #4b5563; /* gray-600 */
-    color: #d1d5db; /* gray-300 */
-}
-
-#dc-results {
-    background-color: #f3f4f6; /* gray-100 */
-    padding: 1rem;
-    border-radius: 0.75rem;
-    text-align: center;
-}
-.dark #dc-results {
-    background-color: #111827; /* gray-900 */
-}
-
-#dc-final-price {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #16a34a; /* green-600 */
-}
-.dark #dc-final-price {
-    color: #4ade80; /* green-400 */
-}
-
-#dc-saved-amount {
-    color: #6b7280; /* gray-500 */
-}
-.dark #dc-saved-amount {
-    color: #9ca3af; /* gray-400 */
-}
-
-
-/* 
- * =======================================================
- * Стили для игры "2048" (С АНИМАЦИЕЙ)
- * =======================================================
- */
-
-.game2048-container {
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.game2048-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.game2048-score-box {
-    padding: 0.5rem 1rem;
-    background-color: #bbada0;
-    color: white;
-    border-radius: 0.25rem;
-    text-align: center;
-    font-weight: bold;
-}
-
-.game2048-score-box span {
-    display: block;
-    font-size: 0.8rem;
+.game-2048-new-container .score {
+    width: 120px;
+    height: 70px;
+    padding-top: 5px;
+    font-weight: 400;
+    font-size: 20px;
     color: #eee4da;
-}
-
-#game2048-board {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 10px;
-    padding: 10px;
+    text-align: center;
     background-color: #bbada0;
+    border-radius: 5px;
+}
+.game-2048-new-container #value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.game-2048-new-container .field, .game-2048-new-container .grid {
+    position: absolute;
+    width: 100%;
+    height: 520px;
+    background-color: #bbada0;
+    top: 150px;
     border-radius: 6px;
-    position: relative;
-    user-select: none;
-    touch-action: none;
-}
-
-.game2048-cell {
-    background-color: rgba(238, 228, 218, 0.35);
-    border-radius: 3px;
-}
-
-#game2048-tile-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 2;
-}
-
-.game2048-tile {
-    position: absolute;
+    padding: 10px;
+    box-sizing: border-box;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.game-2048-new-container .field {
+    z-index: 50;
+}
+
+.game-2048-new-container .grid {
+    z-index: 100;
+    background-color: transparent;
+    pointer-events: none;
+}
+
+.game-2048-new-container .row, .game-2048-new-container .grid_row {
+    width: 100%;
+    height: calc(25% - 7.5px);
+    display: flex;
+    gap: 10px;
+}
+
+.game-2048-new-container .cell, .game-2048-new-container .grid_cell {
+    background-color: rgba(238, 228, 218, 0.35);
+    width: calc(25% - 7.5px);
+    height: 100%;
     border-radius: 3px;
-    transition: transform 100ms ease-in-out;
+}
+
+.game-2048-new-container .grid_cell {
+    background-color: transparent;
+    position: relative;
+}
+
+.game-2048-new-container .tile {
+    position: absolute;
+    opacity: 1;
+    z-index: 150;
+    border-radius: 3px;
+    font-weight: 800;
+    color: black;
+    transition: transform 0.1s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 50px;
     transform: scale(0);
 }
 
-.game2048-tile.tile-new {
-    transform: scale(1);
-    animation: appear 200ms ease-in-out;
+.game-2048-new-container .tile.v2048,
+.game-2048-new-container .tile.v4096,
+.game-2048-new-container .tile.v8192 {
+    font-size: 40px;
+}
+.game-2048-new-container .tile.v1024 {
+    font-size: 40px;
+}
+.game-2048-new-container .tile.v512,
+.game-2048-new-container .tile.v256,
+.game-2048-new-container .tile.v128 {
+    font-size: 50px;
 }
 
-.game2048-tile.tile-merged {
-    animation: pulse 200ms ease-in-out;
-    z-index: 10;
-}
 
-@keyframes appear {
-    from {
-        opacity: 0;
-        transform: scale(0);
-    }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
-
-.game2048-overlay {
+.game-2048-new-container #status {
+    width: 100%;
+    height: 100%;
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(238, 228, 218, 0.73);
-    color: #776e65;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    animation: fade-in 0.5s ease;
-    z-index: 100;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    transition: 0.3s all;
+    pointer-events: none;
 }
 
-@keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.game-2048-new-container .won {
+    background-color: rgba(51, 117, 56, 0.5);
 }
 
-.game2048-overlay h2 {
-    font-size: 2rem;
-    font-weight: bold;
+.game-2048-new-container .lose {
+    background-color: rgba(125, 60, 52, 0.5);
 }
-
-/* Цвета и размеры шрифтов для плиток */
-[data-value="2"] { background-color: #eee4da; color: #776e65; }
-[data-value="4"] { background-color: #ede0c8; color: #776e65; }
-[data-value="8"] { background-color: #f2b179; color: #f9f6f2; }
-[data-value="16"] { background-color: #f59563; color: #f9f6f2; }
-[data-value="32"] { background-color: #f67c5f; color: #f9f6f2; }
-[data-value="64"] { background-color: #f65e3b; color: #f9f6f2; }
-[data-value="128"] { background-color: #edcf72; color: #f9f6f2; font-size: 1.3em; }
-[data-value="256"] { background-color: #edcc61; color: #f9f6f2; font-size: 1.3em; }
-[data-value="512"] { background-color: #edc850; color: #f9f6f2; font-size: 1.3em; }
-[data-value="1024"] { background-color: #edc53f; color: #f9f6f2; font-size: 1em; }
-[data-value="2048"] { background-color: #edc22e; color: #f9f6f2; font-size: 1em; }
-[data-value="4096"] { background-color: #3c3a32; color: #f9f6f2; font-size: 1em; }
-[data-value="8192"] { background-color: #3c3a32; color: #f9f6f2; font-size: 1em; }
