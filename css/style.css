@@ -1,108 +1,35 @@
 /* --- Стили для кнопок фильтрации --- */
-.filter-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    border: 1px solid transparent;
-    background-color: #f3f4f6;
-    color: #374151;
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-}
-
-.dark .filter-btn {
-    background-color: #374151;
-    color: #d1d5db;
-}
-
-.filter-btn:hover {
-    background-color: #e5e7eb;
-    border-color: #60a5fa;
-}
-
-.dark .filter-btn:hover {
-    background-color: #4b5563;
-}
-
-.filter-btn.active {
-    background-color: #3b82f6;
-    color: #ffffff;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.dark .filter-btn.active {
-    background-color: #60a5fa;
-    color: #1f2937;
-}
-
+.filter-btn{padding:.5rem 1rem;border-radius:9999px;border:1px solid transparent;background-color:#f3f4f6;color:#374151;font-weight:500;transition:all .2s ease-in-out;cursor:pointer}.dark .filter-btn{background-color:#374151;color:#d1d5db}.filter-btn:hover{background-color:#e5e7eb;border-color:#60a5fa}.dark .filter-btn:hover{background-color:#4b5563}.filter-btn.active{background-color:#3b82f6;color:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)}.dark .filter-btn.active{background-color:#60a5fa;color:#1f2937}
 /* --- Стили для похожих приложений --- */
-.similar-apps-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
-}
-
-.similar-apps-grid .app-item {
-    transition: all 0.2s ease-in-out !important;
-}
-
-.similar-apps-grid .app-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
-}
-
+.similar-apps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}.similar-apps-grid .app-item{transition:all .2s ease-in-out!important}.similar-apps-grid .app-item:hover{transform:translateY(-4px);box-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1)!important}
 /* --- Стили для кнопки закрепления --- */
-.pin-btn {
-    position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
-    z-index: 20;
-    padding: 0.35rem;
-    border-radius: 9999px;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
-}
-.pin-btn:hover { background-color: rgba(0, 0, 0, 0.1); transform: scale(1.1); }
-.dark .pin-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
-.pin-btn svg { width: 1rem; height: 1rem; display: block; }
-.pin-btn .pin-icon-path { fill: none; stroke: #9ca3af; stroke-miterlimit: 10; stroke-width: 2px; }
-.pin-btn .pin-icon-poly { stroke: none; fill: #9ca3af; }
-.dark .pin-btn .pin-icon-path, .dark .pin-btn .pin-icon-poly { stroke: #9ca3af; fill: #9ca3af; }
-.pin-btn.pinned .pin-icon-path { stroke: #3b82f6; }
-.pin-btn.pinned .pin-icon-poly { fill: #3b82f6; }
-.dark .pin-btn.pinned .pin-icon-path { stroke: #60a5fa; }
-.dark .pin-btn.pinned .pin-icon-poly { fill: #60a5fa; }
-
-
+.pin-btn{position:absolute;top:.25rem;right:.25rem;z-index:20;padding:.35rem;border-radius:9999px;background-color:transparent;border:none;cursor:pointer;transition:background-color .2s,transform .2s}.pin-btn:hover{background-color:rgba(0,0,0,.1);transform:scale(1.1)}.dark .pin-btn:hover{background-color:rgba(255,255,255,.1)}.pin-btn svg{width:1rem;height:1rem;display:block}.pin-btn .pin-icon-path{fill:none;stroke:#9ca3af;stroke-miterlimit:10;stroke-width:2px}.pin-btn .pin-icon-poly{stroke:none;fill:#9ca3af}.dark .pin-btn .pin-icon-path,.dark .pin-btn .pin-icon-poly{stroke:#9ca3af;fill:#9ca3af}.pin-btn.pinned .pin-icon-path{stroke:#3b82f6}.pin-btn.pinned .pin-icon-poly{fill:#3b82f6}.dark .pin-btn.pinned .pin-icon-path{stroke:#60a5fa}.dark .pin-btn.pinned .pin-icon-poly{fill:#60a5fa}
 /* --- Стили остальных приложений --- */
 .piano-container{display:flex;justify-content:center;padding:1rem;background:linear-gradient(to bottom,#4a5568,#2d3748);border-radius:.75rem;box-shadow:0 10px 25px -5px rgba(0,0,0,.4),0 8px 10px -6px rgba(0,0,0,.4);overflow-x:auto;-webkit-overflow-scrolling:touch}.piano-key{position:relative;box-sizing:border-box;cursor:pointer;-webkit-user-select:none;-ms-user-select:none;user-select:none;transition:all .07s ease;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px;font-weight:500;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}.piano-key.white{height:240px;flex-grow:1;flex-shrink:0;min-width:50px;max-width:70px;background:linear-gradient(to bottom,#fff,#e8e8e8);color:#4a5568;border:1px solid #b0b0b0;border-radius:0 0 8px 8px;box-shadow:0 5px 2px -2px rgba(0,0,0,.2);margin:0 2px}.piano-key.black{position:absolute;width:30px;height:140px;background:linear-gradient(to bottom,#374151,#1f2937);color:#d1d5db;left:-17px;top:-1px;z-index:10;border-radius:0 0 6px 6px;border:2px solid #111827;box-shadow:0 4px 1px -1px rgba(0,0,0,.5);font-size:.8em}.piano-key.white:active,.piano-key.white.active{background:linear-gradient(to bottom,#d1d5db,#e5e7eb);box-shadow:inset 0 2px 5px rgba(0,0,0,.2);transform:scale(.98,.99)}.piano-key.black:active,.piano-key.black.active{background:linear-gradient(to bottom,#4b5563,#374151);box-shadow:inset 0 3px 4px rgba(0,0,0,.4);transform:translateY(2px)}.piano-key span{opacity:.7}.ms-cell{display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;transition:background-color .1s ease;background-color:#cbd5e1;border-style:solid;border-width:2px;border-color:#e2e8f0 #94a3b8 #94a3b8 #e2e8f0;border-radius:2px}.dark .ms-cell{background-color:#334155;border-color:#475569 #1e293b #1e293b #475569}.ms-cell-highlight{background-color:#e2e8f0;border-style:inset;border-color:#94a3b8}.dark .ms-cell-highlight{background-color:#1e293b;border-color:#0f172a}.ms-cell.revealed{background-color:#f1f5f9;border:1px solid #e2e8f0;cursor:default}.dark .ms-cell.revealed{background-color:#273345;border:1px solid #1e293b}.ms-cell.mine{color:#1f2937}.dark .ms-cell.mine{color:#e2e8f0}.ms-cell.mine-hit{background-color:#ef4444!important;color:#1f2937}.ms-cell.wrong-flag{position:relative}.ms-cell.wrong-flag svg{visibility:hidden}.ms-cell.wrong-flag::after{content:'×';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.5em;line-height:1;color:#ef4444}.ms-c1{color:#2563eb}.ms-c2{color:#16a34a}.ms-c3{color:#dc2626}.ms-c4{color:#0f172a}.ms-c5{color:#9a3412}.ms-c6{color:#0e7490}.ms-c7{color:#581c87}.ms-c8{color:#7f1d1d}.dark .ms-c1{color:#60a5fa}.dark .ms-c2{color:#4ade80}.dark .ms-c3{color:#f87171}.dark .ms-c4{color:#e2e8f0}.dark .ms-c5{color:#fb923c}.dark .ms-c6{color:#67e8f9}.dark .ms-c7{color:#d8b4fe}.dark .ms-c8{color:#fca5a5}.ms-difficulty-btn{padding:.5rem 1rem;border-radius:.5rem;border:1px solid transparent;font-weight:600;color:#4b5563;background-color:#e5e7eb;transition:all .2s}.ms-difficulty-btn:hover{border-color:#3b82f6;background-color:#dbeafe;color:#1e40af}.dark .ms-difficulty-btn{color:#d1d5db;background-color:#374151}.dark .ms-difficulty-btn:hover{border-color:#60a5fa;background-color:#4b5563;color:#eff6ff}.snake-game-container{position:relative;display:flex;flex-direction:column;align-items:center;gap:1rem}#snake-canvas{background-color:#f1f5f9;border-radius:.5rem;border:2px solid #94a3b8}.dark #snake-canvas{background-color:#0f172a;border-color:#334155}.snake-game-overlay{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background-color:rgba(31,41,55,.7);color:#fff;text-align:center;border-radius:.5rem;cursor:pointer}.dark .snake-game-overlay{background-color:rgba(226,232,240,.7);color:#1e293b}.photo-editor-container{display:flex;flex-direction:column;gap:1.5rem}#photo-editor-canvas{max-width:100%;height:auto;border-radius:.75rem;border:2px dashed #9ca3af;background-color:#f3f4f6}.dark #photo-editor-canvas{border-color:#4b5563;background-color:#1f2937}#photo-editor-controls,#photo-editor-filters{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem}.photo-editor-btn{padding:.5rem 1rem;border-radius:.5rem;border:1px solid #d1d5db;background-color:#fff;color:#374151;font-weight:500;cursor:pointer;transition:all .2s}.dark .photo-editor-btn{border-color:#4b5563;background-color:#374151;color:#e5e7eb}.photo-editor-btn:hover:not(:disabled){background-color:#f3f4f6;border-color:#3b82f6}.dark .photo-editor-btn:hover:not(:disabled){background-color:#4b5563;border-color:#60a5fa}.photo-editor-btn:disabled{opacity:.5;cursor:not-allowed}#photo-editor-download-btn{background-color:#2563eb;color:#fff;border-color:transparent}.dark #photo-editor-download-btn{background-color:#3b82f6}#photo-editor-download-btn:hover:not(:disabled){background-color:#1d4ed8}.dark #photo-editor-download-btn:hover:not(:disabled){background-color:#2563eb}.formatter-container{display:grid;grid-template-columns:1fr;gap:1rem}.formatter-io{display:flex;flex-direction:column;gap:1rem;min-height:400px}.formatter-textarea{width:100%;flex-grow:1;padding:.75rem;border-radius:.5rem;border:1px solid #d1d5db;background-color:#f9fafb;font-family:monospace;font-size:.875rem;resize:vertical}.dark .formatter-textarea{background-color:#1f2937;border-color:#4b5563;color:#d1d5db}.formatter-textarea.error{border-color:#ef4444;box-shadow:0 0 0 2px #f87171}.discount-calculator-container{max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:1rem}.dc-input-group{display:flex;flex-direction:column;gap:.5rem}.dc-input{width:100%;padding:.75rem;border-radius:.5rem;border:1px solid #d1d5db;background-color:#f9fafb;font-size:1.25rem}.dark .dc-input{background-color:#1f2937;border-color:#4b5563;color:#d1d5db}#dc-results{background-color:#f3f4f6;padding:1rem;border-radius:.75rem;text-align:center}.dark #dc-results{background-color:#111827}#dc-final-price{font-size:2.25rem;font-weight:700;color:#16a34a}.dark #dc-final-price{color:#4ade80}#dc-saved-amount{color:#6b7280}.dark #dc-saved-amount{color:#9ca3af}
 
+
 /* 
  * =======================================================
- * СТИЛИ ДЛЯ НОВОЙ ВЕРСИИ ИГРЫ 2048
+ * СТИЛИ ДЛЯ НОВОЙ ВЕРСИИ ИГРЫ 2048 (РАБОЧАЯ ВЕРСИЯ)
  * =======================================================
  */
 
-.game-2048-new-container {
+.game-2048-new-design {
     width: 100%;
     max-width: 520px;
     margin: 0 auto;
     font-family: 'Nunito', sans-serif;
     position: relative;
-    height: 680px; 
+    height: 680px;
 }
-
-.game-2048-new-container .head {
+.game-2048-new-design .head {
     height: 120px;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-
-.game-2048-new-container .description {
+.game-2048-new-design .description {
     width: 90%;
     max-width: 400px;
     color: #333;
@@ -121,14 +48,12 @@
     font-size: 15px;
     transition: all 0.3s ease-in-out;
 }
-
-.game-2048-new-container .description.show {
+.game-2048-new-design .description.show {
     visibility: visible;
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
 }
-
-.game-2048-new-container .info {
+.game-2048-new-design .info {
     width: 35px;
     height: 35px;
     border-radius: 50%;
@@ -142,27 +67,22 @@
     margin-left: 15px;
     transition: 0.1s background-color;
 }
-
-.game-2048-new-container .info:hover {
+.game-2048-new-design .info:hover {
     background-color: #6593d8;
 }
-
-.game-2048-new-container .repeat {
+.game-2048-new-design .repeat {
     margin: 0 !important;
 }
-
-.game-2048-new-container .a {
+.game-2048-new-design .a {
     font-size: 70px;
     font-weight: 800;
     color: #555;
     margin-right: 25px;
 }
-.dark .game-2048-new-container .a {
+.dark .game-2048-new-design .a {
     color: #ccc;
 }
-
-
-.game-2048-new-container .score {
+.game-2048-new-design .score {
     width: 120px;
     height: 70px;
     padding-top: 5px;
@@ -173,13 +93,12 @@
     background-color: #bbada0;
     border-radius: 5px;
 }
-.game-2048-new-container #value {
+.game-2048-new-design #value {
     font-size: 28px;
     font-weight: 800;
     color: #fff;
 }
-
-.game-2048-new-container .field {
+.game-2048-new-design .field {
     position: absolute;
     width: 100%;
     height: 520px;
@@ -192,22 +111,19 @@
     flex-wrap: wrap;
     gap: 10px;
 }
-
-.game-2048-new-container .cell {
+.game-2048-new-design .cell {
     background-color: rgba(238, 228, 218, 0.35);
     width: calc(25% - 7.5px);
     height: calc(25% - 7.5px);
     border-radius: 3px;
 }
-
-#game-2048-tile-container {
+.game-2048-new-design #game-2048-tile-container {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 2;
     pointer-events: none;
 }
-
-.game-2048-new-container .tile {
+.game-2048-new-design .tile {
     position: absolute;
     display: flex;
     align-items: center;
@@ -217,31 +133,26 @@
     transition: transform 100ms ease-in-out;
     transform: scale(0);
 }
-
-.game-2048-new-container .tile.tile-new {
+.game-2048-new-design .tile.tile-new {
     animation: appear 200ms ease-in-out;
     transform: scale(1);
 }
-
-.game-2048-new-container .tile.tile-merged {
+.game-2048-new-design .tile.tile-merged {
     animation: pulse 200ms ease-in-out;
     z-index: 10;
 }
-
 @keyframes appear {
     from {
         opacity: 0;
         transform: scale(0);
     }
 }
-
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.2); }
     100% { transform: scale(1); }
 }
-
-.game-2048-new-container .status-overlay {
+.game-2048-new-design .status-overlay {
     width: 100%;
     height: 520px;
     position: absolute;
@@ -252,25 +163,22 @@
     pointer-events: none;
     border-radius: 6px;
 }
-
-.game-2048-new-container .status-overlay.won {
+.game-2048-new-design .status-overlay.won {
     background-color: rgba(51, 117, 56, 0.5);
 }
-
-.game-2048-new-container .status-overlay.lose {
+.game-2048-new-design .status-overlay.lose {
     background-color: rgba(125, 60, 52, 0.5);
 }
-
-.game-2048-new-container .tile.v2 { background-color: #fbfced; color: black; }
-.game-2048-new-container .tile.v4 { background-color: #ecefc6; color: black; }
-.game-2048-new-container .tile.v8 { background-color: #ffb296; color: black; }
+.game-2048-new-design .tile.v2 { background-color: #fbfced; color: black; }
+.game-2048-new-design .tile.v4 { background-color: #ecefc6; color: black; }
+.game-2048-new-design .tile.v8 { background-color: #ffb296; color: black; }
 .game-2048-new-container .tile.v16 { background-color: #ff7373; color: black; }
 .game-2048-new-container .tile.v32 { background-color: #f6546a; color: white; }
 .game-2048-new-container .tile.v64 { background-color: #8b0000; color: white; }
-.game-2048-new-container .tile.v128 { background-color: #794044; color: white; font-size: 1.3em; }
-.game-2048-new-container .tile.v256 { background-color: #31698a; color: white; font-size: 1.3em; }
-.game-2048-new-container .tile.v512 { background-color: #297A76; color: white; font-size: 1.3em; }
-.game-2048-new-container .tile.v1024 { background-color: #2D8A68; color: white; font-size: 1em; }
-.game-2048-new-container .tile.v2048 { background-color: #1C9F4E; color: white; font-size: 1em; }
-.game-2048-new-container .tile.v4096 { background-color: #468499; color: white; font-size: 1em; }
-.game-2048-new-container .tile.v8192 { background-color: #0E2F44; color: white; font-size: 1em; }
+.game-2048-new-container .tile.v128 { background-color: #794044; color: white; font-size: 45px; }
+.game-2048-new-container .tile.v256 { background-color: #31698a; color: white; font-size: 45px; }
+.game-2048-new-container .tile.v512 { background-color: #297A76; color: white; font-size: 45px; }
+.game-2048-new-container .tile.v1024 { background-color: #2D8A68; color: white; font-size: 35px; }
+.game-2048-new-container .tile.v2048 { background-color: #1C9F4E; color: white; font-size: 35px; }
+.game-2048-new-container .tile.v4096 { background-color: #468499; color: white; font-size: 35px; }
+.game-2048-new-container .tile.v8192 { background-color: #0E2F44; color: white; font-size: 35px; }
