@@ -51,7 +51,7 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* --- ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ КНОПКИ ЗАКРЕПЛЕНИЯ --- */
+/* --- Стили для кнопки закрепления --- */
 .pin-btn {
     position: absolute;
     top: 0.25rem;
@@ -113,10 +113,9 @@
 .dark .pin-btn.pinned .pin-icon-poly {
     fill: #60a5fa; /* blue-400 */
 }
-/* --- КОНЕЦ ИСПРАВЛЕННЫХ СТИЛЕЙ --- */
 
 
-/* --- УЛУЧШЕННЫЕ СТИЛИ ДЛЯ ПИАНИНО --- */
+/* --- Стили для пианино --- */
 .piano-container {
     display: flex;
     justify-content: center;
@@ -543,10 +542,9 @@
     color: #9ca3af; /* gray-400 */
 }
 
-
 /* 
  * =======================================================
- * Стили для игры "2048"
+ * Стили для игры "2048" (С АНИМАЦИЕЙ)
  * =======================================================
  */
 
@@ -598,6 +596,16 @@
     padding-bottom: 100%; /* Сохраняет квадратную форму */
     background-color: rgba(238, 228, 218, 0.35);
     border-radius: 3px;
+    grid-column: span 1;
+    grid-row: span 1;
+}
+
+#game2048-tile-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .game2048-tile {
@@ -607,11 +615,16 @@
     justify-content: center;
     font-weight: bold;
     border-radius: 3px;
-    transition: top 0.1s ease-in-out, left 0.1s ease-in-out;
+    font-size: 1.5em; /* Базовый размер шрифта */
+    transition: transform 100ms ease-in-out;
 }
 
-.game2048-tile.tile-new {
-    animation: appear 0.2s ease;
+.tile-new {
+    animation: appear 200ms ease-in-out;
+}
+
+.tile-merged {
+    animation: pulse 200ms ease-in-out;
 }
 
 @keyframes appear {
@@ -621,6 +634,12 @@
     to {
         transform: scale(1);
     }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
 }
 
 .game2048-overlay {
@@ -634,6 +653,7 @@
     align-items: center;
     text-align: center;
     animation: fade-in 0.5s ease;
+    z-index: 100;
 }
 
 @keyframes fade-in {
@@ -646,17 +666,17 @@
     font-weight: bold;
 }
 
-/* Цвета плиток */
+/* Цвета и размеры шрифтов для плиток */
 [data-value="2"] { background-color: #eee4da; color: #776e65; }
 [data-value="4"] { background-color: #ede0c8; color: #776e65; }
 [data-value="8"] { background-color: #f2b179; color: #f9f6f2; }
 [data-value="16"] { background-color: #f59563; color: #f9f6f2; }
 [data-value="32"] { background-color: #f67c5f; color: #f9f6f2; }
 [data-value="64"] { background-color: #f65e3b; color: #f9f6f2; }
-[data-value="128"] { background-color: #edcf72; color: #f9f6f2; font-size: 0.9em; }
-[data-value="256"] { background-color: #edcc61; color: #f9f6f2; font-size: 0.9em; }
-[data-value="512"] { background-color: #edc850; color: #f9f6f2; font-size: 0.9em; }
-[data-value="1024"] { background-color: #edc53f; color: #f9f6f2; font-size: 0.7em; }
-[data-value="2048"] { background-color: #edc22e; color: #f9f6f2; font-size: 0.7em; }
-[data-value="4096"] { background-color: #3c3a32; color: #f9f6f2; font-size: 0.7em; }
-[data-value="8192"] { background-color: #3c3a32; color: #f9f6f2; font-size: 0.7em; }
+[data-value="128"] { background-color: #edcf72; color: #f9f6f2; font-size: 1.3em; }
+[data-value="256"] { background-color: #edcc61; color: #f9f6f2; font-size: 1.3em; }
+[data-value="512"] { background-color: #edc850; color: #f9f6f2; font-size: 1.3em; }
+[data-value="1024"] { background-color: #edc53f; color: #f9f6f2; font-size: 1em; }
+[data-value="2048"] { background-color: #edc22e; color: #f9f6f2; font-size: 1em; }
+[data-value="4096"] { background-color: #3c3a32; color: #f9f6f2; font-size: 1em; }
+[data-value="8192"] { background-color: #3c3a32; color: #f9f6f2; font-size: 1em; }
