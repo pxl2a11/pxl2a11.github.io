@@ -1,4 +1,4 @@
-// 23js/apps/timer.js
+//30 js/apps/timer.js
 
 let timerInterval = null;
 let totalSeconds = 0;
@@ -69,7 +69,7 @@ function startTimer() {
 function pauseTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
-    startPauseButton.textContent = 'Продолжить';
+    startPauseButton.textContent = 'Далее';
     startPauseButton.classList.replace('bg-amber-500', 'bg-blue-500');
     startPauseButton.classList.replace('hover:bg-amber-600', 'hover:bg-blue-600');
     updateTitle();
