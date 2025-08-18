@@ -1,35 +1,25 @@
-let audioPlayer; // 37Module-level variable
+let audioPlayer; // 41Module-level variable
 let currentStation = null; // Module-level variable for the current station
-let metadataInterval = null; // Interval for fetching track metadata
 
-// *** НОВЫЙ ИСТОЧНИК ДАННЫХ: API от PCRADIO.RU ***
-const PC_RADIO_API_URL = 'https://pcradio.ru/api/stations';
+// *** ВОЗВРАЩАЕМСЯ К СТАБИЛЬНОМУ, ОФИЦИАЛЬНОМУ API ***
+const RADIO_API_URL = 'https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/RU?limit=100&order=clickcount&reverse=true';
 
 /**
- * Fetches radio stations from the PCRADIO API.
+ * Fetches radio stations from the Radio Browser API.
  * @returns {Promise<Array>} A promise that resolves to an array of station objects.
  */
 async function fetchStations() {
     const radioStationsContainer = document.getElementById('radio-stations');
     try {
         radioStationsContainer.innerHTML = `<p class="text-center col-span-full text-gray-500 dark:text-gray-400">Загрузка станций...</p>`;
-        
-        // Используем прокси для предотвращения возможных CORS проблем
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(PC_RADIO_API_URL)}`;
-        const response = await fetch(proxyUrl);
+        const response = await fetch(RADIO_API_URL);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
         const data = await response.json();
-        
-        // Адаптируем данные от PCRADIO к нашему формату
         return data.map(station => ({
-            id: station.station_id, // Сохраняем ID для запроса метаданных
-            name: station.station_name.trim(),
-            logoUrl: station.station_image,
+            name: station.name.trim(),
+            logoUrl: station.favicon || null,
             streams: {
-                hi: station.stream_hi,
-                med: station.stream_med,
-                low: station.stream_low
+                hi: station.url_resolved, med: station.url_resolved, low: station.url_resolved
             }
         }));
     } catch (error) {
@@ -38,58 +28,6 @@ async function fetchStations() {
         return [];
     }
 }
-
-/**
- * Fetches and displays the current track for a station using PCRADIO API.
- * @param {string} stationId The ID of the station.
- */
-async function fetchMetadata(stationId) {
-    const trackInfoDisplay = document.getElementById('track-info-display');
-    if (!stationId || !trackInfoDisplay) return;
-
-    const apiUrl = `https://pcradio.ru/api/station_track/${stationId}`;
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
-
-    try {
-        const response = await fetch(proxyUrl);
-        if (!response.ok) return;
-
-        const metadata = await response.json();
-
-        if (metadata && metadata.track) {
-            trackInfoDisplay.textContent = metadata.track;
-            trackInfoDisplay.classList.remove('hidden');
-        } else {
-            trackInfoDisplay.classList.add('hidden');
-        }
-    } catch (error) {
-        console.error(`Error fetching metadata for station ID ${stationId}:`, error);
-        trackInfoDisplay.classList.add('hidden');
-    }
-}
-
-/** Stops fetching metadata */
-function stopMetadataFetching() {
-    if (metadataInterval) {
-        clearInterval(metadataInterval);
-        metadataInterval = null;
-    }
-    const trackInfoDisplay = document.getElementById('track-info-display');
-    if (trackInfoDisplay) {
-        trackInfoDisplay.classList.add('hidden');
-        trackInfoDisplay.textContent = '';
-    }
-}
-
-/** Starts fetching metadata for the current station */
-function startMetadataFetching() {
-    stopMetadataFetching();
-    if (currentStation && currentStation.id) {
-        fetchMetadata(currentStation.id);
-        metadataInterval = setInterval(() => fetchMetadata(currentStation.id), 15000);
-    }
-}
-
 
 /**
  * Updates the browser's media session to show info in OS-level UI.
@@ -142,7 +80,6 @@ export function getHtml() {
                     </div>
                     <div class="flex flex-col items-start min-w-0">
                         <p id="station-name-display" class="text-xl font-bold drop-shadow-md text-gray-900 dark:text-gray-100 truncate">Выберите станцию</p>
-                        <p id="track-info-display" class="text-sm font-light text-gray-500 dark:text-gray-400 mt-1 hidden truncate"></p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4 w-full md:w-auto justify-center">
@@ -184,8 +121,9 @@ export async function init() {
             button.dataset.name = station.name; 
 
             if (station.logoUrl && station.logoUrl.trim() !== '') { 
+                const secureLogoUrl = station.logoUrl.startsWith('http://') ? station.logoUrl.replace('http://', 'https://') : station.logoUrl;
                 const img = document.createElement('img'); 
-                img.src = station.logoUrl; 
+                img.src = secureLogoUrl; 
                 img.alt = `${station.name} logo`; 
                 img.className = 'w-20 h-20 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-colors duration-200'; 
                 img.onerror = () => { 
@@ -249,9 +187,10 @@ export async function init() {
         currentStation = station; 
         stationNameDisplay.textContent = currentStation.name; 
         stationLogoContainer.innerHTML = ''; 
-        if (currentStation.logoUrl && currentStation.logoUrl.trim() !== '') {
+        if (currentStation.logoUrl && currentStation.logoUrl.trim() !== '') { 
+            const secureLogoUrl = currentStation.logoUrl.startsWith('http://') ? currentStation.logoUrl.replace('http://', 'https://') : currentStation.logoUrl;
             const img = document.createElement('img'); 
-            img.src = currentStation.logoUrl; 
+            img.src = secureLogoUrl; 
             img.alt = `${currentStation.name} logo`; 
             img.className = 'w-16 h-16 rounded-full object-cover'; 
             img.onerror = () => { 
@@ -269,7 +208,6 @@ export async function init() {
         } 
         fixedPlayerContainer.classList.remove('hidden'); 
         playCurrentStation();
-        startMetadataFetching();
     }
     
     playPauseBtn.addEventListener('click', () => { 
@@ -310,7 +248,6 @@ export function cleanup() {
         audioPlayer.src = "";
         audioPlayer = null;
     }
-    stopMetadataFetching();
     const fixedPlayerContainer = document.getElementById('fixed-player-container');
     if (fixedPlayerContainer) {
         fixedPlayerContainer.classList.add('hidden');
