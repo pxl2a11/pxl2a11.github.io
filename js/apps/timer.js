@@ -1,4 +1,4 @@
-// js/apps/timer.js
+// 20js/apps/timer.js
 
 let timerInterval = null;
 let totalSeconds = 0;
