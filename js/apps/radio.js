@@ -1,8 +1,15 @@
-let audioPlayer; // 32Module-level variable
+let audioPlayer; // Module-level variable
 let currentStation = null; // Module-level variable for the current station
+let metadataInterval = null; // Interval for fetching track metadata
 
 // URL для API. Можно легко изменить страну (RU, US, GB) или убрать фильтр
 const RADIO_API_URL = 'https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/RU?limit=100&order=clickcount&reverse=true';
+
+// *** НОВОЕ: База данных API для получения метаданных трека ***
+// Ключ - точное название станции из Radio Browser API
+const stationMetadataAPIs = {
+    'Новое Радио': 'https://newradio.ru/api/v2/tracks/current'
+};
 
 /**
  * Fetches radio stations from the Radio Browser API.
@@ -11,31 +18,69 @@ const RADIO_API_URL = 'https://de1.api.radio-browser.info/json/stations/bycountr
 async function fetchStations() {
     const radioStationsContainer = document.getElementById('radio-stations');
     try {
-        // Показываем индикатор загрузки
         radioStationsContainer.innerHTML = `<p class="text-center col-span-full text-gray-500 dark:text-gray-400">Загрузка станций...</p>`;
-        
         const response = await fetch(RADIO_API_URL);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-
-        // Преобразуем данные из API в наш внутренний формат
         return data.map(station => ({
             name: station.name.trim(),
-            logoUrl: station.favicon || null, // API может не всегда возвращать лого
+            logoUrl: station.favicon || null,
             streams: {
-                // API предоставляет один URL, используем его для всех качеств для совместимости
-                hi: station.url_resolved,
-                med: station.url_resolved,
-                low: station.url_resolved
+                hi: station.url_resolved, med: station.url_resolved, low: station.url_resolved
             }
         }));
-
     } catch (error) {
         console.error("Failed to fetch radio stations:", error);
         radioStationsContainer.innerHTML = `<p class="text-center col-span-full text-red-500">Не удалось загрузить список станций. Попробуйте позже.</p>`;
-        return []; // Возвращаем пустой массив в случае ошибки
+        return [];
+    }
+}
+
+/**
+ * Fetches and displays the current track for a station, if an API is available.
+ * @param {string} stationName The name of the station.
+ */
+async function fetchMetadata(stationName) {
+    const trackInfoDisplay = document.getElementById('track-info-display');
+    const apiUrl = stationMetadataAPIs[stationName];
+    if (!apiUrl || !trackInfoDisplay) return;
+
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) return;
+        const data = await response.json();
+
+        if (data && data.artist && data.song) {
+            trackInfoDisplay.textContent = `${data.artist} - ${data.song}`;
+            trackInfoDisplay.classList.remove('hidden');
+        } else {
+            trackInfoDisplay.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error(`Error fetching metadata for ${stationName}:`, error);
+        trackInfoDisplay.classList.add('hidden');
+    }
+}
+
+/** Stops fetching metadata */
+function stopMetadataFetching() {
+    if (metadataInterval) {
+        clearInterval(metadataInterval);
+        metadataInterval = null;
+    }
+    const trackInfoDisplay = document.getElementById('track-info-display');
+    if (trackInfoDisplay) {
+        trackInfoDisplay.classList.add('hidden');
+        trackInfoDisplay.textContent = '';
+    }
+}
+
+/** Starts fetching metadata for the current station */
+function startMetadataFetching() {
+    stopMetadataFetching(); // Stop any previous fetching
+    if (currentStation && stationMetadataAPIs[currentStation.name]) {
+        fetchMetadata(currentStation.name); // Fetch immediately
+        metadataInterval = setInterval(() => fetchMetadata(currentStation.name), 15000); // And then every 15 seconds
     }
 }
 
@@ -44,33 +89,22 @@ async function fetchStations() {
  * Updates the browser's media session to show info in OS-level UI.
  */
 function updateMediaSession() {
-    if (!('mediaSession' in navigator) || !currentStation) {
-        return;
-    }
-
+    if (!('mediaSession' in navigator) || !currentStation) return;
     navigator.mediaSession.metadata = new MediaMetadata({
         title: currentStation.name,
         artist: 'Интернет-радио',
         album: 'Mini Apps Radio',
-        artwork: [
-            { src: currentStation.logoUrl || '', type: 'image/jpeg' },
-        ]
+        artwork: [{ src: currentStation.logoUrl || '', type: 'image/jpeg' }]
     });
-
-    // Action handler for the "Play" button in the media notification
     navigator.mediaSession.setActionHandler('play', () => {
         if (audioPlayer && audioPlayer.paused) {
-            const playIcon = document.getElementById('play-icon');
-            const pauseIcon = document.getElementById('pause-icon');
             audioPlayer.play().then(() => {
-                playIcon.classList.add('hidden');
-                pauseIcon.classList.remove('hidden');
+                document.getElementById('play-icon').classList.add('hidden');
+                document.getElementById('pause-icon').classList.remove('hidden');
                 navigator.mediaSession.playbackState = 'playing';
             }).catch(e => console.error("Media Session resume failed", e));
         }
     });
-
-    // Action handler for the "Pause" button in the media notification
     navigator.mediaSession.setActionHandler('pause', () => {
         if (audioPlayer && !audioPlayer.paused) {
             audioPlayer.pause();
@@ -100,7 +134,11 @@ export function getHtml() {
                     <div id="station-logo-container" class="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white/20 dark:border-gray-800/20 shadow-lg flex-shrink-0">
                         <div id="logo-placeholder" class="w-full h-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Нет лого</div>
                     </div>
-                    <div class="flex flex-col items-start"><p class="text-sm font-light text-gray-500 dark:text-gray-400">Сейчас играет:</p><p id="station-name-display" class="text-xl font-bold mt-1 drop-shadow-md text-gray-900 dark:text-gray-100">Выберите станцию</p></div>
+                    <div class="flex flex-col items-start">
+                        <p id="station-name-display" class="text-xl font-bold drop-shadow-md text-gray-900 dark:text-gray-100">Выберите станцию</p>
+                        <!-- *** НОВОЕ ПОЛЕ ДЛЯ ТРЕКА *** -->
+                        <p id="track-info-display" class="text-sm font-light text-gray-500 dark:text-gray-400 mt-1 hidden truncate"></p>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4 w-full md:w-auto justify-center">
                     <button id="play-pause-btn" class="bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200 ease-in-out disabled:opacity-30 disabled:cursor-not-allowed"><svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
@@ -135,10 +173,9 @@ export async function init() {
     function createStationButtons(stations) { 
         radioStationsContainer.innerHTML = ''; 
         stationCards.length = 0; 
-        stations.forEach((station, index) => { 
+        stations.forEach((station) => { 
             const button = document.createElement('button'); 
             button.className = 'station-card flex flex-col items-center justify-between p-4 rounded-xl font-semibold text-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200'; 
-            button.dataset.index = index; 
             button.dataset.name = station.name; 
             if (station.logoUrl) { 
                 const img = document.createElement('img'); 
@@ -155,14 +192,14 @@ export async function init() {
             } else {
                 const fallbackIcon = document.createElement('div'); 
                 fallbackIcon.className = 'w-20 h-20 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; 
-                fallbackIcon.textContent = station.name.substring(0, 10); // Показываем часть имени если нет лого
+                fallbackIcon.textContent = station.name.substring(0, 10);
                 button.appendChild(fallbackIcon);
             }
             const stationNameContainer = document.createElement('div'); 
             stationNameContainer.className = "h-12 flex justify-center items-center w-full"; 
             const stationName = document.createElement('span'); 
             stationName.textContent = station.name; 
-            stationName.className = 'text-center text-sm'; // Уменьшим шрифт для длинных названий
+            stationName.className = 'text-center text-sm';
             stationNameContainer.appendChild(stationName); 
             button.appendChild(stationNameContainer); 
             button.addEventListener('click', () => selectStation(station, button)); 
@@ -225,7 +262,8 @@ export async function init() {
             stationLogoContainer.appendChild(fallbackIcon); 
         } 
         fixedPlayerContainer.classList.remove('hidden'); 
-        playCurrentStation(); 
+        playCurrentStation();
+        startMetadataFetching(); // *** ЗАПУСКАЕМ ПОЛУЧЕНИЕ МЕТАДАННЫХ ***
     }
     
     playPauseBtn.addEventListener('click', () => { 
@@ -251,9 +289,8 @@ export async function init() {
     searchInput.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); stationCards.forEach(card => { const stationName = card.dataset.name.toLowerCase(); card.style.display = stationName.includes(searchTerm) ? 'flex' : 'none'; }); });
     qualityBtns.forEach(btn => { btn.addEventListener('click', () => { const newQuality = btn.dataset.quality; if(newQuality === currentQuality) return; const wasPlaying = !audioPlayer.paused && audioPlayer.currentTime > 0; currentQuality = newQuality; localStorage.setItem('radioQuality', currentQuality); updateQualityUI(); if(currentStation && wasPlaying){ playCurrentStation(); } else if (currentStation) { audioPlayer.src = currentStation.streams[currentQuality]; } }); });
     
-    // --- ОСНОВНОЙ ПОТОК ЗАГРУЗКИ ---
     const radioStations = await fetchStations();
-    if (!radioStations || radioStations.length === 0) return; // Если станции не загрузились, выходим
+    if (!radioStations || radioStations.length === 0) return;
 
     createStationButtons(radioStations); 
     updateQualityUI();
@@ -267,11 +304,11 @@ export function cleanup() {
         audioPlayer.src = "";
         audioPlayer = null;
     }
+    stopMetadataFetching(); // *** ОСТАНАВЛИВАЕМ ПОЛУЧЕНИЕ МЕТАДАННЫХ ***
     const fixedPlayerContainer = document.getElementById('fixed-player-container');
     if (fixedPlayerContainer) {
         fixedPlayerContainer.classList.add('hidden');
     }
-    // Clear the media session when leaving the app
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = null;
         navigator.mediaSession.playbackState = 'none';
