@@ -263,7 +263,7 @@ export async function init() {
         } 
         fixedPlayerContainer.classList.remove('hidden'); 
         playCurrentStation();
-        startMetadataFetching(); // *** ЗАПУСКАЕМ ПОЛУЧЕНИЕ МЕТАДАННЫХ ***
+        startMetadataFetching();
     }
     
     playPauseBtn.addEventListener('click', () => { 
@@ -304,7 +304,7 @@ export function cleanup() {
         audioPlayer.src = "";
         audioPlayer = null;
     }
-    stopMetadataFetching(); // *** ОСТАНАВЛИВАЕМ ПОЛУЧЕНИЕ МЕТАДАННЫХ ***
+    stopMetadataFetching();
     const fixedPlayerContainer = document.getElementById('fixed-player-container');
     if (fixedPlayerContainer) {
         fixedPlayerContainer.classList.add('hidden');
