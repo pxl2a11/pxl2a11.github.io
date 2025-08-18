@@ -1,4 +1,4 @@
-//30 js/apps/timer.js
+// 33js/apps/timer.js
 
 let timerInterval = null;
 let totalSeconds = 0;
@@ -127,7 +127,8 @@ export function getHtml() {
             </div>
         </div>
         <style>
-            .timer-input { width: 70px; padding: 8px; font-size: 1.25rem; text-align: center; border-radius: 8px; border: 2px solid #F3F4F6; background-color: #F3F4F6; transition: all .2s; }
+            .timer-input { width: 70px; padding: 8px; font-size: 1.25rem; text-align: center; border-radius: 8px; border: 2px solid #F3F4F6; background-color: #F3F4F6; transition: all .2s; -moz-appearance: textfield; }
+            .timer-input::-webkit-outer-spin-button, .timer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             .dark .timer-input { border-color: #374151; background-color: #374151; }
             .timer-input:focus { border-color: #3B82F6; background-color: white; }
             .dark .timer-input:focus { background-color: #4B5563; }
