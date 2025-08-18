@@ -2,30 +2,34 @@ let audioPlayer; // Module-level variable
 let currentStation = null; // Module-level variable for the current station
 let metadataInterval = null; // Interval for fetching track metadata
 
-// URL для API. Можно легко изменить страну (RU, US, GB) или убрать фильтр
-const RADIO_API_URL = 'https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/RU?limit=100&order=clickcount&reverse=true';
-
-// База данных API для получения метаданных трека
-const stationMetadataAPIs = {
-    'Новое Радио': 'https://newradio.ru/api/v2/tracks/current'
-};
+// *** НОВЫЙ ИСТОЧНИК ДАННЫХ: API от PCRADIO.RU ***
+const PC_RADIO_API_URL = 'https://pcradio.ru/api/stations';
 
 /**
- * Fetches radio stations from the Radio Browser API.
+ * Fetches radio stations from the PCRADIO API.
  * @returns {Promise<Array>} A promise that resolves to an array of station objects.
  */
 async function fetchStations() {
     const radioStationsContainer = document.getElementById('radio-stations');
     try {
         radioStationsContainer.innerHTML = `<p class="text-center col-span-full text-gray-500 dark:text-gray-400">Загрузка станций...</p>`;
-        const response = await fetch(RADIO_API_URL);
+        
+        // Используем прокси для предотвращения возможных CORS проблем
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(PC_RADIO_API_URL)}`;
+        const response = await fetch(proxyUrl);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
         const data = await response.json();
+        
+        // Адаптируем данные от PCRADIO к нашему формату
         return data.map(station => ({
-            name: station.name.trim(),
-            logoUrl: station.favicon || null,
+            id: station.station_id, // Сохраняем ID для запроса метаданных
+            name: station.station_name.trim(),
+            logoUrl: station.station_image,
             streams: {
-                hi: station.url_resolved, med: station.url_resolved, low: station.url_resolved
+                hi: station.stream_hi,
+                med: station.stream_med,
+                low: station.stream_low
             }
         }));
     } catch (error) {
@@ -36,40 +40,30 @@ async function fetchStations() {
 }
 
 /**
- * Fetches and displays the current track for a station, using a CORS proxy.
- * @param {string} stationName The name of the station.
+ * Fetches and displays the current track for a station using PCRADIO API.
+ * @param {string} stationId The ID of the station.
  */
-async function fetchMetadata(stationName) {
+async function fetchMetadata(stationId) {
     const trackInfoDisplay = document.getElementById('track-info-display');
-    const apiUrl = stationMetadataAPIs[stationName];
-    if (!apiUrl || !trackInfoDisplay) return;
+    if (!stationId || !trackInfoDisplay) return;
 
-    // *** ИСПРАВЛЕНИЕ CORS: Замена прокси-сервера на более стабильный ***
+    const apiUrl = `https://pcradio.ru/api/station_track/${stationId}`;
     const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
-        if (!response.ok) {
-            trackInfoDisplay.classList.add('hidden');
-            return;
-        }
-        
-        // *** ИСПРАВЛЕНИЕ ОШИБКИ ПАРСИНГА: Добавлена обработка не-JSON ответов ***
-        try {
-            const metadata = await response.json();
-            if (metadata && metadata.artist && metadata.song) {
-                trackInfoDisplay.textContent = `${metadata.artist} - ${metadata.song}`;
-                trackInfoDisplay.classList.remove('hidden');
-            } else {
-                trackInfoDisplay.classList.add('hidden');
-            }
-        } catch (e) {
-            console.warn(`Failed to parse JSON from metadata API for ${stationName}`, e);
-            trackInfoDisplay.classList.add('hidden');
-        }
+        if (!response.ok) return;
 
+        const metadata = await response.json();
+
+        if (metadata && metadata.track) {
+            trackInfoDisplay.textContent = metadata.track;
+            trackInfoDisplay.classList.remove('hidden');
+        } else {
+            trackInfoDisplay.classList.add('hidden');
+        }
     } catch (error) {
-        console.error(`Error fetching metadata for ${stationName}:`, error);
+        console.error(`Error fetching metadata for station ID ${stationId}:`, error);
         trackInfoDisplay.classList.add('hidden');
     }
 }
@@ -89,10 +83,10 @@ function stopMetadataFetching() {
 
 /** Starts fetching metadata for the current station */
 function startMetadataFetching() {
-    stopMetadataFetching(); // Stop any previous fetching
-    if (currentStation && stationMetadataAPIs[currentStation.name]) {
-        fetchMetadata(currentStation.name); // Fetch immediately
-        metadataInterval = setInterval(() => fetchMetadata(currentStation.name), 15000); // And then every 15 seconds
+    stopMetadataFetching();
+    if (currentStation && currentStation.id) {
+        fetchMetadata(currentStation.id);
+        metadataInterval = setInterval(() => fetchMetadata(currentStation.id), 15000);
     }
 }
 
@@ -190,9 +184,8 @@ export async function init() {
             button.dataset.name = station.name; 
 
             if (station.logoUrl && station.logoUrl.trim() !== '') { 
-                const secureLogoUrl = station.logoUrl.startsWith('http://') ? station.logoUrl.replace('http://', 'https://') : station.logoUrl;
                 const img = document.createElement('img'); 
-                img.src = secureLogoUrl; 
+                img.src = station.logoUrl; 
                 img.alt = `${station.name} logo`; 
                 img.className = 'w-20 h-20 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-colors duration-200'; 
                 img.onerror = () => { 
@@ -256,10 +249,9 @@ export async function init() {
         currentStation = station; 
         stationNameDisplay.textContent = currentStation.name; 
         stationLogoContainer.innerHTML = ''; 
-        if (currentStation.logoUrl && currentStation.logoUrl.trim() !== '') { 
-            const secureLogoUrl = currentStation.logoUrl.startsWith('http://') ? currentStation.logoUrl.replace('http://', 'https://') : currentStation.logoUrl;
+        if (currentStation.logoUrl && currentStation.logoUrl.trim() !== '') {
             const img = document.createElement('img'); 
-            img.src = secureLogoUrl; 
+            img.src = currentStation.logoUrl; 
             img.alt = `${currentStation.name} logo`; 
             img.className = 'w-16 h-16 rounded-full object-cover'; 
             img.onerror = () => { 
@@ -303,25 +295,7 @@ export async function init() {
     searchInput.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); stationCards.forEach(card => { const stationName = card.dataset.name.toLowerCase(); card.style.display = stationName.includes(searchTerm) ? 'flex' : 'none'; }); });
     qualityBtns.forEach(btn => { btn.addEventListener('click', () => { const newQuality = btn.dataset.quality; if(newQuality === currentQuality) return; const wasPlaying = !audioPlayer.paused && audioPlayer.currentTime > 0; currentQuality = newQuality; localStorage.setItem('radioQuality', currentQuality); updateQualityUI(); if(currentStation && wasPlaying){ playCurrentStation(); } else if (currentStation) { audioPlayer.src = currentStation.streams[currentQuality]; } }); });
     
-    let radioStations = await fetchStations();
-    if (!radioStations) radioStations = [];
-
-    const novoeRadioStation = {
-        name: 'Новое Радио',
-        logoUrl: 'https://pcradio.ru/images/stations/62ea3eb91b608.jpg',
-        streams: {
-            // *** ИСПРАВЛЕНИЕ: Обновлен URL потока на рабочий ***
-            hi: 'https://live.newradio.ru/128',
-            med: 'https://live.newradio.ru/128',
-            low: 'https://live.newradio.ru/64'
-        }
-    };
-
-    const isNovoeRadioInList = radioStations.some(station => station.name === 'Новое Радио');
-    if (!isNovoeRadioInList) {
-        radioStations.unshift(novoeRadioStation);
-    }
-    
+    const radioStations = await fetchStations();
     if (radioStations.length === 0) return;
 
     createStationButtons(radioStations); 
