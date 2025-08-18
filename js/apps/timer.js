@@ -1,4 +1,4 @@
-//39 js/apps/timer.js
+// 43js/apps/timer.js
 
 let timerInterval = null;
 let totalSeconds = 0;
@@ -16,6 +16,8 @@ function addListener(element, event, handler) {
 }
 
 function validateInputs() {
+    // Эта функция вызывается только при ручном вводе
+    if (timerInterval) return; // Не меняем состояние кнопки, если таймер запущен
     const h = parseInt(hoursInput.value) || 0;
     const m = parseInt(minutesInput.value) || 0;
     const s = parseInt(secondsInput.value) || 0;
@@ -53,6 +55,7 @@ function startTimer() {
     
     if (totalSeconds <= 0) return;
 
+    startPauseButton.disabled = false; // *** ИСПРАВЛЕНИЕ: Всегда активируем кнопку при старте
     startPauseButton.textContent = 'Пауза';
     startPauseButton.classList.replace('bg-blue-500', 'bg-amber-500');
     startPauseButton.classList.replace('hover:bg-blue-600', 'hover:bg-amber-600');
@@ -70,7 +73,7 @@ function startTimer() {
             startPauseButton.classList.replace('hover:bg-amber-600', 'hover:bg-blue-600');
             notificationSound.play();
             timerDisplay.classList.add('animate-pulse', 'text-red-500');
-            validateInputs(); // Проверяем, нужно ли деактивировать кнопку
+            validateInputs(); // Проверяем, нужно ли деактивировать кнопку после окончания
             updateTitle();
         }
     }, 1000);
