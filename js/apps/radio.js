@@ -1,4 +1,4 @@
-let audioPlayer; //23 Module-level variable
+let audioPlayer; // Module-level variable
 let currentStation = null; // Module-level variable for the current station
 let metadataInterval = null; // Interval for fetching track metadata
 
@@ -49,16 +49,25 @@ async function fetchMetadata(stationName) {
 
     try {
         const response = await fetch(proxyUrl);
-        if (!response.ok) return;
-        // Прокси `corsproxy.io` не оборачивает ответ в `contents`, отдаем как есть
-        const metadata = await response.json(); 
-
-        if (metadata && metadata.artist && metadata.song) {
-            trackInfoDisplay.textContent = `${metadata.artist} - ${metadata.song}`;
-            trackInfoDisplay.classList.remove('hidden');
-        } else {
+        if (!response.ok) {
+            trackInfoDisplay.classList.add('hidden');
+            return;
+        }
+        
+        // *** ИСПРАВЛЕНИЕ ОШИБКИ ПАРСИНГА: Добавлена обработка не-JSON ответов ***
+        try {
+            const metadata = await response.json();
+            if (metadata && metadata.artist && metadata.song) {
+                trackInfoDisplay.textContent = `${metadata.artist} - ${metadata.song}`;
+                trackInfoDisplay.classList.remove('hidden');
+            } else {
+                trackInfoDisplay.classList.add('hidden');
+            }
+        } catch (e) {
+            console.warn(`Failed to parse JSON from metadata API for ${stationName}`, e);
             trackInfoDisplay.classList.add('hidden');
         }
+
     } catch (error) {
         console.error(`Error fetching metadata for ${stationName}:`, error);
         trackInfoDisplay.classList.add('hidden');
@@ -180,7 +189,6 @@ export async function init() {
             button.className = 'station-card flex flex-col items-center justify-between p-4 rounded-xl font-semibold text-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200'; 
             button.dataset.name = station.name; 
 
-            // *** ИСПРАВЛЕНИЕ ОШИБКИ /null: Добавлена проверка, что logoUrl не пустой ***
             if (station.logoUrl && station.logoUrl.trim() !== '') { 
                 const secureLogoUrl = station.logoUrl.startsWith('http://') ? station.logoUrl.replace('http://', 'https://') : station.logoUrl;
                 const img = document.createElement('img'); 
