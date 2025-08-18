@@ -113,8 +113,8 @@ export function getHtml() {
             </div>
 
             <div class="flex space-x-4">
-                <button id="timer-start-pause" class="w-32 py-3 px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-lg transition">Старт</button>
-                <button id="timer-reset" class="w-32 py-3 px-6 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg text-lg transition">Сброс</button>
+                <button id="timer-start-pause" class="w-36 py-3 px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-lg transition">Старт</button>
+                <button id="timer-reset" class="w-36 py-3 px-6 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg text-lg transition">Сброс</button>
             </div>
         </div>
         <style>
