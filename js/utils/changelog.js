@@ -45,6 +45,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-08-18T09:00:00Z'), appName: 'Радио', description: 'добавлена интеграция с Media Session API. Теперь управлять воспроизведением можно из центра уведомлений вашего устройства.' },
     { date: getRussianDate('2025-08-12T08:00:00Z'), appName: 'Генератор QR-кодов', description: 'добавлена кнопка для печати сгенерированного QR-кода.' },
     { date: getRussianDate('2025-08-12T11:00:00Z'), appName: 'Змейка', description: 'добавлена новая классическая игра.' },
     { date: getRussianDate('2025-08-12T10:00:00Z'), appName: 'Калькулятор валют', description: 'добавлено новое приложение для конвертации валют с использованием реальных курсов.' },
