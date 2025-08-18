@@ -1,4 +1,4 @@
-let audioPlayer; // Module-level variable
+let audioPlayer; // 37Module-level variable
 let currentStation = null; // Module-level variable for the current station
 let metadataInterval = null; // Interval for fetching track metadata
 
