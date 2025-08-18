@@ -1,4 +1,4 @@
-let audioPlayer; // 41Module-level variable
+let audioPlayer; // Module-level variable
 let currentStation = null; // Module-level variable for the current station
 
 // *** ВОЗВРАЩАЕМСЯ К СТАБИЛЬНОМУ, ОФИЦИАЛЬНОМУ API ***
