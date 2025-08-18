@@ -4,7 +4,7 @@ let metadataInterval = null; // Interval for fetching track metadata
 
 // База данных API для получения метаданных трека
 const stationMetadataAPIs = {
-    'Русское радио': 'https://dancemelody.ru/p/json.php?val=rus'
+    'Русское радио': 'https://dancemelody.ru/player/russkoe.php'
 };
 
 /**
