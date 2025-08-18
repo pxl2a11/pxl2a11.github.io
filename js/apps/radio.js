@@ -1,5 +1,67 @@
-let audioPlayer; // 04Module-level variable
+let audioPlayer; // 10Module-level variable
 let currentStation = null; // Module-level variable for the current station
+let metadataInterval = null; // Interval for fetching track metadata
+
+// База данных API для получения метаданных трека
+const stationMetadataAPIs = {
+    'Русское радио': 'https://dancemelody.ru/p/json.php?val=rus'
+};
+
+/**
+ * Fetches and displays the current track for a station.
+ * @param {string} stationName The name of the station.
+ */
+async function fetchMetadata(stationName) {
+    const trackInfoDisplay = document.getElementById('track-info-display');
+    const apiUrl = stationMetadataAPIs[stationName];
+    if (!apiUrl || !trackInfoDisplay) return;
+
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
+
+    try {
+        const response = await fetch(proxyUrl);
+        if (!response.ok) return;
+
+        const metadata = await response.json();
+
+        if (metadata && metadata.artist && metadata.song) {
+            const trackString = `${metadata.artist} - ${metadata.song}`;
+            // Обновляем только если информация изменилась, чтобы избежать мигания
+            if (trackInfoDisplay.textContent !== trackString) {
+                trackInfoDisplay.textContent = trackString;
+            }
+            trackInfoDisplay.classList.remove('hidden');
+        } else {
+            trackInfoDisplay.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error(`Error fetching metadata for ${stationName}:`, error);
+        trackInfoDisplay.classList.add('hidden');
+    }
+}
+
+/** Stops fetching metadata */
+function stopMetadataFetching() {
+    if (metadataInterval) {
+        clearInterval(metadataInterval);
+        metadataInterval = null;
+    }
+    const trackInfoDisplay = document.getElementById('track-info-display');
+    if (trackInfoDisplay) {
+        trackInfoDisplay.classList.add('hidden');
+        trackInfoDisplay.textContent = '';
+    }
+}
+
+/** Starts fetching metadata for the current station */
+function startMetadataFetching() {
+    stopMetadataFetching();
+    if (currentStation && stationMetadataAPIs[currentStation.name]) {
+        fetchMetadata(currentStation.name);
+        metadataInterval = setInterval(() => fetchMetadata(currentStation.name), 15000);
+    }
+}
+
 
 /**
  * Updates the browser's media session to show info in OS-level UI.
@@ -52,6 +114,7 @@ export function getHtml() {
                     </div>
                     <div class="flex flex-col items-start min-w-0">
                         <p id="station-name-display" class="text-xl font-bold drop-shadow-md text-gray-900 dark:text-gray-100 truncate">Выберите станцию</p>
+                        <p id="track-info-display" class="text-sm font-light text-gray-500 dark:text-gray-400 mt-1 hidden truncate"></p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4 w-full md:w-auto justify-center">
@@ -73,7 +136,6 @@ export function getHtml() {
 }
 
 export function init() {
-    // *** СПИСОК СТАНЦИЙ ЗАМЕНЕН НА ОДНУ СТАНЦИЮ ***
     const radioStations = [
         {
             name: 'Русское радио',
@@ -191,6 +253,7 @@ export function init() {
         } 
         fixedPlayerContainer.classList.remove('hidden'); 
         playCurrentStation();
+        startMetadataFetching();
     }
     
     playPauseBtn.addEventListener('click', () => { 
@@ -228,6 +291,7 @@ export function cleanup() {
         audioPlayer.src = "";
         audioPlayer = null;
     }
+    stopMetadataFetching();
     const fixedPlayerContainer = document.getElementById('fixed-player-container');
     if (fixedPlayerContainer) {
         fixedPlayerContainer.classList.add('hidden');
