@@ -1,4 +1,4 @@
-// 12js/apps/timer.js
+// js/apps/timer.js
 
 let timerInterval = null;
 let totalSeconds = 0;
@@ -8,7 +8,6 @@ let eventListeners = [];
 let hoursInput, minutesInput, secondsInput;
 let timerDisplay;
 let startPauseButton, resetButton, presetsContainer;
-let playIcon, pauseIcon;
 let notificationSound;
 
 function addListener(element, event, handler) {
@@ -45,8 +44,7 @@ function startTimer() {
     
     if (totalSeconds <= 0) return;
 
-    playIcon.classList.add('hidden');
-    pauseIcon.classList.remove('hidden');
+    startPauseButton.textContent = 'Пауза';
     startPauseButton.classList.replace('bg-blue-500', 'bg-amber-500');
     startPauseButton.classList.replace('hover:bg-blue-600', 'hover:bg-amber-600');
     resetButton.disabled = false;
@@ -58,13 +56,12 @@ function startTimer() {
         } else {
             clearInterval(timerInterval);
             timerInterval = null;
-            playIcon.classList.remove('hidden');
-            pauseIcon.classList.add('hidden');
+            startPauseButton.textContent = 'Старт';
             startPauseButton.classList.replace('bg-amber-500', 'bg-blue-500');
             startPauseButton.classList.replace('hover:bg-amber-600', 'hover:bg-blue-600');
             notificationSound.play();
             timerDisplay.classList.add('animate-pulse', 'text-red-500');
-            updateTitle(); // Сбросить заголовок
+            updateTitle();
         }
     }, 1000);
 }
@@ -72,8 +69,7 @@ function startTimer() {
 function pauseTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
-    playIcon.classList.remove('hidden');
-    pauseIcon.classList.add('hidden');
+    startPauseButton.textContent = 'Продолжить';
     startPauseButton.classList.replace('bg-amber-500', 'bg-blue-500');
     startPauseButton.classList.replace('hover:bg-amber-600', 'hover:bg-blue-600');
     updateTitle();
@@ -95,8 +91,7 @@ function handleReset() {
     hoursInput.value = '';
     minutesInput.value = '';
     secondsInput.value = '';
-    playIcon.classList.remove('hidden');
-    pauseIcon.classList.add('hidden');
+    startPauseButton.textContent = 'Старт';
     startPauseButton.classList.replace('bg-amber-500', 'bg-blue-500');
     startPauseButton.classList.replace('hover:bg-amber-600', 'hover:bg-blue-600');
     timerDisplay.classList.remove('animate-pulse', 'text-red-500');
@@ -127,11 +122,8 @@ export function getHtml() {
             </div>
 
             <div class="flex items-center justify-center space-x-6 w-full">
+                <button id="timer-start-pause" class="sw-btn-primary bg-blue-500 hover:bg-blue-600">Старт</button>
                 <button id="timer-reset" class="sw-btn-secondary" disabled>Сброс</button>
-                <button id="timer-start-pause" class="sw-btn-primary bg-blue-500 hover:bg-blue-600">
-                    <svg id="timer-play-icon" class="w-10 h-10 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M4.018 15.132A8.996 8.996 0 012 10c0-4.962 4.038-9 9-9s9 4.038 9 9-4.038 9-9 9a8.996 8.996 0 01-5.132-1.518L3 18l1.018-2.868zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm1 3a1 1 0 100 2h2a1 1 0 100-2H8z" clip-rule="evenodd" /></svg>
-                    <svg id="timer-pause-icon" class="w-10 h-10 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm1 3a1 1 0 100 2h2a1 1 0 100-2H8z" clip-rule="evenodd" /></svg>
-                </button>
             </div>
         </div>
         <style>
@@ -163,15 +155,13 @@ export function init() {
     resetButton = document.getElementById('timer-reset');
     notificationSound = document.getElementById('timer-notification');
     presetsContainer = document.getElementById('timer-presets');
-    playIcon = document.getElementById('timer-play-icon');
-    pauseIcon = document.getElementById('timer-pause-icon');
     
     addListener(startPauseButton, 'click', handleStartPause);
     addListener(resetButton, 'click', handleReset);
     addListener(presetsContainer, 'click', (e) => {
         const target = e.target.closest('.preset-btn');
         if (target && target.dataset.time) {
-            handleReset(); // Сначала сбрасываем всё
+            handleReset();
             totalSeconds = parseInt(target.dataset.time, 10);
             updateDisplay();
             startTimer();
@@ -182,7 +172,7 @@ export function init() {
 export function cleanup() {
     clearInterval(timerInterval);
     timerInterval = null;
-    document.title = 'Mini Apps'; // Восстанавливаем исходный заголовок
+    document.title = 'Mini Apps';
     eventListeners.forEach(({ element, event, handler }) => {
         element.removeEventListener(event, handler);
     });
