@@ -5,8 +5,8 @@ export function getHtml() {
         <div class="p-4 flex flex-col items-center space-y-8 w-full max-w-md mx-auto">
             <p id="stopwatch-display" class="text-7xl font-mono font-light tracking-tighter">00:00:00<span class="text-4xl text-gray-500">.000</span></p>
             <div class="flex items-center justify-center space-x-6 w-full">
-                <button id="sw-lap-reset-btn" class="sw-btn-secondary" disabled>Сброс</button>
                 <button id="sw-start-stop-btn" class="sw-btn-primary bg-green-500 hover:bg-green-600">Старт</button>
+                <button id="sw-lap-reset-btn" class="sw-btn-secondary" disabled>Сброс</button>
             </div>
             <div id="laps-container" class="w-full mt-4">
                 <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">
@@ -59,7 +59,7 @@ export function init() {
             startTime = new Date().getTime();
             stopwatchInterval = setInterval(updateDisplay, 10);
             running = true;
-            startStopBtn.textContent = 'Стоп';
+            startStopBtn.textContent = 'Пауза';
             startStopBtn.classList.replace('bg-green-500', 'bg-red-500');
             startStopBtn.classList.replace('hover:bg-green-600', 'hover:bg-red-600');
             lapResetBtn.textContent = 'Круг';
@@ -72,7 +72,7 @@ export function init() {
             clearInterval(stopwatchInterval);
             savedTime = difference;
             running = false;
-            startStopBtn.textContent = 'Старт';
+            startStopBtn.textContent = 'Продолжить';
             startStopBtn.classList.replace('bg-red-500', 'bg-green-500');
             startStopBtn.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
             lapResetBtn.textContent = 'Сброс';
