@@ -1,4 +1,4 @@
-let audioPlayer; // 58Module-level variable
+let audioPlayer; // 03Module-level variable
 let currentStation = null; // Module-level variable for the current station
 let metadataInterval = null; // Interval for fetching track metadata
 
@@ -37,7 +37,7 @@ async function fetchStations() {
 }
 
 /**
- * Fetches and displays the current track for a station, if an API is available.
+ * Fetches and displays the current track for a station, using a CORS proxy.
  * @param {string} stationName The name of the station.
  */
 async function fetchMetadata(stationName) {
@@ -45,13 +45,17 @@ async function fetchMetadata(stationName) {
     const apiUrl = stationMetadataAPIs[stationName];
     if (!apiUrl || !trackInfoDisplay) return;
 
+    // *** ИСПРАВЛЕНИЕ CORS: Используем прокси-сервер allorigins.win ***
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch(proxyUrl);
         if (!response.ok) return;
         const data = await response.json();
+        const metadata = JSON.parse(data.contents); // Получаем оригинальный ответ от API радио
 
-        if (data && data.artist && data.song) {
-            trackInfoDisplay.textContent = `${data.artist} - ${data.song}`;
+        if (metadata && metadata.artist && metadata.song) {
+            trackInfoDisplay.textContent = `${metadata.artist} - ${metadata.song}`;
             trackInfoDisplay.classList.remove('hidden');
         } else {
             trackInfoDisplay.classList.add('hidden');
@@ -130,12 +134,12 @@ export function getHtml() {
         </div>
         <div id="fixed-player-container" class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-xl hidden">
             <div class="flex flex-col md:flex-row items-center justify-between max-w-4xl mx-auto w-full">
-                <div id="current-station-info" class="flex items-center mb-4 md:mb-0 min-h-[4rem] text-center md:text-left flex-grow">
+                <div id="current-station-info" class="flex items-center mb-4 md:mb-0 min-h-[4rem] text-center md:text-left flex-grow min-w-0">
                     <div id="station-logo-container" class="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white/20 dark:border-gray-800/20 shadow-lg flex-shrink-0">
                         <div id="logo-placeholder" class="w-full h-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Нет лого</div>
                     </div>
-                    <div class="flex flex-col items-start">
-                        <p id="station-name-display" class="text-xl font-bold drop-shadow-md text-gray-900 dark:text-gray-100">Выберите станцию</p>
+                    <div class="flex flex-col items-start min-w-0">
+                        <p id="station-name-display" class="text-xl font-bold drop-shadow-md text-gray-900 dark:text-gray-100 truncate">Выберите станцию</p>
                         <p id="track-info-display" class="text-sm font-light text-gray-500 dark:text-gray-400 mt-1 hidden truncate"></p>
                     </div>
                 </div>
@@ -177,8 +181,10 @@ export async function init() {
             button.className = 'station-card flex flex-col items-center justify-between p-4 rounded-xl font-semibold text-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200'; 
             button.dataset.name = station.name; 
             if (station.logoUrl) { 
+                // *** ИСПРАВЛЕНИЕ MIXED CONTENT: Автоматически заменяем http на https ***
+                const secureLogoUrl = station.logoUrl.startsWith('http://') ? station.logoUrl.replace('http://', 'https://') : station.logoUrl;
                 const img = document.createElement('img'); 
-                img.src = station.logoUrl; 
+                img.src = secureLogoUrl; 
                 img.alt = `${station.name} logo`; 
                 img.className = 'w-20 h-20 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-colors duration-200'; 
                 img.onerror = () => { 
@@ -243,8 +249,9 @@ export async function init() {
         stationNameDisplay.textContent = currentStation.name; 
         stationLogoContainer.innerHTML = ''; 
         if (currentStation.logoUrl) { 
+            const secureLogoUrl = currentStation.logoUrl.startsWith('http://') ? currentStation.logoUrl.replace('http://', 'https://') : currentStation.logoUrl;
             const img = document.createElement('img'); 
-            img.src = currentStation.logoUrl; 
+            img.src = secureLogoUrl; 
             img.alt = `${currentStation.name} logo`; 
             img.className = 'w-16 h-16 rounded-full object-cover'; 
             img.onerror = () => { 
@@ -288,22 +295,20 @@ export async function init() {
     searchInput.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); stationCards.forEach(card => { const stationName = card.dataset.name.toLowerCase(); card.style.display = stationName.includes(searchTerm) ? 'flex' : 'none'; }); });
     qualityBtns.forEach(btn => { btn.addEventListener('click', () => { const newQuality = btn.dataset.quality; if(newQuality === currentQuality) return; const wasPlaying = !audioPlayer.paused && audioPlayer.currentTime > 0; currentQuality = newQuality; localStorage.setItem('radioQuality', currentQuality); updateQualityUI(); if(currentStation && wasPlaying){ playCurrentStation(); } else if (currentStation) { audioPlayer.src = currentStation.streams[currentQuality]; } }); });
     
-    // --- ОСНОВНОЙ ПОТОК ЗАГРУЗКИ ---
     let radioStations = await fetchStations();
     if (!radioStations) radioStations = [];
 
-    // *** ИСПРАВЛЕНИЕ: Гарантируем наличие "Нового Радио" в списке ***
     const novoeRadioStation = {
         name: 'Новое Радио',
         logoUrl: 'https://pcradio.ru/images/stations/62ea3eb91b608.jpg',
         streams: {
-            hi: 'https://icecast.newradio.ru/newradio_128',
-            med: 'https://icecast.newradio.ru/newradio_128',
-            low: 'https://icecast.newradio.ru/newradio_64'
+            hi: 'https://icecast-newradio.cdnvideo.ru/newradio-128',
+            med: 'https://icecast-newradio.cdnvideo.ru/newradio-128',
+            low: 'https://icecast-newradio.cdnvideo.ru/newradio-64'
         }
     };
 
-    const isNovoeRadioInList = radioStations.some(station => station.name.toLowerCase() === 'новое радио');
+    const isNovoeRadioInList = radioStations.some(station => station.name === 'Новое Радио');
     if (!isNovoeRadioInList) {
         radioStations.unshift(novoeRadioStation);
     }
