@@ -1,33 +1,5 @@
-let audioPlayer; // Module-level variable
+let audioPlayer; // 04Module-level variable
 let currentStation = null; // Module-level variable for the current station
-
-// *** ВОЗВРАЩАЕМСЯ К СТАБИЛЬНОМУ, ОФИЦИАЛЬНОМУ API ***
-const RADIO_API_URL = 'https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/RU?limit=100&order=clickcount&reverse=true';
-
-/**
- * Fetches radio stations from the Radio Browser API.
- * @returns {Promise<Array>} A promise that resolves to an array of station objects.
- */
-async function fetchStations() {
-    const radioStationsContainer = document.getElementById('radio-stations');
-    try {
-        radioStationsContainer.innerHTML = `<p class="text-center col-span-full text-gray-500 dark:text-gray-400">Загрузка станций...</p>`;
-        const response = await fetch(RADIO_API_URL);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        return data.map(station => ({
-            name: station.name.trim(),
-            logoUrl: station.favicon || null,
-            streams: {
-                hi: station.url_resolved, med: station.url_resolved, low: station.url_resolved
-            }
-        }));
-    } catch (error) {
-        console.error("Failed to fetch radio stations:", error);
-        radioStationsContainer.innerHTML = `<p class="text-center col-span-full text-red-500">Не удалось загрузить список станций. Попробуйте позже.</p>`;
-        return [];
-    }
-}
 
 /**
  * Updates the browser's media session to show info in OS-level UI.
@@ -100,7 +72,20 @@ export function getHtml() {
     `;
 }
 
-export async function init() {
+export function init() {
+    // *** СПИСОК СТАНЦИЙ ЗАМЕНЕН НА ОДНУ СТАНЦИЮ ***
+    const radioStations = [
+        {
+            name: 'Русское радио',
+            logoUrl: 'https://dancemelody.ru/edd/rusradio.webp',
+            streams: {
+                hi: 'https://rusradio.hostingradio.ru/rusradio96.aacp',
+                med: 'https://rusradio.hostingradio.ru/rusradio96.aacp',
+                low: 'https://rusradio.hostingradio.ru/rusradio96.aacp'
+            }
+        }
+    ];
+
     const radioStationsContainer = document.getElementById('radio-stations');
     audioPlayer = document.getElementById('audio-player');
     const playPauseBtn = document.getElementById('play-pause-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), stationNameDisplay = document.getElementById('station-name-display'), stationLogoContainer = document.getElementById('station-logo-container'), volumeSlider = document.getElementById('volume-slider'), fixedPlayerContainer = document.getElementById('fixed-player-container'), searchInput = document.getElementById('radio-search-input'), qualityBtns = document.querySelectorAll('.quality-btn');
@@ -121,9 +106,8 @@ export async function init() {
             button.dataset.name = station.name; 
 
             if (station.logoUrl && station.logoUrl.trim() !== '') { 
-                const secureLogoUrl = station.logoUrl.startsWith('http://') ? station.logoUrl.replace('http://', 'https://') : station.logoUrl;
                 const img = document.createElement('img'); 
-                img.src = secureLogoUrl; 
+                img.src = station.logoUrl; 
                 img.alt = `${station.name} logo`; 
                 img.className = 'w-20 h-20 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-colors duration-200'; 
                 img.onerror = () => { 
@@ -188,9 +172,8 @@ export async function init() {
         stationNameDisplay.textContent = currentStation.name; 
         stationLogoContainer.innerHTML = ''; 
         if (currentStation.logoUrl && currentStation.logoUrl.trim() !== '') { 
-            const secureLogoUrl = currentStation.logoUrl.startsWith('http://') ? currentStation.logoUrl.replace('http://', 'https://') : currentStation.logoUrl;
             const img = document.createElement('img'); 
-            img.src = secureLogoUrl; 
+            img.src = currentStation.logoUrl; 
             img.alt = `${currentStation.name} logo`; 
             img.className = 'w-16 h-16 rounded-full object-cover'; 
             img.onerror = () => { 
@@ -233,9 +216,6 @@ export async function init() {
     searchInput.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); stationCards.forEach(card => { const stationName = card.dataset.name.toLowerCase(); card.style.display = stationName.includes(searchTerm) ? 'flex' : 'none'; }); });
     qualityBtns.forEach(btn => { btn.addEventListener('click', () => { const newQuality = btn.dataset.quality; if(newQuality === currentQuality) return; const wasPlaying = !audioPlayer.paused && audioPlayer.currentTime > 0; currentQuality = newQuality; localStorage.setItem('radioQuality', currentQuality); updateQualityUI(); if(currentStation && wasPlaying){ playCurrentStation(); } else if (currentStation) { audioPlayer.src = currentStation.streams[currentQuality]; } }); });
     
-    const radioStations = await fetchStations();
-    if (radioStations.length === 0) return;
-
     createStationButtons(radioStations); 
     updateQualityUI();
     audioPlayer.volume = 1.0; 
