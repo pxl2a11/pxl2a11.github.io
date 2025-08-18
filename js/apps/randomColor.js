@@ -1,3 +1,7 @@
+// --- 14Файл: js/randomColor.js ---
+
+import { getUserData, saveUserData } from './dataManager.js';
+
 export function getHtml() {
     return `
         <div class="flex flex-col md:flex-row w-full md:gap-8">
@@ -6,7 +10,6 @@ export function getHtml() {
                 <button id="generate-color-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">
                     Новый цвет
                 </button>
-                <!-- НОВЫЙ БЛОК: История -->
                 <div class="w-full space-y-2">
                     <h4 class="text-sm font-semibold text-center text-gray-500 dark:text-gray-400">История</h4>
                     <div id="color-history" class="flex justify-center gap-2"></div>
@@ -15,7 +18,14 @@ export function getHtml() {
 
             <div class="flex-grow flex flex-col space-y-5 min-w-0">
                 <div class="space-y-3">
-                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">Коды цвета</h3>
+                    <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Коды цвета</h3>
+                        <button id="save-to-favorites-btn" title="Добавить в избранное" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                    </div>
                     <div class="space-y-2">
                          <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
                             <span id="color-code-hex" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">#ffffff</span>
@@ -35,6 +45,14 @@ export function getHtml() {
                                 <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             </button>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- НОВЫЙ БЛОК: Избранное -->
+                <div class="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Избранное</h3>
+                    <div id="favorite-colors-container" class="flex flex-wrap gap-3">
+                        <p id="no-favorites-msg" class="text-gray-500 dark:text-gray-400">Нет сохраненных цветов.</p>
                     </div>
                 </div>
 
@@ -61,17 +79,23 @@ export function init() {
     const complementaryPaletteEl = document.getElementById('complementary-palette');
     const analogousPaletteEl = document.getElementById('analogous-palette');
     const historyEl = document.getElementById('color-history');
+    
+    // Новые элементы
+    const favBtn = document.getElementById('save-to-favorites-btn');
+    const favContainer = document.getElementById('favorite-colors-container');
+    const noFavoritesMsg = document.getElementById('no-favorites-msg');
 
     let colorHistory = [];
+    let favoriteColors = [];
     const HISTORY_LIMIT = 5;
 
+    // --- Функции-хелперы для работы с цветом (без изменений) ---
     function hexToRgb(hex) {
         let r = 0, g = 0, b = 0;
         if (hex.length == 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } 
         else if (hex.length == 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; }
         return { r: +r, g: +g, b: +b };
     }
-
     function rgbToHsl(r, g, b) {
         r /= 255; g /= 255; b /= 255;
         let max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -88,7 +112,6 @@ export function init() {
         }
         return { h: h * 360, s: s * 100, l: l * 100 };
     }
-    
     function hslToHex(h, s, l) {
         s /= 100; l /= 100;
         let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0;
@@ -97,6 +120,8 @@ export function init() {
         if (r.length == 1) r = "0" + r; if (g.length == 1) g = "0" + g; if (b.length == 1) b = "0" + b;
         return "#" + r + g + b;
     }
+    
+    // --- Обновленные и новые функции рендеринга ---
 
     const renderPalette = (el, colors) => {
         el.innerHTML = '';
@@ -113,9 +138,7 @@ export function init() {
     const updateHistory = (newColor) => {
         if (colorHistory[0] === newColor) return;
         colorHistory.unshift(newColor);
-        if (colorHistory.length > HISTORY_LIMIT) {
-            colorHistory.pop();
-        }
+        if (colorHistory.length > HISTORY_LIMIT) colorHistory.pop();
         renderHistory();
     };
 
@@ -130,6 +153,68 @@ export function init() {
             historyEl.appendChild(swatch);
         });
     };
+
+    // --- Новые функции для "Избранного" ---
+
+    const renderFavorites = () => {
+        favContainer.innerHTML = ''; // Очищаем контейнер
+        if (favoriteColors.length === 0) {
+            favContainer.appendChild(noFavoritesMsg); // Показываем сообщение, если пусто
+            return;
+        }
+
+        favoriteColors.forEach(color => {
+            const swatchWrapper = document.createElement('div');
+            swatchWrapper.className = 'relative group';
+
+            const swatch = document.createElement('div');
+            swatch.className = 'w-12 h-12 rounded-lg shadow-inner cursor-pointer border-2 border-gray-200 dark:border-gray-700';
+            swatch.style.backgroundColor = color;
+            swatch.title = `Нажмите, чтобы выбрать ${color}`;
+            swatch.onclick = () => updateUI(color);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'absolute -top-1 -right-1 p-0.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity';
+            removeBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+            removeBtn.title = `Удалить из избранного`;
+            removeBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleFavorite(color);
+            };
+
+            swatchWrapper.appendChild(swatch);
+            swatchWrapper.appendChild(removeBtn);
+            favContainer.appendChild(swatchWrapper);
+        });
+    };
+    
+    const updateFavButtonState = (hex) => {
+        const isFavorite = favoriteColors.includes(hex);
+        const svg = favBtn.querySelector('svg');
+        if (isFavorite) {
+            favBtn.title = 'Удалить из избранного';
+            svg.style.fill = 'currentColor';
+        } else {
+            favBtn.title = 'Добавить в избранное';
+            svg.style.fill = 'none';
+        }
+    };
+
+    const toggleFavorite = (colorToToggle) => {
+        const color = colorToToggle || codeHex.textContent;
+        const index = favoriteColors.indexOf(color);
+        if (index > -1) {
+            favoriteColors.splice(index, 1); // Удалить
+        } else {
+            favoriteColors.unshift(color); // Добавить в начало
+        }
+        
+        saveUserData('favoriteColors', favoriteColors); // Сохраняем в localStorage или Firebase
+        renderFavorites(); // Обновляем UI
+        updateFavButtonState(color); // Обновляем состояние кнопки-сердечка
+    };
+    
+    // --- Главная функция обновления интерфейса ---
 
     const updateUI = (hex) => {
         display.style.backgroundColor = hex;
@@ -146,6 +231,8 @@ export function init() {
         const analogousH1 = (hsl.h + 30) % 360;
         const analogousH2 = (hsl.h - 30 + 360) % 360;
         renderPalette(analogousPaletteEl, [hslToHex(analogousH2, hsl.s, hsl.l), hex, hslToHex(analogousH1, hsl.s, hsl.l)]);
+        
+        updateFavButtonState(hex); // Проверяем и обновляем состояние кнопки "Избранное"
     };
 
     const generateColor = () => {
@@ -162,12 +249,19 @@ export function init() {
         });
     };
     
+    // --- Инициализация и слушатели событий ---
+
     btn.addEventListener('click', generateColor);
+    favBtn.addEventListener('click', () => toggleFavorite());
     document.getElementById('copy-hex').addEventListener('click', (e) => copyToClipboard(codeHex.textContent, e.currentTarget));
     document.getElementById('copy-rgb').addEventListener('click', (e) => copyToClipboard(codeRgb.textContent, e.currentTarget));
     document.getElementById('copy-hsl').addEventListener('click', (e) => copyToClipboard(codeHsl.textContent, e.currentTarget));
-
-    generateColor();
+    
+    // --- Первоначальная загрузка данных ---
+    
+    favoriteColors = getUserData('favoriteColors', []); // Загружаем избранное
+    renderFavorites(); // Отображаем
+    generateColor(); // Генерируем первый цвет
 }
 
 export function cleanup() {}
