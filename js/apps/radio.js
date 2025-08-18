@@ -1,4 +1,4 @@
-let audioPlayer; // Module-level variable
+let audioPlayer; //23 Module-level variable
 let currentStation = null; // Module-level variable for the current station
 let metadataInterval = null; // Interval for fetching track metadata
 
@@ -6,7 +6,6 @@ let metadataInterval = null; // Interval for fetching track metadata
 const RADIO_API_URL = 'https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/RU?limit=100&order=clickcount&reverse=true';
 
 // База данных API для получения метаданных трека
-// Ключ - точное название станции
 const stationMetadataAPIs = {
     'Новое Радио': 'https://newradio.ru/api/v2/tracks/current'
 };
@@ -45,14 +44,14 @@ async function fetchMetadata(stationName) {
     const apiUrl = stationMetadataAPIs[stationName];
     if (!apiUrl || !trackInfoDisplay) return;
 
-    // *** ИСПРАВЛЕНИЕ CORS: Используем прокси-сервер allorigins.win ***
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+    // *** ИСПРАВЛЕНИЕ CORS: Замена прокси-сервера на более стабильный ***
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
         if (!response.ok) return;
-        const data = await response.json();
-        const metadata = JSON.parse(data.contents); // Получаем оригинальный ответ от API радио
+        // Прокси `corsproxy.io` не оборачивает ответ в `contents`, отдаем как есть
+        const metadata = await response.json(); 
 
         if (metadata && metadata.artist && metadata.song) {
             trackInfoDisplay.textContent = `${metadata.artist} - ${metadata.song}`;
@@ -180,8 +179,9 @@ export async function init() {
             const button = document.createElement('button'); 
             button.className = 'station-card flex flex-col items-center justify-between p-4 rounded-xl font-semibold text-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200'; 
             button.dataset.name = station.name; 
-            if (station.logoUrl) { 
-                // *** ИСПРАВЛЕНИЕ MIXED CONTENT: Автоматически заменяем http на https ***
+
+            // *** ИСПРАВЛЕНИЕ ОШИБКИ /null: Добавлена проверка, что logoUrl не пустой ***
+            if (station.logoUrl && station.logoUrl.trim() !== '') { 
                 const secureLogoUrl = station.logoUrl.startsWith('http://') ? station.logoUrl.replace('http://', 'https://') : station.logoUrl;
                 const img = document.createElement('img'); 
                 img.src = secureLogoUrl; 
@@ -248,7 +248,7 @@ export async function init() {
         currentStation = station; 
         stationNameDisplay.textContent = currentStation.name; 
         stationLogoContainer.innerHTML = ''; 
-        if (currentStation.logoUrl) { 
+        if (currentStation.logoUrl && currentStation.logoUrl.trim() !== '') { 
             const secureLogoUrl = currentStation.logoUrl.startsWith('http://') ? currentStation.logoUrl.replace('http://', 'https://') : currentStation.logoUrl;
             const img = document.createElement('img'); 
             img.src = secureLogoUrl; 
@@ -302,9 +302,10 @@ export async function init() {
         name: 'Новое Радио',
         logoUrl: 'https://pcradio.ru/images/stations/62ea3eb91b608.jpg',
         streams: {
-            hi: 'https://icecast-newradio.cdnvideo.ru/newradio-128',
-            med: 'https://icecast-newradio.cdnvideo.ru/newradio-128',
-            low: 'https://icecast-newradio.cdnvideo.ru/newradio-64'
+            // *** ИСПРАВЛЕНИЕ: Обновлен URL потока на рабочий ***
+            hi: 'https://live.newradio.ru/128',
+            med: 'https://live.newradio.ru/128',
+            low: 'https://live.newradio.ru/64'
         }
     };
 
