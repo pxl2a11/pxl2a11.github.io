@@ -1,4 +1,4 @@
-// 33js/apps/timer.js
+//39 js/apps/timer.js
 
 let timerInterval = null;
 let totalSeconds = 0;
@@ -13,6 +13,15 @@ let notificationSound;
 function addListener(element, event, handler) {
     element.addEventListener(event, handler);
     eventListeners.push({ element, event, handler });
+}
+
+function validateInputs() {
+    const h = parseInt(hoursInput.value) || 0;
+    const m = parseInt(minutesInput.value) || 0;
+    const s = parseInt(secondsInput.value) || 0;
+    const total = h * 3600 + m * 60 + s;
+
+    startPauseButton.disabled = total <= 0;
 }
 
 function updateTitle() {
@@ -61,6 +70,7 @@ function startTimer() {
             startPauseButton.classList.replace('hover:bg-amber-600', 'hover:bg-blue-600');
             notificationSound.play();
             timerDisplay.classList.add('animate-pulse', 'text-red-500');
+            validateInputs(); // Проверяем, нужно ли деактивировать кнопку
             updateTitle();
         }
     }, 1000);
@@ -96,6 +106,7 @@ function handleReset() {
     startPauseButton.classList.replace('hover:bg-amber-600', 'hover:bg-blue-600');
     timerDisplay.classList.remove('animate-pulse', 'text-red-500');
     resetButton.disabled = true;
+    startPauseButton.disabled = true;
     updateDisplay();
 }
 
@@ -122,7 +133,7 @@ export function getHtml() {
             </div>
 
             <div class="flex items-center justify-center space-x-6 w-full">
-                <button id="timer-start-pause" class="sw-btn-primary bg-blue-500 hover:bg-blue-600">Старт</button>
+                <button id="timer-start-pause" class="sw-btn-primary bg-blue-500 hover:bg-blue-600" disabled>Старт</button>
                 <button id="timer-reset" class="sw-btn-secondary" disabled>Сброс</button>
             </div>
         </div>
@@ -137,7 +148,8 @@ export function getHtml() {
             .preset-btn:hover { background-color: #D1D5DB; border-color: #9CA3AF; }
             .dark .preset-btn:hover { background-color: #6B7280; border-color: #9CA3AF; }
             .sw-btn-primary { width: 100px; height: 100px; font-size: 1.25rem; color: white; font-weight: 600; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all .2s; }
-            .sw-btn-primary:hover { transform: scale(1.05); }
+            .sw-btn-primary:hover:not(:disabled) { transform: scale(1.05); }
+            .sw-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
             .sw-btn-secondary { width: 80px; height: 80px; font-size: 1rem; color: #374151; background-color: #E5E7EB; border-radius: 50%; transition: all .2s; }
             .dark .sw-btn-secondary { background-color: #374151; color: #D1D5DB; }
             .sw-btn-secondary:not(:disabled):hover { background-color: #D1D5DB; transform: scale(1.05); }
@@ -159,6 +171,11 @@ export function init() {
     
     addListener(startPauseButton, 'click', handleStartPause);
     addListener(resetButton, 'click', handleReset);
+    
+    addListener(hoursInput, 'input', validateInputs);
+    addListener(minutesInput, 'input', validateInputs);
+    addListener(secondsInput, 'input', validateInputs);
+
     addListener(presetsContainer, 'click', (e) => {
         const target = e.target.closest('.preset-btn');
         if (target && target.dataset.time) {
