@@ -13,7 +13,7 @@ export function getHtml() {
                     <h3 class="font-bold text-lg">Круги</h3>
                     <button id="sw-export-btn" class="hidden bg-blue-500 text-white font-bold py-1 px-3 text-sm rounded-lg hover:bg-blue-600">Экспорт</button>
                 </div>
-                <div id="laps-list" class="w-full space-y-2 max-h-60 overflow-y-auto p-2 rounded-lg">
+                <div id="laps-list" class="w-full space-y-2 p-2 rounded-lg">
                     <p id="laps-placeholder" class="text-center text-gray-500 py-4">Нет зафиксированных кругов.</p>
                 </div>
             </div>
