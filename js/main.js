@@ -3,7 +3,7 @@ import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { fetchUserAccountData, clearUserData, getUserData, saveUserData } from './dataManager.js';
 
-// --- 14Сопоставление имен приложений и другие метаданные (без изменений) ---
+// --- 17Сопоставление имен приложений и другие метаданные (без изменений) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Калькулятор процентных соотношений': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Счетчик слов и символов': 'wordCounter', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер форматов изображений': 'imageConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Транслитерация текста': 'textTranslit', 'Изменение размера изображений': 'imageResizer', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame',
 };
@@ -130,7 +130,14 @@ async function renderSimilarApps(currentModule, container) {
     grid.className = 'similar-apps-grid';
     topSimilar.forEach(module => {
         const card = appCardElements.get(module);
-        if (card) grid.appendChild(card.cloneNode(true));
+        if (card) {
+            const cardClone = card.cloneNode(true);
+            const pinBtn = cardClone.querySelector('.pin-btn');
+            if (pinBtn) {
+                pinBtn.remove();
+            }
+            grid.appendChild(cardClone);
+        }
     });
     container.appendChild(grid);
     container.classList.remove('hidden');
