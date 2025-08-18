@@ -1,6 +1,6 @@
 // --- 20Файл: js/randomColor.js ---
 
-import { getUserData, saveUserData } from 'js/dataManager.js';
+import { getUserData, saveUserData } from '../dataManager.js';
 
 export function getHtml() {
     return `
