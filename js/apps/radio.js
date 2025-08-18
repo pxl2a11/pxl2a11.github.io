@@ -1,4 +1,4 @@
-let audioPlayer; // 10Module-level variable
+let audioPlayer; // 14Module-level variable
 let currentStation = null; // Module-level variable for the current station
 let metadataInterval = null; // Interval for fetching track metadata
 
@@ -20,13 +20,18 @@ async function fetchMetadata(stationName) {
 
     try {
         const response = await fetch(proxyUrl);
-        if (!response.ok) return;
-
-        const metadata = await response.json();
+        if (!response.ok) {
+            trackInfoDisplay.classList.add('hidden');
+            return;
+        }
+        
+        // *** ИСПРАВЛЕНИЕ: Сначала получаем как текст, потом парсим как JSON ***
+        // Это более надежно, если сервер отдает неправильный Content-Type заголовок.
+        const responseText = await response.text();
+        const metadata = JSON.parse(responseText);
 
         if (metadata && metadata.artist && metadata.song) {
             const trackString = `${metadata.artist} - ${metadata.song}`;
-            // Обновляем только если информация изменилась, чтобы избежать мигания
             if (trackInfoDisplay.textContent !== trackString) {
                 trackInfoDisplay.textContent = trackString;
             }
@@ -35,7 +40,7 @@ async function fetchMetadata(stationName) {
             trackInfoDisplay.classList.add('hidden');
         }
     } catch (error) {
-        console.error(`Error fetching metadata for ${stationName}:`, error);
+        console.error(`Error fetching or parsing metadata for ${stationName}:`, error);
         trackInfoDisplay.classList.add('hidden');
     }
 }
