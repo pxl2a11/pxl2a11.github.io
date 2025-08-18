@@ -72,7 +72,7 @@ export function init() {
             clearInterval(stopwatchInterval);
             savedTime = difference;
             running = false;
-            startStopBtn.textContent = 'Продолжить';
+            startStopBtn.textContent = 'Далее';
             startStopBtn.classList.replace('bg-red-500', 'bg-green-500');
             startStopBtn.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
             lapResetBtn.textContent = 'Сброс';
