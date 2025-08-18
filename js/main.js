@@ -150,6 +150,7 @@ async function router() {
     if (appName) {
         if (searchInput) searchInput.value = '';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
+        filterContainer?.classList.add('hidden');
         dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
         appScreen.classList.remove('hidden');
@@ -401,4 +402,4 @@ document.addEventListener('DOMContentLoaded', () => {
             initializeGoogleSignIn();
         }
     }, 100);
-});
+});```
