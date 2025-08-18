@@ -5,8 +5,8 @@ export function getHtml() {
         <div class="p-4 flex flex-col items-center space-y-6">
             <p id="stopwatch-display" class="text-6xl font-mono">00:00:00.000</p>
             <div class="flex space-x-4">
-                <button id="sw-start-stop-btn" class="w-28 bg-green-500 text-white font-bold py-2 px-4 rounded-full">Старт</button>
-                <button id="sw-lap-reset-btn" class="w-28 bg-gray-500 text-white font-bold py-2 px-4 rounded-full">Сброс</button>
+                <button id="sw-start-stop-btn" class="w-36 bg-green-500 text-white font-bold py-2 px-4 rounded-full">Старт</button>
+                <button id="sw-lap-reset-btn" class="w-36 bg-gray-500 text-white font-bold py-2 px-4 rounded-full">Сброс</button>
             </div>
             <div id="laps-controls" class="w-full max-w-sm mt-4 flex justify-end">
                  <button id="sw-export-btn" class="hidden bg-blue-500 text-white font-bold py-1 px-3 text-sm rounded-lg">Экспорт</button>
