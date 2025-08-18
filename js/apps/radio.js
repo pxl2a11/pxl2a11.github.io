@@ -1,4 +1,4 @@
-let audioPlayer; // 36Module-level variable
+let audioPlayer; // 41Module-level variable
 let currentStation = null; // Module-level variable for the current station
 
 /**
@@ -20,12 +20,20 @@ function updateMediaSession() {
 
     // Action handler for the "Play" button in the media notification
     navigator.mediaSession.setActionHandler('play', () => {
-        playCurrentStation();
+        if (audioPlayer && audioPlayer.paused) {
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            audioPlayer.play().then(() => {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                navigator.mediaSession.playbackState = 'playing';
+            }).catch(e => console.error("Media Session resume failed", e));
+        }
     });
 
     // Action handler for the "Pause" button in the media notification
     navigator.mediaSession.setActionHandler('pause', () => {
-        if (audioPlayer) {
+        if (audioPlayer && !audioPlayer.paused) {
             audioPlayer.pause();
             const playIcon = document.getElementById('play-icon');
             const pauseIcon = document.getElementById('pause-icon');
@@ -96,7 +104,7 @@ export function init() {
     function createStationButtons() { radioStationsContainer.innerHTML = ''; stationCards.length = 0; radioStations.forEach((station, index) => { const button = document.createElement('button'); button.className = 'station-card flex flex-col items-center justify-between p-4 rounded-xl font-semibold text-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200'; button.dataset.index = index; button.dataset.name = station.name; if (station.logoUrl) { const img = document.createElement('img'); img.src = station.logoUrl; img.alt = `${station.name} logo`; img.className = 'w-20 h-20 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-colors duration-200'; img.onerror = () => { const fallbackIcon = document.createElement('div'); fallbackIcon.className = 'w-20 h-20 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; fallbackIcon.textContent = 'Нет лого'; img.replaceWith(fallbackIcon); }; button.appendChild(img); } const stationNameContainer = document.createElement('div'); stationNameContainer.className = "h-12 flex justify-center items-start w-full"; const stationName = document.createElement('span'); stationName.textContent = station.name; stationName.className = 'text-center'; stationNameContainer.appendChild(stationName); button.appendChild(stationNameContainer); button.addEventListener('click', () => selectStation(station, button)); radioStationsContainer.appendChild(button); stationCards.push(button); }); }
     function playCurrentStation() { if (!currentStation) return; const attemptId = ++playAttemptId; audioPlayer.src = currentStation.streams[currentQuality]; playPauseBtn.disabled = true; stationNameDisplay.textContent = currentStation.name; stationNameDisplay.classList.remove('text-red-500'); const playPromise = audioPlayer.play(); if (playPromise !== undefined) { playPromise.then(() => { if (attemptId === playAttemptId) { playPauseBtn.disabled = false; playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'playing'; } updateMediaSession(); } }).catch(error => { if (attemptId === playAttemptId) { console.error("Audio playback error:", error); playPauseBtn.disabled = true; playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'paused'; } } }); } }
     function selectStation(station, buttonElement) { document.querySelectorAll('#radio-stations button').forEach(btn => btn.classList.remove('card-active')); if (buttonElement) buttonElement.classList.add('card-active'); currentStation = station; stationNameDisplay.textContent = currentStation.name; stationLogoContainer.innerHTML = ''; if (currentStation.logoUrl) { const img = document.createElement('img'); img.src = currentStation.logoUrl; img.alt = `${currentStation.name} logo`; img.className = 'w-16 h-16 rounded-full object-cover'; img.onerror = () => { const fallbackIcon = document.createElement('div'); fallbackIcon.className = 'w-16 h-16 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; fallbackIcon.textContent = 'Нет лого'; stationLogoContainer.appendChild(fallbackIcon); }; stationLogoContainer.appendChild(img); } else { const fallbackIcon = document.createElement('div'); fallbackIcon.className = 'w-16 h-16 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; fallbackIcon.textContent = 'Нет лого'; stationLogoContainer.appendChild(fallbackIcon); } fixedPlayerContainer.classList.remove('hidden'); playCurrentStation(); }
-    playPauseBtn.addEventListener('click', () => { if (audioPlayer.paused) { playCurrentStation(); } else { audioPlayer.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'paused'; } } });
+    playPauseBtn.addEventListener('click', () => { if (audioPlayer.paused) { const playPromise = audioPlayer.play(); if (playPromise !== undefined) { playPromise.then(() => { playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'playing'; } }).catch(e => console.error("UI resume failed", e)); } } else { audioPlayer.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'paused'; } } });
     audioPlayer.addEventListener('error', (e) => { console.error('Ошибка загрузки или воспроизведения аудио-потока:', e); playPauseBtn.disabled = true; playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); stationNameDisplay.classList.remove('text-red-500'); });
     volumeSlider.addEventListener('input', (e) => { audioPlayer.volume = e.target.value / 100; }); 
     searchInput.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); stationCards.forEach(card => { const stationName = card.dataset.name.toLowerCase(); card.style.display = stationName.includes(searchTerm) ? 'flex' : 'none'; }); });
