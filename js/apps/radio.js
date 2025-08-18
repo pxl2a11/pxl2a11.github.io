@@ -1,12 +1,12 @@
-let audioPlayer; //49 Module-level variable
+let audioPlayer; // 58Module-level variable
 let currentStation = null; // Module-level variable for the current station
 let metadataInterval = null; // Interval for fetching track metadata
 
 // URL для API. Можно легко изменить страну (RU, US, GB) или убрать фильтр
 const RADIO_API_URL = 'https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/RU?limit=100&order=clickcount&reverse=true';
 
-// *** НОВОЕ: База данных API для получения метаданных трека ***
-// Ключ - точное название станции из Radio Browser API
+// База данных API для получения метаданных трека
+// Ключ - точное название станции
 const stationMetadataAPIs = {
     'Новое Радио': 'https://newradio.ru/api/v2/tracks/current'
 };
@@ -136,7 +136,6 @@ export function getHtml() {
                     </div>
                     <div class="flex flex-col items-start">
                         <p id="station-name-display" class="text-xl font-bold drop-shadow-md text-gray-900 dark:text-gray-100">Выберите станцию</p>
-                        <!-- *** НОВОЕ ПОЛЕ ДЛЯ ТРЕКА *** -->
                         <p id="track-info-display" class="text-sm font-light text-gray-500 dark:text-gray-400 mt-1 hidden truncate"></p>
                     </div>
                 </div>
@@ -289,8 +288,27 @@ export async function init() {
     searchInput.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); stationCards.forEach(card => { const stationName = card.dataset.name.toLowerCase(); card.style.display = stationName.includes(searchTerm) ? 'flex' : 'none'; }); });
     qualityBtns.forEach(btn => { btn.addEventListener('click', () => { const newQuality = btn.dataset.quality; if(newQuality === currentQuality) return; const wasPlaying = !audioPlayer.paused && audioPlayer.currentTime > 0; currentQuality = newQuality; localStorage.setItem('radioQuality', currentQuality); updateQualityUI(); if(currentStation && wasPlaying){ playCurrentStation(); } else if (currentStation) { audioPlayer.src = currentStation.streams[currentQuality]; } }); });
     
-    const radioStations = await fetchStations();
-    if (!radioStations || radioStations.length === 0) return;
+    // --- ОСНОВНОЙ ПОТОК ЗАГРУЗКИ ---
+    let radioStations = await fetchStations();
+    if (!radioStations) radioStations = [];
+
+    // *** ИСПРАВЛЕНИЕ: Гарантируем наличие "Нового Радио" в списке ***
+    const novoeRadioStation = {
+        name: 'Новое Радио',
+        logoUrl: 'https://pcradio.ru/images/stations/62ea3eb91b608.jpg',
+        streams: {
+            hi: 'https://icecast.newradio.ru/newradio_128',
+            med: 'https://icecast.newradio.ru/newradio_128',
+            low: 'https://icecast.newradio.ru/newradio_64'
+        }
+    };
+
+    const isNovoeRadioInList = radioStations.some(station => station.name.toLowerCase() === 'новое радио');
+    if (!isNovoeRadioInList) {
+        radioStations.unshift(novoeRadioStation);
+    }
+    
+    if (radioStations.length === 0) return;
 
     createStationButtons(radioStations); 
     updateQualityUI();
