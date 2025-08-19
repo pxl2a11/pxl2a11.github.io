@@ -1,60 +1,17 @@
 let audioPlayer; // Module-level variable
 let currentStation = null; // Module-level variable for the current station
-let trackInfoInterval = null; // Variable for the track info update interval
-
-/**
- * Fetches and updates the currently playing track information.
- */
-async function updateTrackInfo() {
-    if (!currentStation || !audioPlayer || audioPlayer.paused) {
-        return;
-    }
-
-    try {
-        // Используем HTTPS для запроса
-        const response = await fetch('https://list.volna.top/radio.json');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        
-        const currentStreamUrl = audioPlayer.src;
-        const stationData = data.find(station => station.link === currentStreamUrl);
-
-        const trackInfoDisplay = document.getElementById('track-info-display');
-        let track = { artist: 'Интернет-радио', title: currentStation.name };
-
-        if (stationData && stationData.title && stationData.title !== ' - ') {
-            if (trackInfoDisplay) trackInfoDisplay.textContent = stationData.title;
-            const parts = stationData.title.split(' - ');
-            track.artist = parts[0].trim();
-            track.title = parts.slice(1).join(' - ').trim();
-        } else {
-            if (trackInfoDisplay) trackInfoDisplay.textContent = 'Название трека не доступно';
-        }
-        updateMediaSession(track);
-
-    } catch (error) {
-        console.error("Не удалось получить информацию о треке:", error);
-        const trackInfoDisplay = document.getElementById('track-info-display');
-        if(trackInfoDisplay) trackInfoDisplay.textContent = '';
-        updateMediaSession(); // Revert to default
-    }
-}
-
 
 /**
  * Updates the browser's media session to show info in OS-level UI.
- * @param {object} track - Object containing track details.
- * @param {string} track.title - The title of the song.
- * @param {string} track.artist - The artist of the song.
  */
-function updateMediaSession(track = {}) {
+function updateMediaSession() {
     if (!('mediaSession' in navigator) || !currentStation) {
         return;
     }
 
     navigator.mediaSession.metadata = new MediaMetadata({
-        title: track.title || currentStation.name,
-        artist: track.artist || 'Интернет-радио',
+        title: currentStation.name,
+        artist: 'Интернет-радио',
         album: 'Mini Apps Radio',
         artwork: [
             { src: currentStation.logoUrl || '', type: 'image/jpeg' },
@@ -70,9 +27,6 @@ function updateMediaSession(track = {}) {
                 playIcon.classList.add('hidden');
                 pauseIcon.classList.remove('hidden');
                 navigator.mediaSession.playbackState = 'playing';
-                if (trackInfoInterval) clearInterval(trackInfoInterval);
-                updateTrackInfo();
-                trackInfoInterval = setInterval(updateTrackInfo, 7000); // Start polling for track info
             }).catch(e => console.error("Media Session resume failed", e));
         }
     });
@@ -87,7 +41,6 @@ function updateMediaSession(track = {}) {
                 playIcon.classList.remove('hidden');
                 pauseIcon.classList.add('hidden');
                 navigator.mediaSession.playbackState = 'paused';
-                if (trackInfoInterval) clearInterval(trackInfoInterval); // Stop polling for track info
             }
         }
     });
@@ -108,10 +61,7 @@ export function getHtml() {
                     <div id="station-logo-container" class="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white/20 dark:border-gray-800/20 shadow-lg flex-shrink-0">
                         <div id="logo-placeholder" class="w-full h-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Нет лого</div>
                     </div>
-                    <div class="flex flex-col items-center md:items-start">
-                        <p id="station-name-display" class="text-xl font-bold drop-shadow-md text-gray-900 dark:text-gray-100 truncate">Выберите станцию</p>
-                        <p id="track-info-display" class="text-sm text-gray-600 dark:text-gray-300 mt-1 h-5"></p>
-                    </div>
+                    <div class="flex flex-col items-start"><p class="text-sm font-light text-gray-500 dark:text-gray-400">Сейчас играет:</p><p id="station-name-display" class="text-xl font-bold mt-1 drop-shadow-md text-gray-900 dark:text-gray-100">Выберите станцию</p></div>
                 </div>
                 <div class="flex items-center space-x-4 w-full md:w-auto justify-center">
                     <button id="play-pause-btn" class="bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200 ease-in-out disabled:opacity-30 disabled:cursor-not-allowed"><svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
@@ -134,16 +84,16 @@ export function getHtml() {
 export function init() {
     const radioStations = [
         // --- Старые станции ---
-        { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: { hi: "https://stream.pcradio.ru/marusya_fm-hi", med: "https://stream.pcradio.ru/marusya_fm-med", low: "https://stream.pcradio.ru/marusya_fm-low" }}, 
-        { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: { hi: "https://stream.pcradio.ru/record_rushits-hi", med: "https://stream.pcradio.ru/record_rushits-med", low: "https://stream.pcradio.ru/record_rushits-low" }}, 
+        { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: { hi: "https://stream.pcradio.ru/marusya_fm-hi", med: "https://stream.pcradio.ru/marusya_fm-med", low: "https://stream.pcradio.ru/marusya_fm-low" }},
+        { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: { hi: "https://stream.pcradio.ru/record_rushits-hi", med: "https://stream.pcradio.ru/record_rushits-med", low: "https://stream.pcradio.ru/record_rushits-low" }},
         { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: { hi: "https://stream.pcradio.ru/novoe_radio98_4-hi", med: "https://stream.pcradio.ru/novoe_radio98_4-med", low: "https://stream.pcradio.ru/novoe_radio98_4-low" }},
         { name: "Дорожное Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3ec011dd9.jpg", streams: { hi: "https://stream.pcradio.ru/rus_rodnye00-hi", med: "https://stream.pcradio.ru/rus_rodnye00-med", low: "https://stream.pcradio.ru/rus_rodnye00-low" }},
         { name: "Relax FM (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ebda8c01.jpg", streams: { hi: "https://stream.pcradio.ru/relax_fm_ru-hi", med: "https://stream.pcradio.ru/relax_fm_ru-med", low: "https://stream.pcradio.ru/relax_fm_ru-low" }},
         { name: "DFM 101.2 (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ec00ae9b.jpg", streams: { hi: "https://stream.pcradio.ru/dfm_moscow-hi", med: "https://stream.pcradio.ru/dfm_moscow-med", low: "https://stream.pcradio.ru/dfm_moscow-low" }},
-        { name: "ТНТ Music Radio", logoUrl: "https://pcradio.ru/images/stations/61b09c403d308.jpg", streams: { hi: "https://stream.pcradio.ru/rad_rutntmsc-hi", med: "https://stream.pcradio.ru/rad_rutntmsc-med", low: "https://stream.pcradio.ru/rad_rutntmsc-low" }}, 
-        { name: "Соль FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf2dc6d7.jpg", streams: { hi: "https://stream.pcradio.ru/sol_fm-hi", med: "https://stream.pcradio.ru/sol_fm-med", low: "https://stream.pcradio.ru/sol_fm-low" }}, 
+        { name: "ТНТ Music Radio", logoUrl: "https://pcradio.ru/images/stations/61b09c403d308.jpg", streams: { hi: "https://stream.pcradio.ru/rad_rutntmsc-hi", med: "https://stream.pcradio.ru/rad_rutntmsc-med", low: "https://stream.pcradio.ru/rad_rutntmsc-low" }},
+        { name: "Соль FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf2dc6d7.jpg", streams: { hi: "https://stream.pcradio.ru/sol_fm-hi", med: "https://stream.pcradio.ru/sol_fm-med", low: "https://stream.pcradio.ru/sol_fm-low" }},
         { name: "Maximum", logoUrl: "https://pcradio.ru/images/stations/62ea3ebe46311.jpg", streams: { hi: "https://stream.pcradio.ru/fm_maximum-hi", med: "https://stream.pcradio.ru/fm_maximum-med", low: "https://stream.pcradio.ru/fm_maximum-low" }},
-        
+
         // --- НОВЫЕ СТАНЦИИ ИЗ ФАЙЛА (с HTTPS) ---
         { name: "РУССКАЯ ВОЛНА", logoUrl: "https://amgradio.ru/img/RuWavebg.svg", streams: { hi: "https://ru1.amgradio.ru/RuWave48", med: "https://ru1.amgradio.ru/RuWave48", low: "https://ru1.amgradio.ru/RuWave48" } },
         { name: "РЕТРО ХИТ", logoUrl: "https://amgradio.ru/img/retrohit.svg", streams: { hi: "https://retro.amgradio.ru/Retro", med: "https://retro.amgradio.ru/Retro", low: "https://retro.amgradio.ru/Retro" } },
@@ -175,7 +125,6 @@ export function init() {
         { name: "CLASSIC FM", logoUrl: "https://amgradio.ru/img/classicfm.svg", streams: { hi: "https://classic.amgradio.ru/ClassicFM", med: "https://classic.amgradio.ru/ClassicFM", low: "https://classic.amgradio.ru/ClassicFM" } },
         { name: "РАДИО ЗВУКИ ПРИРОДЫ", logoUrl: "https://amgradio.ru/img/zvuki.svg", streams: { hi: "https://zvuki.amgradio.ru/Zvuki", med: "https://zvuki.amgradio.ru/Zvuki", low: "https://zvuki.amgradio.ru/Zvuki" } }
     ];
-
     const radioStationsContainer = document.getElementById('radio-stations');
     audioPlayer = document.getElementById('audio-player');
     const playPauseBtn = document.getElementById('play-pause-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), stationNameDisplay = document.getElementById('station-name-display'), stationLogoContainer = document.getElementById('station-logo-container'), volumeSlider = document.getElementById('volume-slider'), fixedPlayerContainer = document.getElementById('fixed-player-container'), searchInput = document.getElementById('radio-search-input'), qualityBtns = document.querySelectorAll('.quality-btn');
@@ -185,16 +134,16 @@ export function init() {
     if (savedQuality && ['low', 'med', 'hi'].includes(savedQuality)) { currentQuality = savedQuality; }
     function updateQualityUI() { qualityBtns.forEach(btn => { btn.classList.toggle('active', btn.dataset.quality === currentQuality); });}
     function createStationButtons() { radioStationsContainer.innerHTML = ''; stationCards.length = 0; radioStations.forEach((station, index) => { const button = document.createElement('button'); button.className = 'station-card flex flex-col items-center justify-between p-4 rounded-xl font-semibold text-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200'; button.dataset.index = index; button.dataset.name = station.name; if (station.logoUrl) { const img = document.createElement('img'); img.src = station.logoUrl; img.alt = `${station.name} logo`; img.className = 'w-20 h-20 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-colors duration-200'; img.onerror = () => { const fallbackIcon = document.createElement('div'); fallbackIcon.className = 'w-20 h-20 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; fallbackIcon.textContent = 'Нет лого'; img.replaceWith(fallbackIcon); }; button.appendChild(img); } const stationNameContainer = document.createElement('div'); stationNameContainer.className = "h-12 flex justify-center items-start w-full"; const stationName = document.createElement('span'); stationName.textContent = station.name; stationName.className = 'text-center'; stationNameContainer.appendChild(stationName); button.appendChild(stationNameContainer); button.addEventListener('click', () => selectStation(station, button)); radioStationsContainer.appendChild(button); stationCards.push(button); }); }
-    function playCurrentStation() { if (!currentStation) return; const attemptId = ++playAttemptId; audioPlayer.src = currentStation.streams[currentQuality]; playPauseBtn.disabled = true; stationNameDisplay.textContent = currentStation.name; stationNameDisplay.classList.remove('text-red-500'); const playPromise = audioPlayer.play(); if (playPromise !== undefined) { playPromise.then(() => { if (attemptId === playAttemptId) { playPauseBtn.disabled = false; playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'playing'; } updateMediaSession(); if (trackInfoInterval) clearInterval(trackInfoInterval); updateTrackInfo(); trackInfoInterval = setInterval(updateTrackInfo, 7000); } }).catch(error => { if (attemptId === playAttemptId) { console.error("Audio playback error:", error); playPauseBtn.disabled = true; playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'paused'; } } }); } }
-    function selectStation(station, buttonElement) { document.querySelectorAll('#radio-stations button').forEach(btn => btn.classList.remove('card-active')); if (buttonElement) buttonElement.classList.add('card-active'); currentStation = station; stationNameDisplay.textContent = currentStation.name; const trackInfoDisplay = document.getElementById('track-info-display'); if(trackInfoDisplay) trackInfoDisplay.textContent = 'Загрузка...'; stationLogoContainer.innerHTML = ''; if (currentStation.logoUrl) { const img = document.createElement('img'); img.src = currentStation.logoUrl; img.alt = `${currentStation.name} logo`; img.className = 'w-16 h-16 rounded-full object-cover'; img.onerror = () => { const fallbackIcon = document.createElement('div'); fallbackIcon.className = 'w-16 h-16 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; fallbackIcon.textContent = 'Нет лого'; stationLogoContainer.appendChild(fallbackIcon); }; stationLogoContainer.appendChild(img); } else { const fallbackIcon = document.createElement('div'); fallbackIcon.className = 'w-16 h-16 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; fallbackIcon.textContent = 'Нет лого'; stationLogoContainer.appendChild(fallbackIcon); } fixedPlayerContainer.classList.remove('hidden'); playCurrentStation(); }
-    playPauseBtn.addEventListener('click', () => { if (audioPlayer.paused) { const playPromise = audioPlayer.play(); if (playPromise !== undefined) { playPromise.then(() => { playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'playing'; } if (trackInfoInterval) clearInterval(trackInfoInterval); updateTrackInfo(); trackInfoInterval = setInterval(updateTrackInfo, 7000); }).catch(e => console.error("UI resume failed", e)); } } else { audioPlayer.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'paused'; } if (trackInfoInterval) clearInterval(trackInfoInterval); } });
+    function playCurrentStation() { if (!currentStation) return; const attemptId = ++playAttemptId; audioPlayer.src = currentStation.streams[currentQuality]; playPauseBtn.disabled = true; stationNameDisplay.textContent = currentStation.name; stationNameDisplay.classList.remove('text-red-500'); const playPromise = audioPlayer.play(); if (playPromise !== undefined) { playPromise.then(() => { if (attemptId === playAttemptId) { playPauseBtn.disabled = false; playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'playing'; } updateMediaSession(); } }).catch(error => { if (attemptId === playAttemptId) { console.error("Audio playback error:", error); playPauseBtn.disabled = true; playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'paused'; } } }); } }
+    function selectStation(station, buttonElement) { document.querySelectorAll('#radio-stations button').forEach(btn => btn.classList.remove('card-active')); if (buttonElement) buttonElement.classList.add('card-active'); currentStation = station; stationNameDisplay.textContent = currentStation.name; stationLogoContainer.innerHTML = ''; if (currentStation.logoUrl) { const img = document.createElement('img'); img.src = currentStation.logoUrl; img.alt = `${currentStation.name} logo`; img.className = 'w-16 h-16 rounded-full object-cover'; img.onerror = () => { const fallbackIcon = document.createElement('div'); fallbackIcon.className = 'w-16 h-16 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; fallbackIcon.textContent = 'Нет лого'; stationLogoContainer.appendChild(fallbackIcon); }; stationLogoContainer.appendChild(img); } else { const fallbackIcon = document.createElement('div'); fallbackIcon.className = 'w-16 h-16 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'; fallbackIcon.textContent = 'Нет лого'; stationLogoContainer.appendChild(fallbackIcon); } fixedPlayerContainer.classList.remove('hidden'); playCurrentStation(); }
+    playPauseBtn.addEventListener('click', () => { if (audioPlayer.paused) { const playPromise = audioPlayer.play(); if (playPromise !== undefined) { playPromise.then(() => { playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'playing'; } }).catch(e => console.error("UI resume failed", e)); } } else { audioPlayer.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'paused'; } } });
     audioPlayer.addEventListener('error', (e) => { console.error('Ошибка загрузки или воспроизведения аудио-потока:', e); playPauseBtn.disabled = true; playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); stationNameDisplay.classList.remove('text-red-500'); });
-    volumeSlider.addEventListener('input', (e) => { audioPlayer.volume = e.target.value / 100; }); 
+    volumeSlider.addEventListener('input', (e) => { audioPlayer.volume = e.target.value / 100; });
     searchInput.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); stationCards.forEach(card => { const stationName = card.dataset.name.toLowerCase(); card.style.display = stationName.includes(searchTerm) ? 'flex' : 'none'; }); });
     qualityBtns.forEach(btn => { btn.addEventListener('click', () => { const newQuality = btn.dataset.quality; if(newQuality === currentQuality) return; const wasPlaying = !audioPlayer.paused && audioPlayer.currentTime > 0; currentQuality = newQuality; localStorage.setItem('radioQuality', currentQuality); updateQualityUI(); if(currentStation && wasPlaying){ playCurrentStation(); } else if (currentStation) { audioPlayer.src = currentStation.streams[currentQuality]; } }); });
-    createStationButtons(); 
+    createStationButtons();
     updateQualityUI();
-    audioPlayer.volume = 1.0; 
+    audioPlayer.volume = 1.0;
     playPauseBtn.disabled = true;
 }
 
@@ -203,10 +152,6 @@ export function cleanup() {
         audioPlayer.pause();
         audioPlayer.src = "";
         audioPlayer = null;
-    }
-    if (trackInfoInterval) {
-        clearInterval(trackInfoInterval);
-        trackInfoInterval = null;
     }
     const fixedPlayerContainer = document.getElementById('fixed-player-container');
     if (fixedPlayerContainer) {
