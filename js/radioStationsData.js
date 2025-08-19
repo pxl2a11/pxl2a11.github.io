@@ -52,7 +52,9 @@ export const radioStations = [
     { name: "MAKKIRUS", logoUrl: "https://amgradio.ru/img/makkirus.svg", streams: { hi: "https://makkirus.amgradio.ru/makkirus", med: "https://makkirus.amgradio.ru/makkirus", low: "https://makkirus.amgradio.ru/makkirus" } },
     { name: "CLASSIC FM", logoUrl: "https://amgradio.ru/img/classicfm.svg", streams: { hi: "https://classic.amgradio.ru/ClassicFM", med: "https://classic.amgradio.ru/ClassicFM", low: "https://classic.amgradio.ru/ClassicFM" } },
     { name: "РАДИО ЗВУКИ ПРИРОДЫ", logoUrl: "https://amgradio.ru/img/zvuki.svg", streams: { hi: "https://zvuki.amgradio.ru/Zvuki", med: "https://zvuki.amgradio.ru/Zvuki", low: "https://zvuki.amgradio.ru/Zvuki" } },
-    { name: "Русское Радио Москва", logoUrl: "https://radio.pervii.com/im/1/1549717041.jpg", streams: { hi: "https://rusradio.hostingradio.ru/rusradio96.aacp", med: "https://rusradio.hostingradio.ru/rusradio96.aacp", low: "https://rusradio.hostingradio.ru/rusradio96.aacp" } },
+    
+     // Станции из нового списка (с HTTPS)
+    { name: "Русское Радио Москва", logoUrl: "https://radiopotok.ru/f/station_webp/512/85.webp", streams: { hi: "https://rusradio.hostingradio.ru/rusradio96.aacp", med: "https://rusradio.hostingradio.ru/rusradio96.aacp", low: "https://rusradio.hostingradio.ru/rusradio96.aacp" } },
     { name: "Русские Песни", logoUrl: "https://radio.pervii.com/im/3/1537442683.jpg", streams: { hi: "https://listen.rusongs.ru/ru-mp3-128", med: "https://listen.rusongs.ru/ru-mp3-128", low: "https://listen.rusongs.ru/ru-mp3-128" } },
     { name: "Monte-Karlo Санкт-Петербург", logoUrl: "https://radio.pervii.com/logo/59339.jpg", streams: { hi: "https://icecast227.ptspb.ru:8104/monte", med: "https://icecast227.ptspb.ru:8104/monte", low: "https://icecast227.ptspb.ru:8104/monte" } },
     { name: "Monte-Karlo Орел", logoUrl: "https://radio.pervii.com/logo/59339.jpg", streams: { hi: "https://icecast227.ptspb.ru:8443/monte", med: "https://icecast227.ptspb.ru:8443/monte", low: "https://icecast227.ptspb.ru:8443/monte" } },
