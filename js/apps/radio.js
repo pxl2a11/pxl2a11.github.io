@@ -1,5 +1,5 @@
 // radio.js
-import { radioStations } from '..js/radioStationsData.js'; // Импортируем станции из нового файла
+import { radioStations } from '../../radioStationsData.js'; // Импортируем станции из нового файла
 
 let audioPlayer; // Module-level variable
 let currentStation = null; // Module-level variable for the current station
