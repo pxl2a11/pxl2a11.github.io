@@ -1,5 +1,7 @@
 // radio.js
-import { radioStations } from '../../radioStationsData.js'; // Импортируем станции из нового файла
+// Импортируем станции из нового файла, учитывая новую структуру папок.
+// Предполагается, что radio.js находится в js/apps/, а radioStationsData.js - в js/
+import { radioStations } from '../../radioStationsData.js';
 
 let audioPlayer; // Module-level variable
 let currentStation = null; // Module-level variable for the current station
