@@ -1,5 +1,3 @@
-// *** 1КОД С МАКЕТОМ ВО ВСЮ ШИРИНУ, РАЗДЕЛЕНИЕМ 50/50 И ДИНАМИЧЕСКИМ ЦЕНТРИРОВАНИЕМ ***
-
 export function getHtml() {
     return `
         <style>
@@ -56,10 +54,14 @@ export function getHtml() {
                         <button id="refresh-ip-btn" class="bg-gray-500 text-white text-sm py-2 px-5 rounded-full hover:bg-gray-600 transition-colors shadow-md">Обновить</button>
                     </div>
                     <div id="geo-info" class="text-left space-y-3 border-t border-gray-300 dark:border-gray-700 pt-5">
-                         <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.707 11l1.414-1.414a2 2 0 012.828 0l1.414 1.414M12 6v5m0 0l-1-1m1 1l1-1" /></svg><strong>Провайдер:</strong> <span id="ip-isp" class="ml-2 truncate">Загрузка...</span></p>
+                        <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-1.026.977-2.19.977-3.328a8.958 8.958 0 00-1.302-4.665A5.985 5.985 0 0016 11a4 4 0 00-4-4h-1.024A21.965 21.965 0 006 11a4 4 0 00-4 4c0 .861.223 1.679.623 2.378" /></svg><strong>Тип:</strong> <span id="ip-type" class="ml-2 truncate">Загрузка...</span></p>
+                        <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.707 11l1.414-1.414a2 2 0 012.828 0l1.414 1.414M12 6v5m0 0l-1-1m1 1l1-1" /></svg><strong>Провайдер:</strong> <span id="ip-isp" class="ml-2 truncate">Загрузка...</span></p>
+                        <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg><strong>ASN:</strong> <span id="ip-asn" class="ml-2 truncate">Загрузка...</span></p>
                         <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg><strong>Страна:</strong> <span id="ip-country" class="ml-2 truncate">Загрузка...</span></p>
                         <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg><strong>Регион:</strong> <span id="ip-region" class="ml-2 truncate">Загрузка...</span></p>
                         <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l7-3 7 3z" /></svg><strong>Город:</strong> <span id="ip-city" class="ml-2 truncate">Загрузка...</span></p>
+                        <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><strong>Часовой пояс:</strong> <span id="ip-timezone" class="ml-2 truncate">Загрузка...</span></p>
+                        <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg><strong>Почтовый индекс:</strong> <span id="ip-postal" class="ml-2 truncate">Загрузка...</span></p>
                     </div>
                 </div>
 
@@ -72,14 +74,17 @@ export function getHtml() {
 }
 
 export function init() {
-    // ... (все переменные остаются теми же)
     const ipEl = document.getElementById('ip-address');
     const copyBtn = document.getElementById('copy-ip-btn');
     const refreshBtn = document.getElementById('refresh-ip-btn');
+    const typeEl = document.getElementById('ip-type');
+    const ispEl = document.getElementById('ip-isp');
+    const asnEl = document.getElementById('ip-asn');
     const countryEl = document.getElementById('ip-country');
     const regionEl = document.getElementById('ip-region');
     const cityEl = document.getElementById('ip-city');
-    const ispEl = document.getElementById('ip-isp');
+    const timezoneEl = document.getElementById('ip-timezone');
+    const postalEl = document.getElementById('ip-postal');
     const mapContainer = document.getElementById('ip-map');
     let map = null;
     let resizeTimeout;
@@ -91,7 +96,14 @@ export function init() {
 
     const resetInfo = (message = 'Загрузка...') => {
         ipEl.textContent = message;
-        countryEl.textContent = message; regionEl.textContent = message; cityEl.textContent = message; ispEl.textContent = message;
+        typeEl.textContent = message;
+        ispEl.textContent = message;
+        asnEl.textContent = message;
+        countryEl.textContent = message;
+        regionEl.textContent = message;
+        cityEl.textContent = message;
+        timezoneEl.textContent = message;
+        postalEl.textContent = message;
         const mapPanel = document.getElementById('map-panel');
         if (mapPanel) mapPanel.style.display = 'none';
         if(map) { map.remove(); map = null; }
@@ -99,10 +111,8 @@ export function init() {
 
     const centerMap = () => {
         if (!map) return;
-        // На десктопе сдвигаем карту влево, чтобы маркер оказался в центре видимой (правой) части
         if (window.innerWidth >= 768) {
             const mapWidth = map.getSize().x;
-            // Сдвигаем на 25% (1/4) ширины, чтобы отцентрировать в правой половине
             const offsetX = mapWidth / 4; 
             map.panBy([-offsetX, 0], { animate: false });
         }
@@ -110,14 +120,25 @@ export function init() {
 
     const fetchIpInfo = () => {
         resetInfo();
-        fetch('https://ipinfo.io/json')
+        // Используем специальный URL для получения ASN
+        fetch('https://ipinfo.io/json?token=a05f142c922572') // Пример с токеном, чтобы получить ASN
             .then(response => { if (!response.ok) throw new Error(`Network error`); return response.json(); })
             .then(data => {
                 ipEl.textContent = data.ip || 'Не определен';
-                countryEl.textContent = data.country || 'Не определена';
-                regionEl.textContent = data.region || 'Не определен';
-                cityEl.textContent = data.city || 'Не определен';
-                ispEl.textContent = data.org || 'Не определен';
+                typeEl.textContent = data.ip && data.ip.includes(':') ? 'IPv6' : 'IPv4';
+                ispEl.textContent = data.org || 'Нет данных';
+                
+                if (data.asn) {
+                    asnEl.textContent = `${data.asn.asn} (${data.asn.name})`;
+                } else {
+                    asnEl.textContent = 'Нет данных';
+                }
+
+                countryEl.textContent = data.country || 'Нет данных';
+                regionEl.textContent = data.region || 'Нет данных';
+                cityEl.textContent = data.city || 'Нет данных';
+                timezoneEl.textContent = data.timezone || 'Нет данных';
+                postalEl.textContent = data.postal || 'Нет данных';
 
                 if (data.loc) {
                     const [lat, lon] = data.loc.split(',');
@@ -129,7 +150,6 @@ export function init() {
                         map = L.map('ip-map', { attributionControl: false }).setView([lat, lon], 10);
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
                         
-                        // Сразу после создания карты, мы ее центрируем
                         centerMap();
                         
                         L.marker([lat, lon], { icon: locationIcon }).addTo(map)
@@ -146,16 +166,14 @@ export function init() {
             });
     };
     
-    // Обработчик изменения размера окна
     const handleResize = () => {
         clearTimeout(resizeTimeout);
-        // Вызываем центрирование с небольшой задержкой, чтобы избежать лишних срабатываний
         resizeTimeout = setTimeout(centerMap, 100);
     };
     
     window.addEventListener('resize', handleResize);
 
-    copyBtn.addEventListener('click', () => { /* ... (код копирования без изменений) ... */
+    copyBtn.addEventListener('click', () => {
         const ipText = ipEl.textContent;
         if (ipText && !ipText.includes('...') && !ipText.includes('Ошибка')) {
             navigator.clipboard.writeText(ipText).then(() => {
@@ -171,6 +189,5 @@ export function init() {
 }
 
 export function cleanup() {
-    // Удаляем обработчик события при уходе со страницы
     window.removeEventListener('resize', this.handleResize);
 }
