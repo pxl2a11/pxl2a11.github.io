@@ -1,3 +1,5 @@
+// *** КОД С МАКЕТОМ ВО ВСЮ ШИРИНУ, РАЗДЕЛЕНИЕМ 50/50 И ДОПОЛНИТЕЛЬНЫМИ ДАННЫМИ (БЕЗ ТОКЕНА) ***
+
 export function getHtml() {
     return `
         <style>
@@ -120,8 +122,8 @@ export function init() {
 
     const fetchIpInfo = () => {
         resetInfo();
-        // Используем специальный URL для получения ASN
-        fetch('https://ipinfo.io/json?token=a05f142c922572') // Пример с токеном, чтобы получить ASN
+        // Запрос без токена
+        fetch('https://ipinfo.io/json')
             .then(response => { if (!response.ok) throw new Error(`Network error`); return response.json(); })
             .then(data => {
                 ipEl.textContent = data.ip || 'Не определен';
