@@ -102,8 +102,8 @@ export function getHtml() {
             .dark .tab-btn { color: #9CA3AF; }
             .tab-btn.active { color: white; background-color: #3B82F6; border-color: #3B82F6; border-radius: 0.5rem 0.5rem 0 0; }
             .dark .tab-btn.active { background-color: #60A5FA; color: #1F2937; border-color: #60A5FA; }
-             .tab-btn:not(.active):hover { color: #1F2937; border-color: #D1D5DB; }
-             .dark .tab-btn:not(.active):hover { color: #F9FAFB; border-color: #4B5563; }
+            .tab-btn:not(.active):hover { color: #1F2937; border-color: #D1D5DB; }
+            .dark .tab-btn:not(.active):hover { color: #F9FAFB; border-color: #4B5563; }
         </style>
         <div class="space-y-4">
             <div id="copy-notification" class="fixed top-24 left-1/2 -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-full shadow-lg opacity-0 transition-opacity duration-300 z-50">Скопировано!</div>
