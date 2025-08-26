@@ -26,9 +26,9 @@ export function getHtml() {
                 <p id="rng-error" class="text-red-500 text-center h-4"></p>
             </div>
             <div class="w-full flex flex-col sm:flex-row gap-3">
-                <button id="generate-num-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600">Сгенерировать</button>
-                <!-- ИЗМЕНЕНИЕ: Заменен класс 'hidden' на 'invisible' -->
-                <button id="copy-num-btn" class="w-full bg-gray-500 text-white font-bold py-3 px-6 rounded-full hover:bg-gray-600 invisible">Копировать</button>
+                <!-- ИСПРАВЛЕНИЕ: Заменен w-full на sm:w-1/2 для стабильности макета -->
+                <button id="generate-num-btn" class="w-full sm:w-1/2 bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600">Сгенерировать</button>
+                <button id="copy-num-btn" class="w-full sm:w-1/2 bg-gray-500 text-white font-bold py-3 px-6 rounded-full hover:bg-gray-600 invisible">Копировать</button>
             </div>
         </div>
         <style>
@@ -56,7 +56,6 @@ export function init() {
         const count = parseInt(countInput.value, 10);
         const unique = uniqueCheck.checked;
         errorEl.textContent = '';
-        // ИЗМЕНЕНИЕ: Управляем классом 'invisible' вместо 'hidden'
         copyBtn.classList.add('invisible');
 
         if (isNaN(min) || isNaN(max) || isNaN(count)) { errorEl.textContent = 'Пожалуйста, введите числа.'; return; }
@@ -99,7 +98,6 @@ export function init() {
                 });
             }
             
-            // ИЗМЕНЕНИЕ: Управляем классом 'invisible' вместо 'hidden'
             copyBtn.classList.remove('invisible');
             resultEl.style.transform = 'scale(1)';
             resultEl.style.opacity = '1';
