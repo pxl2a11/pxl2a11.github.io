@@ -1,3 +1,5 @@
+// js/apps/numberGenerator.js
+
 export function getHtml() {
     return `
         <div class="p-4 flex flex-col items-center space-y-6">
@@ -23,18 +25,16 @@ export function getHtml() {
                 </label>
                 <p id="rng-error" class="text-red-500 text-center h-4"></p>
             </div>
-            <button id="generate-num-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600">Сгенерировать</button>
+             <!-- ИЗМЕНЕНИЕ: ОБЕРТКА ДЛЯ КНОПОК -->
+            <div class="w-full flex flex-col sm:flex-row gap-3">
+                <button id="generate-num-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600">Сгенерировать</button>
+                <button id="copy-num-btn" class="w-full bg-gray-500 text-white font-bold py-3 px-6 rounded-full hover:bg-gray-600 hidden">Копировать</button>
+            </div>
         </div>
-        <!-- ИСПРАВЛЕНИЕ: CSS для скрытия стрелок -->
         <style>
             .no-spinner::-webkit-outer-spin-button,
-            .no-spinner::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
-            .no-spinner {
-                -moz-appearance: textfield;
-            }
+            .no-spinner::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+            .no-spinner { -moz-appearance: textfield; }
         </style>
     `;
 }
@@ -46,7 +46,9 @@ export function init() {
     const countInput = document.getElementById('num-count');
     const uniqueCheck = document.getElementById('unique-numbers');
     const generateBtn = document.getElementById('generate-num-btn');
+    const copyBtn = document.getElementById('copy-num-btn'); // Новая кнопка
     const errorEl = document.getElementById('rng-error');
+    let currentNumbers = []; // Хранение сгенерированных чисел
 
     generateBtn.addEventListener('click', () => {
         const min = parseInt(minInput.value, 10);
@@ -54,23 +56,12 @@ export function init() {
         const count = parseInt(countInput.value, 10);
         const unique = uniqueCheck.checked;
         errorEl.textContent = ''; 
+        copyBtn.classList.add('hidden');
 
-        if (isNaN(min) || isNaN(max) || isNaN(count)) { 
-            errorEl.textContent = 'Пожалуйста, введите числа.'; 
-            return; 
-        }
-        if (min > max) { 
-            errorEl.textContent = 'Минимальное значение не может быть больше максимального.'; 
-            return; 
-        }
-        if (count < 1 || count > 100) {
-            errorEl.textContent = 'Количество должно быть от 1 до 100.'; 
-            return;
-        }
-        if (unique && count > (max - min + 1)) {
-            errorEl.textContent = 'Невозможно сгенерировать столько уникальных чисел в этом диапазоне.';
-            return;
-        }
+        if (isNaN(min) || isNaN(max) || isNaN(count)) { errorEl.textContent = 'Пожалуйста, введите числа.'; return; }
+        if (min > max) { errorEl.textContent = 'Минимальное значение не может быть больше максимального.'; return; }
+        if (count < 1 || count > 100) { errorEl.textContent = 'Количество должно быть от 1 до 100.'; return; }
+        if (unique && count > (max - min + 1)) { errorEl.textContent = 'Невозможно сгенерировать столько уникальных чисел в этом диапазоне.'; return; }
 
         resultEl.style.transform = 'scale(0.8)';
         resultEl.style.opacity = '0.5';
@@ -78,27 +69,28 @@ export function init() {
         setTimeout(() => {
             resultEl.innerHTML = '';
             let numbers = new Set();
+            let numbersArray = [];
 
             if (unique) {
                 while(numbers.size < count) {
                     const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
                     numbers.add(randomNumber);
                 }
+                numbersArray = [...numbers];
             } else {
-                numbers = [];
                 for (let i = 0; i < count; i++) {
                     const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-                    numbers.push(randomNumber);
+                    numbersArray.push(randomNumber);
                 }
             }
+            currentNumbers = numbersArray; // Сохраняем результат
 
             if (count === 1) {
                 resultEl.style.fontSize = '4.5rem';
-                resultEl.textContent = unique ? [...numbers][0] : numbers[0];
+                resultEl.textContent = numbersArray[0];
             } else {
                 resultEl.style.fontSize = '2rem';
-                const numbersToDisplay = unique ? [...numbers] : numbers;
-                numbersToDisplay.forEach(num => {
+                numbersArray.forEach(num => {
                     const numberSpan = document.createElement('span');
                     numberSpan.className = 'bg-gray-200 dark:bg-gray-700 rounded-lg py-1 px-3';
                     numberSpan.textContent = num;
@@ -106,9 +98,21 @@ export function init() {
                 });
             }
             
+            copyBtn.classList.remove('hidden'); // Показываем кнопку копирования
             resultEl.style.transform = 'scale(1)';
             resultEl.style.opacity = '1';
         }, 150);
+    });
+
+    // Обработчик для кнопки копирования
+    copyBtn.addEventListener('click', () => {
+        if (currentNumbers.length > 0) {
+            navigator.clipboard.writeText(currentNumbers.join(', ')).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Скопировано!';
+                setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+            });
+        }
     });
 }
 
