@@ -1,7 +1,6 @@
 let canvas, ctx;
 let gameInterval, keydownHandler, resizeObserver;
 const gridSize = 20;
-// --- ИЗМЕНЕНИЕ: Добавлена переменная 'canChangeDirection' ---
 let snake, food, score, direction, gameActive, gamePaused, canChangeDirection;
 
 // --- ПАРАМЕТРЫ СКОРОСТИ ---
@@ -128,7 +127,6 @@ function updateGameSpeed() {
 function gameLoop() {
     if (!gameActive || gamePaused) return;
 
-    // --- ИЗМЕНЕНИЕ: В начале каждого шага, мы "разрешаем" изменить направление ---
     canChangeDirection = true;
 
     const head = { x: snake[0].x, y: snake[0].y };
@@ -212,7 +210,7 @@ export function init() {
 
     gameActive = false;
     gamePaused = false;
-    canChangeDirection = true; // --- ИЗМЕНЕНИЕ: Начальное состояние ---
+    canChangeDirection = true;
 
     overlay.addEventListener('click', () => {
         if (gameActive) {
@@ -232,8 +230,7 @@ export function init() {
             e.preventDefault();
         }
         
-        // --- ИЗМЕНЕНИЕ: Вся логика смены направления обернута в условие ---
-        if (!canChangeDirection) return; // Если менять направление нельзя, выходим
+        if (!canChangeDirection) return;
 
         let newDirection = null;
         if (key === 'ArrowUp' && direction !== 'down') newDirection = 'up';
@@ -243,7 +240,7 @@ export function init() {
 
         if (newDirection) {
             direction = newDirection;
-            canChangeDirection = false; // "Запираем" возможность смены до следующего шага
+            canChangeDirection = false;
         }
     };
 
