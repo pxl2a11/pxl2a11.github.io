@@ -1,9 +1,8 @@
-// apps/bmiCalculator.js
+// js/apps/bmiCalculator.js
 
 export function getHtml() {
     return `
         <div class="max-w-md mx-auto bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-            <!-- Переключатель систем -->
             <div class="flex justify-center items-center mb-6">
                 <span id="metric-label" class="font-semibold text-blue-600 dark:text-blue-400">Метрическая (кг, см)</span>
                 <label for="unit-toggle" class="relative inline-flex items-center cursor-pointer mx-4">
@@ -13,7 +12,6 @@ export function getHtml() {
                 <span id="imperial-label" class="font-semibold text-gray-400 dark:text-gray-500">Имперская (lbs, ft, in)</span>
             </div>
             
-            <!-- Поля для возраста и пола -->
             <div class="grid grid-cols-2 gap-6 mb-6">
                  <div>
                     <label for="age" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Возраст</label>
@@ -28,16 +26,13 @@ export function getHtml() {
                 </div>
             </div>
             
-            <!-- Поля ввода -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Метрическая система -->
                 <div id="metric-inputs">
                     <div>
                         <label for="height-cm" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Рост (см)</label>
                         <input type="number" id="height-cm" value="170" class="mt-1 block w-full p-2 rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-white dark:bg-gray-700">
                     </div>
                 </div>
-                <!-- Имперская система -->
                 <div id="imperial-inputs" class="hidden col-span-2">
                      <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -56,7 +51,6 @@ export function getHtml() {
                 </div>
             </div>
 
-            <!-- Результаты -->
             <div id="bmi-result-container" class="mt-6 text-center hidden">
                 <p class="text-gray-600 dark:text-gray-400">Ваш индекс массы тела (ИМТ)</p>
                 <p id="bmi-value" class="text-5xl font-bold"></p>
@@ -76,6 +70,17 @@ export function getHtml() {
                 </div>
             </div>
             <div id="bmi-info" class="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm text-gray-800 dark:text-gray-300 hidden"></div>
+            
+            <div class="mt-6 pt-4 border-t dark:border-gray-600">
+                <h4 class="text-center font-semibold mb-2">Расшифровка категорий ИМТ</h4>
+                <div class="space-y-1 text-sm text-gray-800 dark:text-gray-300">
+                    <div class="flex items-center"><div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div><span>Менее 18.5:</span><span class="ml-auto font-medium">Недостаточный вес</span></div>
+                    <div class="flex items-center"><div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div><span>18.5 – 24.9:</span><span class="ml-auto font-medium">Нормальный вес</span></div>
+                    <div class="flex items-center"><div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div><span>25.0 – 29.9:</span><span class="ml-auto font-medium">Избыточный вес</span></div>
+                    <div class="flex items-center"><div class="w-4 h-4 rounded-full bg-orange-500 mr-2"></div><span>30.0 – 34.9:</span><span class="ml-auto font-medium">Ожирение I степени</span></div>
+                    <div class="flex items-center"><div class="w-4 h-4 rounded-full bg-red-600 mr-2"></div><span>Более 35.0:</span><span class="ml-auto font-medium">Ожирение II-III степени</span></div>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -117,7 +122,7 @@ export function init() {
         imperialLabel.classList.toggle('text-gray-400', !isImperial);
         imperialLabel.classList.toggle('dark:text-gray-500', !isImperial);
         weightUnitEl.textContent = isImperial ? 'фунты' : 'кг';
-        // Конвертация значений при переключении
+        
         if (isImperial) {
             const cm = parseFloat(heightCmInput.value) || 0;
             const kg = parseFloat(weightInput.value) || 0;
@@ -146,7 +151,7 @@ export function init() {
             const feet = parseFloat(heightFtInput.value) || 0;
             const inches = parseFloat(heightInInput.value) || 0;
             weight = parseFloat(weightInput.value);
-            height = (feet * 12) + inches; // Total height in inches
+            height = (feet * 12) + inches;
             if (isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
                  clearResults(); return;
             }
@@ -178,7 +183,6 @@ export function init() {
         resultContainer.classList.remove('hidden');
         bmiValueEl.textContent = bmiFormatted;
 
-        // Расчет идеального веса (ИМТ от 18.5 до 25)
         const idealMin = 18.5 * (heightInMeters * heightInMeters);
         const idealMax = 25 * (heightInMeters * heightInMeters);
         if (isImperial) {
@@ -231,9 +235,4 @@ export function init() {
     calculateBmi();
 }
 
-// Этот экспорт был пропущен в предыдущей версии
-export function cleanup() {
-    // В этом приложении нет глобальных слушателей или интервалов, которые нужно очищать,
-    // так как все слушатели привязаны к элементам, которые удаляются вместе с HTML.
-    // Но функция должна существовать для консистентности.
-}
+export function cleanup() { }
