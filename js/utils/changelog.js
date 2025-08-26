@@ -30,6 +30,14 @@ export const appNameToModuleFile = {
     'Конвертер форматов изображений': 'imageConverter',
     'Конвертер цветов': 'colorConverter',
     'Игра на память': 'memoryGame',
+    'Транслитерация текста': 'textTranslit',
+    'Изменение размера изображений': 'imageResizer',
+    'Калькулятор валют': 'currencyCalculator',
+    'Змейка': 'snakeGame',
+    'Конвертер часовых поясов': 'timezoneConverter',
+    'Текст в речь': 'textToSpeech',
+    'Камень, ножницы, бумага': 'rockPaperScissors',
+    'Судоку': 'sudoku',
     'Общее': null, 
 };
 
