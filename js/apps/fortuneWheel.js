@@ -1,3 +1,5 @@
+// js/apps/fortuneWheel.js
+
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 let spinTimeout;
@@ -42,6 +44,7 @@ export function getHtml() {
                         <option value="neon">Неоновая</option>
                         <option value="ocean">Океан</option>
                     </select>
+                    <button id="share-list-btn" class="w-full mt-2 bg-teal-500 text-white font-bold py-1.5 px-3 rounded-full hover:bg-teal-600 text-sm">Поделиться списком</button>
                     <h4 class="text-center font-semibold text-sm mb-1 pt-2">Сохраненные списки</h4>
                     <select id="saved-lists-select" class="w-full py-1.5 px-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-sm">
                         <option value="">-- Загрузить список --</option>
@@ -70,6 +73,7 @@ export async function init() {
     const eliminationCheckbox = document.getElementById('elimination-mode-checkbox');
     const colorSchemeSelect = document.getElementById('color-scheme-select');
     const soundCheckbox = document.getElementById('sound-effects-checkbox');
+    const shareBtn = document.getElementById('share-list-btn');
     spinSound = document.getElementById('spin-sound');
     winSound = document.getElementById('win-sound');
     
@@ -82,6 +86,19 @@ export async function init() {
     };
     let colors = colorPalettes.default;
     let startAngle = 0, arc, spinAngleStart, spinTime = 0, spinTimeTotal = 0;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const optionsFromUrl = urlParams.get('options');
+    if (optionsFromUrl) {
+        try {
+            const decodedOptions = decodeURIComponent(optionsFromUrl).split('|||');
+            if (decodedOptions.length > 0 && decodedOptions[0]) {
+                options = decodedOptions;
+            }
+        } catch (e) {
+            console.error("Failed to parse options from URL", e);
+        }
+    }
 
     const getSavedLists = () => getUserData('fortuneWheelLists', {});
     const saveLists = (lists) => saveUserData('fortuneWheelLists', lists);
@@ -258,6 +275,18 @@ export async function init() {
         spinTime = 0;
         spinTimeTotal = Math.random() * 3 + 4 * 1000;
         rotateWheel();
+    });
+
+    shareBtn.addEventListener('click', () => {
+        if (options.length > 0) {
+            const encodedOptions = encodeURIComponent(options.join('|||'));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?app=fortuneWheel&options=${encodedOptions}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                const originalText = shareBtn.textContent;
+                shareBtn.textContent = 'Ссылка скопирована!';
+                setTimeout(() => { shareBtn.textContent = originalText; }, 2000);
+            });
+        }
     });
 
     colorSchemeSelect.addEventListener('change', (e) => {
