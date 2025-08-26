@@ -4,7 +4,6 @@ export function getHtml() {
     return `
         <div class="flex flex-col gap-4">
             <textarea id="case-converter-input" class="w-full h-40 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Введите текст сюда..."></textarea>
-            <!-- ИЗМЕНЕНИЕ: Обновлены названия кнопок для ясности -->
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                 <button id="btn-uppercase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">ВЕРХНИЙ</button>
                 <button id="btn-lowercase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">нижний</button>
@@ -32,19 +31,16 @@ export function init() {
         textarea.value = textarea.value.toLowerCase();
     });
     
-    // Переименовано для ясности (бывший sentencecase)
     document.getElementById('btn-titlecase').addEventListener('click', () => {
         textarea.value = textarea.value.toLowerCase().replace(/(^|\s)\S/g, (L) => L.toUpperCase());
     });
     
-    // --- ИСПРАВЛЕНИЕ: НОВАЯ, НАДЕЖНАЯ ЛОГИКА ДЛЯ ПРЕДЛОЖЕНИЙ ---
-    // Переименовано для ясности (бывший capitalize)
+    // --- ИСПРАВЛЕНИЕ: ПОЛНОСТЬЮ ПЕРЕПИСАННАЯ И НАДЕЖНАЯ ЛОГИКА ---
     document.getElementById('btn-sentencecase').addEventListener('click', () => {
         let text = textarea.value.toLowerCase();
-        // Находим первую букву в тексте и делаем ее заглавной
-        text = text.replace(/^\s*\w/, c => c.toUpperCase());
-        // Находим все буквы, идущие после точки/вопроса/восклицания и пробела, и делаем их заглавными
-        text = text.replace(/([.?!]\s+)(\w)/g, (match, p1, p2) => p1 + p2.toUpperCase());
+        // Эта функция находит первую букву после знака конца предложения (или в самом начале)
+        // и делает ее заглавной, игнорируя пробелы и переносы строк.
+        text = text.replace(/(^\s*\w|[.?!]\s*\w)/g, (c) => c.toUpperCase());
         textarea.value = text;
     });
 
