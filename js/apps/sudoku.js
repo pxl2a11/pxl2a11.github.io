@@ -1,4 +1,4 @@
-// js/apps/sudoku.js
+// 15js/apps/sudoku.js
 
 // Базовый класс для генерации и решения Судоку
 class Sudoku {
