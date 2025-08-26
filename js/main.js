@@ -158,7 +158,7 @@ async function router() {
     const filterContainer = document.getElementById('filter-container');
     
     if (appName) {
-        if (searchInput) searchInput.value = '';
+        // Убираем очистку и скрытие поля поиска
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         filterContainer?.classList.add('hidden');
         dynamicContentArea.innerHTML = appScreenHtml;
@@ -187,7 +187,6 @@ async function router() {
         changelogContainer.classList.remove('hidden');
         document.title = 'Mini Apps';
         setupFilters();
-        setupSearch();
         renderChangelog(null, 3, changelogContainer);
         await applyAppListFilterAndRender();
     }
@@ -219,30 +218,33 @@ function setupNavigationEvents() {
     });
 }
 
+// --- ИЗМЕНЕНО: Полностью переписанная функция поиска ---
 function setupSearch() {
     if (!searchInput) return;
+
     searchInput.addEventListener('input', () => {
-        const appsContainer = document.getElementById('apps-container');
-        if (!appsContainer) return;
-        const allApps = appsContainer.querySelectorAll('.app-item');
         const searchTerm = searchInput.value.toLowerCase().trim();
         const suggestions = [];
-        allApps.forEach(app => {
-            const appName = app.dataset.name.toLowerCase();
-            const moduleName = app.dataset.module;
+
+        // 1. Собираем подсказки, итерируя по ГЛОБАЛЬНОМУ списку всех приложений
+        allAppCards.forEach(card => {
+            const appName = card.dataset.name.toLowerCase();
+            const moduleName = card.dataset.module;
             const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
             const searchCorpus = [appName, ...metadata.keywords].join(' ');
-            const isVisible = searchCorpus.includes(searchTerm);
-            app.style.display = isVisible ? 'flex' : 'none';
-            if (isVisible && searchTerm.length > 0) {
+
+            if (searchTerm.length > 0 && searchCorpus.includes(searchTerm)) {
                 suggestions.push({
-                    name: app.dataset.name, module: moduleName,
+                    name: card.dataset.name,
+                    module: moduleName,
                     hashtags: metadata.hashtags || []
                 });
             }
         });
+
+        // 2. Отображаем или скрываем контейнер с подсказками
         suggestionsContainer.innerHTML = '';
-        if (searchTerm.length > 0 && suggestions.length > 0) {
+        if (suggestions.length > 0) {
             suggestionsContainer.classList.remove('hidden');
             suggestions.slice(0, 7).forEach(suggestion => {
                 const suggestionEl = document.createElement('div');
@@ -258,6 +260,20 @@ function setupSearch() {
             });
         } else {
             suggestionsContainer.classList.add('hidden');
+        }
+
+        // 3. Если мы на главной странице, дополнительно фильтруем видимые карточки
+        const appsContainer = document.getElementById('apps-container');
+        if (appsContainer) {
+            const visibleAppCards = appsContainer.querySelectorAll('.app-item');
+            visibleAppCards.forEach(app => {
+                const appName = app.dataset.name.toLowerCase();
+                const moduleName = app.dataset.module;
+                const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
+                const searchCorpus = [appName, ...metadata.keywords].join(' ');
+                const isVisible = searchCorpus.includes(searchTerm);
+                app.style.display = isVisible ? 'flex' : 'none';
+            });
         }
     });
 }
@@ -327,6 +343,8 @@ function setupFilters() {
 
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
+    // --- ИЗМЕНЕНО: Вызываем setupSearch() один раз при загрузке ---
+    setupSearch(); 
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
     window.addEventListener('popstate', router);
@@ -398,6 +416,8 @@ document.addEventListener('DOMContentLoaded', () => {
             isInitialAuthCheckDone = true;
             await router(); 
         } else {
+            // ИЗМЕНЕНО: теперь router вызывается всегда при смене пользователя
+            // для корректного перерендера списка приложений с учетом закрепленных
             await router();
         }
 
