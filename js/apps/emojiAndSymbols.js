@@ -1,277 +1,197 @@
-let timeoutId;
-let activeSkinTonePopup = null;
-const RECENTLY_USED_KEY = 'emoji-and-symbols-recents';
-const MAX_RECENTS = 24;
+// js/apps/emojiAndSymbols.js
 
-// --- HTML-структура компонента ---
+import { getUserData, saveUserData } from '/js/dataManager.js';
+
+// --- State Management & Constants ---
+let timeoutId;
+let intersectionObserver;
+const RECENT_SYMBOLS_KEY = 'recentSymbols';
+const RECENT_EMOJI_KEY = 'recentEmojis';
+const RECENT_LIMIT = 24;
+
+// 1. Массив с модификаторами тона кожи
+const SKIN_TONE_MODIFIERS = ['🏻', '🏼', '🏽', '🏾', '🏿'];
+
+// 2. Список поддерживаемых эмодзи
+const EMOJI_WITH_SKIN_TONE_SUPPORT = new Set('👋🤚🖐✋🖖👌🤏✌🤞🤟🤘🤙👈👉👆🖕👇☝👍👎✊👊🤛🤜👏🙌👐🤲🙏✍💅🤳💪🦵🦶👂👃👶🧒👦👧🧑👱👨🧔👩🧓👴👵👮👷💂🕵'.split(''));
+
+// --- Data (без изменений) ---
+const getRecent = (key) => getUserData(key, []);
+const addToRecent = async (key, symbol) => { let recent = await getRecent(key); recent = recent.filter(item => item.c !== symbol.c); recent.unshift(symbol); if (recent.length > RECENT_LIMIT) { recent.pop(); } await saveUserData(key, recent); };
+const symbols = [ { name: 'Недавно использованные', items: [] }, { name: 'Популярные', items: [{s:'✓',k:'галочка check'}, {s:'✗',k:'крестик x'}, {s:'★',k:'звезда star'}, {s:'☆',k:'звезда star'}, {s:'♥',k:'сердце heart love'}, {s:'₽',k:'рубль'}, {s:'€',k:'евро'}, {s:'$',k:'доллар'}, {s:'→',k:'стрелка вправо right arrow'}, {s:'←',k:'стрелка влево left arrow'}, {s:'©',k:'копирайт copyright'}, {s:'™',k:'тм trademark'}] }, { name: 'Стрелки', items: [{s:'←',k:'стрелка влево'}, {s:'↑',k:'стрелка вверх'}, {s:'→',k:'стрелка вправо'}, {s:'↓',k:'стрелка вниз'}, {s:'↔',k:'стрелка влево вправо'}, {s:'↕',k:'стрелка вверх вниз'}, {s:'⇦',k:'стрелка'}, {s:'⇧',k:'стрелка'}, {s:'⇨',k:'стрелка'}, {s:'⇩',k:'стрелка'}, {s:'➥',k:'стрелка'}, {s:'↶',k:'стрелка'}, {s:'↷',k:'стрелка'}] }, { name: 'Математические', items: [{s:'≈',k:'примерно'}, {s:'≠',k:'не равно'}, {s:'≤',k:'меньше или равно'}, {s:'≥',k:'больше или равно'}, {s:'÷',k:'деление'}, {s:'×',k:'умножение'}, {s:'−',k:'минус'}, {s:'+',k:'плюс'}, {s:'∞',k:'бесконечность'}, {s:'π',k:'пи'}, {s:'√',k:'корень'}, {s:'∫',k:'интеграл'}, {s:'∑',k:'сумма'}, {s:'°',k:'градус'}, {s:'¹',k:'1 степень'}, {s:'²',k:'2 степень'}, {s:'³',k:'3 степень'}, {s:'µ',k:'мю микро'}, {s:'∆',k:'дельта'}, {s:'¼',k:'одна четверть'}, {s:'½',k:'одна вторая'}, {s:'¾',k:'три четверти'}] }, { name: 'Фигуры и знаки', items: [{s:'★',k:'звезда star'}, {s:'☆',k:'звезда star'}, {s:'✓',k:'галочка check'}, {s:'✗',k:'крестик x'}, {s:'♥',k:'сердце heart'}, {s:'♦',k:'бубны'}, {s:'♣',k:'трефы'}, {s:'♠',k:'пики'}, {s:'♪',k:'нота'}, {s:'♫',k:'нота'}, {s:'●',k:'круг'}, {s:'○',k:'круг'}, {s:'■',k:'квадрат'}, {s:'□',k:'квадрат'}] }, { name: 'Валюты', items: [{s:'€',k:'евро euro'}, {s:'£',k:'фунт pound'}, {s:'¥',k:'йена yen'}, {s:'₽',k:'рубль ruble'}, {s:'$',k:'доллар dollar'}, {s:'¢',k:'цент cent'}, {s:'₩',k:'вон won'}, {s:'₪',k:'шекель shekel'}, {s:'₹',k:'рупия rupee'}, {s:'₿',k:'биткоин bitcoin'}] }, { name: 'Шахматы', items: [{s:'♔',k:'король'}, {s:'♕',k:'ферзь'}, {s:'♖',k:'ладья'}, {s:'♗',k:'слон'}, {s:'♘',k:'конь'}, {s:'♙',k:'пешка'}, {s:'♚',k:'король'}, {s:'♛',k:'ферзь'}, {s:'♜',k:'ладья'}, {s:'♝',k:'слон'}, {s:'♞',k:'конь'}] } ];
+const emojis = [ { name: 'Недавно использованные', items: [] }, { name: 'Смайлики и эмоции', items: '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 🥰 😗 😙 😚 🙂 🤗 🤩 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 🥶 😳 🤪 😵 😡 😠 🤬 😷 🤒 🤕 🤢 🤮 🤧 😇 🤠 🥳 🥴 🥺 🤡 🤥 🤫 🤭 🧐 🤓'.split(/\s+/).map(s => ({s})) }, { name: 'Люди и тело', items: '👋 🤚 🖐 ✋ 🖖 👌 🤏 ✌ 🤞 🤟 🤘 🤙 👈 👉 👆 🖕 👇 ☝ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍ 💅 🤳 💪 🦵 🦶 👂 👃 🧠 🦷 🦴 👀 👁 👅 👄 👶 🧒 👦 👧 🧑 👱 👨 🧔 👩 🧓 👴 👵'.split(/\s+/).map(s => ({s})) }, { name: 'Животные и природа', items: '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐔 🐧 🐦 🐤 🦋 🐛 🐺 🐗 🐴 🦓 🦒 🐘 🦏 🐪 🐫 🐿 🦔 🐾 🌵 🎄 🌲 🌳 🌴 🌱 🌿 ☘ 🍀 🍁 🍄 🐚 🌾 💐 🌷 🌹 🥀 🌺 🌸 🌼 🌻 🌞 🌎 🌍 🌏 🌕 🌖 🌗 🌘 🌑 🌒 🌓 🌔 🌙 🌚 🌛 🌜 💫 ⭐ 🌟 ✨ ⚡ 🔥 💥 ☄ ☀ 🌤 ⛅ 🌥 🌦 🌈 ☁ 🌧 ⛈ 🌩 🌨 🌬 💨 🌪 🌫 🌊 💧 💦 ☔'.split(/\s+/).map(s => ({s})) }, { name: 'Еда и напитки', items: '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🍈 🍒 🍑 🍍 🥥 🥝 🍅 🍆 🥑 🥦 🥬 🥒 🌶 🌽 🥕 🧄 🧅 🥔 🍠 🥐 🥯 🍞 🥖 🥨 🧀 🥚 🍳 🧈 🥞 🧇 🥓 🥩 🍗 🍖 🦴 🌭 🍔 🍟 🍕 🥪 🥙 🧆 🌮 🌯 🥗 🥫 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🍤 🍙 🍚 🍘 🍥 🥠 🥮 🍢 🍧 🍨 🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 🍩 🍪 🌰 🥜 🍯 🥛 🍼 ☕ 🍵 🧃 🥤 🍶 🍺 🍻 🥂 🍷 🥃 🍸 🍹 🧉 🍾 🧊 🥄 🍴 🍽'.split(/\s+/).map(s => ({s})) }, { name: 'Активности', items: '⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 🪀 🏓 🏸 🏒 🏑 🥍 🏏 🥅 ⛳ 🏹 🎣 🤿 🥊 🥋 🎽 🛹 🛷 ⛸ 🥌 🎿 ⛷ 🏂 🏋 🤸 ⛹ 🤺 🤾 🏌 🏇 🧘 🏄 🏊 🤽 🚣 🧗 🚵 🚴 🏆 🥇 🥈 🥉 🏅 🎖 🏵 🎗 🎫 🎟 🎪 🤹 🎭 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🎷 🎺 🎸 🪕 🎻 🎲 ♟ 🎯 🎳 🎮 🎰'.split(/\s+/).map(s => ({s})) }, { name: 'Путешествия и места', items: '🚗 🚕 🚙 🚌 🚐 🚑 🚒 🚓 🚔 🚜 🏎 🏍 🛵 🛺 🚲 🛴 🛹 🚏 🛣 🛤 ⛽ 🚨 🚥 🚦 🛑 🚧 ⚓ ⛵ 🛶 🚤 🛳 ⛴ 🛥 🚢 ✈ 🛩 🛫 🛬 💺 🚁 🚟 🚠 🚡 🛰 🚀 🛸 🛎 🧳 ⌛ ⏳ ⌚ ⏰ ⏱ ⏲ 🕰 🕛 🕧 🕐 🕜 🕑 🕝 🕒 🕞 🕓 🕟 🕔 🕠 🕕 🕡 🕖 🕢 🕗 🕣 🕘 🕤 🕙 🕥 🕚 🕦 🌑 🌒 🌓 🌔 🌕 🌖 🌗 🌘 🌙 🌚 🌛 🌜 🌡 ☀ 🌝 🌞 🪐 ⭐ 🌟 🌠 🌌 ☁ ⛅ ⛈ 🌤 🌥 🌦 🌧 🌨 🌩 🌪 🌫 🌬 🌀 🌈 🌂 ☂ ☔ ⛱ ⚡ ❄ ☃ ⛄ ☄ 🔥 💧 🌊 🎃 🎄 🎆 🎇 🧨 ✨ 🎈 🎉 🎊 🎋 🎍 🎎 🎏 🎐 🎑 🧧 🎀 🎁 🎗 🎟 🎫'.split(/\s+/).map(s => ({s})) }, { name: 'Объекты', items: '⌚ 📱 📲 💻 ⌨ 🖥 🖨 🖱 🖲 🕹 💽 💾 💿 📀 📼 📷 📸 📹 🎥 📽 🎞 📞 ☎ 📟 📠 📺 📻 🎙 🎚 🎛 🧭 ⏱ ⏲ ⏰ 🕰 ⌛ ⏳ 📡 🔋 🔌 💡 🔦 🕯 🧯 💸 💵 💴 💶 💷 💰 💳 💎 ⚖ 🛠 ⛏ 🔩 ⚙ 🧱 ⛓ 💉 🩸 🧬 🔬 🔭 🛰 🛎 🔑 🗝 🛋 🪑 🛌 🛏 🚪 🚽 🚿 🛁 🚬 ⚰ ⚱ 🏺 🗺 🗾 🏔 ⛰ 🌋 🗻 🏕 🏖 🏜 🏝 🏞 🏟 🏛 🏗 🏘 🏚 🏠 🏡 🏢 🏣 🏤 🏥 🏦 🏨 🏩 🏪 🏫 🏬 🏭 🏯 🏰 💒 🗼 🗽 ⛪ 🕌 🛕 🕍 ⛩ 🕋 ⛲ ⛺ 🌁 🌃 🏙 🌄 🌅 🌆 🌇 🌉 ♨ 🎠 🎡 🎢 💈 🎪 🚂 🚃 🚄 🚅 🚆 🚇 🚈 🚉 🚊 🚝 🚞 🚋 🚌 🚍 🚎 🚐 🚑 🚒 🚓 🚔 🚕 🚖 🚗 🚘 🚙 🚚 🚛 🚜'.split(/\s+/).map(s => ({s})) }, { name: 'Символы и флаги', items: '❤ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣ 💕 💞 💓 💗 💖 💘 💝 💟 ☮ ✝ ☪ 🕉 ☸ ✡ 🔯 🕎 ☯ ☦ 🛐 ⛎ ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓ 🆔 ⚛ 🉑 ☢ ☣ 📳 📴 🈶 🈚 🈸 🈺 🈷 ✴ 🆚 💮 🉐 ㊙ ㊗ 🈴 🈵 🈹 🈲 🅰 🅱 🆎 🆑 🅾 🆘 ❌ ⭕ 🛑 ⛔ 📛 🚫 💯 💢 ♨ 🚷 🚯 🚳 🚱 🔞 📵 🚭 ❗ ❕ ❓ ❔ ‼ ⁉ 🔅 🔆 〽 ⚠ 🚸 🔱 ⚜ 🔰 ♻ ✅ 🈯 💹 ❇ ✳ ❎ 🌐 💠 Ⓜ 🌀 💤 🏧 🚾 ♿ 🅿 🈂 🛂 🛃 🛄 🛅 🚹 🚺 🚼 ⚧ 🚻 🚮 🎦 📶 🈁 🔣 ℹ 🔤 🔡 🔠 🆖 🆗 🆙 🆒 🆕 🆘 🆙 🆓 🔢 ⏏ ▶ ⏸ ⏯ ⏹ ⏺ ⏭ ⏮ ⏩ ⏪ ⏫ ⏬ ◀ 🔼 🔽 ➡ ⬅ ⬆ ⬇ ↘ ↖ ↪ ↩ ⤴ ⤵ 🔀 🔁 🔂 🔄 🔃 🎵 🎶 ➕ ➖ ➗ ✖ ♾ 💲 💱 🔚 🔙 🔛 🔝 🔜 〰 ➰ ➿ ✔ ☑ 🔘 🔴 🟠 🟡 🟢 🔵 🟣 ⚫ ⚪ 🟤 🔺 🔻 🏁 🚩 🎌 🏴 🏳 🌈 ☠'.split(/\s+/).map(s => ({s})) } ];
+const emojiKeywords={'😀':'лицо улыбка happy smile face','😁':'улыбка зубы grin','😂':'смех слезы радость joy','🤣':'катаюсь по полу от смеха rofl','😃':'большая улыбка smiley','😄':'счастливый смех глаза smile','😅':'улыбка пот sweat cold','😆':'щурясь laughing squinting','😉':'подмигивание wink','😊':'улыбка румянец blush','😋':'вкусно язык yum delicious','😎':'крутой очки cool sunglasses','😍':'влюблен сердце глаза heart eyes love','😘':'поцелуй kiss','🥰':'любовь сердечки smiling face with hearts','😗':'целую kissing','😙':'целую улыбка','😚':'целую глаза закрыты','🙂':'легкая улыбка','🤗':'объятия hugs','🤩':'звезды в глазах восторг star struck','🤔':'думаю размышление thinking','🤨':'бровь raised eyebrow','😐':'нейтральный neutral face','😑':'без выражения expressionless','😶':'нет рта no mouth','🙄':'закатываю глаза roll eyes','😏':'ухмылка smirk','😣':'страдание persevere','😥':'грустный пот sad but relieved','😮':'удивление рот открыт face with open mouth','🤐':'рот на замке zipper mouth','😯':'тихо hushed','😪':'сонный sleepy','😫':'усталый tired','😴':'сплю sleeping','😌':'облегчение relieved','😛':'язык stuck out tongue','😜':'язык подмигиваю wink tongue','😝':'язык щурюсь squinting tongue','🤤':'слюни drooling','😒':'недовольный unamused','😓':'удрученный пот sweat','😔':'задумчивый pensive','😕':'смущенный confused','🙃':'вверх ногами upside down','🤑':'деньги язык money mouth','😲':'изумление astonished','☹':'хмурый frowning','🙁':'слегка хмурый','😖':'смятение confounded','😞':'разочарование disappointed','😟':'беспокойство worried','😤':'пар из носа злость triumph victory','😢':'плач cry','😭':'рыдание sob','😦':'хмурый рот открыт','😧':'страдание anguished','😨':'страх fearful','😩':'утомленный weary','🤯':'взрыв мозг шок exploding head','😬':'гримаса grimacing','😰':'тревога пот anxious sweat','😱':'крик ужас scream','🥵':'жарко красный hot face','🥶':'холодно синий cold face','😳':'румянец flushed','🤪':'дурачусь zany face','😵':'головокружение dizzy','😡':'надутый красный злой pouting enraged','😠':'злость angry','🤬':'ругань символы cursing','😷':'маска medical mask','🤒':'термометр больной','🤕':'бинт травма','🤢':'тошнота nauseated','🤮':'рвота vomiting','🤧':'чихание sneezing','😇':'ангел нимб angel','🤠':'ковбой cowboy','🥳':'праздник вечеринка partying','🥴':'пьяный woozy face','🥺':'умоляю pleading begging','🤡':'клоун clown','🤥':'вру нос lying face','🤫':'тише shushing face','🤭':'рука у рта хихикаю hand over mouth','🧐':'монокль face with monocle','🤓':'ботаник очки nerd','👋':'привет машу рукой wave','👍':'лайк палец вверх thumbs up','👎':'дизлайк палец вниз thumbs down','❤️':'красное сердце любовь','⭐':'звезда star','🔥':'огонь пламя fire','✨':'блестки магия sparkles','🎉':'хлопушка праздник','🚀':'ракета старт','🐶':'собака dog','🐱':'кошка cat','🌸':'цветок вишни','🍕':'пицца pizza','🍔':'бургер','☕':'кофе чай','🎂':'торт день рождения birthday'};
+emojis.forEach(category => category.items.forEach(item => { item.k = emojiKeywords[item.s] || ''; }));
+const allSymbols = [].concat(...symbols.map(c => c.items));
+const allEmojis = [].concat(...emojis.map(c => c.items));
+
 export function getHtml() {
     return `
-        <div class="p-4 space-y-4 flex flex-col h-full">
-            <div id="copy-notification" class="fixed top-24 left-1/2 -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-full shadow-lg opacity-0 transition-opacity duration-300 z-20">Скопировано!</div>
-            
-            <div class="relative">
-                <input id="search-input" type="text" placeholder="Поиск символов и эмодзи..." class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div class="flex border-b border-gray-300 dark:border-gray-600 mb-4">
-                <button id="symbols-tab" class="tab-btn py-2 px-4 font-semibold border-b-2">Символы</button>
-                <button id="emoji-tab" class="tab-btn py-2 px-4 font-semibold border-b-2">Эмодзи</button>
-                <button id="recents-tab" class="tab-btn py-2 px-4 font-semibold border-b-2 active">Недавние</button>
-            </div>
-            
-            <div class="flex-grow overflow-y-auto">
-                <div id="recents-content"></div>
-                <div id="symbols-content" class="hidden"></div>
-                <div id="emoji-content" class="hidden"></div>
-                <div id="search-results" class="hidden"></div>
-            </div>
+        <style> .tab-btn { color: #6B7280; border-color: transparent; transition: all 0.2s ease-in-out; } .dark .tab-btn { color: #9CA3AF; } .tab-btn.active { color: white; background-color: #3B82F6; border-color: #3B82F6; border-radius: 0.5rem 0.5rem 0 0; } .dark .tab-btn.active { background-color: #60A5FA; color: #1F2937; border-color: #60A5FA; } .tab-btn:not(.active):hover { color: #1F2937; border-color: #D1D5DB; } .dark .tab-btn:not(.active):hover { color: #F9FAFB; border-color: #4B5563; } #skin-tone-popup { display: none; position: absolute; z-index: 60; background-color: white; border-radius: 0.5rem; padding: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; } .dark #skin-tone-popup { background-color: #374151; border-color: #4b5563; } .skin-tone-btn { font-size: 1.5rem; padding: 0.25rem; border-radius: 0.25rem; } .skin-tone-btn:hover { background-color: #e5e7eb; } .dark .skin-tone-btn:hover { background-color: #4b5563; } </style>
+        <div class="space-y-4">
+            <div id="copy-notification" class="fixed top-24 left-1/2 -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-full shadow-lg opacity-0 transition-opacity duration-300 z-50">Скопировано!</div>
+            <div id="skin-tone-popup" class="flex gap-2"></div>
+            <div class="relative"> <input type="search" id="symbol-search" placeholder="Поиск..." class="w-full p-3 pl-10 border rounded-full bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"> <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> </div>
+            <div class="flex border-b border-gray-300 dark:border-gray-600"> <button data-tab="symbols" class="tab-btn py-2 px-4 font-semibold border-b-2 active">Символы</button> <button data-tab="emojis" class="tab-btn py-2 px-4 font-semibold border-b-2">Эмодзи</button> </div>
+            <div class="flex flex-col md:flex-row gap-8"> <nav id="categories-nav" class="w-full md:w-48 flex-shrink-0"></nav> <main id="content-area" class="flex-grow min-w-0"></main> <div id="search-results" class="hidden flex-grow min-w-0"></div> </div>
         </div>
     `;
 }
 
-// --- Логика инициализации и работы компонента ---
-export function init() {
-    // --- ОБНОВЛЕННЫЕ ДАННЫЕ С КЛЮЧЕВЫМИ СЛОВАМИ ---
-    const symbolsData = {
-        'Популярные': [
-            { char: '✓', keywords: ['галочка', 'check', 'yes', 'да', 'ok'] }, { char: '✗', keywords: ['крестик', 'x', 'no', 'нет', 'ошибка'] },
-            { char: '★', keywords: ['звезда', 'star', 'избранное'] }, { char: '☆', keywords: ['звезда', 'star', 'контур'] },
-            { char: '♥', keywords: ['сердце', 'heart', 'любовь', 'love'] }, { char: '₽', keywords: ['рубль', 'валюта', 'деньги'] },
-            { char: '€', keywords: ['евро', 'euro', 'валюта'] }, { char: '$', keywords: ['доллар', 'dollar', 'валюта'] },
-            { char: '→', keywords: ['стрелка', 'вправо', 'arrow', 'right'] }, { char: '←', keywords: ['стрелка', 'влево', 'arrow', 'left'] },
-            { char: '©', keywords: ['копирайт', 'copyright'] }, { char: '™', keywords: ['торговая марка', 'tm', 'trademark'] }
-        ],
-        'Валюты': [
-            { char: '€', keywords: ['евро', 'euro'] }, { char: '£', keywords: ['фунт', 'pound'] }, { char: '¥', keywords: ['иена', 'йена', 'yuan'] },
-            { char: '₽', keywords: ['рубль', 'ruble'] }, { char: '₴', keywords: ['гривна', 'hryvnia'] }, { char: '$', keywords: ['доллар', 'dollar'] },
-            { char: '¢', keywords: ['цент', 'cent'] }, { char: '₩', keywords: ['вона', 'won'] }, { char: '₪', keywords: ['шекель', 'shekel'] },
-            { char: '₮', keywords: ['тугрик', 'tugrik'] }, { char: '₹', keywords: ['рупия', 'rupee'] }, { char: '₿', keywords: ['биткоин', 'bitcoin'] }
-        ],
-        'Математические': [
-            { char: '≈', keywords: ['примерно', 'равно'] }, { char: '≠', keywords: ['не равно'] }, { char: '≤', keywords: ['меньше или равно'] },
-            { char: '≥', keywords: ['больше или равно'] }, { char: '÷', keywords: ['деление'] }, { char: '×', keywords: ['умножение'] },
-            { char: '−', keywords: ['минус', 'вычитание'] }, { char: '+', keywords: ['плюс', 'сложение'] }, { char: '∞', keywords: ['бесконечность'] },
-            { char: 'π', keywords: ['пи', 'pi'] }, { char: '√', keywords: ['корень', 'квадратный'] }, { char: '∫', keywords: ['интеграл'] },
-            { char: '∑', keywords: ['сумма'] }, { char: '±', keywords: ['плюс-минус'] }, { char: '°', keywords: ['градус'] }
-        ],
-        'Стрелки': [
-            { char: '←', keywords: ['влево'] }, { char: '↑', keywords: ['вверх'] }, { char: '→', keywords: ['вправо'] },
-            { char: '↓', keywords: ['вниз'] }, { char: '↔', keywords: ['влево-вправо'] }, { char: '↕', keywords: ['вверх-вниз'] },
-            { char: '↖', keywords: ['северо-запад'] }, { char: '↗', keywords: ['северо-восток'] }, { char: '↘', keywords: ['юго-восток'] },
-            { char: '↙', keywords: ['юго-запад'] }
-        ],
-    };
+function createItemButton(symbol, isEmoji) {
+    const { s, c, t, k } = symbol;
+    const btn = document.createElement('button');
+    btn.className = 'flex items-center justify-center h-12 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-blue-500 hover:text-white transition-colors text-2xl';
+    btn.textContent = s;
+    btn.dataset.copy = c || s;
+    btn.dataset.keywords = `${s} ${k || ''}`.toLowerCase();
+    if (t) btn.title = t;
+    // 3. Логика отображения: Добавляем data-атрибут для быстрой проверки
+    if (isEmoji && EMOJI_WITH_SKIN_TONE_SUPPORT.has(s)) {
+        btn.dataset.skintone = "true";
+    }
+    return btn;
+}
 
-    const emojiData = {
-        'Смайлики и люди': [
-            { char: '😀', keywords: ['лицо', 'улыбка', 'счастье'] }, { char: '😂', keywords: ['лицо', 'смех', 'слезы', 'радость'] },
-            { char: '😊', keywords: ['лицо', 'улыбка', 'счастье', 'румянец'] }, { char: '😍', keywords: ['лицо', 'любовь', 'сердце', 'глаза'] },
-            { char: '🤔', keywords: ['лицо', 'мысли', 'думать'] }, { char: '😎', keywords: ['лицо', 'очки', 'крутой'] },
-            { char: '👋', keywords: ['рука', 'привет', 'пока'] }, { char: '👍', keywords: ['рука', 'палец вверх', 'лайк', 'хорошо'] },
-            { char: '🙏', keywords: ['руки', 'молитва', 'пожалуйста', 'спасибо'] }, { char: '🧠', keywords: ['мозг', 'ум', 'интеллект'] }
-        ],
-        'Животные и природа': [
-            { char: '🐶', keywords: ['собака', 'пес', 'животное'] }, { char: '🐱', keywords: ['кошка', 'кот', 'животное'] },
-            { char: '🦊', keywords: ['лиса', 'животное'] }, { char: '🌳', keywords: ['дерево', 'растение', 'природа'] },
-            { char: '🌸', keywords: ['цветок', 'вишня', 'весна'] }, { char: '🌍', keywords: ['земля', 'планета', 'мир'] }
-        ],
-        'Еда и напитки': [
-            { char: '🍎', keywords: ['яблоко', 'фрукт'] }, { char: '🍕', keywords: ['пицца', 'еда'] }, { char: '☕', keywords: ['кофе', 'напиток', 'чашка'] },
-            { char: '🍔', keywords: ['бургер', 'гамбургер', 'еда'] }
-        ],
-        'Активности': [
-            { char: '⚽', keywords: ['футбол', 'мяч', 'спорт'] }, { char: '🏀', keywords: ['баскетбол', 'мяч', 'спорт'] },
-            { char: '🎨', keywords: ['искусство', 'палитра', 'рисование'] }, { char: '🎮', keywords: ['игра', 'контроллер', 'джойстик'] },
-            { char: '🎵', keywords: ['музыка', 'нота'] }
-        ],
-        'Путешествия и места': [
-            { char: '🚗', keywords: ['машина', 'автомобиль', 'транспорт'] }, { char: '✈️', keywords: ['самолет', 'полет', 'путешествие'] },
-            { char: '🗺️', keywords: ['карта', 'мир', 'путешествие'] }, { char: '🏠', keywords: ['дом', 'здание'] },
-            { char: '🗼', keywords: ['башня', 'эйфелева', 'париж'] }
-        ],
-        'Объекты': [
-            { char: '💻', keywords: ['компьютер', 'ноутбук', 'техника'] }, { char: '📱', keywords: ['телефон', 'смартфон'] },
-            { char: '💡', keywords: ['лампочка', 'идея', 'свет'] }, { char: '🔑', keywords: ['ключ', 'замок', 'пароль'] },
-            { char: '📚', keywords: ['книги', 'учеба', 'библиотека'] }
-        ],
-        'Флаги': [
-            { char: '🏳️‍🌈', keywords: ['радуга', 'прайд', 'лгбт'] }, { char: '🏁', keywords: ['финиш', 'гонка', 'клетчатый'] },
-        ]
-    };
-    
-    const skinToneModifiers = ['🏻', '🏼', '🏽', '🏾', '🏿'];
-    const emojiWithSkinToneSupport = new Set(['👋', '👍', '🙏', '✍️', '💅', '🤳', '💪', '🦵', '🦶', '👂', '👃', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👩', '🧓', '👴', '👵']);
+// ... renderContent и renderNav без изменений ...
+function renderContent(container, data, isEmoji) { container.innerHTML = ''; data.forEach(category => { if (category.name === 'Недавно использованные' && category.items.length === 0) return; const section = document.createElement('section'); section.id = `category-${category.name.replace(/\s+/g, '-')}`; section.className = 'mb-6'; section.innerHTML = `<h3 class="text-lg font-semibold mb-3 sticky top-0 bg-white dark:bg-gray-900 py-1">${category.name}</h3>`; const grid = document.createElement('div'); grid.className = 'grid grid-cols-6 sm:grid-cols-8 md:grid-cols-6 lg:grid-cols-8 gap-2'; category.items.forEach(item => { grid.appendChild(createItemButton(item, isEmoji)); }); section.appendChild(grid); container.appendChild(section); }); }
+function renderNav(container, data) { container.innerHTML = `<ul class="space-y-2 sticky top-4"></ul>`; const ul = container.querySelector('ul'); data.forEach(category => { if (category.name === 'Недавно использованные' && category.items.length === 0) return; const id = `category-${category.name.replace(/\s+/g, '-')}`; ul.innerHTML += `<li><a href="#${id}" class="block p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">${category.name}</a></li>`; }); }
 
-    const searchInput = document.getElementById('search-input');
+export async function init() {
+    const contentArea = document.getElementById('content-area');
+    const navArea = document.getElementById('categories-nav');
+    const searchResultsArea = document.getElementById('search-results');
+    const searchInput = document.getElementById('symbol-search');
     const notification = document.getElementById('copy-notification');
-    const tabs = {
-        symbols: document.getElementById('symbols-tab'),
-        emoji: document.getElementById('emoji-tab'),
-        recents: document.getElementById('recents-tab'),
-    };
-    const contents = {
-        symbols: document.getElementById('symbols-content'),
-        emoji: document.getElementById('emoji-content'),
-        recents: document.getElementById('recents-content'),
-    };
+    const tabs = document.querySelectorAll('.tab-btn');
+    const skinTonePopup = document.getElementById('skin-tone-popup');
+    const appContentContainer = document.getElementById('app-content-container');
+    
+    let activeTab = 'symbols';
+    const dataMap = { symbols: JSON.parse(JSON.stringify(symbols)), emojis: JSON.parse(JSON.stringify(emojis)) };
+    let longPressTriggered = false;
 
-    // --- Управление "Недавно использованными" ---
-    const getRecents = () => JSON.parse(localStorage.getItem(RECENTLY_USED_KEY)) || [];
-
-    const addRecent = (item) => {
-        let recents = getRecents();
-        // Удаляем дубликаты
-        recents = recents.filter(r => r.char !== item.char);
-        // Добавляем в начало
-        recents.unshift(item);
-        // Ограничиваем размер
-        if (recents.length > MAX_RECENTS) {
-            recents = recents.slice(0, MAX_RECENTS);
-        }
-        localStorage.setItem(RECENTLY_USED_KEY, JSON.stringify(recents));
-    };
-
-    const copyToClipboard = (text, item) => {
-        navigator.clipboard.writeText(text);
+    const showNotification = () => {
         notification.classList.remove('opacity-0');
         if (timeoutId) clearTimeout(timeoutId);
         timeoutId = setTimeout(() => notification.classList.add('opacity-0'), 1000);
-        if (item) {
-            addRecent(item);
+    };
+
+    // 4. Всплывающее меню
+    const showSkinTonePopup = (button) => {
+        skinTonePopup.innerHTML = '';
+        const baseEmoji = button.dataset.copy;
+        SKIN_TONE_MODIFIERS.forEach(modifier => {
+            const toneBtn = document.createElement('button');
+            toneBtn.className = 'skin-tone-btn';
+            toneBtn.textContent = baseEmoji + modifier;
+            toneBtn.onclick = () => {
+                const finalEmoji = toneBtn.textContent;
+                navigator.clipboard.writeText(finalEmoji);
+                addToRecent(RECENT_EMOJI_KEY, { s: finalEmoji, c: finalEmoji });
+                showNotification();
+                skinTonePopup.style.display = 'none';
+            };
+            skinTonePopup.appendChild(toneBtn);
+        });
+        const rect = button.getBoundingClientRect();
+        skinTonePopup.style.display = 'flex';
+        skinTonePopup.style.left = `${rect.left + window.scrollX}px`;
+        skinTonePopup.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    };
+
+    const updateRecentAndRender = async (tab) => {
+        const key = tab === 'symbols' ? RECENT_SYMBOLS_KEY : RECENT_EMOJI_KEY;
+        const recentItems = await getRecent(key);
+        if (dataMap[tab] && dataMap[tab][0] && dataMap[tab][0].name === 'Недавно использованные') { dataMap[tab][0].items = recentItems; }
+        const data = dataMap[tab];
+        renderContent(contentArea, data, tab === 'emojis');
+        renderNav(navArea, data);
+        setupIntersectionObserver();
+    };
+
+    const handleSearch = () => {
+        const term = searchInput.value.toLowerCase().trim();
+        const mainContent = document.querySelector('.flex-col.md\\:flex-row');
+        if (term) {
+            mainContent.classList.add('hidden');
+            searchResultsArea.classList.remove('hidden');
+            const source = activeTab === 'symbols' ? allSymbols : allEmojis;
+            const results = source.filter(item => `${item.s} ${item.k || ''}`.toLowerCase().includes(term));
+            searchResultsArea.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2';
+            results.forEach(item => grid.appendChild(createItemButton(item, activeTab === 'emojis')));
+            searchResultsArea.appendChild(grid);
+        } else {
+            mainContent.classList.remove('hidden');
+            searchResultsArea.classList.add('hidden');
         }
     };
     
-    // --- Создание сетки символов ---
-    const createGrid = (data, isEmoji) => {
-        const fragment = document.createDocumentFragment();
-        for (const category in data) {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'category-container mb-4';
-            categoryDiv.innerHTML = `<h3 class="category-title text-lg font-semibold mb-2 border-b border-gray-300 dark:border-gray-600 pb-1">${category}</h3>`;
-            
-            const symbolsGrid = document.createElement('div');
-            symbolsGrid.className = 'grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2';
-            
-            data[category].forEach(item => {
-                const btn = document.createElement('button');
-                const { char, keywords, display, title } = item;
-                const text = display || char;
-                const copyText = char;
-
-                btn.className = 'symbol-btn relative flex items-center justify-center p-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-blue-500 hover:text-white transition-colors text-xl';
-                btn.textContent = text;
-                btn.dataset.keywords = [char, ...keywords].join(',');
-                if (title) btn.title = title;
-
-                if (isEmoji && emojiWithSkinToneSupport.has(copyText)) {
-                     btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (activeSkinTonePopup) activeSkinTonePopup.remove();
-                        const skinTonePopup = document.createElement('div');
-                        skinTonePopup.className = 'absolute z-10 bottom-full mb-2 flex justify-center bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-lg shadow-lg p-1';
-                        skinToneModifiers.forEach(modifier => {
-                            const toneBtn = document.createElement('button');
-                            toneBtn.className = 'p-2 text-2xl rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700';
-                            toneBtn.textContent = copyText + modifier;
-                            toneBtn.addEventListener('click', (ev) => {
-                                ev.stopPropagation();
-                                copyToClipboard(copyText + modifier, item);
-                                if (activeSkinTonePopup) activeSkinTonePopup.remove();
-                            });
-                            skinTonePopup.appendChild(toneBtn);
-                        });
-                        activeSkinTonePopup = skinTonePopup;
-                        btn.appendChild(skinTonePopup);
-                    });
-                } else {
-                    btn.addEventListener('click', () => {
-                        copyToClipboard(copyText, item);
-                    });
-                }
-                symbolsGrid.appendChild(btn);
-            });
-            categoryDiv.appendChild(symbolsGrid);
-            fragment.appendChild(categoryDiv);
-        }
-        return fragment;
-    };
-    
-    const renderRecents = () => {
-        contents.recents.innerHTML = '';
-        const recents = getRecents();
-        if (recents.length === 0) {
-            contents.recents.innerHTML = `<p class="text-gray-500">Здесь будут недавно скопированные символы.</p>`;
+    // --- ИСПРАВЛЕННАЯ ЛОГИКА СОБЫТИЙ ---
+    const handleItemClick = (button) => {
+        // Если эмодзи поддерживает тон кожи, мы НЕ копируем его сразу,
+        // а показываем меню. Иначе - копируем.
+        if (button.dataset.skintone) {
+            showSkinTonePopup(button);
             return;
         }
-        const recentsGrid = createGrid({ 'Недавние': recents }, true); // isEmoji=true для поддержки тонов кожи
-        contents.recents.appendChild(recentsGrid);
-    };
-
-    // --- Логика переключения вкладок ---
-    const switchTab = (activeKey) => {
-        if (activeSkinTonePopup) activeSkinTonePopup.remove();
-        Object.keys(tabs).forEach(key => {
-            const isActive = key === activeKey;
-            tabs[key].classList.toggle('active', isActive);
-            contents[key].classList.toggle('hidden', !isActive);
-        });
-        if (activeKey === 'recents') {
-            renderRecents();
-        }
-    };
-    
-    // --- Логика поиска ---
-    const handleSearch = (e) => {
-        const query = e.target.value.toLowerCase().trim();
         
-        if (!query) {
-            // Если поиск пуст, возвращаем видимость всем элементам
-            document.querySelectorAll('.category-container, .symbol-btn').forEach(el => el.classList.remove('hidden'));
-            return;
-        }
-
-        document.querySelectorAll('.category-container').forEach(cat => {
-            let hasVisibleSymbols = false;
-            cat.querySelectorAll('.symbol-btn').forEach(btn => {
-                const keywords = btn.dataset.keywords.toLowerCase();
-                if (keywords.includes(query)) {
-                    btn.classList.remove('hidden');
-                    hasVisibleSymbols = true;
-                } else {
-                    btn.classList.add('hidden');
-                }
-            });
-            // Скрываем категорию, если в ней нет найденных символов
-            cat.classList.toggle('hidden', !hasVisibleSymbols);
-        });
+        // Стандартное копирование для всех остальных символов
+        const copyText = button.dataset.copy;
+        const isEmoji = activeTab === 'emojis';
+        const key = isEmoji ? RECENT_EMOJI_KEY : RECENT_SYMBOLS_KEY;
+        const dataToSave = { s: button.textContent, c: copyText, k: button.dataset.keywords };
+        addToRecent(key, dataToSave);
+        navigator.clipboard.writeText(copyText);
+        showNotification();
     };
 
-    // --- Инициализация ---
-    contents.symbols.appendChild(createGrid(symbolsData, false));
-    contents.emoji.appendChild(createGrid(emojiData, true));
-    
-    Object.keys(tabs).forEach(key => {
-        tabs[key].addEventListener('click', () => switchTab(key));
-    });
-    
-    document.addEventListener('click', () => {
-        if (activeSkinTonePopup) {
-            activeSkinTonePopup.remove();
-            activeSkinTonePopup = null;
+    appContentContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('button[data-copy]');
+        if (button) {
+            handleItemClick(button);
         }
     });
-
-    searchInput.addEventListener('input', handleSearch);
     
-    // По умолчанию открываем "Недавние"
-    switchTab('recents');
+    // 5. Закрытие меню
+    document.addEventListener('click', (e) => {
+        // Скрываем меню, если клик был НЕ по самому меню И НЕ по кнопке, которая его открывает
+        if (!skinTonePopup.contains(e.target) && !e.target.closest('button[data-skintone]')) {
+            skinTonePopup.style.display = 'none';
+        }
+    }, true); // Используем capturing phase, чтобы событие сработало раньше
+    
+    // ... Остальные слушатели ...
+    tabs.forEach(tab => { tab.addEventListener('click', () => { activeTab = tab.dataset.tab; tabs.forEach(t => t.classList.remove('active')); tab.classList.add('active'); updateRecentAndRender(activeTab); handleSearch(); }); });
+    searchInput.addEventListener('input', handleSearch);
+    navArea.addEventListener('click', e => { const link = e.target.closest('a'); if (link) { e.preventDefault(); e.stopPropagation(); const targetId = link.getAttribute('href'); const targetSection = contentArea.querySelector(targetId); if (targetSection) { targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); } } });
+    
+    function setupIntersectionObserver() {
+        if (intersectionObserver) intersectionObserver.disconnect();
+        const navLinks = navArea.querySelectorAll('a');
+        const observerOptions = { rootMargin: '-50px 0px -50% 0px' };
+        intersectionObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                const id = entry.target.id;
+                const navLink = navArea.querySelector(`a[href="#${id}"]`);
+                if(navLink) {
+                    navLink.classList.toggle('font-bold', entry.isIntersecting);
+                    navLink.classList.toggle('bg-gray-200', entry.isIntersecting);
+                    navLink.classList.toggle('dark:bg-gray-700', entry.isIntersecting);
+                }
+            });
+        }, observerOptions);
+        contentArea.querySelectorAll('section[id]').forEach(section => intersectionObserver.observe(section));
+    }
+    
+    await updateRecentAndRender(activeTab);
 }
 
-// --- Функция очистки ---
 export function cleanup() {
     if (timeoutId) clearTimeout(timeoutId);
-    if (activeSkinTonePopup) activeSkinTonePopup.remove();
-    // Удаляем обработчики, чтобы избежать утечек памяти
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.removeEventListener('input', handleSearch);
+    if (intersectionObserver) intersectionObserver.disconnect();
+    // Удаляем глобальный слушатель, чтобы избежать утечек памяти
+    document.removeEventListener('click', () => {}, true);
 }
