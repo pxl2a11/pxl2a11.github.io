@@ -31,6 +31,118 @@ let boardContainer, flagsCountEl, timerEl, statusEl;
 
 export function getHtml() {
     return `
+        <style>
+            /* --- Цветовая гамма для "Сапера" --- */
+            .ms-cell {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                /* Светлая тема: закрытая ячейка */
+                background-color: #cbd5e1; /* slate-300 */
+                border-style: solid;
+                border-width: 2px;
+                border-color: #e2e8f0 #94a3b8 #94a3b8 #e2e8f0; /* slate-200, slate-400 */
+                border-radius: 2px;
+            }
+
+            .dark .ms-cell {
+                /* Темная тема: закрытая ячейка */
+                background-color: #334155; /* slate-700 */
+                border-color: #475569 #1e293b #1e293b #475569; /* slate-600, slate-800 */
+            }
+
+            /* **НОВЫЙ СТИЛЬ**: Для подсветки ячеек */
+            .ms-cell-highlight {
+                background-color: #e2e8f0; /* slate-200 */
+                border-style: inset;
+                border-color: #94a3b8;
+            }
+            .dark .ms-cell-highlight {
+                background-color: #1e293b; /* slate-800 */
+                border-color: #0f172a;
+            }
+
+            .ms-cell.revealed {
+                /* Светлая тема: открытая ячейка */
+                background-color: #f1f5f9; /* slate-100 */
+                border: 1px solid #e2e8f0; /* slate-200 */
+                cursor: default;
+            }
+
+            .dark .ms-cell.revealed {
+                /* Темная тема: открытая ячейка */
+                background-color: #273345;
+                border: 1px solid #1e293b; /* slate-800 */
+            }
+
+            /* --- Стили для мин и флагов --- */
+            .ms-cell.mine {
+                color: #1f2937;
+            }
+            .dark .ms-cell.mine {
+                color: #e2e8f0;
+            }
+
+            .ms-cell.mine-hit {
+                background-color: #ef4444 !important;
+                color: #1f2937;
+            }
+
+            .ms-cell.wrong-flag {
+                position: relative;
+            }
+            .ms-cell.wrong-flag svg {
+                visibility: hidden;
+            }
+            .ms-cell.wrong-flag::after {
+                content: '\\00D7';
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5em;
+                line-height: 1;
+                color: #ef4444;
+            }
+
+            /* --- Палитра для цифр --- */
+            .ms-c1 { color: #2563eb; } .ms-c2 { color: #16a34a; } .ms-c3 { color: #dc2626; }
+            .ms-c4 { color: #0f172a; } .ms-c5 { color: #9a3412; } .ms-c6 { color: #0e7490; }
+            .ms-c7 { color: #581c87; } .ms-c8 { color: #7f1d1d; }
+
+            .dark .ms-c1 { color: #60a5fa; } .dark .ms-c2 { color: #4ade80; } .dark .ms-c3 { color: #f87171; }
+            .dark .ms-c4 { color: #e2e8f0; } .dark .ms-c5 { color: #fb923c; } .dark .ms-c6 { color: #67e8f9; }
+            .dark .ms-c7 { color: #d8b4fe; } .dark .ms-c8 { color: #fca5a5; }
+
+            /* --- Кнопки выбора сложности --- */
+            .ms-difficulty-btn {
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                border: 1px solid transparent;
+                font-weight: 600;
+                color: #4b5563;
+                background-color: #e5e7eb;
+                transition: all 0.2s;
+            }
+            .ms-difficulty-btn:hover {
+                border-color: #3b82f6;
+                background-color: #dbeafe;
+                color: #1e40af;
+            }
+            .dark .ms-difficulty-btn {
+                color: #d1d5db;
+                background-color: #374151;
+            }
+            .dark .ms-difficulty-btn:hover {
+                border-color: #60a5fa;
+                background-color: #4b5563;
+                color: #eff6ff;
+            }
+        </style>
         <div class="space-y-4">
             <div class="max-w-2xl mx-auto">
                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
