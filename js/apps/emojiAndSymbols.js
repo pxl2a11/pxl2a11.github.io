@@ -5,7 +5,7 @@ import { getUserData, saveUserData } from '/js/dataManager.js';
 // --- State Management ---
 let timeoutId;
 let intersectionObserver;
-let longPressTimer; // Для мобильных устройств
+let longPressTimer;
 const RECENT_SYMBOLS_KEY = 'recentSymbols';
 const RECENT_EMOJI_KEY = 'recentEmojis';
 const RECENT_LIMIT = 24;
@@ -25,7 +25,6 @@ const addToRecent = async (key, symbol) => {
 const SKIN_TONE_MODIFIERS = ['🏻', '🏼', '🏽', '🏾', '🏿'];
 const EMOJI_WITH_SKIN_TONES = new Set('👋🤚🖐✋🖖👌🤏✌🤞🤟🤘🤙👈👉👆🖕👇☝👍👎✊👊🤛🤜👏🙌👐🤲🙏✍💅🤳💪🦵🦶👂👃👶🧒👦👧🧑👱👨🧔👩🧓👴👵👮👷💂🕵'.split(''));
 
-// Data sections (symbols, emojis, emojiKeywords) остаются без изменений
 const symbols = [ { name: 'Недавно использованные', items: [] }, { name: 'Популярные', items: [{s:'✓',k:'галочка check'}, {s:'✗',k:'крестик x'}, {s:'★',k:'звезда star'}, {s:'☆',k:'звезда star'}, {s:'♥',k:'сердце heart love'}, {s:'₽',k:'рубль'}, {s:'€',k:'евро'}, {s:'$',k:'доллар'}, {s:'→',k:'стрелка вправо right arrow'}, {s:'←',k:'стрелка влево left arrow'}, {s:'©',k:'копирайт copyright'}, {s:'™',k:'тм trademark'}] }, { name: 'Стрелки', items: [{s:'←',k:'стрелка влево'}, {s:'↑',k:'стрелка вверх'}, {s:'→',k:'стрелка вправо'}, {s:'↓',k:'стрелка вниз'}, {s:'↔',k:'стрелка влево вправо'}, {s:'↕',k:'стрелка вверх вниз'}, {s:'⇦',k:'стрелка'}, {s:'⇧',k:'стрелка'}, {s:'⇨',k:'стрелка'}, {s:'⇩',k:'стрелка'}, {s:'➥',k:'стрелка'}, {s:'↶',k:'стрелка'}, {s:'↷',k:'стрелка'}] }, { name: 'Математические', items: [{s:'≈',k:'примерно'}, {s:'≠',k:'не равно'}, {s:'≤',k:'меньше или равно'}, {s:'≥',k:'больше или равно'}, {s:'÷',k:'деление'}, {s:'×',k:'умножение'}, {s:'−',k:'минус'}, {s:'+',k:'плюс'}, {s:'∞',k:'бесконечность'}, {s:'π',k:'пи'}, {s:'√',k:'корень'}, {s:'∫',k:'интеграл'}, {s:'∑',k:'сумма'}, {s:'°',k:'градус'}, {s:'¹',k:'1 степень'}, {s:'²',k:'2 степень'}, {s:'³',k:'3 степень'}, {s:'µ',k:'мю микро'}, {s:'∆',k:'дельта'}, {s:'¼',k:'одна четверть'}, {s:'½',k:'одна вторая'}, {s:'¾',k:'три четверти'}] }, { name: 'Фигуры и знаки', items: [{s:'★',k:'звезда star'}, {s:'☆',k:'звезда star'}, {s:'✓',k:'галочка check'}, {s:'✗',k:'крестик x'}, {s:'♥',k:'сердце heart'}, {s:'♦',k:'бубны'}, {s:'♣',k:'трефы'}, {s:'♠',k:'пики'}, {s:'♪',k:'нота'}, {s:'♫',k:'нота'}, {s:'●',k:'круг'}, {s:'○',k:'круг'}, {s:'■',k:'квадрат'}, {s:'□',k:'квадрат'}] }, { name: 'Валюты', items: [{s:'€',k:'евро euro'}, {s:'£',k:'фунт pound'}, {s:'¥',k:'йена yen'}, {s:'₽',k:'рубль ruble'}, {s:'$',k:'доллар dollar'}, {s:'¢',k:'цент cent'}, {s:'₩',k:'вон won'}, {s:'₪',k:'шекель shekel'}, {s:'₹',k:'рупия rupee'}, {s:'₿',k:'биткоин bitcoin'}] }, { name: 'Шахматы', items: [{s:'♔',k:'король'}, {s:'♕',k:'ферзь'}, {s:'♖',k:'ладья'}, {s:'♗',k:'слон'}, {s:'♘',k:'конь'}, {s:'♙',k:'пешка'}, {s:'♚',k:'король'}, {s:'♛',k:'ферзь'}, {s:'♜',k:'ладья'}, {s:'♝',k:'слон'}, {s:'♞',k:'конь'}] } ];
 const emojis = [ { name: 'Недавно использованные', items: [] }, { name: 'Смайлики и эмоции', items: '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 🥰 😗 😙 😚 🙂 🤗 🤩 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 🥶 😳 🤪 😵 😡 😠 🤬 😷 🤒 🤕 🤢 🤮 🤧 😇 🤠 🥳 🥴 🥺 🤡 🤥 🤫 🤭 🧐 🤓'.split(/\s+/).map(s => ({s})) }, { name: 'Люди и тело', items: '👋 🤚 🖐 ✋ 🖖 👌 🤏 ✌ 🤞 🤟 🤘 🤙 👈 👉 👆 🖕 👇 ☝ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍ 💅 🤳 💪 🦵 🦶 👂 👃 🧠 🦷 🦴 👀 👁 👅 👄 👶 🧒 👦 👧 🧑 👱 👨 🧔 👩 🧓 👴 👵'.split(/\s+/).map(s => ({s})) }, { name: 'Животные и природа', items: '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐔 🐧 🐦 🐤 🦋 🐛 🐺 🐗 🐴 🦓 🦒 🐘 🦏 🐪 🐫 🐿 🦔 🐾 🌵 🎄 🌲 🌳 🌴 🌱 🌿 ☘ 🍀 🍁 🍄 🐚 🌾 💐 🌷 🌹 🥀 🌺 🌸 🌼 🌻 🌞 🌎 🌍 🌏 🌕 🌖 🌗 🌘 🌑 🌒 🌓 🌔 🌙 🌚 🌛 🌜 💫 ⭐ 🌟 ✨ ⚡ 🔥 💥 ☄ ☀ 🌤 ⛅ 🌥 🌦 🌈 ☁ 🌧 ⛈ 🌩 🌨 🌬 💨 🌪 🌫 🌊 💧 💦 ☔'.split(/\s+/).map(s => ({s})) }, { name: 'Еда и напитки', items: '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🍈 🍒 🍑 🍍 🥥 🥝 🍅 🍆 🥑 🥦 🥬 🥒 🌶 🌽 🥕 🧄 🧅 🥔 🍠 🥐 🥯 🍞 🥖 🥨 🧀 🥚 🍳 🧈 🥞 🧇 🥓 🥩 🍗 🍖 🦴 🌭 🍔 🍟 🍕 🥪 🥙 🧆 🌮 🌯 🥗 🥫 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🍤 🍙 🍚 🍘 🍥 🥠 🥮 🍢 🍧 🍨 🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 🍩 🍪 🌰 🥜 🍯 🥛 🍼 ☕ 🍵 🧃 🥤 🍶 🍺 🍻 🥂 🍷 🥃 🍸 🍹 🧉 🍾 🧊 🥄 🍴 🍽'.split(/\s+/).map(s => ({s})) }, { name: 'Активности', items: '⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 🪀 🏓 🏸 🏒 🏑 🥍 🏏 🥅 ⛳ 🏹 🎣 🤿 🥊 🥋 🎽 🛹 🛷 ⛸ 🥌 🎿 ⛷ 🏂 🏋 🤸 ⛹ 🤺 🤾 🏌 🏇 🧘 🏄 🏊 🤽 🚣 🧗 🚵 🚴 🏆 🥇 🥈 🥉 🏅 🎖 🏵 🎗 🎫 🎟 🎪 🤹 🎭 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🎷 🎺 🎸 🪕 🎻 🎲 ♟ 🎯 🎳 🎮 🎰'.split(/\s+/).map(s => ({s})) }, { name: 'Путешествия и места', items: '🚗 🚕 🚙 🚌 🚐 🚑 🚒 🚓 🚔 🚜 🏎 🏍 🛵 🛺 🚲 🛴 🛹 🚏 🛣 🛤 ⛽ 🚨 🚥 🚦 🛑 🚧 ⚓ ⛵ 🛶 🚤 🛳 ⛴ 🛥 🚢 ✈ 🛩 🛫 🛬 💺 🚁 🚟 🚠 🚡 🛰 🚀 🛸 🛎 🧳 ⌛ ⏳ ⌚ ⏰ ⏱ ⏲ 🕰 🕛 🕧 🕐 🕜 🕑 🕝 🕒 🕞 🕓 🕟 🕔 🕠 🕕 🕡 🕖 🕢 🕗 🕣 🕘 🕤 🕙 🕥 🕚 🕦 🌑 🌒 🌓 🌔 🌕 🌖 🌗 🌘 🌙 🌚 🌛 🌜 🌡 ☀ 🌝 🌞 🪐 ⭐ 🌟 🌠 🌌 ☁ ⛅ ⛈ 🌤 🌥 🌦 🌧 🌨 🌩 🌪 🌫 🌬 🌀 🌈 🌂 ☂ ☔ ⛱ ⚡ ❄ ☃ ⛄ ☄ 🔥 💧 🌊 🎃 🎄 🎆 🎇 🧨 ✨ 🎈 🎉 🎊 🎋 🎍 🎎 🎏 🎐 🎑 🧧 🎀 🎁 🎗 🎟 🎫'.split(/\s+/).map(s => ({s})) }, { name: 'Объекты', items: '⌚ 📱 📲 💻 ⌨ 🖥 🖨 🖱 🖲 🕹 💽 💾 💿 📀 📼 📷 📸 📹 🎥 📽 🎞 📞 ☎ 📟 📠 📺 📻 🎙 🎚 🎛 🧭 ⏱ ⏲ ⏰ 🕰 ⌛ ⏳ 📡 🔋 🔌 💡 🔦 🕯 🧯 💸 💵 💴 💶 💷 💰 💳 💎 ⚖ 🛠 ⛏ 🔩 ⚙ 🧱 ⛓ 💉 🩸 🧬 🔬 🔭 🛰 🛎 🔑 🗝 🛋 🪑 🛌 🛏 🚪 🚽 🚿 🛁 🚬 ⚰ ⚱ 🏺 🗺 🗾 🏔 ⛰ 🌋 🗻 🏕 🏖 🏜 🏝 🏞 🏟 🏛 🏗 🏘 🏚 🏠 🏡 🏢 🏣 🏤 🏥 🏦 🏨 🏩 🏪 🏫 🏬 🏭 🏯 🏰 💒 🗼 🗽 ⛪ 🕌 🛕 🕍 ⛩ 🕋 ⛲ ⛺ 🌁 🌃 🏙 🌄 🌅 🌆 🌇 🌉 ♨ 🎠 🎡 🎢 💈 🎪 🚂 🚃 🚄 🚅 🚆 🚇 🚈 🚉 🚊 🚝 🚞 🚋 🚌 🚍 🚎 🚐 🚑 🚒 🚓 🚔 🚕 🚖 🚗 🚘 🚙 🚚 🚛 🚜'.split(/\s+/).map(s => ({s})) }, { name: 'Символы и флаги', items: '❤ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣ 💕 💞 💓 💗 💖 💘 💝 💟 ☮ ✝ ☪ 🕉 ☸ ✡ 🔯 🕎 ☯ ☦ 🛐 ⛎ ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓ 🆔 ⚛ 🉑 ☢ ☣ 📳 📴 🈶 🈚 🈸 🈺 🈷 ✴ 🆚 💮 🉐 ㊙ ㊗ 🈴 🈵 🈹 🈲 🅰 🅱 🆎 🆑 🅾 🆘 ❌ ⭕ 🛑 ⛔ 📛 🚫 💯 💢 ♨ 🚷 🚯 🚳 🚱 🔞 📵 🚭 ❗ ❕ ❓ ❔ ‼ ⁉ 🔅 🔆 〽 ⚠ 🚸 🔱 ⚜ 🔰 ♻ ✅ 🈯 💹 ❇ ✳ ❎ 🌐 💠 Ⓜ 🌀 💤 🏧 🚾 ♿ 🅿 🈂 🛂 🛃 🛄 🛅 🚹 🚺 🚼 ⚧ 🚻 🚮 🎦 📶 🈁 🔣 ℹ 🔤 🔡 🔠 🆖 🆗 🆙 🆒 🆕 🆘 🆙 🆓 🔢 ⏏ ▶ ⏸ ⏯ ⏹ ⏺ ⏭ ⏮ ⏩ ⏪ ⏫ ⏬ ◀ 🔼 🔽 ➡ ⬅ ⬆ ⬇ ↘ ↖ ↪ ↩ ⤴ ⤵ 🔀 🔁 🔂 🔄 🔃 🎵 🎶 ➕ ➖ ➗ ✖ ♾ 💲 💱 🔚 🔙 🔛 🔝 🔜 〰 ➰ ➿ ✔ ☑ 🔘 🔴 🟠 🟡 🟢 🔵 🟣 ⚫ ⚪ 🟤 🔺 🔻 🏁 🚩 🎌 🏴 🏳 🌈 ☠'.split(/\s+/).map(s => ({s})) } ];
 const emojiKeywords={'😀':'лицо улыбка happy smile face','😁':'улыбка зубы grin','😂':'смех слезы радость joy','🤣':'катаюсь по полу от смеха rofl','😃':'большая улыбка smiley','😄':'счастливый смех глаза smile','😅':'улыбка пот sweat cold','😆':'щурясь laughing squinting','😉':'подмигивание wink','😊':'улыбка румянец blush','😋':'вкусно язык yum delicious','😎':'крутой очки cool sunglasses','😍':'влюблен сердце глаза heart eyes love','😘':'поцелуй kiss','🥰':'любовь сердечки smiling face with hearts','😗':'целую kissing','😙':'целую улыбка','😚':'целую глаза закрыты','🙂':'легкая улыбка','🤗':'объятия hugs','🤩':'звезды в глазах восторг star struck','🤔':'думаю размышление thinking','🤨':'бровь raised eyebrow','😐':'нейтральный neutral face','😑':'без выражения expressionless','😶':'нет рта no mouth','🙄':'закатываю глаза roll eyes','😏':'ухмылка smirk','😣':'страдание persevere','😥':'грустный пот sad but relieved','😮':'удивление рот открыт face with open mouth','🤐':'рот на замке zipper mouth','😯':'тихо hushed','😪':'сонный sleepy','😫':'усталый tired','😴':'сплю sleeping','😌':'облегчение relieved','😛':'язык stuck out tongue','😜':'язык подмигиваю wink tongue','😝':'язык щурюсь squinting tongue','🤤':'слюни drooling','😒':'недовольный unamused','😓':'удрученный пот sweat','😔':'задумчивый pensive','😕':'смущенный confused','🙃':'вверх ногами upside down','🤑':'деньги язык money mouth','😲':'изумление astonished','☹':'хмурый frowning','🙁':'слегка хмурый','😖':'смятение confounded','😞':'разочарование disappointed','😟':'беспокойство worried','😤':'пар из носа злость triumph victory','😢':'плач cry','😭':'рыдание sob','😦':'хмурый рот открыт','😧':'страдание anguished','😨':'страх fearful','😩':'утомленный weary','🤯':'взрыв мозг шок exploding head','😬':'гримаса grimacing','😰':'тревога пот anxious sweat','😱':'крик ужас scream','🥵':'жарко красный hot face','🥶':'холодно синий cold face','😳':'румянец flushed','🤪':'дурачусь zany face','😵':'головокружение dizzy','😡':'надутый красный злой pouting enraged','😠':'злость angry','🤬':'ругань символы cursing','😷':'маска medical mask','🤒':'термометр больной','🤕':'бинт травма','🤢':'тошнота nauseated','🤮':'рвота vomiting','🤧':'чихание sneezing','😇':'ангел нимб angel','🤠':'ковбой cowboy','🥳':'праздник вечеринка partying','🥴':'пьяный woozy face','🥺':'умоляю pleading begging','🤡':'клоун clown','🤥':'вру нос lying face','🤫':'тише shushing face','🤭':'рука у рта хихикаю hand over mouth','🧐':'монокль face with monocle','🤓':'ботаник очки nerd','👋':'привет машу рукой wave','👍':'лайк палец вверх thumbs up','👎':'дизлайк палец вниз thumbs down','❤️':'красное сердце любовь','⭐':'звезда star','🔥':'огонь пламя fire','✨':'блестки магия sparkles','🎉':'хлопушка праздник','🚀':'ракета старт','🐶':'собака dog','🐱':'кошка cat','🌸':'цветок вишни','🍕':'пицца pizza','🍔':'бургер','☕':'кофе чай','🎂':'торт день рождения birthday'};
@@ -34,7 +33,6 @@ const allSymbols = [].concat(...symbols.map(c => c.items));
 const allEmojis = [].concat(...emojis.map(c => c.items));
 
 export function getHtml() {
-    // HTML остается без изменений, но привожу его для полноты
     return `
         <style> .tab-btn { color: #6B7280; border-color: transparent; transition: all 0.2s ease-in-out; } .dark .tab-btn { color: #9CA3AF; } .tab-btn.active { color: white; background-color: #3B82F6; border-color: #3B82F6; border-radius: 0.5rem 0.5rem 0 0; } .dark .tab-btn.active { background-color: #60A5FA; color: #1F2937; border-color: #60A5FA; } .tab-btn:not(.active):hover { color: #1F2937; border-color: #D1D5DB; } .dark .tab-btn:not(.active):hover { color: #F9FAFB; border-color: #4B5563; } #skin-tone-popup { display: none; position: absolute; z-index: 60; background-color: white; border-radius: 0.5rem; padding: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; } .dark #skin-tone-popup { background-color: #374151; border-color: #4b5563; } .skin-tone-btn { font-size: 1.5rem; padding: 0.25rem; border-radius: 0.25rem; } .skin-tone-btn:hover { background-color: #e5e7eb; } .dark .skin-tone-btn:hover { background-color: #4b5563; } </style>
         <div class="space-y-4">
@@ -47,7 +45,6 @@ export function getHtml() {
     `;
 }
 
-// Функции createItemButton, renderContent, renderNav остаются без изменений
 function createItemButton(symbol, isEmoji) { const { s, c, t, k } = symbol; const btn = document.createElement('button'); btn.className = 'flex items-center justify-center h-12 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-blue-500 hover:text-white transition-colors text-2xl'; btn.textContent = s; btn.dataset.copy = c || s; btn.dataset.keywords = `${s} ${k || ''}`.toLowerCase(); if(t) btn.title = t; if (isEmoji && EMOJI_WITH_SKIN_TONES.has(s)) { btn.dataset.skintone = "true"; } return btn; }
 function renderContent(container, data, isEmoji) { container.innerHTML = ''; data.forEach(category => { if (category.name === 'Недавно использованные' && category.items.length === 0) return; const section = document.createElement('section'); section.id = `category-${category.name.replace(/\s+/g, '-')}`; section.className = 'mb-6'; section.innerHTML = `<h3 class="text-lg font-semibold mb-3 sticky top-0 bg-white dark:bg-gray-900 py-1">${category.name}</h3>`; const grid = document.createElement('div'); grid.className = 'grid grid-cols-6 sm:grid-cols-8 md:grid-cols-6 lg:grid-cols-8 gap-2'; category.items.forEach(item => { grid.appendChild(createItemButton(item, isEmoji)); }); section.appendChild(grid); container.appendChild(section); }); }
 function renderNav(container, data) { container.innerHTML = `<ul class="space-y-2 sticky top-4"></ul>`; const ul = container.querySelector('ul'); data.forEach(category => { if (category.name === 'Недавно использованные' && category.items.length === 0) return; const id = `category-${category.name.replace(/\s+/g, '-')}`; ul.innerHTML += `<li><a href="#${id}" class="block p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">${category.name}</a></li>`; }); }
@@ -64,6 +61,7 @@ export async function init() {
     
     let activeTab = 'symbols';
     const dataMap = { symbols: JSON.parse(JSON.stringify(symbols)), emojis: JSON.parse(JSON.stringify(emojis)) };
+    let longPressTriggered = false;
 
     const showNotification = () => {
         notification.classList.remove('opacity-0');
@@ -93,25 +91,55 @@ export async function init() {
         skinTonePopup.style.top = `${rect.bottom + window.scrollY + 5}px`;
     };
 
-    const updateRecentAndRender = async (tab) => { /* ... (без изменений) ... */ };
-    const handleSearch = () => { /* ... (без изменений) ... */ };
-    
-    // --- ИСПРАВЛЕННАЯ И УПРОЩЕННАЯ ЛОГИКА ОБРАБОТКИ СОБЫТИЙ ---
+    const updateRecentAndRender = async (tab) => {
+        const key = tab === 'symbols' ? RECENT_SYMBOLS_KEY : RECENT_EMOJI_KEY;
+        const recentItems = await getRecent(key);
+        if (dataMap[tab] && dataMap[tab][0] && dataMap[tab][0].name === 'Недавно использованные') {
+            dataMap[tab][0].items = recentItems;
+        }
+        const data = dataMap[tab];
+        renderContent(contentArea, data, tab === 'emojis');
+        renderNav(navArea, data);
+        setupIntersectionObserver();
+    };
 
-    // 1. Обычный клик для копирования
+    const handleSearch = () => {
+        const term = searchInput.value.toLowerCase().trim();
+        const mainContent = document.querySelector('.flex-col.md\\:flex-row');
+        if (term) {
+            mainContent.classList.add('hidden');
+            searchResultsArea.classList.remove('hidden');
+            const source = activeTab === 'symbols' ? allSymbols : allEmojis;
+            const results = source.filter(item => `${item.s} ${item.k || ''}`.toLowerCase().includes(term));
+            searchResultsArea.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2';
+            results.forEach(item => grid.appendChild(createItemButton(item, activeTab === 'emojis')));
+            searchResultsArea.appendChild(grid);
+        } else {
+            mainContent.classList.remove('hidden');
+            searchResultsArea.classList.add('hidden');
+        }
+    };
+
+    // --- ИСПРАВЛЕННАЯ ЛОГИКА СОБЫТИЙ ---
     appContentContainer.addEventListener('click', (e) => {
+        if (longPressTriggered) {
+            longPressTriggered = false;
+            return;
+        }
         const button = e.target.closest('button[data-copy]');
         if (button) {
             const copyText = button.dataset.copy;
             const isEmoji = activeTab === 'emojis';
             const key = isEmoji ? RECENT_EMOJI_KEY : RECENT_SYMBOLS_KEY;
-            addToRecent(key, { s: copyText, c: copyText, k: button.dataset.keywords });
+            const dataToSave = { s: button.textContent, c: copyText, k: button.dataset.keywords };
+            addToRecent(key, dataToSave);
             navigator.clipboard.writeText(copyText);
             showNotification();
         }
     });
 
-    // 2. Клик правой кнопкой мыши для тона кожи (на десктопе)
     appContentContainer.addEventListener('contextmenu', e => {
         const button = e.target.closest('button[data-skintone="true"]');
         if (button) {
@@ -120,37 +148,36 @@ export async function init() {
         }
     });
 
-    // 3. Долгое нажатие для тона кожи (на мобильных)
     appContentContainer.addEventListener('touchstart', e => {
         const button = e.target.closest('button[data-skintone="true"]');
         if (button) {
+            longPressTriggered = false;
             longPressTimer = setTimeout(() => {
-                e.preventDefault();
+                longPressTriggered = true;
                 showSkinTonePopup(button);
-                longPressTimer = null;
             }, 500);
         }
     }, { passive: true });
 
-    appContentContainer.addEventListener('touchend', () => {
+    const clearLongPress = () => {
         if (longPressTimer) clearTimeout(longPressTimer);
-    });
-    appContentContainer.addEventListener('touchmove', () => {
-        if (longPressTimer) clearTimeout(longPressTimer);
-    });
-
-    // Глобальный клик для скрытия popup
+    };
+    appContentContainer.addEventListener('touchend', clearLongPress);
+    appContentContainer.addEventListener('touchmove', clearLongPress);
+    
     document.addEventListener('click', (e) => {
         if (!skinTonePopup.contains(e.target) && !e.target.closest('button[data-skintone]')) {
             skinTonePopup.style.display = 'none';
         }
-    });
-
-    // ... (остальная часть init без изменений)
+    }, true);
+    // --- КОНЕЦ ИСПРАВЛЕНИЙ ---
+    
     tabs.forEach(tab => { tab.addEventListener('click', () => { activeTab = tab.dataset.tab; tabs.forEach(t => t.classList.remove('active')); tab.classList.add('active'); updateRecentAndRender(activeTab); handleSearch(); }); });
     searchInput.addEventListener('input', handleSearch);
     navArea.addEventListener('click', e => { const link = e.target.closest('a'); if (link) { e.preventDefault(); e.stopPropagation(); const targetId = link.getAttribute('href'); const targetSection = contentArea.querySelector(targetId); if (targetSection) { targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); } } });
+    
     function setupIntersectionObserver() { if (intersectionObserver) intersectionObserver.disconnect(); const navLinks = navArea.querySelectorAll('a'); const observerOptions = { rootMargin: '-50px 0px -50% 0px' }; intersectionObserver = new IntersectionObserver(entries => { entries.forEach(entry => { const id = entry.target.id; const navLink = navArea.querySelector(`a[href="#${id}"]`); if(navLink) { if (entry.isIntersecting) { navLinks.forEach(link => link.classList.remove('font-bold', 'bg-gray-200', 'dark:bg-gray-700')); navLink.classList.add('font-bold', 'bg-gray-200', 'dark:bg-gray-700'); } } }); }, observerOptions); contentArea.querySelectorAll('section').forEach(section => intersectionObserver.observe(section)); }
+    
     await updateRecentAndRender(activeTab);
 }
 
@@ -158,4 +185,5 @@ export function cleanup() {
     if (timeoutId) clearTimeout(timeoutId);
     if (intersectionObserver) intersectionObserver.disconnect();
     if (longPressTimer) clearTimeout(longPressTimer);
+    document.removeEventListener('click', () => {}, true);
 }
