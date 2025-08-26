@@ -1,3 +1,5 @@
+// js/apps/ticTacToe.js
+
 export function getHtml() {
     return `
         <div class="p-4 flex flex-col items-center">
@@ -11,6 +13,11 @@ export function getHtml() {
                 </div>
             </div>
             <div id="ttt-game-container" class="hidden w-full flex flex-col items-center space-y-4">
+                 <!-- НОВЫЙ БЛОК: СЧЕТЧИК ПОБЕД -->
+                 <div class="flex justify-around w-full max-w-xs text-lg font-bold">
+                    <div class="p-2 rounded-lg">Игрок X: <span id="ttt-score-x" class="text-blue-500">0</span></div>
+                    <div class="p-2 rounded-lg">Игрок O: <span id="ttt-score-o" class="text-pink-500">0</span></div>
+                 </div>
                  <h3 id="ttt-status" class="text-2xl font-semibold mb-2 h-8"></h3>
                  <div id="ttt-board" class="w-full max-w-xs sm:max-w-sm mx-auto grid grid-cols-3 gap-2">
                     ${Array.from({ length: 9 }).map((_, i) => `<div data-cell-index="${i}" class="ttt-cell bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center text-5xl sm:text-6xl font-bold cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 aspect-square"></div>`).join('')}
@@ -34,25 +41,34 @@ export function init() {
     const changeModeBtn = document.getElementById('ttt-change-mode-btn');
     const playAgainBtn = document.getElementById('ttt-play-again-btn');
     const cells = document.querySelectorAll('.ttt-cell');
+    const scoreXEl = document.getElementById('ttt-score-x'); // Новый элемент
+    const scoreOEl = document.getElementById('ttt-score-o'); // Новый элемент
 
     let gameActive, currentPlayer, gameState, gameMode, cpuDifficulty;
+    let scoreX = 0, scoreO = 0; // Новые переменные
     const player = 'X', cpu = 'O';
     const winningConditions = [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6] ];
 
     const messages = { winning: () => `Игрок ${currentPlayer} победил!`, draw: () => `Ничья!`, turn: () => `Ход игрока ${currentPlayer}` };
 
+    const updateScoreDisplay = () => { scoreXEl.textContent = scoreX; scoreOEl.textContent = scoreO; };
     const initializeGame = () => { gameActive = true; currentPlayer = "X"; gameState = Array(9).fill(""); statusDisplay.innerHTML = messages.turn(); cells.forEach(c => { c.innerHTML = ""; c.classList.remove('text-blue-500', 'text-pink-500'); }); };
-    const startGame = (mode, difficulty = null) => { gameMode = mode; cpuDifficulty = difficulty; initializeGame(); modeSelection.classList.add('hidden'); gameContainer.classList.remove('hidden'); };
+    const startGame = (mode, difficulty = null) => { gameMode = mode; cpuDifficulty = difficulty; scoreX = 0; scoreO = 0; updateScoreDisplay(); initializeGame(); modeSelection.classList.add('hidden'); gameContainer.classList.remove('hidden'); };
     const handleCellPlayed = (cell, index) => { gameState[index] = currentPlayer; cell.innerHTML = currentPlayer; cell.classList.add(currentPlayer === 'X' ? 'text-blue-500' : 'text-pink-500'); };
     const handleResultValidation = () => {
         let roundWon = winningConditions.some(cond => cond.every(i => gameState[i] === currentPlayer));
-        if (roundWon) { statusDisplay.innerHTML = messages.winning(); return gameActive = false; }
+        if (roundWon) {
+            statusDisplay.innerHTML = messages.winning();
+            currentPlayer === "X" ? scoreX++ : scoreO++; // Обновляем счет
+            updateScoreDisplay();
+            return gameActive = false;
+        }
         if (!gameState.includes("")) { statusDisplay.innerHTML = messages.draw(); return gameActive = false; }
         return true;
     };
     const handlePlayerChange = () => { currentPlayer = currentPlayer === "X" ? "O" : "X"; statusDisplay.innerHTML = messages.turn(); };
 
-    // AI Logic
+    // AI Logic (без изменений)
     const handleEasyComputerMove = () => { let move; do { move = Math.floor(Math.random() * 9); } while (gameState[move] !== ""); return move; };
     const evaluate = b => { for (let cond of winningConditions) { const [a, c, d] = cond; if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a] === cpu ? 10 : -10; } return 0; };
     const minimax = (board, depth, isMax) => {
