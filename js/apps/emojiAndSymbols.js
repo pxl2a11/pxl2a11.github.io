@@ -1,6 +1,6 @@
 import { getUserData, saveUserData } from 'jsdataManager.js';
 
- --- State Management ---
+// --- State Management ---
 let timeoutId;
 let intersectionObserver;
 const RECENT_SYMBOLS_KEY = 'recentSymbols';
@@ -18,7 +18,7 @@ const addToRecent = async (key, symbol) => {
     await saveUserData(key, recent);
 };
 
- --- Data ---
+// --- Data ---
 const symbols = [
     { name: 'Недавно использованные', items: [] },
     { name: 'Популярные', items: [{s:'✓',k:'галочка check'}, {s:'✗',k:'крестик x'}, {s:'★',k:'звезда star'}, {s:'☆',k:'звезда star'}, {s:'♥',k:'сердце heart love'}, {s:'₽',k:'рубль'}, {s:'€',k:'евро'}, {s:'$',k:'доллар'}, {s:'→',k:'стрелка вправо right arrow'}, {s:'←',k:'стрелка влево left arrow'}, {s:'©',k:'копирайт copyright'}, {s:'™',k:'тм trademark'}] },
