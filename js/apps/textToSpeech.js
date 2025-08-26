@@ -1,0 +1,137 @@
+// js/apps/textToSpeech.js
+
+let speechSynthesis = window.speechSynthesis;
+let utterance;
+let voiceSelect, textInput, rateSlider, pitchSlider;
+
+// Функция для загрузки и отображения доступных голосов
+function populateVoiceList() {
+    if (!speechSynthesis) return;
+    const voices = speechSynthesis.getVoices();
+    if (voiceSelect) {
+        voiceSelect.innerHTML = '';
+        voices.forEach(voice => {
+            // Отображаем только голоса для русского и английского языков для чистоты списка
+            if (voice.lang.includes('ru') || voice.lang.includes('en')) {
+                const option = document.createElement('option');
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.setAttribute('data-lang', voice.lang);
+                option.setAttribute('data-name', voice.name);
+                voiceSelect.appendChild(option);
+            }
+        });
+    }
+}
+
+// Обработчики событий
+function handlePlay() {
+    if (speechSynthesis.speaking) {
+        console.error('SpeechSynthesis.speaking');
+        return;
+    }
+    if (textInput.value !== '') {
+        utterance = new SpeechSynthesisUtterance(textInput.value);
+        utterance.onend = () => {
+            console.log('Utterance has finished being spoken.');
+        };
+        utterance.onerror = (event) => {
+            console.error('SpeechSynthesisUtterance.onerror', event);
+        };
+
+        const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+        const voices = speechSynthesis.getVoices();
+        utterance.voice = voices.find(voice => voice.name === selectedOption);
+        
+        utterance.pitch = pitchSlider.value;
+        utterance.rate = rateSlider.value;
+        
+        speechSynthesis.speak(utterance);
+    }
+}
+
+function handleStop() {
+    speechSynthesis.cancel();
+}
+
+function handlePause() {
+    speechSynthesis.pause();
+}
+
+function handleResume() {
+    speechSynthesis.resume();
+}
+
+function updateSliderValue(event) {
+    const slider = event.target;
+    const output = document.getElementById(`${slider.id}Value`);
+    if (output) {
+        output.textContent = slider.value;
+    }
+}
+
+// Экспортируемые функции
+export function getHtml() {
+    return `
+        <div class="space-y-6">
+            <div>
+                <label for="text-to-speech-input" class="block text-sm font-medium mb-2">Текст для озвучивания:</label>
+                <textarea id="text-to-speech-input" rows="6" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500" placeholder="Введите текст здесь..."></textarea>
+            </div>
+
+            <div>
+                <label for="voice-select" class="block text-sm font-medium mb-2">Выберите голос:</label>
+                <select id="voice-select" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
+                    <option>Загрузка голосов...</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="rate-slider" class="block text-sm font-medium">Скорость: <span id="rate-sliderValue">1</span></label>
+                    <input type="range" id="rate-slider" min="0.5" max="2" value="1" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                </div>
+                <div>
+                    <label for="pitch-slider" class="block text-sm font-medium">Высота тона: <span id="pitch-sliderValue">1</span></label>
+                    <input type="range" id="pitch-slider" min="0" max="2" value="1" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 justify-center">
+                <button id="play-btn" class="px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">Воспроизвести</button>
+                <button id="pause-btn" class="px-5 py-2.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300">Пауза</button>
+                <button id="resume-btn" class="px-5 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">Продолжить</button>
+                <button id="stop-btn" class="px-5 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Стоп</button>
+            </div>
+        </div>
+    `;
+}
+
+export function init() {
+    voiceSelect = document.getElementById('voice-select');
+    textInput = document.getElementById('text-to-speech-input');
+    rateSlider = document.getElementById('rate-slider');
+    pitchSlider = document.getElementById('pitch-slider');
+    
+    // Инициализация голосов
+    populateVoiceList();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoiceList;
+    }
+
+    // Назначение событий кнопкам
+    document.getElementById('play-btn')?.addEventListener('click', handlePlay);
+    document.getElementById('pause-btn')?.addEventListener('click', handlePause);
+    document.getElementById('resume-btn')?.addEventListener('click', handleResume);
+    document.getElementById('stop-btn')?.addEventListener('click', handleStop);
+    
+    // Назначение событий слайдерам
+    rateSlider?.addEventListener('input', updateSliderValue);
+    pitchSlider?.addEventListener('input', updateSliderValue);
+}
+
+export function cleanup() {
+    // Останавливаем любое воспроизведение при выходе из приложения
+    if (speechSynthesis) {
+        speechSynthesis.cancel();
+    }
+}
