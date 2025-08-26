@@ -12,6 +12,49 @@ let currentSpeed;
 
 export function getHtml() {
     return `
+        <style>
+            /* --- Стили для игры "Змейка" --- */
+            .snake-game-container {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            #snake-canvas {
+                background-color: #f1f5f9; /* slate-100 */
+                border-radius: 0.5rem;
+                border: 2px solid #94a3b8; /* slate-400 */
+            }
+
+            .dark #snake-canvas {
+                background-color: #0f172a; /* slate-900 */
+                border-color: #334155; /* slate-700 */
+            }
+
+            .snake-game-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                background-color: rgba(31, 41, 55, 0.7); /* gray-800 with opacity */
+                color: white;
+                text-align: center;
+                border-radius: 0.5rem;
+                cursor: pointer;
+            }
+
+            .dark .snake-game-overlay {
+                background-color: rgba(226, 232, 240, 0.7); /* slate-200 with opacity */
+                color: #1e293b; /* gray-800 */
+            }
+        </style>
         <div class="snake-game-container">
             <div class="flex justify-between items-center w-full max-w-md mb-2">
                 <span class="font-bold text-lg">Счет: <span id="snake-score">0</span></span>
