@@ -2,16 +2,14 @@
 
 let speechSynthesis = window.speechSynthesis;
 let utterance;
-let voiceSelect, textInput, rateSlider, pitchSlider;
+let voiceSelect, textInput, rateSlider, pitchSlider, highlighter;
 
-// Функция для загрузки и отображения доступных голосов
 function populateVoiceList() {
     if (!speechSynthesis) return;
     const voices = speechSynthesis.getVoices();
     if (voiceSelect) {
         voiceSelect.innerHTML = '';
         voices.forEach(voice => {
-            // Отображаем только голоса для русского и английского языков для чистоты списка
             if (voice.lang.includes('ru') || voice.lang.includes('en')) {
                 const option = document.createElement('option');
                 option.textContent = `${voice.name} (${voice.lang})`;
@@ -23,25 +21,39 @@ function populateVoiceList() {
     }
 }
 
-// Обработчики событий
 function handlePlay() {
-    if (speechSynthesis.speaking) {
-        console.error('SpeechSynthesis.speaking');
-        return;
-    }
+    if (speechSynthesis.speaking) return;
     if (textInput.value !== '') {
         utterance = new SpeechSynthesisUtterance(textInput.value);
+        
+        // --- НОВЫЙ КОД ДЛЯ ПОДСВЕТКИ ---
+        utterance.onboundary = (event) => {
+            if (event.name === 'word') {
+                const text = textInput.value;
+                const start = event.charIndex;
+                let end = text.indexOf(' ', start);
+                if (end === -1) end = text.length;
+                
+                const highlightedText = 
+                    text.substring(0, start) +
+                    '<span class="bg-blue-200 dark:bg-blue-800">' +
+                    text.substring(start, end) +
+                    '</span>' +
+                    text.substring(end);
+                
+                highlighter.innerHTML = highlightedText;
+            }
+        };
+        
         utterance.onend = () => {
-            console.log('Utterance has finished being spoken.');
+            highlighter.innerHTML = textInput.value; // Убираем подсветку в конце
         };
-        utterance.onerror = (event) => {
-            console.error('SpeechSynthesisUtterance.onerror', event);
-        };
-
-        const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+        // --- КОНЕЦ НОВОГО КОДА ---
+        
+        utterance.onerror = (event) => console.error('SpeechSynthesisUtterance.onerror', event);
+        const selectedOption = voiceSelect.selectedOptions[0]?.getAttribute('data-name');
         const voices = speechSynthesis.getVoices();
         utterance.voice = voices.find(voice => voice.name === selectedOption);
-        
         utterance.pitch = pitchSlider.value;
         utterance.rate = rateSlider.value;
         
@@ -51,31 +63,44 @@ function handlePlay() {
 
 function handleStop() {
     speechSynthesis.cancel();
+    highlighter.innerHTML = textInput.value;
 }
-
-function handlePause() {
-    speechSynthesis.pause();
-}
-
-function handleResume() {
-    speechSynthesis.resume();
-}
+function handlePause() { speechSynthesis.pause(); }
+function handleResume() { speechSynthesis.resume(); }
 
 function updateSliderValue(event) {
     const slider = event.target;
     const output = document.getElementById(`${slider.id}Value`);
-    if (output) {
-        output.textContent = slider.value;
-    }
+    if (output) output.textContent = slider.value;
 }
 
-// Экспортируемые функции
 export function getHtml() {
     return `
+        <!-- Стили для подсветки -->
+        <style>
+            #tts-container { position: relative; }
+            #tts-highlighter {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                -webkit-text-fill-color: transparent;
+                color: transparent;
+            }
+            #text-to-speech-input {
+                position: absolute;
+                left: 0;
+                top: 0;
+                background-color: transparent;
+                -webkit-text-fill-color: inherit;
+            }
+        </style>
         <div class="space-y-6">
             <div>
                 <label for="text-to-speech-input" class="block text-sm font-medium mb-2">Текст для озвучивания:</label>
-                <textarea id="text-to-speech-input" rows="6" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500" placeholder="Введите текст здесь..."></textarea>
+                <!-- ИЗМЕНЕНИЕ: КОНТЕЙНЕР ДЛЯ ПОДСВЕТКИ -->
+                <div id="tts-container" class="relative">
+                    <div id="tts-highlighter" class="w-full h-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600" aria-hidden="true"></div>
+                    <textarea id="text-to-speech-input" rows="6" class="w-full h-full p-3 border rounded-lg border-transparent focus:ring-blue-500 focus:border-blue-500 focus:outline-none resize-none" placeholder="Введите текст здесь..."></textarea>
+                </div>
             </div>
 
             <div>
@@ -111,26 +136,37 @@ export function init() {
     textInput = document.getElementById('text-to-speech-input');
     rateSlider = document.getElementById('rate-slider');
     pitchSlider = document.getElementById('pitch-slider');
+    highlighter = document.getElementById('tts-highlighter');
+    const container = document.getElementById('tts-container');
     
-    // Инициализация голосов
+    // Синхронизация текста и размера
+    const syncText = () => {
+        const text = textInput.value;
+        highlighter.textContent = text;
+        const scrollHeight = textInput.scrollHeight;
+        container.style.height = `${scrollHeight}px`;
+        textInput.style.height = `${scrollHeight}px`;
+        highlighter.style.height = `${scrollHeight}px`;
+    };
+    
+    textInput.addEventListener('input', syncText);
+    textInput.addEventListener('scroll', () => { highlighter.scrollTop = textInput.scrollTop; });
+    syncText();
+    
     populateVoiceList();
     if (speechSynthesis.onvoiceschanged !== undefined) {
         speechSynthesis.onvoiceschanged = populateVoiceList;
     }
-
-    // Назначение событий кнопкам
+    
     document.getElementById('play-btn')?.addEventListener('click', handlePlay);
     document.getElementById('pause-btn')?.addEventListener('click', handlePause);
     document.getElementById('resume-btn')?.addEventListener('click', handleResume);
     document.getElementById('stop-btn')?.addEventListener('click', handleStop);
-    
-    // Назначение событий слайдерам
     rateSlider?.addEventListener('input', updateSliderValue);
     pitchSlider?.addEventListener('input', updateSliderValue);
 }
 
 export function cleanup() {
-    // Останавливаем любое воспроизведение при выходе из приложения
     if (speechSynthesis) {
         speechSynthesis.cancel();
     }
