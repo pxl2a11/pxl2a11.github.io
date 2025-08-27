@@ -1,4 +1,4 @@
-import { getUserData, saveUserData } from 'jsdataManager.js';
+import { getUserData, saveUserData } from '/js/dataManager.js';
 
 // --- State Management ---
 let timeoutId;
@@ -31,7 +31,7 @@ const symbols = [
 const emojis = [
     { name: 'Недавно использованные', items: [] },
     { name: 'Смайлики и эмоции', items: '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 🥰 😗 😙 😚 🙂 🤗 🤩 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 🥶 😳 🤪 😵 😡 😠 🤬 😷 🤒 🤕 🤢 🤮 🤧 😇 🤠 🥳 🥴 🥺 🤡 🤥 🤫 🤭 🧐 🤓'.split(/\s+/).map(s => ({s})) },
-    { name: 'Люди и тело', items: '👋 🤚 🖐 ✋ 🖖 👌 🤏 ✌ 🤞 🤟 🤘 🤙 👈 👉 👆 🖕 👇 ☝ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍ 💅 🤳 💪 🦵 🦶 👂 👃 🧠 🦷 🦴 👀 👁 👅 👄 👶 🧒 👦 👧 🧑 👱 👨 🧔 👩 🧓 👴 👵'.split(/\s+/).map(s => ({s, tones: true})) },
+    { name: 'Люди и тело', items: '👋 🤚 🖐 ✋ 🖖 👌 🤏 ✌ 🤞 🤟 🤘 🤙 👈 👉 👆 🖕 👇 ☝ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍ 💅 🤳 💪 🦵 🦶 👂 👃 🧠 🦷 🦴 👀 👁 👅 👄 👶 🧒 👦 👧 🧑 👱 👨 🧔 👩 🧓 👴 👵'.split(/\s+/).map(s => ({s})) },
     { name: 'Животные и природа', items: '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐔 🐧 🐦 🐤 🦋 🐛 🐺 🐗 🐴 🦓 🦒 🐘 🦏 🐪 🐫 🐿 🦔 🐾 🌵 🎄 🌲 🌳 🌴 🌱 🌿 ☘ 🍀 🍁 🍄 🐚 🌾 💐 🌷 🌹 🥀 🌺 🌸 🌼 🌻 🌞 🌎 🌍 🌏 🌕 🌖 🌗 🌘 🌑 🌒 🌓 🌔 🌙 🌚 🌛 🌜 💫 ⭐ 🌟 ✨ ⚡ 🔥 💥 ☄ ☀ 🌤 ⛅ 🌥 🌦 🌈 ☁ 🌧 ⛈ 🌩 🌨 🌬 💨 🌪 🌫 🌊 💧 💦 ☔'.split(/\s+/).map(s => ({s})) },
     { name: 'Еда и напитки', items: '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🍈 🍒 🍑 🍍 🥥 🥝 🍅 🍆 🥑 🥦 🥬 🥒 🌶 🌽 🥕 🧄 🧅 🥔 🍠 🥐 🥯 🍞 🥖 🥨 🧀 🥚 🍳 🧈 🥞 🧇 🥓 🥩 🍗 🍖 🦴 🌭 🍔 🍟 🍕 🥪 🥙 🧆 🌮 🌯 🥗 🥫 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🍤 🍙 🍚 🍘 🍥 🥠 🥮 🍢 🍧 🍨 🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 🍩 🍪 🌰 🥜 🍯 🥛 🍼 ☕ 🍵 🧃 🥤 🍶 🍺 🍻 🥂 🍷 🥃 🍸 🍹 🧉 🍾 🧊 🥄 🍴 🍽'.split(/\s+/).map(s => ({s})) },
     { name: 'Активности', items: '⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 🪀 🏓 🏸 🏒 🏑 🥍 🏏 🥅 ⛳ 🏹 🎣 🤿 🥊 🥋 🎽 🛹 🛷 ⛸ 🥌 🎿 ⛷ 🏂 🏋 🤸 ⛹ 🤺 🤾 🏌 🏇 🧘 🏄 🏊 🤽 🚣 🧗 🚵 🚴 🏆 🥇 🥈 🥉 🏅 🎖 🏵 🎗 🎫 🎟 🎪 🤹 🎭 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🎷 🎺 🎸 🪕 🎻 🎲 ♟ 🎯 🎳 🎮 🎰'.split(/\s+/).map(s => ({s})) },
@@ -39,60 +39,19 @@ const emojis = [
     { name: 'Объекты', items: '⌚ 📱 📲 💻 ⌨ 🖥 🖨 🖱 🖲 🕹 💽 💾 💿 📀 📼 📷 📸 📹 🎥 📽 🎞 📞 ☎ 📟 📠 📺 📻 🎙 🎚 🎛 🧭 ⏱ ⏲ ⏰ 🕰 ⌛ ⏳ 📡 🔋 🔌 💡 🔦 🕯 🧯 💸 💵 💴 💶 💷 💰 💳 💎 ⚖ 🛠 ⛏ 🔩 ⚙ 🧱 ⛓ 💉 🩸 🧬 🔬 🔭 🛰 🛎 🔑 🗝 🛋 🪑 🛌 🛏 🚪 🚽 🚿 🛁 🚬 ⚰ ⚱ 🏺 🗺 🗾 🏔 ⛰ 🌋 🗻 🏕 🏖 🏜 🏝 🏞 🏟 🏛 🏗 🏘 🏚 🏠 🏡 🏢 🏣 🏤 🏥 🏦 🏨 🏩 🏪 🏫 🏬 🏭 🏯 🏰 💒 🗼 🗽 ⛪ 🕌 🛕 🕍 ⛩ 🕋 ⛲ ⛺ 🌁 🌃 🏙 🌄 🌅 🌆 🌇 🌉 ♨ 🎠 🎡 🎢 💈 🎪 🚂 🚃 🚄 🚅 🚆 🚇 🚈 🚉 🚊 🚝 🚞 🚋 🚌 🚍 🚎 🚐 🚑 🚒 🚓 🚔 🚕 🚖 🚗 🚘 🚙 🚚 🚛 🚜'.split(/\s+/).map(s => ({s})) },
     { name: 'Символы и флаги', items: '❤ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣ 💕 💞 💓 💗 💖 💘 💝 💟 ☮ ✝ ☪ 🕉 ☸ ✡ 🔯 🕎 ☯ ☦ 🛐 ⛎ ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓ 🆔 ⚛ 🉑 ☢ ☣ 📳 📴 🈶 🈚 🈸 🈺 🈷 ✴ 🆚 💮 🉐 ㊙ ㊗ 🈴 🈵 🈹 🈲 🅰 🅱 🆎 🆑 🅾 🆘 ❌ ⭕ 🛑 ⛔ 📛 🚫 💯 💢 ♨ 🚷 🚯 🚳 🚱 🔞 📵 🚭 ❗ ❕ ❓ ❔ ‼ ⁉ 🔅 🔆 〽 ⚠ 🚸 🔱 ⚜ 🔰 ♻ ✅ 🈯 💹 ❇ ✳ ❎ 🌐 💠 Ⓜ 🌀 💤 🏧 🚾 ♿ 🅿 🈂 🛂 🛃 🛄 🛅 🚹 🚺 🚼 ⚧ 🚻 🚮 🎦 📶 🈁 🔣 ℹ 🔤 🔡 🔠 🆖 🆗 🆙 🆒 🆕 🆘 🆙 🆓 🔢 ⏏ ▶ ⏸ ⏯ ⏹ ⏺ ⏭ ⏮ ⏩ ⏪ ⏫ ⏬ ◀ 🔼 🔽 ➡ ⬅ ⬆ ⬇ ↘ ↖ ↪ ↩ ⤴ ⤵ 🔀 🔁 🔂 🔄 🔃 🎵 🎶 ➕ ➖ ➗ ✖ ♾ 💲 💱 🔚 🔙 🔛 🔝 🔜 〰 ➰ ➿ ✔ ☑ 🔘 🔴 🟠 🟡 🟢 🔵 🟣 ⚫ ⚪ 🟤 🔺 🔻 🏁 🚩 🎌 🏴 🏳 🌈 ☠'.split(/\s+/).map(s => ({s})) }
 ];
-const emojiKeywords = {
-    '😀': 'лицо улыбка happy smile face', '😁': 'улыбка зубы grin', '😂': 'смех слезы радость joy', '🤣': 'катаюсь по полу от смеха rofl', '😃': 'большая улыбка smiley', '😄': 'счастливый смех глаза smile', '😅': 'улыбка пот sweat cold', '😆': 'щурясь laughing squinting', '😉': 'подмигивание wink', '😊': 'улыбка румянец blush', '😋': 'вкусно язык yum delicious', '😎': 'крутой очки cool sunglasses', '😍': 'влюблен сердце глаза heart eyes love', '😘': 'поцелуй kiss', '🥰': 'любовь сердечки smiling face with hearts', '😗': 'целую kissing', '😙': 'целую улыбка', '😚': 'целую глаза закрыты', '🙂': 'легкая улыбка', '🤗': 'объятия hugs', '🤩': 'звезды в глазах восторг star struck', '🤔': 'думаю размышление thinking', '🤨': 'бровь raised eyebrow', '😐': 'нейтральный neutral face', '😑': 'без выражения expressionless', '😶': 'нет рта no mouth', '🙄': 'закатываю глаза roll eyes', '😏': 'ухмылка smirk', '😣': 'страдание persevere', '😥': 'грустный пот sad but relieved', '😮': 'удивление рот открыт face with open mouth', '🤐': 'рот на замке zipper mouth', '😯': 'тихо hushed', '😪': 'сонный sleepy', '😫': 'усталый tired', '😴': 'сплю sleeping', '😌': 'облегчение relieved', '😛': 'язык stuck out tongue', '😜': 'язык подмигиваю wink tongue', '😝': 'язык щурюсь squinting tongue', '🤤': 'слюни drooling', '😒': 'недовольный unamused', '😓': 'удрученный пот sweat', '😔': 'задумчивый pensive', '😕': 'смущенный confused', '🙃': 'вверх ногами upside down', '🤑': 'деньги язык money mouth', '😲': 'изумление astonished', '☹': 'хмурый frowning', '🙁': 'слегка хмурый', '😖': 'смятение confounded', '😞': 'разочарование disappointed', '😟': 'беспокойство worried', '😤': 'пар из носа злость triumph victory', '😢': 'плач cry', '😭': 'рыдание sob', '😦': 'хмурый рот открыт', '😧': 'страдание anguished', '😨': 'страх fearful', '😩': 'утомленный weary', '🤯': 'взрыв мозг шок exploding head', '😬': 'гримаса grimacing', '😰': 'тревога пот anxious sweat', '😱': 'крик ужас scream', '🥵': 'жарко красный hot face', '🥶': 'холодно синий cold face', '😳': 'румянец flushed', '🤪': 'дурачусь zany face', '😵': 'головокружение dizzy', '😡': 'надутый красный злой pouting enraged', '😠': 'злость angry', '🤬': 'ругань символы cursing', '😷': 'маска medical mask', '🤒': 'термометр больной', '🤕': 'бинт травма', '🤢': 'тошнота nauseated', '🤮': 'рвота vomiting', '🤧': 'чихание sneezing', '😇': 'ангел нимб angel', '🤠': 'ковбой cowboy', '🥳': 'праздник вечеринка partying', '🥴': 'пьяный woozy face', '🥺': 'умоляю pleading begging', '🤡': 'клоун clown', '🤥': 'вру нос lying face', '🤫': 'тише shushing face', '🤭': 'рука у рта хихикаю hand over mouth', '🧐': 'монокль face with monocle', '🤓': 'ботаник очки nerd', '👋': 'привет машу рукой wave', '👍': 'лайк палец вверх thumbs up', '👎': 'дизлайк палец вниз thumbs down', '❤️': 'красное сердце любовь', '⭐': 'звезда star', '🔥': 'огонь пламя fire', '✨': 'блестки магия sparkles', '🎉': 'хлопушка праздник', '🚀': 'ракета старт', '🐶': 'собака dog', '🐱': 'кошка cat', '🌸': 'цветок вишни', '🍕': 'пицца pizza', '🍔': 'бургер', '☕': 'кофе чай', '🎂': 'торт день рождения birthday'
-};
-
+const emojiKeywords={'😀':'лицо улыбка happy smile face','😁':'улыбка зубы grin','😂':'смех слезы радость joy','🤣':'катаюсь по полу от смеха rofl','😃':'большая улыбка smiley','😄':'счастливый смех глаза smile','😅':'улыбка пот sweat cold','😆':'щурясь laughing squinting','😉':'подмигивание wink','😊':'улыбка румянец blush','😋':'вкусно язык yum delicious','😎':'крутой очки cool sunglasses','😍':'влюблен сердце глаза heart eyes love','😘':'поцелуй kiss','🥰':'любовь сердечки smiling face with hearts','😗':'целую kissing','😙':'целую улыбка','😚':'целую глаза закрыты','🙂':'легкая улыбка','🤗':'объятия hugs','🤩':'звезды в глазах восторг star struck','🤔':'думаю размышление thinking','🤨':'бровь raised eyebrow','😐':'нейтральный neutral face','😑':'без выражения expressionless','😶':'нет рта no mouth','🙄':'закатываю глаза roll eyes','😏':'ухмылка smirk','😣':'страдание persevere','😥':'грустный пот sad but relieved','😮':'удивление рот открыт face with open mouth','🤐':'рот на замке zipper mouth','😯':'тихо hushed','😪':'сонный sleepy','😫':'усталый tired','😴':'сплю sleeping','😌':'облегчение relieved','😛':'язык stuck out tongue','😜':'язык подмигиваю wink tongue','😝':'язык щурюсь squinting tongue','🤤':'слюни drooling','😒':'недовольный unamused','😓':'удрученный пот sweat','😔':'задумчивый pensive','😕':'смущенный confused','🙃':'вверх ногами upside down','🤑':'деньги язык money mouth','😲':'изумление astonished','☹':'хмурый frowning','🙁':'слегка хмурый','😖':'смятение confounded','😞':'разочарование disappointed','😟':'беспокойство worried','😤':'пар из носа злость triumph victory','😢':'плач cry','😭':'рыдание sob','😦':'хмурый рот открыт','😧':'страдание anguished','😨':'страх fearful','😩':'утомленный weary','🤯':'взрыв мозг шок exploding head','😬':'гримаса grimacing','😰':'тревога пот anxious sweat','😱':'крик ужас scream','🥵':'жарко красный hot face','🥶':'холодно синий cold face','😳':'румянец flushed','🤪':'дурачусь zany face','😵':'головокружение dizzy','😡':'надутый красный злой pouting enraged','😠':'злость angry','🤬':'ругань символы cursing','😷':'маска medical mask','🤒':'термометр больной','🤕':'бинт травма','🤢':'тошнота nauseated','🤮':'рвота vomiting','🤧':'чихание sneezing','😇':'ангел нимб angel','🤠':'ковбой cowboy','🥳':'праздник вечеринка partying','🥴':'пьяный woozy face','🥺':'умоляю pleading begging','🤡':'клоун clown','🤥':'вру нос lying face','🤫':'тише shushing face','🤭':'рука у рта хихикаю hand over mouth','🧐':'монокль face with monocle','🤓':'ботаник очки nerd','👋':'привет машу рукой wave','👍':'лайк палец вверх thumbs up','👎':'дизлайк палец вниз thumbs down','❤️':'красное сердце любовь','⭐':'звезда star','🔥':'огонь пламя fire','✨':'блестки магия sparkles','🎉':'хлопушка праздник','🚀':'ракета старт','🐶':'собака dog','🐱':'кошка cat','🌸':'цветок вишни','🍕':'пицца pizza','🍔':'бургер','☕':'кофе чай','🎂':'торт день рождения birthday'};
 emojis.forEach(category => category.items.forEach(item => { item.k = emojiKeywords[item.s] || ''; }));
 const allSymbols = [].concat(...symbols.map(c => c.items));
 const allEmojis = [].concat(...emojis.map(c => c.items));
 
-const skinTones = ['🏻', '🏼', '🏽', '🏾', '🏿'];
-
-function closeAllPopups() {
-    document.querySelectorAll('.skin-tone-popup').forEach(popup => popup.remove());
-}
-
-function showSkinTonePopup(button, baseEmoji) {
-    closeAllPopups();
-    const popup = document.createElement('div');
-    popup.className = 'skin-tone-popup absolute z-10 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-2 flex gap-1';
-    
-    skinTones.forEach(tone => {
-        const toneBtn = document.createElement('button');
-        const emojiWithTone = baseEmoji + tone;
-        toneBtn.textContent = emojiWithTone;
-        toneBtn.className = 'flex items-center justify-center h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-blue-500 hover:text-white transition-colors text-2xl';
-        toneBtn.dataset.copy = emojiWithTone;
-        
-        toneBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const copyText = e.currentTarget.dataset.copy;
-            const dataToSave = { s: copyText, c: copyText, k: baseEmoji };
-            addToRecent(RECENT_EMOJI_KEY, dataToSave);
-            navigator.clipboard.writeText(copyText);
-            
-            const notification = document.getElementById('copy-notification');
-            notification.classList.remove('opacity-0');
-            if (timeoutId) clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => notification.classList.add('opacity-0'), 1000);
-            
-            closeAllPopups();
-        });
-        popup.appendChild(toneBtn);
-    });
-
-    document.getElementById('app-content-container').appendChild(popup);
-    const btnRect = button.getBoundingClientRect();
-    const containerRect = document.getElementById('app-content-container').getBoundingClientRect();
-    
-    popup.style.left = `${btnRect.left - containerRect.left}px`;
-    popup.style.top = `${btnRect.top - containerRect.top - popup.offsetHeight - 5}px`;
-
-    setTimeout(() => {
-        document.addEventListener('click', closeAllPopups, { once: true });
-    }, 0);
-}
+// --- Skin Tone Data ---
+const skinToneModifiers = ['🏻', '🏼', '🏽', '🏾', '🏿'];
+const toneableCategories = ['Люди и тело', 'Активности'];
+const nonToneableExceptions = ['🧠', '🦷', '🦴', '👀', '👁', '👅', '👄', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖', '🏵', '🎗', '🎫', '🎟', '🎪', '🤹', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟', '🎯', '🎳', '🎮', '🎰'];
+const baseEmojisWithSkinTones = emojis
+    .filter(category => toneableCategories.includes(category.name))
+    .flatMap(category => category.items.map(item => item.s))
+    .filter(emoji => !nonToneableExceptions.includes(emoji));
 
 
 export function getHtml() {
@@ -104,18 +63,47 @@ export function getHtml() {
             .dark .tab-btn.active { background-color: #60A5FA; color: #1F2937; border-color: #60A5FA; }
             .tab-btn:not(.active):hover { color: #1F2937; border-color: #D1D5DB; }
             .dark .tab-btn:not(.active):hover { color: #F9FAFB; border-color: #4B5563; }
+            #skin-tone-selector {
+                display: none;
+                position: absolute;
+                background-color: white;
+                border: 1px solid #D1D5DB;
+                border-radius: 0.5rem;
+                padding: 0.25rem;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+                z-index: 60;
+                gap: 0.25rem;
+            }
+            .dark #skin-tone-selector {
+                background-color: #374151; /* gray-700 */
+                border-color: #4B5563; /* gray-600 */
+            }
+            #skin-tone-selector button {
+                width: 2.75rem; /* 44px */
+                height: 2.75rem; /* 44px */
+                font-size: 1.5rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.375rem;
+            }
+            #skin-tone-selector button:hover {
+                background-color: #DBEAFE; /* blue-100 */
+            }
+            .dark #skin-tone-selector button:hover {
+                background-color: #4B5563; /* gray-600 */
+            }
         </style>
         <div class="space-y-4">
             <div id="copy-notification" class="fixed top-24 left-1/2 -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-full shadow-lg opacity-0 transition-opacity duration-300 z-50">Скопировано!</div>
+            <div id="skin-tone-selector"></div>
             <div class="relative">
                 <input type="search" id="symbol-search" placeholder="Поиск..." class="w-full p-3 pl-10 border rounded-full bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
-            <div>
-                <div class="flex border-b border-gray-300 dark:border-gray-600">
-                    <button data-tab="symbols" class="tab-btn py-2 px-4 font-semibold border-b-2 active">Символы</button>
-                    <button data-tab="emojis" class="tab-btn py-2 px-4 font-semibold border-b-2">Эмодзи</button>
-                </div>
+            <div class="flex border-b border-gray-300 dark:border-gray-600">
+                <button data-tab="symbols" class="tab-btn py-2 px-4 font-semibold border-b-2 active">Символы</button>
+                <button data-tab="emojis" class="tab-btn py-2 px-4 font-semibold border-b-2">Эмодзи</button>
             </div>
             <div class="flex flex-col md:flex-row gap-8">
                 <nav id="categories-nav" class="w-full md:w-48 flex-shrink-0"></nav>
@@ -127,17 +115,21 @@ export function getHtml() {
 }
 
 function createItemButton(symbol, isEmoji) {
-    const { d, s, c, t, k, tones } = symbol;
+    const { d, s, c, t, k } = symbol;
     const display = d || s;
     const copy = c || s;
     const btn = document.createElement('button');
-    btn.className = d ? 'flex items-center justify-center h-12 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-blue-500 hover:text-white transition-colors text-sm' : 'flex items-center justify-center h-12 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-blue-500 hover:text-white transition-colors text-2xl';
+    btn.className = d ? 'relative flex items-center justify-center h-12 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-blue-500 hover:text-white transition-colors text-sm' : 'relative flex items-center justify-center h-12 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-blue-500 hover:text-white transition-colors text-2xl';
     btn.textContent = display;
     btn.dataset.copy = copy;
     btn.dataset.keywords = `${display} ${k || ''}`.toLowerCase();
-    if (t) btn.title = t;
-    if (isEmoji && tones) {
-        btn.dataset.tones = "true";
+    if(t) btn.title = t;
+
+    if (isEmoji && baseEmojisWithSkinTones.includes(s)) {
+        btn.dataset.basetone = s;
+        const indicator = document.createElement('span');
+        indicator.className = 'absolute bottom-0 right-0 w-2.5 h-2.5 bg-gray-400 border-2 border-gray-200 dark:border-gray-700 rounded-full';
+        btn.appendChild(indicator);
     }
     return btn;
 }
@@ -177,11 +169,44 @@ export async function init() {
     const searchInput = document.getElementById('symbol-search');
     const notification = document.getElementById('copy-notification');
     const tabs = document.querySelectorAll('.tab-btn');
-    
+    const skinToneSelector = document.getElementById('skin-tone-selector');
+    let currentToneButton = null;
+
     let activeTab = 'symbols';
     const dataMap = { 
         symbols: JSON.parse(JSON.stringify(symbols)), 
         emojis: JSON.parse(JSON.stringify(emojis))
+    };
+
+    const showSkinToneSelector = (button) => {
+        currentToneButton = button;
+        const baseEmoji = button.dataset.basetone;
+        skinToneSelector.innerHTML = '';
+
+        const originalBtn = document.createElement('button');
+        originalBtn.textContent = baseEmoji;
+        originalBtn.dataset.copy = baseEmoji;
+        skinToneSelector.appendChild(originalBtn);
+
+        skinToneModifiers.forEach(modifier => {
+            const modifiedEmoji = baseEmoji + modifier;
+            const btn = document.createElement('button');
+            btn.textContent = modifiedEmoji;
+            btn.dataset.copy = modifiedEmoji;
+            skinToneSelector.appendChild(btn);
+        });
+
+        const rect = button.getBoundingClientRect();
+        skinToneSelector.style.display = 'flex';
+        skinToneSelector.style.left = `${rect.left}px`;
+        skinToneSelector.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    };
+
+    const hideSkinToneSelector = () => {
+        if (skinToneSelector.style.display !== 'none') {
+            skinToneSelector.style.display = 'none';
+            currentToneButton = null;
+        }
     };
 
     const updateRecentAndRender = async (tab) => {
@@ -199,6 +224,7 @@ export async function init() {
     };
 
     const handleSearch = () => {
+        hideSkinToneSelector();
         const term = searchInput.value.toLowerCase().trim();
         if (term) {
             navArea.classList.add('hidden');
@@ -245,24 +271,45 @@ export async function init() {
 
     document.getElementById('app-content-container').addEventListener('click', (e) => {
         const button = e.target.closest('button[data-copy]');
-        if (button) {
-            if (button.dataset.tones) {
-                showSkinTonePopup(button, button.dataset.copy);
-                return;
+        
+        if (!button) {
+            if (!e.target.closest('#skin-tone-selector')) {
+                hideSkinToneSelector();
             }
+            return;
+        }
 
-            const copyText = button.dataset.copy;
-            const keywords = button.dataset.keywords;
+        if (button.dataset.basetone) {
+            e.stopPropagation();
+            if (currentToneButton === button) {
+                hideSkinToneSelector();
+            } else {
+                showSkinToneSelector(button);
+            }
+            return;
+        }
+        
+        const copyAction = (copyText, keywords) => {
             const isEmoji = activeTab === 'emojis';
-            const dataToSave = { s: button.textContent, c: copyText, k: keywords, d: button.textContent !== copyText ? button.textContent : undefined };
-            addToRecent(isEmoji ? RECENT_EMOJI_KEY : RECENT_SYMBOLS_KEY, dataToSave);
-            navigator.clipboard.writeText(copyText);
+            const key = isEmoji ? RECENT_EMOJI_KEY : RECENT_SYMBOLS_KEY;
+            const dataToSave = { s: copyText, c: copyText, k: keywords || '' };
             
+            addToRecent(key, dataToSave);
+            navigator.clipboard.writeText(copyText);
             notification.classList.remove('opacity-0');
             if (timeoutId) clearTimeout(timeoutId);
             timeoutId = setTimeout(() => notification.classList.add('opacity-0'), 1000);
+            hideSkinToneSelector();
+        };
+
+        if (e.target.closest('#skin-tone-selector')) {
+             copyAction(button.dataset.copy, currentToneButton?.dataset.keywords);
+        } else {
+             copyAction(button.dataset.copy, button.dataset.keywords);
         }
     });
+
+    contentArea.addEventListener('scroll', hideSkinToneSelector, { passive: true });
 
     function setupIntersectionObserver() {
         if (intersectionObserver) intersectionObserver.disconnect();
@@ -291,5 +338,4 @@ export async function init() {
 export function cleanup() {
     if (timeoutId) clearTimeout(timeoutId);
     if (intersectionObserver) intersectionObserver.disconnect();
-    document.removeEventListener('click', closeAllPopups);
 }
