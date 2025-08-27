@@ -1,11 +1,11 @@
-// 32js/apps/game2048.js
+// js/apps/game2048.js
 
 let grid = [];
 let score = 0;
 const gridSize = 4;
 let isGameOver = false;
 
-// Цветовая схема плиток
+// ИЗМЕНЕНИЕ: Цветовая схема возвращена
 const tileColors = {
     2: 'bg-gray-200 text-gray-800', 4: 'bg-yellow-200 text-gray-800',
     8: 'bg-orange-300 text-white', 16: 'bg-orange-400 text-white',
@@ -16,6 +16,7 @@ const tileColors = {
 };
 
 export function getHtml() {
+    // HTML-структура остается без изменений
     return `
         <div class="flex flex-col items-center">
             <div class="flex justify-between items-center w-full max-w-md mb-4" style="width: 400px;">
@@ -25,7 +26,6 @@ export function getHtml() {
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <!-- ИЗМЕНЕНИЕ: Установлен фиксированный размер доски 400x400px -->
             <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 rounded-md relative" style="width: 400px; height: 400px;">
                  <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md">
                     <span>Конец игры!</span>
@@ -48,15 +48,17 @@ export function cleanup() {
     document.removeEventListener('keydown', handleKeydown);
 }
 
+// ИЗМЕНЕНИЕ: Функция теперь создает постоянные "слоты" для плиток
 function createBoard() {
     const gameBoard = document.getElementById('game-board');
     const overlay = document.getElementById('game-over-overlay');
     gameBoard.innerHTML = ''; 
     
+    // Создаем 16 фоновых ячеек (слотов), которые никогда не будут меняться
     for (let i = 0; i < gridSize * gridSize; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'w-full h-full bg-gray-300 rounded-md';
-        gameBoard.appendChild(cell);
+        const cellSlot = document.createElement('div');
+        cellSlot.className = 'w-full h-full bg-gray-300 rounded-md';
+        gameBoard.appendChild(cellSlot);
     }
     
     gameBoard.appendChild(overlay);
@@ -73,24 +75,25 @@ function startGame() {
     renderBoard();
 }
 
+// ИЗМЕНЕНИЕ: Функция теперь не меняет слоты, а вставляет/удаляет плитки ВНУТРИ них
 function renderBoard() {
     const gameBoard = document.getElementById('game-board');
-    const cells = Array.from(gameBoard.children).filter(el => el.id !== 'game-over-overlay');
+    // Получаем все дочерние элементы-слоты
+    const cellSlots = Array.from(gameBoard.children).filter(el => el.id !== 'game-over-overlay');
 
     for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
             const tileValue = grid[r][c];
             const cellIndex = r * gridSize + c;
-            const cell = cells[cellIndex];
+            const slot = cellSlots[cellIndex];
             
             if (tileValue === 0) {
-                cell.textContent = '';
-                cell.className = 'w-full h-full bg-gray-300 rounded-md';
+                // Если значения нет, слот просто пустой
+                slot.innerHTML = '';
             } else {
+                // Если значение есть, создаем HTML для плитки и вставляем его в слот
                 const colorClass = tileColors[tileValue] || 'bg-black text-white';
-                // ИЗМЕНЕНИЕ: Возвращен класс text-4xl для фиксированного размера шрифта
-                cell.className = `tile w-full h-full flex items-center justify-center font-bold text-4xl rounded-md ${colorClass}`;
-                cell.textContent = tileValue;
+                slot.innerHTML = `<div class="w-full h-full flex items-center justify-center font-bold text-4xl rounded-md ${colorClass}">${tileValue}</div>`;
             }
         }
     }
