@@ -1,107 +1,136 @@
-// js/apps/barcodeGenerator.js
+// js/modules/barcodeGenerator.js
 
-export function getHtml() {
-    return `
-        <div class="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-            <h3 class="text-xl font-bold mb-4">Генератор штрих-кодов</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+/**
+ * ВАЖНО: Этот код будет работать, только если библиотека JsBarcode
+ * была успешно загружена в index.html (локально или через CDN).
+ */
+
+/**
+ * Инициализирует мини-приложение "Генератор штрих-кодов".
+ * @param {HTMLElement} container - DOM-элемент, в который будет встроено приложение.
+ */
+export function initBarcodeGenerator(container) {
+    const appHTML = `
+        <div class="flex flex-col items-center w-full max-w-2xl mx-auto p-4 space-y-6">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Генератор штрих-кодов</h2>
+
+            <div class="w-full space-y-4 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
                 <div>
-                    <label for="barcode-data" class="block text-sm font-medium mb-1">Данные для кодирования:</label>
-                    <input type="text" id="barcode-data" class="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" placeholder="Введите текст или цифры">
+                    <label for="barcode-data" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Данные для кодирования:</label>
+                    <input type="text" id="barcode-data" placeholder="Введите текст или цифры" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
+
                 <div>
-                    <label for="barcode-format" class="block text-sm font-medium mb-1">Формат штрих-кода:</label>
-                    <select id="barcode-format" class="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600">
+                    <label for="barcode-type" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Формат штрих-кода:</label>
+                    <select id="barcode-type" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="CODE128" selected>CODE128</option>
+                        <option value="EAN13">EAN-13 (12 цифр)</option>
+                        <option value="UPC">UPC-A (11 цифр)</option>
                         <option value="CODE39">CODE39</option>
-                        <option value="EAN13">EAN-13</option>
-                        <option value="UPC">UPC-A</option>
-                        <option value="ITF14">ITF-14</option>
+                        <option value="ITF">ITF-14</option>
                         <option value="MSI">MSI</option>
                     </select>
                 </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                    <button id="generate-btn" class="w-full px-5 py-3 text-base font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transition-colors">Сгенерировать</button>
+                    <button id="download-btn" class="w-full px-5 py-3 text-base font-medium text-center text-gray-900 bg-gray-200 rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 dark:text-white dark:bg-gray-600 dark:hover:bg-gray-500 dark:focus:ring-gray-700 transition-colors" disabled>Скачать PNG</button>
+                </div>
+                 <p id="error-message" class="text-sm text-red-500 mt-2 text-center h-4"></p>
             </div>
 
-            <div id="barcode-container" class="p-4 bg-white rounded-md flex justify-center items-center min-h-[150px]">
-                <svg id="barcode"></svg>
-            </div>
-            <div id="barcode-error" class="text-red-500 text-center mt-2"></div>
-            
-            <div class="mt-4 flex gap-4">
-                 <button id="generate-barcode-btn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Сгенерировать</button>
-                 <button id="download-barcode-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors" disabled>Скачать SVG</button>
+            <div id="barcode-container" class="w-full bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md flex justify-center items-center min-h-[150px]">
+                <svg id="barcode-svg"></svg>
             </div>
         </div>
     `;
-}
 
-export function init() {
+    container.innerHTML = appHTML;
+
+    const generateBtn = document.getElementById('generate-btn');
+    const downloadBtn = document.getElementById('download-btn');
     const dataInput = document.getElementById('barcode-data');
-    const formatSelect = document.getElementById('barcode-format');
-    const generateBtn = document.getElementById('generate-barcode-btn');
-    const downloadBtn = document.getElementById('download-barcode-btn');
-    const errorDiv = document.getElementById('barcode-error');
+    const typeSelect = document.getElementById('barcode-type');
+    const barcodeSvg = document.getElementById('barcode-svg');
+    const errorMessage = document.getElementById('error-message');
 
-    if (typeof JsBarcode === 'undefined') {
-        errorDiv.textContent = 'Ошибка: Библиотека JsBarcode не загружена.';
-        return;
-    }
-    
     const generateBarcode = () => {
         const data = dataInput.value;
-        const format = formatSelect.value;
-        errorDiv.textContent = '';
-        downloadBtn.disabled = true;
-
-        if (!data) {
-            errorDiv.textContent = 'Пожалуйста, введите данные для кодирования.';
+        const format = typeSelect.value;
+        errorMessage.textContent = '';
+        
+        if (!data.trim()) {
+            errorMessage.textContent = 'Поле данных не может быть пустым.';
+            downloadBtn.disabled = true;
+            barcodeSvg.innerHTML = '';
             return;
         }
 
         try {
-            JsBarcode("#barcode", data, {
+            const isDark = document.documentElement.classList.contains('dark');
+            JsBarcode(barcodeSvg, data, {
                 format: format,
-                lineColor: document.documentElement.classList.contains('dark') ? "#FFFFFF" : "#000000",
+                lineColor: isDark ? "#FFFFFF" : "#000000",
                 width: 2,
-                height: 100,
+                height: 80,
                 displayValue: true,
                 fontOptions: "bold",
-                font: "monospace",
-                fontSize: 18,
-                textColor: document.documentElement.classList.contains('dark') ? "#FFFFFF" : "#000000"
+                fontColor: isDark ? "#FFFFFF" : "#000000",
+                background: "transparent",
+                margin: 10
             });
             downloadBtn.disabled = false;
         } catch (e) {
-            console.error(e);
-            document.getElementById('barcode').innerHTML = ''; // Очищаем SVG
-            errorDiv.textContent = `Ошибка: ${e.message.replace("Error: ", "")}. Проверьте данные для выбранного формата.`;
+            // --- ИСПРАВЛЕННЫЙ БЛОК ---
+            // Логируем техническую ошибку в консоль для отладки
+            console.error("JsBarcode error:", e);
+
+            // Очищаем результат
+            barcodeSvg.innerHTML = '';
+            downloadBtn.disabled = true;
+
+            // Показываем простое и понятное сообщение пользователю
+            errorMessage.textContent = 'Ошибка: Неверные данные для выбранного формата.';
+            // --- КОНЕЦ ИСПРАВЛЕННОГО БЛОКА ---
         }
+    };
+
+    const downloadBarcode = () => {
+        if (!barcodeSvg.innerHTML) return;
+
+        const svgString = new XMLSerializer().serializeToString(barcodeSvg);
+        const url = URL.createObjectURL(new Blob([svgString], { type: "image/svg+xml;charset=utf-8" }));
+
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            // Добавляем отступы для лучшего вида
+            const margin = 20;
+            canvas.width = barcodeSvg.width.baseVal.value + margin;
+            canvas.height = barcodeSvg.height.baseVal.value + margin;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, margin / 2, margin / 2); // Рисуем SVG с отступом
+
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = `barcode-${dataInput.value || 'generated'}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+        img.src = url;
     };
     
-    const downloadBarcode = () => {
-        const svg = document.getElementById('barcode');
-        const serializer = new XMLSerializer();
-        let source = serializer.serializeToString(svg);
-
-        // Добавляем xml заголовок
-        if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
-            source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
-        }
-
-        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `barcode-${dataInput.value}.svg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
     generateBtn.addEventListener('click', generateBarcode);
     downloadBtn.addEventListener('click', downloadBarcode);
-    dataInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') generateBarcode();
+    
+    // Перерисовываем штрих-код при смене темы
+    const themeObserver = new MutationObserver(() => {
+        if (barcodeSvg.innerHTML) {
+            generateBarcode();
+        }
     });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 }
