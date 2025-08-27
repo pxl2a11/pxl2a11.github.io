@@ -1,4 +1,4 @@
-/* 40--- Стили для кнопок фильтрации --- */
+/* --- Стили для кнопок фильтрации --- */
 .filter-btn {
     padding: 0.5rem 1rem;
     border-radius: 9999px; /* pill shape */
@@ -62,28 +62,26 @@
     background-color: transparent;
     border: none;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s, color 0.2s;
-    width: 32px;
-    height: 32px;
+    transition: background-color 0.2s, transform 0.2s;
+    width: 24px;
+    height: 24px;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #6b7280; /* gray-500 */
 }
 
 .add-to-my-apps-btn:hover {
     background-color: rgba(0, 0, 0, 0.1);
     transform: scale(1.1);
-    color: #111827; /* gray-900 */
-}
-
-.dark .add-to-my-apps-btn {
-    color: #9ca3af; /* dark:gray-400 */
 }
 
 .dark .add-to-my-apps-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
-    color: #f9fafb; /* dark:gray-50 */
+}
+
+.add-to-my-apps-btn img {
+    width: 14px;
+    height: 14px;
 }
 
 .add-to-my-apps-btn .cross-icon {
@@ -96,18 +94,11 @@
 
 .add-to-my-apps-btn.is-added .cross-icon {
     display: block;
-    color: #ef4444; /* red-500 */
-}
-
-.add-to-my-apps-btn.is-added:hover {
-    background-color: rgba(239, 68, 68, 0.1);
 }
 
 /* --- СТИЛИ ДЛЯ КНОПКИ ВНУТРИ ПРИЛОЖЕНИЯ --- */
 #add-to-my-apps-app-view-btn .cross-icon { display: none; }
 #add-to-my-apps-app-view-btn .plus-icon { display: inline-block; }
-#add-to-my-apps-app-view-btn.is-added .cross-icon { display: inline-block; }
-#add-to-my-apps-app-view-btn.is-added .plus-icon { display: none; }
 
 /* Стиль для добавления */
 #add-to-my-apps-app-view-btn.add-style {
