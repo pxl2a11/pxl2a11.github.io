@@ -1,9 +1,9 @@
-// js/firebaseConfig.js
+// 32js/firebaseConfig.js
 
 // Импортируем все необходимые модули Firebase
 import firebase from "https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js";
 import "https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js";
-import "https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js";
+import "https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"; // <-- УБЕДИТЕСЬ, ЧТО ЭТА СТРОКА ЕСТЬ
 
 // Ваша персональная конфигурация Firebase
 const firebaseConfig = {
@@ -15,14 +15,14 @@ const firebaseConfig = {
   appId: "1:420068130976:web:f4d61f2cd1d8d13adcc9c5"
 };
 
-// Инициализация Firebase, если еще не была произведена (защита от повторной инициализации)
+// Инициализация Firebase, если еще не была произведена
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
 // Получаем доступ к сервисам аутентификации и базы данных
 const auth = firebase.auth();
-const firestore = firebase.firestore();
+const firestore = firebase.firestore(); // <-- УБЕДИТЕСЬ, ЧТО ЭТА СТРОКА ЕСТЬ
 
-// Экспортируем оба сервиса, чтобы другие файлы (dataManager.js и др.) могли их использовать
-export { auth, firestore };
+// Экспортируем ОБА сервиса
+export { auth, firestore }; // <-- УБЕДИТЕСЬ, ЧТО FIRESTORE ЗДЕСЬ УКАЗАН
