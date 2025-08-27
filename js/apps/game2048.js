@@ -95,10 +95,22 @@ function handleKeydown(e) {
     if (isGameOver) return;
     let moved = false;
     switch (e.key) {
-        case 'ArrowUp': moved = moveUp(); break;
-        case 'ArrowDown': moved = moveDown(); break;
-        case 'ArrowLeft': moved = moveLeft(); break;
-        case 'ArrowRight': moved = moveRight(); break;
+        case 'ArrowUp':
+            e.preventDefault();
+            moved = moveUp();
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            moved = moveDown();
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            moved = moveLeft();
+            break;
+        case 'ArrowRight':
+            e.preventDefault();
+            moved = moveRight();
+            break;
         default: return;
     }
     if (moved) {
