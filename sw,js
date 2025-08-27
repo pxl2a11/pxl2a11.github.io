@@ -1,4 +1,4 @@
-// sw.js
+//14 sw.js
 
 const CACHE_NAME = 'mini-apps-cache-v5'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
