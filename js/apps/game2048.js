@@ -1,4 +1,4 @@
-// js/apps/game2048.js
+//24 js/apps/game2048.js
 
 let grid = [];
 let score = 0;
