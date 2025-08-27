@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v4'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v5'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
 // Приложения, которые НЕ работают офлайн
 const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks'];
@@ -18,11 +18,11 @@ const appModules = [
 const appJsFiles = appModules.map(module => `/js/apps/${module}.js`);
 const appSvgIcons = appModules.map(module => `/img/${module}.svg`);
 
-// Список файлов для кэширования. ОБЯЗАТЕЛЬНО ДОБАВЛЯЕМ OFFLINE.HTML
+// Список файлов для кэширования (App Shell)
 const urlsToCache = [
   '/',
   '/index.html',
-  '/offline.html', // <-- НАША НОВАЯ СТРАНИЦА
+  '/offline.html',
   '/manifest.json',
   '/css/style.css',
   '/css/leaflet.css',
@@ -49,7 +49,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Кэш открыт');
+        console.log('Кэш открыт для установки');
         return cache.addAll(urlsToCache);
       })
   );
@@ -63,6 +63,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Удаление старого кэша:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -92,9 +93,10 @@ self.addEventListener('fetch', event => {
           return caches.match('/offline.html');
         }
 
-        // Для всех остальных страниц (главная, офлайн-приложения)
-        // пытаемся отдать их из кэша
-        return caches.match(event.request.url);
+        // ДЛЯ ВСЕХ ОСТАЛЬНЫХ СЛУЧАЕВ (главная, офлайн-приложения)
+        // ВСЕГДА возвращаем главную страницу-оболочку из кэша.
+        // JS-роутер на клиенте сам разберется, что показать.
+        return caches.match('/index.html'); // <-- ИСПРАВЛЕНИЕ ЗДЕСЬ
       })
     );
     return;
@@ -103,6 +105,7 @@ self.addEventListener('fetch', event => {
   // Стратегия "Сначала кэш, потом сеть" для остальных ресурсов (JS, CSS, SVG)
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
+      // Если ресурс есть в кэше, отдаем его. Иначе идем в сеть.
       return cachedResponse || fetch(event.request);
     })
   );
