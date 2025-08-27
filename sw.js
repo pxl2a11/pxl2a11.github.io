@@ -1,4 +1,4 @@
-// sw.js
+// 07sw.js
 
 const CACHE_NAME = 'mini-apps-cache-v7'; // ВЕРСИЯ КЭША ОБНОВЛЕНА! КРИТИЧЕСКИ ВАЖНО!
 
