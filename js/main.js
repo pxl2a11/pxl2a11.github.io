@@ -1,11 +1,11 @@
 // js/main.js
 
-import { renderChangelog, getChangelogData } from './utils/changelog.js';
+import { renderChangelog } from './utils/changelog.js';
 import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { fetchUserAccountData, clearUserData, getUserData, saveUserData } from './dataManager.js';
 
-// --- Сопоставление имен приложений и другие метаданные (добавлено новое приложение) ---
+// --- Сопоставление имен приложений и другие метаданные ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Калькулятор процентных соотношений': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Счетчик слов и символов': 'wordCounter', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер форматов изображений': 'imageConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Транслитерация текста': 'textTranslit', 'Изменение размера изображений': 'imageResizer', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Конвертер часовых поясов': 'timezoneConverter', 'Текст в речь': 'textToSpeech', 'Камень, ножницы, бумага': 'rockPaperScissors', 'Судоку': 'sudoku', 'Архиватор файлов (ZIP)': 'zipArchiver', '2048': 'game2048', 'Генератор штрих-кодов': 'barcodeGenerator', 'Диктофон': 'voiceRecorder',
 };
@@ -53,6 +53,36 @@ const appScreenHtml = `
         <div id="similar-apps-container" class="mt-12"></div>
         <div id="app-changelog-container" class="mt-8"></div>
     </div>`;
+
+// --- ЛОГИКА СОРТИРОВКИ ---
+let sortableInstance = null;
+
+function initializeDragAndDrop() {
+    const appsContainer = document.getElementById('apps-container');
+    if (!appsContainer || sortableInstance) return;
+
+    appsContainer.classList.add('sortable-active');
+    sortableInstance = new Sortable(appsContainer, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd: async (evt) => {
+            const newOrder = Array.from(evt.target.children).map(card => card.dataset.module);
+            await saveMyApps(newOrder);
+        },
+    });
+}
+
+function destroyDragAndDrop() {
+    const appsContainer = document.getElementById('apps-container');
+    if (appsContainer) {
+        appsContainer.classList.remove('sortable-active');
+    }
+    if (sortableInstance) {
+        sortableInstance.destroy();
+        sortableInstance = null;
+    }
+}
 
 /**
  * =======================================================
@@ -114,7 +144,6 @@ function initializeGoogleSignIn() {
         renderGoogleButton();
     }
 }
-// --- КОНЕЦ ЛОГИКИ АВТОРИЗАЦИИ ---
 
 async function toggleMyAppStatus(moduleName) {
     if (!moduleName) return;
@@ -171,7 +200,6 @@ async function updateAppViewButton(moduleName, myAppsList) {
     }
     button.dataset.module = moduleName;
 }
-
 
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
@@ -346,6 +374,8 @@ async function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer) return;
 
+    destroyDragAndDrop();
+
     const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
     const myApps = await getMyApps();
@@ -368,13 +398,7 @@ async function applyAppListFilterAndRender() {
 
     let appsToRender = [];
     if (activeFilter === 'my-apps') {
-        const myAppCardsMap = new Map();
-        myApps.forEach(module => {
-            if (appCardElements.has(module)) {
-                myAppCardsMap.set(module, appCardElements.get(module));
-            }
-        });
-        appsToRender = myApps.map(module => myAppCardsMap.get(module)).filter(Boolean);
+        appsToRender = myApps.map(moduleName => appCardElements.get(moduleName)).filter(Boolean);
     } else {
         let sortedApps = [...allAppCards];
         if (activeFilter === 'popular') {
@@ -385,6 +409,11 @@ async function applyAppListFilterAndRender() {
         appsToRender = sortedApps;
     }
     renderApps(appsToRender);
+    
+    if (activeFilter === 'my-apps') {
+        initializeDragAndDrop();
+    }
+
     if (searchInput.value) {
         searchInput.value = '';
         searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -468,13 +497,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             clearUserData();
         }
+
         updateAuthStateUI(user);
+        
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
+
+            const isOnHomePage = !new URLSearchParams(window.location.search).has('app');
+            if (user && isOnHomePage) {
+                const filterContainer = document.getElementById('filter-container');
+                filterContainer.querySelector('[data-sort="default"]')?.classList.remove('active');
+                filterContainer.querySelector('[data-sort="my-apps"]')?.classList.add('active');
+            }
+            
             await router(); 
         } else {
             await router();
         }
+
         if (isGsiInitialized) {
             renderGoogleButton();
         }
