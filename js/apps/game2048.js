@@ -1,4 +1,4 @@
-//24 js/apps/game2048.js
+// 28js/apps/game2048.js
 
 let grid = [];
 let score = 0;
@@ -16,8 +16,17 @@ const tileColors = {
 };
 
 export function getHtml() {
-    // HTML-структура остается без изменений
     return `
+        <!-- ИЗМЕНЕНИЕ: Добавлен тег <style> для адаптивного размера шрифта -->
+        <style>
+            .game-container {
+                container-type: inline-size;
+            }
+            .game-container .tile {
+                /* Шрифт будет 7% от ширины контейнера, но не меньше 1rem и не больше 2.5rem */
+                font-size: clamp(1rem, 7cqw, 2.5rem);
+            }
+        </style>
         <div class="flex flex-col items-center">
             <div class="flex justify-between items-center w-full max-w-md mb-4">
                 <div>
@@ -26,7 +35,8 @@ export function getHtml() {
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
+            <!-- ИЗМЕНЕНИЕ: Добавлен класс 'game-container' -->
+            <div id="game-board" class="game-container grid grid-cols-4 gap-3 p-3 bg-gray-400 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
                  <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md">
                     <span>Конец игры!</span>
                     <button id="retry-btn" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded text-xl">Попробовать снова</button>
@@ -40,7 +50,6 @@ export function init() {
     document.getElementById('new-game-btn').addEventListener('click', startGame);
     document.getElementById('retry-btn').addEventListener('click', startGame);
     document.addEventListener('keydown', handleKeydown);
-    // ИЗМЕНЕНИЕ: Создаем доску один раз при инициализации
     createBoard();
     startGame();
 }
@@ -49,21 +58,17 @@ export function cleanup() {
     document.removeEventListener('keydown', handleKeydown);
 }
 
-// ИЗМЕНЕНИЕ: Новая функция для однократного создания ячеек доски
 function createBoard() {
     const gameBoard = document.getElementById('game-board');
-    // Сохраняем оверлей, чтобы добавить его в конце
     const overlay = document.getElementById('game-over-overlay');
-    gameBoard.innerHTML = ''; // Очищаем доску
+    gameBoard.innerHTML = ''; 
     
-    // Создаем 16 ячеек, которые будут обновляться, а не пересоздаваться
     for (let i = 0; i < gridSize * gridSize; i++) {
         const cell = document.createElement('div');
         cell.className = 'w-full h-full bg-gray-300 rounded-md';
         gameBoard.appendChild(cell);
     }
     
-    // Возвращаем оверлей на место
     gameBoard.appendChild(overlay);
 }
 
@@ -78,10 +83,8 @@ function startGame() {
     renderBoard();
 }
 
-// ИЗМЕНЕНИЕ: Функция теперь не пересоздает элементы, а обновляет существующие
 function renderBoard() {
     const gameBoard = document.getElementById('game-board');
-    // Получаем все дочерние ячейки, исключая оверлей
     const cells = Array.from(gameBoard.children).filter(el => el.id !== 'game-over-overlay');
 
     for (let r = 0; r < gridSize; r++) {
@@ -91,13 +94,12 @@ function renderBoard() {
             const cell = cells[cellIndex];
             
             if (tileValue === 0) {
-                // Очищаем ячейку
                 cell.textContent = '';
                 cell.className = 'w-full h-full bg-gray-300 rounded-md';
             } else {
-                // Заполняем ячейку
                 const colorClass = tileColors[tileValue] || 'bg-black text-white';
-                cell.className = `tile w-full h-full flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md ${colorClass}`;
+                // ИЗМЕНЕНИЕ: Удалены классы text-2xl и md:text-4xl
+                cell.className = `tile w-full h-full flex items-center justify-center font-bold rounded-md ${colorClass}`;
                 cell.textContent = tileValue;
             }
         }
@@ -107,7 +109,6 @@ function renderBoard() {
 function handleKeydown(e) {
     if (isGameOver) return;
     let moved = false;
-    // ИЗМЕНЕНИЕ: Добавлено e.preventDefault() для предотвращения прокрутки страницы
     switch (e.key) {
         case 'ArrowUp': 
             e.preventDefault();
