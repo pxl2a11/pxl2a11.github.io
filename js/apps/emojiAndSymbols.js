@@ -1,6 +1,6 @@
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
-// --- State Management ---
+// ---29 State Management ---
 let timeoutId;
 let intersectionObserver;
 const RECENT_SYMBOLS_KEY = 'recentSymbols';
