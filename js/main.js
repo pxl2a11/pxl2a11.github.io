@@ -5,7 +5,7 @@ import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { fetchUserAccountData, clearUserData, getUserData, saveUserData } from './dataManager.js';
 
-// --- Сопоставление имен приложений и другие метаданные ---
+// --- Сопоставление имен приложений и метаданные (без изменений) ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Калькулятор процентных соотношений': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Счетчик слов и символов': 'wordCounter', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер форматов изображений': 'imageConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Транслитерация текста': 'textTranslit', 'Изменение размера изображений': 'imageResizer', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Конвертер часовых поясов': 'timezoneConverter', 'Текст в речь': 'textToSpeech', 'Камень, ножницы, бумага': 'rockPaperScissors', 'Судоку': 'sudoku', 'Архиватор файлов (ZIP)': 'zipArchiver', '2048': 'game2048', 'Генератор штрих-кодов': 'barcodeGenerator', 'Диктофон': 'voiceRecorder',
 };
@@ -27,7 +27,6 @@ const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
-// --- Глобальные переменные DOM ---
 const dynamicContentArea = document.getElementById('dynamic-content-area');
 const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
@@ -54,13 +53,11 @@ const appScreenHtml = `
         <div id="app-changelog-container" class="mt-8"></div>
     </div>`;
 
-// --- ЛОГИКА СОРТИРОВКИ ---
 let sortableInstance = null;
 
 function initializeDragAndDrop() {
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer || sortableInstance) return;
-
     appsContainer.classList.add('sortable-active');
     sortableInstance = new Sortable(appsContainer, {
         animation: 150,
@@ -75,20 +72,13 @@ function initializeDragAndDrop() {
 
 function destroyDragAndDrop() {
     const appsContainer = document.getElementById('apps-container');
-    if (appsContainer) {
-        appsContainer.classList.remove('sortable-active');
-    }
+    if (appsContainer) appsContainer.classList.remove('sortable-active');
     if (sortableInstance) {
         sortableInstance.destroy();
         sortableInstance = null;
     }
 }
 
-/**
- * =======================================================
- *  ЛОГИКА АВТОРИЗАЦИИ
- * =======================================================
- */
 const userProfileElement = document.getElementById('user-profile');
 const userAvatarElement = document.getElementById('user-avatar');
 const userNameElement = document.getElementById('user-name');
@@ -107,14 +97,17 @@ function renderGoogleButton() {
 }
 
 function updateAuthStateUI(user) {
+    const myAppsButton = document.querySelector('[data-sort="my-apps"]');
     if (user) {
         if (userNameElement) userNameElement.textContent = user.displayName;
         if (userAvatarElement) userAvatarElement.src = user.photoURL;
         if (userProfileElement) userProfileElement.classList.remove('hidden');
         if (googleSignInContainer) googleSignInContainer.classList.add('hidden');
+        if (myAppsButton) myAppsButton.classList.remove('hidden'); // ИЗМЕНЕНИЕ: Показать кнопку
     } else {
         if (userProfileElement) userProfileElement.classList.add('hidden');
         if (googleSignInContainer) googleSignInContainer.classList.remove('hidden');
+        if (myAppsButton) myAppsButton.classList.add('hidden'); // ИЗМЕНЕНИЕ: Скрыть кнопку
     }
 }
 
@@ -185,10 +178,8 @@ async function updateAppViewButton(moduleName, myAppsList) {
     const textSpan = button.querySelector('.btn-text');
     const plusIcon = button.querySelector('.plus-icon');
     const crossIcon = button.querySelector('.cross-icon');
-
     plusIcon.classList.toggle('hidden', isAdded);
     crossIcon.classList.toggle('hidden', !isAdded);
-    
     if (isAdded) {
         textSpan.textContent = 'Удалить из Моих приложений';
         button.classList.add('remove-style');
@@ -235,9 +226,7 @@ async function renderSimilarApps(currentModule, container) {
         if (card) {
             const cardClone = card.cloneNode(true);
             const addBtn = cardClone.querySelector('.add-to-my-apps-btn');
-            if (addBtn) {
-                addBtn.remove();
-            }
+            if (addBtn) addBtn.remove();
             grid.appendChild(cardClone);
         }
     });
@@ -302,7 +291,7 @@ function setupNavigationEvents() {
             const isChangelogLink = link.classList.contains('changelog-link');
             if (isAppNavigation || isChangelogLink) {
                 e.preventDefault();
-                if (window.location.href === link.href) return;
+                if (window.location.href === link.href && link.id !== 'home-link') return;
                 const appNameToOpen = link.dataset.appName;
                 if (isChangelogLink && appNameToOpen) {
                     const moduleFile = appNameToModuleFile[appNameToOpen];
@@ -328,7 +317,6 @@ function setupSearch() {
             const moduleName = card.dataset.module;
             const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
             const searchCorpus = [appName, ...metadata.keywords].join(' ');
-
             if (searchTerm.length > 0 && searchCorpus.includes(searchTerm)) {
                 suggestions.push({
                     name: card.dataset.name,
@@ -413,7 +401,7 @@ async function applyAppListFilterAndRender() {
     if (activeFilter === 'my-apps') {
         initializeDragAndDrop();
     }
-
+    
     if (searchInput.value) {
         searchInput.value = '';
         searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -477,6 +465,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (addBtn) {
             e.preventDefault(); 
             e.stopPropagation();
+            if (!auth.currentUser) {
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
+                return;
+            }
             const appCard = addBtn.closest('.app-item');
             const moduleName = appCard?.dataset.module;
             await toggleMyAppStatus(moduleName);
@@ -484,6 +476,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
         if (addBtnAppView) {
+            if (!auth.currentUser) {
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
+                return;
+            }
             const moduleName = addBtnAppView.dataset.module;
             await toggleMyAppStatus(moduleName);
             await updateAppViewButton(moduleName);
@@ -497,24 +493,25 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             clearUserData();
         }
-
         updateAuthStateUI(user);
-        
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
-
             const isOnHomePage = !new URLSearchParams(window.location.search).has('app');
             if (user && isOnHomePage) {
                 const filterContainer = document.getElementById('filter-container');
                 filterContainer.querySelector('[data-sort="default"]')?.classList.remove('active');
                 filterContainer.querySelector('[data-sort="my-apps"]')?.classList.add('active');
             }
-            
             await router(); 
         } else {
+            // ИЗМЕНЕНИЕ: Логика при выходе из аккаунта
+            const myAppsButton = document.querySelector('[data-sort="my-apps"]');
+            if (myAppsButton?.classList.contains('active')) {
+                myAppsButton.classList.remove('active');
+                document.querySelector('[data-sort="default"]')?.classList.add('active');
+            }
             await router();
         }
-
         if (isGsiInitialized) {
             renderGoogleButton();
         }
