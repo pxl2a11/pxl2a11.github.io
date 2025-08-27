@@ -1,9 +1,10 @@
-//03 js/main.js
+// js/main.js
 
 import { renderChangelog } from './utils/changelog.js';
 import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-import { fetchUserAccountData, clearUserData, getUserData, saveUserData } from './dataManager.js';
+// Импортируем все необходимые функции из dataManager, включая setOnDataLoaded
+import { fetchUserAccountData, clearUserData, getUserData, saveUserData, setOnDataLoaded } from './dataManager.js';
 
 // --- Сопоставление имен приложений и метаданные ---
 const appNameToModuleFile = {
@@ -426,6 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
     window.addEventListener('popstate', router);
+
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
@@ -446,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sunIcon.classList.toggle('hidden', isDark);
         moonIcon.classList.toggle('hidden', !isDark);
     });
+
     document.addEventListener('click', e => {
         if (suggestionsContainer && !suggestionsContainer.contains(e.target) && e.target !== searchInput) {
             suggestionsContainer.classList.add('hidden');
@@ -486,9 +489,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Устанавливаем callback, который перерисует интерфейс, когда придут свежие данные
+    setOnDataLoaded(async () => {
+        console.log("Получены свежие данные из Firebase, интерфейс будет обновлен.");
+        // Просто вызываем router, он сам всё перерисует на основе новых данных
+        await router(); 
+    });
+
     let isInitialAuthCheckDone = false;
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // Эта функция сначала загрузит данные из локального кэша, а потом из сети
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
@@ -501,10 +512,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateAuthStateUI(user);
         
+        // Роутер запускается мгновенно с локальными данными (или пустыми, если их нет)
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
             await router(); 
         } else {
+            // При логине/выходе также перерисовываем
             await router();
         }
 
