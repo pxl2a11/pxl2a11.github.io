@@ -20,13 +20,15 @@
     <script src="js/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="js/qrcode.min.js"></script>
     
-    <!-- ИЗМЕНЕНИЕ: Локальное подключение библиотек с defer -->
+    <!-- Библиотека для сортировки -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
     <script src="js/JsBarcode.all.min.js" defer></script>
     
     <!-- Библиотека Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    <!-- Firebase SDK (совместимые версии v8) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js" defer></script>
@@ -84,9 +86,8 @@
     </div>
     <!-- 
       НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ
-      JavaScript будет копировать элементы из этого шаблона.
     -->
-        <template id="all-apps-template">
+    <template id="all-apps-template">
         <a href="?app=speedTest" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Скорость интернета" data-module="speedTest">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
