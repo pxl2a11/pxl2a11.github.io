@@ -38,9 +38,16 @@ let allAppCards = [];
 const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
     <div id="app-screen" class="hidden">
-        <div class="flex items-start mb-6">
-            <a href="/" id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"><svg class="h-6 w-6 text-gray-900 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></a>
-            <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <a href="/" id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"><svg class="h-6 w-6 text-gray-900 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></a>
+                <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>
+            </div>
+            <button id="add-to-my-apps-app-view-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors">
+                <svg class="plus-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                <svg class="cross-icon h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <span class="btn-text"></span>
+            </button>
         </div>
         <div id="app-content-container" class="mt-4"></div>
         <div id="similar-apps-container" class="mt-12"></div>
@@ -81,8 +88,8 @@ function updateAuthStateUI(user) {
     }
 }
 
-async function getPinnedApps() { return getUserData('pinnedApps', []); }
-async function savePinnedApps(pinnedModules) { await saveUserData('pinnedApps', pinnedModules); }
+async function getMyApps() { return getUserData('myApps', []); }
+async function saveMyApps(myAppsModules) { await saveUserData('myApps', myAppsModules); }
 
 function handleCredentialResponse(response) {
     const googleCredential = GoogleAuthProvider.credential(response.credential);
@@ -108,6 +115,58 @@ function initializeGoogleSignIn() {
     }
 }
 // --- КОНЕЦ ЛОГИКИ АВТОРИЗАЦИИ ---
+
+async function toggleMyAppStatus(moduleName) {
+    if (!moduleName) return;
+    let myApps = await getMyApps();
+    if (myApps.includes(moduleName)) {
+        myApps = myApps.filter(m => m !== moduleName);
+    } else {
+        myApps.push(moduleName);
+    }
+    await saveMyApps(myApps);
+    const activeFilter = document.querySelector('#filter-container .active')?.dataset.sort;
+    if (activeFilter === 'my-apps') {
+        await applyAppListFilterAndRender();
+    } else {
+        await updateAllMyAppButtonsUI();
+    }
+}
+
+async function updateAllMyAppButtonsUI() {
+    const myApps = await getMyApps();
+    document.querySelectorAll('.app-item').forEach(card => {
+        const moduleName = card.dataset.module;
+        const button = card.querySelector('.add-to-my-apps-btn');
+        if (button) {
+            button.classList.toggle('is-added', myApps.includes(moduleName));
+        }
+    });
+    const currentAppModule = new URLSearchParams(window.location.search).get('app');
+    if (currentAppModule) {
+        await updateAppViewButton(currentAppModule, myApps);
+    }
+}
+
+async function updateAppViewButton(moduleName, myAppsList) {
+    const myApps = myAppsList || await getMyApps();
+    const button = document.getElementById('add-to-my-apps-app-view-btn');
+    if (!button) return;
+    const isAdded = myApps.includes(moduleName);
+    const textSpan = button.querySelector('.btn-text');
+    button.classList.toggle('is-added', isAdded);
+    if (isAdded) {
+        textSpan.textContent = 'Удалить из Моих приложений';
+        button.classList.add('remove-style');
+        button.classList.remove('add-style');
+    } else {
+        textSpan.textContent = 'Добавить в Мои приложения';
+        button.classList.add('add-style');
+        button.classList.remove('remove-style');
+    }
+    button.dataset.module = moduleName;
+}
+
 
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
@@ -142,9 +201,9 @@ async function renderSimilarApps(currentModule, container) {
         const card = appCardElements.get(module);
         if (card) {
             const cardClone = card.cloneNode(true);
-            const pinBtn = cardClone.querySelector('.pin-btn');
-            if (pinBtn) {
-                pinBtn.remove();
+            const addBtn = cardClone.querySelector('.add-to-my-apps-btn');
+            if (addBtn) {
+                addBtn.remove();
             }
             grid.appendChild(cardClone);
         }
@@ -165,7 +224,6 @@ async function router() {
     const filterContainer = document.getElementById('filter-container');
     
     if (appName) {
-        // Убираем очистку и скрытие поля поиска
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         filterContainer?.classList.add('hidden');
         dynamicContentArea.innerHTML = appScreenHtml;
@@ -180,6 +238,7 @@ async function router() {
             const appContentContainer = document.getElementById('app-content-container');
             if (typeof module.getHtml === 'function') appContentContainer.innerHTML = module.getHtml();
             if (typeof module.init === 'function') await module.init();
+            await updateAppViewButton(moduleName);
             const appChangelogContainer = document.getElementById('app-changelog-container');
             const similarAppsContainer = document.getElementById('similar-apps-container');
             await renderSimilarApps(moduleName, similarAppsContainer);
@@ -202,7 +261,7 @@ async function router() {
 function setupNavigationEvents() {
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a');
-        if (!link || e.target.closest('.pin-btn')) return;
+        if (!link || e.target.closest('.add-to-my-apps-btn')) return;
         if (link.id === 'back-button') { e.preventDefault(); history.back(); return; }
         const url = new URL(link.href);
         if (url.origin === window.location.origin) {
@@ -225,15 +284,12 @@ function setupNavigationEvents() {
     });
 }
 
-// --- ИЗМЕНЕНО: Полностью переписанная функция поиска ---
 function setupSearch() {
     if (!searchInput) return;
 
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const suggestions = [];
-
-        // 1. Собираем подсказки, итерируя по ГЛОБАЛЬНОМУ списку всех приложений
         allAppCards.forEach(card => {
             const appName = card.dataset.name.toLowerCase();
             const moduleName = card.dataset.module;
@@ -248,8 +304,6 @@ function setupSearch() {
                 });
             }
         });
-
-        // 2. Отображаем или скрываем контейнер с подсказками
         suggestionsContainer.innerHTML = '';
         if (suggestions.length > 0) {
             suggestionsContainer.classList.remove('hidden');
@@ -268,8 +322,6 @@ function setupSearch() {
         } else {
             suggestionsContainer.classList.add('hidden');
         }
-
-        // 3. Если мы на главной странице, дополнительно фильтруем видимые карточки
         const appsContainer = document.getElementById('apps-container');
         if (appsContainer) {
             const visibleAppCards = appsContainer.querySelectorAll('.app-item');
@@ -291,45 +343,43 @@ async function applyAppListFilterAndRender() {
 
     const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
-    const pinnedModules = await getPinnedApps();
+    const myApps = await getMyApps();
 
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
+        if (appElements.length === 0 && activeFilter === 'my-apps') {
+            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400">У вас пока нет добавленных приложений. Нажмите "+" на карточке приложения, чтобы добавить его сюда.</p>`;
+            return;
+        }
         appElements.forEach(app => {
             const appClone = app.cloneNode(true);
-            const pinBtn = appClone.querySelector('.pin-btn');
-            if (pinBtn) {
-                pinBtn.classList.remove('pinned');
-                if (pinnedModules.includes(app.dataset.module)) {
-                    pinBtn.classList.add('pinned');
-                }
+            const button = appClone.querySelector('.add-to-my-apps-btn');
+            if (button && myApps.includes(app.dataset.module)) {
+                button.classList.add('is-added');
             }
             appsContainer.appendChild(appClone);
         });
     };
 
-    let unpinnedAppCards = [];
-    const pinnedAppCardsMap = new Map();
-    pinnedModules.forEach(module => pinnedAppCardsMap.set(module, null));
-    allAppCards.forEach(card => {
-        const module = card.dataset.module;
-        if (pinnedModules.includes(module)) {
-            pinnedAppCardsMap.set(module, card);
-        } else {
-            unpinnedAppCards.push(card);
-        }
-    });
-    const pinnedAppCards = Array.from(pinnedAppCardsMap.values()).filter(Boolean);
-    let sortedUnpinned;
-    if (activeFilter === 'popular') {
-        sortedUnpinned = [...unpinnedAppCards].sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
-    } else if (activeFilter === 'new') {
-        sortedUnpinned = [...unpinnedAppCards].sort((a, b) => allAppCards.indexOf(b) - allAppCards.indexOf(a));
+    let appsToRender = [];
+    if (activeFilter === 'my-apps') {
+        const myAppCardsMap = new Map();
+        myApps.forEach(module => {
+            if (appCardElements.has(module)) {
+                myAppCardsMap.set(module, appCardElements.get(module));
+            }
+        });
+        appsToRender = myApps.map(module => myAppCardsMap.get(module)).filter(Boolean);
     } else {
-        sortedUnpinned = unpinnedAppCards;
+        let sortedApps = [...allAppCards];
+        if (activeFilter === 'popular') {
+            sortedApps.sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
+        } else if (activeFilter === 'new') {
+            sortedApps.sort((a, b) => allAppCards.indexOf(b) - allAppCards.indexOf(a));
+        }
+        appsToRender = sortedApps;
     }
-    const finalAppList = [...pinnedAppCards, ...sortedUnpinned];
-    renderApps(finalAppList);
+    renderApps(appsToRender);
     if (searchInput.value) {
         searchInput.value = '';
         searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -350,7 +400,6 @@ function setupFilters() {
 
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
-    // --- ИЗМЕНЕНО: Вызываем setupSearch() один раз при загрузке ---
     setupSearch(); 
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
@@ -390,25 +439,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     dynamicContentArea.addEventListener('click', async e => {
-        const pinBtn = e.target.closest('.pin-btn');
-        if (pinBtn) {
+        const addBtn = e.target.closest('.add-to-my-apps-btn');
+        if (addBtn) {
             e.preventDefault(); 
             e.stopPropagation();
-            const appCard = pinBtn.closest('.app-item');
+            const appCard = addBtn.closest('.app-item');
             const moduleName = appCard?.dataset.module;
-            if (!moduleName) return;
-            let pinnedApps = await getPinnedApps();
-            if (pinnedApps.includes(moduleName)) {
-                pinnedApps = pinnedApps.filter(m => m !== moduleName);
-            } else {
-                pinnedApps.push(moduleName);
-            }
-            await savePinnedApps(pinnedApps);
-            await applyAppListFilterAndRender();
+            await toggleMyAppStatus(moduleName);
+            return;
+        }
+        const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
+        if (addBtnAppView) {
+            const moduleName = addBtnAppView.dataset.module;
+            await toggleMyAppStatus(moduleName);
+            await updateAppViewButton(moduleName);
         }
     });
 
-    // --- ГЛАВНЫЙ ИСПРАВЛЕННЫЙ ПОТОК ЗАГРУЗКИ ---
     let isInitialAuthCheckDone = false;
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -416,18 +463,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             clearUserData();
         }
-
         updateAuthStateUI(user);
-        
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
             await router(); 
         } else {
-            // ИЗМЕНЕНО: теперь router вызывается всегда при смене пользователя
-            // для корректного перерендера списка приложений с учетом закрепленных
             await router();
         }
-
         if (isGsiInitialized) {
             renderGoogleButton();
         }
