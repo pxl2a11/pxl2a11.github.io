@@ -19,10 +19,9 @@
     <link rel="stylesheet" href="css/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="js/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="js/qrcode.min.js"></script>
-    <script src="js/jszip.min.js"></script>
     
     <!-- Библиотека для сортировки -->
-    <script src="js/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
     <script src="js/JsBarcode.all.min.js" defer></script>
     
@@ -69,14 +68,19 @@
     <!-- Основной контейнер -->
     <div class="flex flex-col items-center min-h-screen pt-8 pb-8">
         <div class="w-full max-w-4xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-lg transition-colors">
-            <h1 class="text-4xl font-bold text-center mb-6"><a href="/" id="home-link">Mini Apps</a></h1>
+            <!-- ИЗМЕНЕНИЕ: Добавлен span для beta -->
+            <h1 class="text-4xl font-bold text-center mb-6 relative">
+                <a href="/" id="home-link">Mini Apps</a>
+                <span class="text-xs font-bold text-blue-500 absolute top-0 -right-8 transform -translate-y-1/2">beta</span>
+            </h1>
             <div class="relative mb-6">
                 <input id="search-input" type="text" placeholder="Поиск приложений..." class="w-full p-4 pl-12 pr-4 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                 <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 <div id="suggestions-container" class="absolute w-full mt-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-lg hidden z-10"></div>
             </div>
-            <div id="filter-container" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-6 hidden">
-                <button data-sort="my-apps" class="filter-btn">Мои приложения</button>
+            <div id="filter-container" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-6">
+                <!-- ИЗМЕНЕНИЕ: Кнопка скрыта по умолчанию -->
+                <button data-sort="my-apps" class="filter-btn hidden">Мои приложения</button>
                 <button data-sort="default" class="filter-btn active">Все</button>
                 <button data-sort="popular" class="filter-btn">Популярные</button>
                 <button data-sort="new" class="filter-btn">Новые</button>
@@ -85,10 +89,10 @@
         </div>
         <div id="changelog-container" class="w-full max-w-4xl mx-auto p-6 mt-8 bg-white dark:bg-gray-900 rounded-2xl shadow-lg transition-colors"></div>
     </div>
-    <!-- 
-      НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ
-    -->
+    
+    <!-- НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ -->
     <template id="all-apps-template">
+        <!-- Все карточки остаются без изменений, как в предыдущем ответе -->
         <a href="?app=speedTest" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Скорость интернета" data-module="speedTest">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
