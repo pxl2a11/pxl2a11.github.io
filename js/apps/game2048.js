@@ -5,7 +5,7 @@ let score = 0;
 const gridSize = 4;
 let isGameOver = false;
 
-// ИЗМЕНЕНИЕ: Цветовая схема возвращена
+// Цвета для плиток
 const tileColors = {
     2: 'bg-gray-200 text-gray-800', 4: 'bg-yellow-200 text-gray-800',
     8: 'bg-orange-300 text-white', 16: 'bg-orange-400 text-white',
@@ -16,17 +16,17 @@ const tileColors = {
 };
 
 export function getHtml() {
-    // HTML-структура остается без изменений
     return `
         <div class="flex flex-col items-center">
-            <div class="flex justify-between items-center w-full max-w-md mb-4" style="width: 400px;">
+            <div class="flex justify-between items-center w-full max-w-md mb-4">
                 <div>
                     <span class="text-lg font-bold">СЧЕТ:</span>
                     <span id="score" class="text-lg font-bold">0</span>
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 rounded-md relative" style="width: 400px; height: 400px;">
+            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 dark:bg-gray-600 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
+                <!-- Ячейки будут добавлены динамически -->
                  <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md">
                     <span>Конец игры!</span>
                     <button id="retry-btn" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded text-xl">Попробовать снова</button>
@@ -40,28 +40,11 @@ export function init() {
     document.getElementById('new-game-btn').addEventListener('click', startGame);
     document.getElementById('retry-btn').addEventListener('click', startGame);
     document.addEventListener('keydown', handleKeydown);
-    createBoard();
     startGame();
 }
 
 export function cleanup() {
     document.removeEventListener('keydown', handleKeydown);
-}
-
-// ИЗМЕНЕНИЕ: Функция теперь создает постоянные "слоты" для плиток
-function createBoard() {
-    const gameBoard = document.getElementById('game-board');
-    const overlay = document.getElementById('game-over-overlay');
-    gameBoard.innerHTML = ''; 
-    
-    // Создаем 16 фоновых ячеек (слотов), которые никогда не будут меняться
-    for (let i = 0; i < gridSize * gridSize; i++) {
-        const cellSlot = document.createElement('div');
-        cellSlot.className = 'w-full h-full bg-gray-300 rounded-md';
-        gameBoard.appendChild(cellSlot);
-    }
-    
-    gameBoard.appendChild(overlay);
 }
 
 function startGame() {
@@ -75,25 +58,34 @@ function startGame() {
     renderBoard();
 }
 
-// ИЗМЕНЕНИЕ: Функция теперь не меняет слоты, а вставляет/удаляет плитки ВНУТРИ них
 function renderBoard() {
     const gameBoard = document.getElementById('game-board');
-    // Получаем все дочерние элементы-слоты
-    const cellSlots = Array.from(gameBoard.children).filter(el => el.id !== 'game-over-overlay');
+    // Очищаем только плитки, а не оверлей
+    gameBoard.querySelectorAll('.tile').forEach(tile => tile.remove());
 
     for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
-            const tileValue = grid[r][c];
-            const cellIndex = r * gridSize + c;
-            const slot = cellSlots[cellIndex];
-            
-            if (tileValue === 0) {
-                // Если значения нет, слот просто пустой
-                slot.innerHTML = '';
-            } else {
-                // Если значение есть, создаем HTML для плитки и вставляем его в слот
-                const colorClass = tileColors[tileValue] || 'bg-black text-white';
-                slot.innerHTML = `<div class="w-full h-full flex items-center justify-center font-bold text-4xl rounded-md ${colorClass}">${tileValue}</div>`;
+            // Фон для пустых ячеек
+            if (!document.querySelector(`[data-row='${r}'][data-col='${c}']`)) {
+                 const backgroundCell = document.createElement('div');
+                 backgroundCell.className = 'w-full h-full bg-gray-300 dark:bg-gray-500 rounded-md';
+                 backgroundCell.style = `grid-row: ${r + 1}; grid-column: ${c + 1};`;
+                 gameBoard.appendChild(backgroundCell);
+            }
+           
+            if (grid[r][c] !== 0) {
+                const tile = document.createElement('div');
+                tile.className = `tile absolute flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md transition-all duration-200 ${tileColors[grid[r][c]] || 'bg-black text-white'}`;
+                const size = gameBoard.clientWidth / gridSize;
+                const gap = (gameBoard.clientWidth - (size * gridSize)) / (gridSize + 1);
+                tile.style.width = `${size - gap}px`;
+                tile.style.height = `${size - gap}px`;
+                tile.style.top = `${r * (size)}px`;
+                tile.style.left = `${c * (size)}px`;
+                tile.style.transform = `translate(${gap*(c+1)}px, ${gap*(r+1)}px)`;
+
+                tile.textContent = grid[r][c];
+                gameBoard.appendChild(tile);
             }
         }
     }
@@ -103,22 +95,10 @@ function handleKeydown(e) {
     if (isGameOver) return;
     let moved = false;
     switch (e.key) {
-        case 'ArrowUp': 
-            e.preventDefault();
-            moved = moveUp(); 
-            break;
-        case 'ArrowDown': 
-            e.preventDefault();
-            moved = moveDown(); 
-            break;
-        case 'ArrowLeft': 
-            e.preventDefault();
-            moved = moveLeft(); 
-            break;
-        case 'ArrowRight': 
-            e.preventDefault();
-            moved = moveRight(); 
-            break;
+        case 'ArrowUp': moved = moveUp(); break;
+        case 'ArrowDown': moved = moveDown(); break;
+        case 'ArrowLeft': moved = moveLeft(); break;
+        case 'ArrowRight': moved = moveRight(); break;
         default: return;
     }
     if (moved) {
@@ -235,8 +215,7 @@ function canMove() {
 function checkGameOver() {
     if (!canMove()) {
         isGameOver = true;
-        const overlay = document.getElementById('game-over-overlay');
-        overlay.classList.remove('hidden');
-        overlay.classList.add('flex');
+        document.getElementById('game-over-overlay').classList.remove('hidden');
+        document.getElementById('game-over-overlay').classList.add('flex');
     }
 }
