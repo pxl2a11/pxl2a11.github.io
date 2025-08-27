@@ -43,8 +43,13 @@ export function init() {
     const downloadBtn = document.getElementById('download-barcode-btn');
     const errorDiv = document.getElementById('barcode-error');
 
+    // ИЗМЕНЕНИЕ: Улучшенная проверка и вывод ошибки
     if (typeof JsBarcode === 'undefined') {
-        errorDiv.textContent = 'Ошибка: Библиотека JsBarcode не загружена.';
+        const errorMsg = 'Ошибка: Библиотека JsBarcode не загружена.';
+        errorDiv.textContent = errorMsg;
+        console.error(errorMsg);
+        console.log("ПОДСКАЗКА: 1. Убедитесь, что файл 'JsBarcode.all.min.js' находится в папке 'js'. 2. Проверьте, что в index.html есть строка: <script src='js/JsBarcode.all.min.js' defer></script> 3. Запускайте проект через локальный сервер (например, Live Server в VS Code).");
+        generateBtn.disabled = true;
         return;
     }
     
@@ -84,7 +89,6 @@ export function init() {
         const serializer = new XMLSerializer();
         let source = serializer.serializeToString(svg);
 
-        // Добавляем xml заголовок
         if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
             source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
         }
@@ -97,6 +101,7 @@ export function init() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
     };
 
     generateBtn.addEventListener('click', generateBarcode);
