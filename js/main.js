@@ -44,8 +44,8 @@ const appScreenHtml = `
                 <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>
             </div>
             <button id="add-to-my-apps-app-view-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors">
-                <svg class="plus-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                <svg class="cross-icon h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <img src="img/plusapps.svg" class="plus-icon h-5 w-5" alt="">
+                <img src="img/minusapps.svg" class="cross-icon h-5 w-5 hidden" alt="">
                 <span class="btn-text"></span>
             </button>
         </div>
@@ -154,7 +154,12 @@ async function updateAppViewButton(moduleName, myAppsList) {
     if (!button) return;
     const isAdded = myApps.includes(moduleName);
     const textSpan = button.querySelector('.btn-text');
-    button.classList.toggle('is-added', isAdded);
+    const plusIcon = button.querySelector('.plus-icon');
+    const crossIcon = button.querySelector('.cross-icon');
+
+    plusIcon.classList.toggle('hidden', isAdded);
+    crossIcon.classList.toggle('hidden', !isAdded);
+    
     if (isAdded) {
         textSpan.textContent = 'Удалить из Моих приложений';
         button.classList.add('remove-style');
