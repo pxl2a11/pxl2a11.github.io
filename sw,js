@@ -34,7 +34,7 @@ const urlsToCache = [
   '/js/jszip.min.js',
   '/js/JsBarcode.all.min.js',
   '/js/tailwind.js',
-  'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js',
+  '/js/Sortable.min.js',
   '/img/logo.svg',
   '/img/icons/icon-192x192.png',
   '/img/icons/icon-512x512.png',
