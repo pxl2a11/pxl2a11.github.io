@@ -1,6 +1,8 @@
 // js/apps/zipArchiver.js
 
 let filesToZip = [];
+// Переменная для хранения экземпляра ZIP-файла после распаковки
+let unpackedZipInstance = null;
 
 export function getHtml() {
     return `
@@ -29,6 +31,11 @@ export function getHtml() {
                     </label>
                     <input type="file" id="unzip-file-input" accept=".zip" class="hidden">
                 </div>
+                <!-- ИЗМЕНЕНИЕ: Добавлен контейнер для заголовка и кнопки "Скачать всё" -->
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-lg font-semibold">Содержимое архива:</h4>
+                    <button id="download-all-btn" class="hidden bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-1 px-3 rounded-lg transition-colors">Скачать всё</button>
+                </div>
                 <div id="unzip-output" class="text-sm space-y-2 min-h-[60px]">
                     <p class="text-gray-500 dark:text-gray-400">Выберите архив для просмотра содержимого.</p>
                 </div>
@@ -45,6 +52,8 @@ export function init() {
     const unzipFileInput = document.getElementById('unzip-file-input');
     const unzipOutput = document.getElementById('unzip-output');
     const statusDiv = document.getElementById('zip-status');
+    // ИЗМЕНЕНИЕ: Получаем новую кнопку
+    const downloadAllBtn = document.getElementById('download-all-btn');
 
     if (typeof JSZip === 'undefined') {
         statusDiv.innerHTML = `<p class="text-red-500">Ошибка: Библиотека JSZip не загружена.</p>`;
@@ -90,6 +99,7 @@ export function init() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
             statusDiv.textContent = 'Архив успешно создан!';
         } catch (err) {
             console.error(err);
@@ -106,10 +116,15 @@ export function init() {
 
         statusDiv.textContent = 'Чтение архива...';
         unzipOutput.innerHTML = '';
+        // ИЗМЕНЕНИЕ: Скрываем кнопку при выборе нового файла
+        downloadAllBtn.classList.add('hidden');
+        unpackedZipInstance = null;
         
         try {
             const data = await file.arrayBuffer();
             const zip = await JSZip.loadAsync(data);
+            // ИЗМЕНЕНИЕ: Сохраняем экземпляр zip для дальнейшего использования
+            unpackedZipInstance = zip;
             const list = document.createElement('div');
             list.className = 'space-y-2';
             
@@ -120,8 +135,8 @@ export function init() {
                     const fileElement = document.createElement('div');
                     fileElement.className = 'flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-2 rounded';
                     fileElement.innerHTML = `
-                        <span>${zipEntry.name}</span>
-                        <button data-filename="${zipEntry.name}" class="download-file-btn text-blue-500 hover:underline text-sm">Скачать</button>
+                        <span class="truncate pr-2">${zipEntry.name}</span>
+                        <button data-filename="${zipEntry.name}" class="download-file-btn text-blue-500 hover:underline text-sm flex-shrink-0">Скачать</button>
                     `;
                     list.appendChild(fileElement);
                 }
@@ -129,6 +144,8 @@ export function init() {
 
             if (fileCount > 0) {
                  unzipOutput.appendChild(list);
+                 // ИЗМЕНЕНИЕ: Показываем кнопку "Скачать всё"
+                 downloadAllBtn.classList.remove('hidden');
             } else {
                 unzipOutput.innerHTML = '<p class="text-gray-500 dark:text-gray-400">В архиве нет файлов.</p>';
             }
@@ -147,13 +164,40 @@ export function init() {
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
+                        URL.revokeObjectURL(link.href);
                     }
                 });
             });
 
         } catch (err) {
             console.error(err);
+            unpackedZipInstance = null;
             statusDiv.innerHTML = `<p class="text-red-500">Не удалось прочитать ZIP-файл. Возможно, он поврежден.</p>`;
         }
+    });
+
+    // ИЗМЕНЕНИЕ: Добавляем обработчик для кнопки "Скачать всё"
+    downloadAllBtn.addEventListener('click', async () => {
+        if (!unpackedZipInstance) return;
+
+        statusDiv.textContent = 'Подготовка файлов к скачиванию...';
+        // Небольшая функция-задержка, чтобы браузер не блокировал множественные скачивания
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        for (const filename in unpackedZipInstance.files) {
+            const zipEntry = unpackedZipInstance.files[filename];
+            if (!zipEntry.dir) {
+                const content = await zipEntry.async('blob');
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = zipEntry.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                await delay(200); // Ожидание 200мс между скачиваниями
+            }
+        }
+        statusDiv.textContent = 'Все файлы отправлены на загрузку.';
     });
 }
