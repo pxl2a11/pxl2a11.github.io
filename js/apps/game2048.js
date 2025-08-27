@@ -5,7 +5,7 @@ let score = 0;
 const gridSize = 4;
 let isGameOver = false;
 
-// ИЗМЕНЕНИЕ: Возвращена первоначальная цветовая схема
+// Цветовая схема плиток
 const tileColors = {
     2: 'bg-gray-200 text-gray-800', 4: 'bg-yellow-200 text-gray-800',
     8: 'bg-orange-300 text-white', 16: 'bg-orange-400 text-white',
@@ -16,6 +16,7 @@ const tileColors = {
 };
 
 export function getHtml() {
+    // HTML-структура остается без изменений
     return `
         <div class="flex flex-col items-center">
             <div class="flex justify-between items-center w-full max-w-md mb-4">
@@ -25,7 +26,6 @@ export function getHtml() {
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <!-- ИЗМЕНЕНИЕ: Убраны классы для темной темы и touch-событий -->
             <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
                  <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md">
                     <span>Конец игры!</span>
@@ -39,14 +39,32 @@ export function getHtml() {
 export function init() {
     document.getElementById('new-game-btn').addEventListener('click', startGame);
     document.getElementById('retry-btn').addEventListener('click', startGame);
-    // ИЗМЕНЕНИЕ: Обработчик событий возвращен на 'document'
     document.addEventListener('keydown', handleKeydown);
+    // ИЗМЕНЕНИЕ: Создаем доску один раз при инициализации
+    createBoard();
     startGame();
 }
 
 export function cleanup() {
-    // ИЗМЕНЕНИЕ: Обработчик событий убирается с 'document'
     document.removeEventListener('keydown', handleKeydown);
+}
+
+// ИЗМЕНЕНИЕ: Новая функция для однократного создания ячеек доски
+function createBoard() {
+    const gameBoard = document.getElementById('game-board');
+    // Сохраняем оверлей, чтобы добавить его в конце
+    const overlay = document.getElementById('game-over-overlay');
+    gameBoard.innerHTML = ''; // Очищаем доску
+    
+    // Создаем 16 ячеек, которые будут обновляться, а не пересоздаваться
+    for (let i = 0; i < gridSize * gridSize; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'w-full h-full bg-gray-300 rounded-md';
+        gameBoard.appendChild(cell);
+    }
+    
+    // Возвращаем оверлей на место
+    gameBoard.appendChild(overlay);
 }
 
 function startGame() {
@@ -60,42 +78,53 @@ function startGame() {
     renderBoard();
 }
 
-// ИЗМЕНЕНИЕ: Полностью переписанная функция для простого и корректного отображения
+// ИЗМЕНЕНИЕ: Функция теперь не пересоздает элементы, а обновляет существующие
 function renderBoard() {
     const gameBoard = document.getElementById('game-board');
-    const overlay = document.getElementById('game-over-overlay');
-    gameBoard.innerHTML = ''; // Очищаем всё содержимое доски
-    gameBoard.appendChild(overlay); // Возвращаем оверлей на место
+    // Получаем все дочерние ячейки, исключая оверлей
+    const cells = Array.from(gameBoard.children).filter(el => el.id !== 'game-over-overlay');
 
     for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
             const tileValue = grid[r][c];
-            const cell = document.createElement('div');
+            const cellIndex = r * gridSize + c;
+            const cell = cells[cellIndex];
             
             if (tileValue === 0) {
-                // Это пустая ячейка
+                // Очищаем ячейку
+                cell.textContent = '';
                 cell.className = 'w-full h-full bg-gray-300 rounded-md';
             } else {
-                // Это ячейка с плиткой
+                // Заполняем ячейку
                 const colorClass = tileColors[tileValue] || 'bg-black text-white';
                 cell.className = `tile w-full h-full flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md ${colorClass}`;
                 cell.textContent = tileValue;
             }
-            gameBoard.appendChild(cell);
         }
     }
 }
 
-
 function handleKeydown(e) {
-    // ИЗМЕНЕНИЕ: Убрана проверка и preventDefault для возврата к первоначальному поведению
     if (isGameOver) return;
     let moved = false;
+    // ИЗМЕНЕНИЕ: Добавлено e.preventDefault() для предотвращения прокрутки страницы
     switch (e.key) {
-        case 'ArrowUp': moved = moveUp(); break;
-        case 'ArrowDown': moved = moveDown(); break;
-        case 'ArrowLeft': moved = moveLeft(); break;
-        case 'ArrowRight': moved = moveRight(); break;
+        case 'ArrowUp': 
+            e.preventDefault();
+            moved = moveUp(); 
+            break;
+        case 'ArrowDown': 
+            e.preventDefault();
+            moved = moveDown(); 
+            break;
+        case 'ArrowLeft': 
+            e.preventDefault();
+            moved = moveLeft(); 
+            break;
+        case 'ArrowRight': 
+            e.preventDefault();
+            moved = moveRight(); 
+            break;
         default: return;
     }
     if (moved) {
