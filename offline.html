@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вы оффлайн</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+        p {
+            font-size: 1.125rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+        }
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+        .app-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            background-color: #f8fafc;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: #3b82f6;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .app-link:hover {
+            background-color: #eff6ff;
+        }
+        .reload-btn {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #3b82f6;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .reload-btn:hover {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Вы оффлайн</h1>
+        <p>К сожалению, это приложение требует подключения к интернету. Но вы все еще можете использовать другие наши инструменты.</p>
+        
+        <h2>Доступные приложения:</h2>
+        <div id="available-apps-list" class="app-grid">
+            <!-- Ссылки будут вставлены сюда с помощью JavaScript -->
+        </div>
+
+        <button id="reload-btn" class="reload-btn">Попробовать снова</button>
+    </div>
+
+    <script>
+        // Этот скрипт будет работать даже офлайн, т.к. он встроен в страницу
+        document.addEventListener('DOMContentLoaded', () => {
+            const appListContainer = document.getElementById('available-apps-list');
+            const reloadBtn = document.getElementById('reload-btn');
+
+            // Список ВСЕХ приложений (ключ: имя, значение: модуль)
+            const allApps = {
+                '2048': 'game2048', 'Судоку': 'sudoku', 'Змейка': 'snakeGame', 'Игра на память': 'memoryGame',
+                'Сапер': 'minesweeper', 'Крестики-нолики': 'ticTacToe', 'Камень, ножницы, бумага': 'rockPaperScissors',
+                'Пианино': 'piano', 'Таймер': 'timer', 'Секундомер': 'stopwatch',
+                'Генератор паролей': 'passwordGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Генератор штрих-кодов': 'barcodeGenerator',
+                'Генератор чисел': 'numberGenerator', 'Случайный цвет': 'randomColor', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall',
+                'Конвертер величин': 'unitConverter', 'Конвертер регистра': 'caseConverter', 'Конвертер цветов': 'colorConverter',
+                'Конвертер форматов изображений': 'imageConverter', 'Транслитерация текста': 'textTranslit',
+                'Калькулятор ИМТ': 'bmiCalculator', 'Калькулятор дат': 'dateCalculator', 'Калькулятор процентных соотношений': 'percentageCalculator',
+                'Счетчик слов и символов': 'wordCounter', 'Эмодзи и символы': 'emojiAndSymbols', 'Изменение размера изображений': 'imageResizer',
+                'Текст в речь': 'textToSpeech', 'Диктофон': 'voiceRecorder', 'Архиватор файлов (ZIP)': 'zipArchiver',
+                'Сканер QR-кодов': 'qrScanner', 'Тест звука и микрофона': 'soundAndMicTest'
+            };
+
+            // Приложения, требующие онлайн
+            const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks'];
+
+            let appLinksHtml = '';
+            for (const appName in allApps) {
+                const moduleName = allApps[appName];
+                if (!onlineOnlyApps.includes(moduleName)) {
+                    appLinksHtml += `<a href="/?app=${moduleName}" class="app-link">${appName}</a>`;
+                }
+            }
+
+            if(appListContainer) {
+                appListContainer.innerHTML = appLinksHtml || '<p>Не удалось загрузить список.</p>';
+            }
+
+            if(reloadBtn) {
+                reloadBtn.addEventListener('click', () => {
+                    window.location.reload();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
