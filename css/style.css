@@ -51,8 +51,8 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* --- НОВЫЕ СТИЛИ ДЛЯ КНОПКИ ЗАКРЕПЛЕНИЯ С IMG --- */
-.pin-btn {
+/* --- НОВЫЕ СТИЛИ ДЛЯ КНОПКИ ДОБАВЛЕНИЯ/УДАЛЕНИЯ --- */
+.add-to-my-apps-btn {
     position: absolute;
     top: 0.25rem;
     right: 0.25rem;
@@ -62,40 +62,81 @@
     background-color: transparent;
     border: none;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
-    /* Устанавливаем размер контейнера для иконок */
-    width: 24px;
-    height: 24px;
+    transition: background-color 0.2s, transform 0.2s, color 0.2s;
+    width: 32px;
+    height: 32px;
     display: flex;
     justify-content: center;
     align-items: center;
+    color: #6b7280; /* gray-500 */
 }
 
-.pin-btn:hover {
+.add-to-my-apps-btn:hover {
     background-color: rgba(0, 0, 0, 0.1);
     transform: scale(1.1);
+    color: #111827; /* gray-900 */
 }
 
-.dark .pin-btn:hover {
+.dark .add-to-my-apps-btn {
+    color: #9ca3af; /* dark:gray-400 */
+}
+
+.dark .add-to-my-apps-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
+    color: #f9fafb; /* dark:gray-50 */
 }
 
-/* Скрываем закрепленную иконку по умолчанию */
-.pin-btn .pinned-icon {
+.add-to-my-apps-btn .cross-icon {
     display: none;
 }
 
-/* Показываем обычную иконку по умолчанию */
-.pin-btn .unpinned-icon {
-    display: inline-block;
+.add-to-my-apps-btn.is-added .plus-icon {
+    display: none;
 }
 
-/* Когда кнопка имеет класс 'pinned' */
-.pin-btn.pinned .pinned-icon {
-    display: inline-block; /* Показываем закрепленную */
+.add-to-my-apps-btn.is-added .cross-icon {
+    display: block;
+    color: #ef4444; /* red-500 */
 }
 
-.pin-btn.pinned .unpinned-icon {
-    display: none; /* Скрываем обычную */
+.add-to-my-apps-btn.is-added:hover {
+    background-color: rgba(239, 68, 68, 0.1);
 }
-/* --- КОНЕЦ НОВЫХ СТИЛЕЙ --- */
+
+/* --- СТИЛИ ДЛЯ КНОПКИ ВНУТРИ ПРИЛОЖЕНИЯ --- */
+#add-to-my-apps-app-view-btn .cross-icon { display: none; }
+#add-to-my-apps-app-view-btn .plus-icon { display: inline-block; }
+#add-to-my-apps-app-view-btn.is-added .cross-icon { display: inline-block; }
+#add-to-my-apps-app-view-btn.is-added .plus-icon { display: none; }
+
+/* Стиль для добавления */
+#add-to-my-apps-app-view-btn.add-style {
+    background-color: #e5e7eb; /* gray-200 */
+    color: #1f2937; /* gray-800 */
+}
+#add-to-my-apps-app-view-btn.add-style:hover {
+    background-color: #d1d5db; /* gray-300 */
+}
+.dark #add-to-my-apps-app-view-btn.add-style {
+    background-color: #4b5563; /* dark:gray-600 */
+    color: #f9fafb; /* dark:gray-50 */
+}
+.dark #add-to-my-apps-app-view-btn.add-style:hover {
+    background-color: #6b7280; /* dark:gray-500 */
+}
+
+/* Стиль для удаления */
+#add-to-my-apps-app-view-btn.remove-style {
+    background-color: #fee2e2; /* red-100 */
+    color: #b91c1c; /* red-700 */
+}
+#add-to-my-apps-app-view-btn.remove-style:hover {
+    background-color: #fecaca; /* red-200 */
+}
+.dark #add-to-my-apps-app-view-btn.remove-style {
+    background-color: #450a0a; /* dark:red-900 */
+    color: #fca5a5; /* dark:red-400 */
+}
+.dark #add-to-my-apps-app-view-btn.remove-style:hover {
+    background-color: #7f1d1d; /* dark:red-800 */
+}
