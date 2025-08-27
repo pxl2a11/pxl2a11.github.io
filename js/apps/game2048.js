@@ -5,9 +5,9 @@ let score = 0;
 const gridSize = 4;
 let isGameOver = false;
 
-// Цвета для плиток
+// ИЗМЕНЕНИЕ: Возвращена первоначальная цветовая схема
 const tileColors = {
-    2: 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200', 4: 'bg-yellow-200 text-gray-800 dark:bg-yellow-700 dark:text-gray-200',
+    2: 'bg-gray-200 text-gray-800', 4: 'bg-yellow-200 text-gray-800',
     8: 'bg-orange-300 text-white', 16: 'bg-orange-400 text-white',
     32: 'bg-red-400 text-white', 64: 'bg-red-500 text-white',
     128: 'bg-yellow-400 text-white', 256: 'bg-yellow-500 text-white',
@@ -25,14 +25,13 @@ export function getHtml() {
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 dark:bg-gray-600 rounded-md relative touch-none" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
-                <!-- Ячейки будут добавлены динамически -->
-                 <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md z-10">
+            <!-- ИЗМЕНЕНИЕ: Убраны классы для темной темы и touch-событий -->
+            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
+                 <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md">
                     <span>Конец игры!</span>
                     <button id="retry-btn" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded text-xl">Попробовать снова</button>
                 </div>
             </div>
-             <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">Используйте клавиши со стрелками для управления.</p>
         </div>
     `;
 }
@@ -40,14 +39,14 @@ export function getHtml() {
 export function init() {
     document.getElementById('new-game-btn').addEventListener('click', startGame);
     document.getElementById('retry-btn').addEventListener('click', startGame);
-    // Устанавливаем обработчик на window, чтобы он работал вне зависимости от фокуса
-    window.addEventListener('keydown', handleKeydown);
+    // ИЗМЕНЕНИЕ: Обработчик событий возвращен на 'document'
+    document.addEventListener('keydown', handleKeydown);
     startGame();
 }
 
 export function cleanup() {
-    // Важно убирать обработчик с window при выходе из приложения
-    window.removeEventListener('keydown', handleKeydown);
+    // ИЗМЕНЕНИЕ: Обработчик событий убирается с 'document'
+    document.removeEventListener('keydown', handleKeydown);
 }
 
 function startGame() {
@@ -55,69 +54,50 @@ function startGame() {
     score = 0;
     isGameOver = false;
     document.getElementById('game-over-overlay').classList.add('hidden');
-    // Очищаем доску от старых фоновых ячеек
-    document.getElementById('game-board').querySelectorAll('.background-cell').forEach(cell => cell.remove());
-    // Создаем фоновые ячейки один раз
-    for (let i = 0; i < gridSize * gridSize; i++) {
-        const backgroundCell = document.createElement('div');
-        backgroundCell.className = 'background-cell w-full h-full bg-gray-300 dark:bg-gray-500 rounded-md';
-        document.getElementById('game-board').appendChild(backgroundCell);
-    }
     updateScore();
     addRandomTile();
     addRandomTile();
     renderBoard();
 }
 
+// ИЗМЕНЕНИЕ: Полностью переписанная функция для простого и корректного отображения
 function renderBoard() {
     const gameBoard = document.getElementById('game-board');
-    // Очищаем только плитки, а не фоновые ячейки или оверлей
-    gameBoard.querySelectorAll('.tile').forEach(tile => tile.remove());
+    const overlay = document.getElementById('game-over-overlay');
+    gameBoard.innerHTML = ''; // Очищаем всё содержимое доски
+    gameBoard.appendChild(overlay); // Возвращаем оверлей на место
 
     for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
-            if (grid[r][c] !== 0) {
-                const tile = document.createElement('div');
-                const tileValue = grid[r][c];
+            const tileValue = grid[r][c];
+            const cell = document.createElement('div');
+            
+            if (tileValue === 0) {
+                // Это пустая ячейка
+                cell.className = 'w-full h-full bg-gray-300 rounded-md';
+            } else {
+                // Это ячейка с плиткой
                 const colorClass = tileColors[tileValue] || 'bg-black text-white';
-                // Анимация появления
-                tile.className = `tile absolute flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md ${colorClass} animate-popIn`;
-                
-                const sizePercent = 100 / gridSize;
-                
-                tile.style.width = `calc(${sizePercent}% - 12px)`;
-                tile.style.height = `calc(${sizePercent}% - 12px)`;
-                tile.style.top = `calc(${r * sizePercent}% + 6px)`;
-                tile.style.left = `calc(${c * sizePercent}% + 6px)`;
-                
-                tile.textContent = tileValue;
-                gameBoard.appendChild(tile);
+                cell.className = `tile w-full h-full flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md ${colorClass}`;
+                cell.textContent = tileValue;
             }
+            gameBoard.appendChild(cell);
         }
     }
 }
 
+
 function handleKeydown(e) {
-    // ИЗМЕНЕНИЕ: Проверяем, является ли нажатая клавиша стрелкой
-    const isArrowKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key);
-    
-    if (!isArrowKey) {
-        return; // Если это не стрелка, ничего не делаем
-    }
-
-    // ИЗМЕНЕНИЕ: Предотвращаем стандартное действие (прокрутку) для стрелок
-    e.preventDefault();
-
+    // ИЗМЕНЕНИЕ: Убрана проверка и preventDefault для возврата к первоначальному поведению
     if (isGameOver) return;
-
     let moved = false;
     switch (e.key) {
         case 'ArrowUp': moved = moveUp(); break;
         case 'ArrowDown': moved = moveDown(); break;
         case 'ArrowLeft': moved = moveLeft(); break;
         case 'ArrowRight': moved = moveRight(); break;
+        default: return;
     }
-
     if (moved) {
         addRandomTile();
         renderBoard();
