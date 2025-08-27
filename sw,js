@@ -40,6 +40,7 @@ const urlsToCache = [
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
+  '/js/apps/game2048',
   ...appJsFiles,
   ...appSvgIcons
 ];
