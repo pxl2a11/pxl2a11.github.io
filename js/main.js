@@ -101,13 +101,13 @@ function updateAuthStateUI(user) {
     if (user) {
         if (userNameElement) userNameElement.textContent = user.displayName;
         if (userAvatarElement) userAvatarElement.src = user.photoURL;
-        if (userProfileElement) userProfileElement.classList.remove('hidden');
-        if (googleSignInContainer) googleSignInContainer.classList.add('hidden');
-        if (myAppsButton) myAppsButton.classList.remove('hidden'); // ИЗМЕНЕНИЕ: Показать кнопку
+        userProfileElement?.classList.remove('hidden');
+        googleSignInContainer?.classList.add('hidden');
+        myAppsButton?.classList.remove('hidden');
     } else {
-        if (userProfileElement) userProfileElement.classList.add('hidden');
-        if (googleSignInContainer) googleSignInContainer.classList.remove('hidden');
-        if (myAppsButton) myAppsButton.classList.add('hidden'); // ИЗМЕНЕНИЕ: Скрыть кнопку
+        userProfileElement?.classList.add('hidden');
+        googleSignInContainer?.classList.remove('hidden');
+        myAppsButton?.classList.add('hidden');
     }
 }
 
@@ -492,26 +492,25 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
-        }
-        updateAuthStateUI(user);
-        if (!isInitialAuthCheckDone) {
-            isInitialAuthCheckDone = true;
-            const isOnHomePage = !new URLSearchParams(window.location.search).has('app');
-            if (user && isOnHomePage) {
-                const filterContainer = document.getElementById('filter-container');
-                filterContainer.querySelector('[data-sort="default"]')?.classList.remove('active');
-                filterContainer.querySelector('[data-sort="my-apps"]')?.classList.add('active');
-            }
-            await router(); 
-        } else {
-            // ИЗМЕНЕНИЕ: Логика при выходе из аккаунта
+            // Если пользователь вышел, находясь на странице "Мои приложения", переключить на "Все"
             const myAppsButton = document.querySelector('[data-sort="my-apps"]');
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
                 document.querySelector('[data-sort="default"]')?.classList.add('active');
             }
+        }
+
+        updateAuthStateUI(user);
+        
+        // Перерисовываем интерфейс при любом изменении статуса авторизации
+        // Логика переключения на "Мои приложения" убрана
+        if (!isInitialAuthCheckDone) {
+            isInitialAuthCheckDone = true;
+            await router(); 
+        } else {
             await router();
         }
+
         if (isGsiInitialized) {
             renderGoogleButton();
         }
