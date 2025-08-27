@@ -1,4 +1,4 @@
-// js/apps/numberGenerator.js
+// 16js/apps/numberGenerator.js
 
 export function getHtml() {
     return `
