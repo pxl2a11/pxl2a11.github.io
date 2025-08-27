@@ -25,9 +25,9 @@ export function getHtml() {
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 dark:bg-gray-600 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
-                <!-- Ячейки будут добавлены динамически -->
-                 <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md">
+            <div id="game-board" class="grid grid-cols-4 grid-rows-4 gap-3 p-3 bg-gray-400 dark:bg-gray-600 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
+                <!-- Ячейки и плитки будут добавлены динамически -->
+                 <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md z-20">
                     <span>Конец игры!</span>
                     <button id="retry-btn" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded text-xl">Попробовать снова</button>
                 </div>
@@ -60,29 +60,32 @@ function startGame() {
 
 function renderBoard() {
     const gameBoard = document.getElementById('game-board');
-    // Очищаем только плитки, а не оверлей
-    gameBoard.querySelectorAll('.tile').forEach(tile => tile.remove());
+    // Сохраняем оверлей и очищаем доску от старых плиток
+    const overlay = document.getElementById('game-over-overlay');
+    gameBoard.innerHTML = '';
+    gameBoard.appendChild(overlay);
 
+    // Пересоздаем сетку с нуля на основе массива 'grid'
     for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
-            // Фон для пустых ячеек
-            if (!document.querySelector(`[data-row='${r}'][data-col='${c}']`)) {
-                 const backgroundCell = document.createElement('div');
-                 backgroundCell.className = 'w-full h-full bg-gray-300 dark:bg-gray-500 rounded-md';
-                 backgroundCell.style = `grid-row: ${r + 1}; grid-column: ${c + 1};`;
-                 gameBoard.appendChild(backgroundCell);
-            }
-           
+            // 1. Создаем фоновую ячейку для каждой позиции
+            const backgroundCell = document.createElement('div');
+            backgroundCell.className = 'w-full h-full bg-gray-300 dark:bg-gray-500 rounded-md';
+            // Позиционируем в сетке (CSS grid строки/колонки начинаются с 1)
+            backgroundCell.style.gridRow = `${r + 1}`;
+            backgroundCell.style.gridColumn = `${c + 1}`;
+            gameBoard.appendChild(backgroundCell);
+
+            // 2. Если в этой позиции есть плитка, создаем и размещаем ее поверх
             if (grid[r][c] !== 0) {
                 const tile = document.createElement('div');
-                tile.className = `tile absolute flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md transition-all duration-200 ${tileColors[grid[r][c]] || 'bg-black text-white'}`;
-                const size = gameBoard.clientWidth / gridSize;
-                const gap = (gameBoard.clientWidth - (size * gridSize)) / (gridSize + 1);
-                tile.style.width = `${size - gap}px`;
-                tile.style.height = `${size - gap}px`;
-                tile.style.top = `${r * (size)}px`;
-                tile.style.left = `${c * (size)}px`;
-                tile.style.transform = `translate(${gap*(c+1)}px, ${gap*(r+1)}px)`;
+                // Плитка также является элементом сетки, без абсолютного позиционирования
+                // z-10 гарантирует, что плитка будет поверх фоновой ячейки
+                tile.className = `tile z-10 flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md transition-all duration-200 ${tileColors[grid[r][c]] || 'bg-black text-white'}`;
+                
+                // Помещаем плитку в ту же ячейку сетки, что и фон
+                tile.style.gridRow = `${r + 1}`;
+                tile.style.gridColumn = `${c + 1}`;
 
                 tile.textContent = grid[r][c];
                 gameBoard.appendChild(tile);
@@ -90,6 +93,7 @@ function renderBoard() {
         }
     }
 }
+
 
 function handleKeydown(e) {
     if (isGameOver) return;
