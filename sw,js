@@ -1,29 +1,28 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v3'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v4'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
-// Список всех модулей приложений для кэширования
+// Приложения, которые НЕ работают офлайн
+const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks'];
+
 const appModules = [
-    'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 
-    'myIp', 'passwordGenerator', 'percentageCalculator', 'timer', 'fortuneWheel', 
-    'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch', 'randomColor', 
-    'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 
-    'dateCalculator', 'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 
-    'changelogPage', 'caseConverter', 'imageConverter', 'colorConverter', 
-    'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 
-    'snakeGame', 'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 
-    'sudoku', 'zipArchiver', 'game2048', 'barcodeGenerator', 'voiceRecorder'
+    'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator', 
+    'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch', 
+    'randomColor', 'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 'dateCalculator', 
+    'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'changelogPage', 'caseConverter', 'imageConverter', 
+    'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame', 
+    'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048', 
+    'barcodeGenerator', 'voiceRecorder'
 ];
 
-// Генерируем пути к JS файлам и SVG иконкам приложений
 const appJsFiles = appModules.map(module => `/js/apps/${module}.js`);
 const appSvgIcons = appModules.map(module => `/img/${module}.svg`);
 
-
-// Список файлов для кэширования (App Shell)
+// Список файлов для кэширования. ОБЯЗАТЕЛЬНО ДОБАВЛЯЕМ OFFLINE.HTML
 const urlsToCache = [
   '/',
   '/index.html',
+  '/offline.html', // <-- НАША НОВАЯ СТРАНИЦА
   '/manifest.json',
   '/css/style.css',
   '/css/leaflet.css',
@@ -35,18 +34,12 @@ const urlsToCache = [
   '/js/jszip.min.js',
   '/js/JsBarcode.all.min.js',
   '/js/tailwind.js',
-  '/js/Sortable.min.js',
-  
-  // Основной логотип и иконки PWA
+  'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js',
   '/img/logo.svg',
   '/img/icons/icon-192x192.png',
   '/img/icons/icon-512x512.png',
-
-  // Вспомогательные изображения
   '/img/plusapps.svg',
   '/img/minusapps.svg',
-
-  // Добавляем все JS файлы и иконки приложений
   ...appJsFiles,
   ...appSvgIcons
 ];
@@ -57,14 +50,12 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Кэш открыт');
-        return cache.addAll(urlsToCache).catch(error => {
-            console.error('Не удалось кэшировать файлы при установке:', error);
-        });
+        return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Активация Service Worker и очистка старых кэшей
+// Активация и очистка старых кэшей
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -72,7 +63,6 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log('Удаление старого кэша:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -87,29 +77,33 @@ self.addEventListener('fetch', event => {
   if (event.request.url.includes('firebase') || event.request.url.includes('google.com') || event.request.url.includes('googleapis.com')) {
     return;
   }
-    
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Если ресурс найден в кэше, возвращаем его
-        if (response) {
-          return response;
+
+  // Стратегия для навигационных запросов (переход по страницам)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Если запрос к сети не удался (офлайн)
+        const url = new URL(event.request.url);
+        const requestedAppModule = url.searchParams.get('app');
+
+        // Если пользователь пытался открыть приложение, требующее онлайн
+        if (requestedAppModule && onlineOnlyApps.includes(requestedAppModule)) {
+          // Показываем ему страницу offline.html из кэша
+          return caches.match('/offline.html');
         }
 
-        return fetch(event.request).then(
-          response => {
-            // Кэшируем только корректные GET-запросы
-            if (!response || response.status !== 200 || response.type !== 'basic' || event.request.method !== 'GET') {
-              return response;
-            }
-            
-            const responseToCache = response.clone();
+        // Для всех остальных страниц (главная, офлайн-приложения)
+        // пытаемся отдать их из кэша
+        return caches.match(event.request.url);
+      })
+    );
+    return;
+  }
 
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        );
+  // Стратегия "Сначала кэш, потом сеть" для остальных ресурсов (JS, CSS, SVG)
+  event.respondWith(
+    caches.match(event.request).then(cachedResponse => {
+      return cachedResponse || fetch(event.request);
+    })
+  );
+});
