@@ -34,13 +34,12 @@ const urlsToCache = [
   '/js/jszip.min.js',
   '/js/JsBarcode.all.min.js',
   '/js/tailwind.js',
-  '/js/Sortable.min.js',
+  'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js',
   '/img/logo.svg',
   '/img/icons/icon-192x192.png',
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
-  '/js/apps/game2048',
   ...appJsFiles,
   ...appSvgIcons
 ];
@@ -80,34 +79,38 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // === ИСПРАВЛЕННАЯ ЛОГИКА ===
   // Стратегия для навигационных запросов (переход по страницам)
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        // Если запрос к сети не удался (офлайн)
-        const url = new URL(event.request.url);
-        const requestedAppModule = url.searchParams.get('app');
+      // Сначала пытаемся загрузить страницу из сети
+      fetch(event.request)
+        .catch(() => {
+          // Если сеть недоступна (офлайн)
+          const url = new URL(event.request.url);
+          const requestedAppModule = url.searchParams.get('app');
 
-        // Если пользователь пытался открыть приложение, требующее онлайн
-        if (requestedAppModule && onlineOnlyApps.includes(requestedAppModule)) {
-          // Показываем ему страницу offline.html из кэша
-          return caches.match('/offline.html');
-        }
+          // Проверяем, не является ли запрашиваемое приложение "только онлайн"
+          if (requestedAppModule && onlineOnlyApps.includes(requestedAppModule)) {
+            // Если да, показываем специальную офлайн-страницу
+            return caches.match('/offline.html');
+          }
 
-        // ДЛЯ ВСЕХ ОСТАЛЬНЫХ СЛУЧАЕВ (главная, офлайн-приложения)
-        // ВСЕГДА возвращаем главную страницу-оболочку из кэша.
-        // JS-роутер на клиенте сам разберется, что показать.
-        return caches.match('/index.html'); // <-- ИСПРАВЛЕНИЕ ЗДЕСЬ
-      })
+          // Для ВСЕХ остальных офлайн-запросов (главная страница, офлайн-приложения)
+          // возвращаем главный файл-оболочку 'index.html'.
+          // JS-роутер на клиенте сам поймет, какое приложение отрисовать.
+          return caches.match('/index.html');
+        })
     );
     return;
   }
 
-  // Стратегия "Сначала кэш, потом сеть" для остальных ресурсов (JS, CSS, SVG)
+  // Стратегия "Сначала кэш, потом сеть" для всех остальных ресурсов (JS, CSS, SVG)
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      // Если ресурс есть в кэше, отдаем его. Иначе идем в сеть.
-      return cachedResponse || fetch(event.request);
-    })
+    caches.match(event.request)
+      .then(cachedResponse => {
+        // Если ресурс есть в кэше, отдаем его. Иначе идем в сеть.
+        return cachedResponse || fetch(event.request);
+      })
   );
 });
