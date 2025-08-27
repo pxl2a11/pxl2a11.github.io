@@ -1,15 +1,14 @@
-// js/apps/caseConverter.js
+// js/modules/caseConverter.js
 
 export function getHtml() {
     return `
         <div class="flex flex-col gap-4">
             <textarea id="case-converter-input" class="w-full h-40 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Введите текст сюда..."></textarea>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                <button id="btn-uppercase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">ВЕРХНИЙ</button>
-                <button id="btn-lowercase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">нижний</button>
-                <button id="btn-titlecase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">Заглавные В Словах</button>
-                <button id="btn-sentencecase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">Начало Предложений</button>
-                <button id="btn-alternating" class="p-2 rounded-lg bg-teal-500 text-white hover:bg-teal-600 col-span-2 sm:col-span-1 md:col-span-1">зАбОрЧиК</button>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button id="btn-uppercase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">ВЕРХНИЙ РЕГИСТР</button>
+                <button id="btn-lowercase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">нижний регистр</button>
+                <button id="btn-sentencecase" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">Как в предложениях</button>
+                <button id="btn-capitalize" class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">Каждое Слово С Заглавной</button>
             </div>
             <div class="flex gap-2">
                 <button id="btn-copy" class="p-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 flex-grow">Копировать</button>
@@ -31,21 +30,14 @@ export function init() {
         textarea.value = textarea.value.toLowerCase();
     });
     
-    document.getElementById('btn-titlecase').addEventListener('click', () => {
-        textarea.value = textarea.value.toLowerCase().replace(/(^|\s)\S/g, (L) => L.toUpperCase());
+    // ИСПРАВЛЕНО: Теперь эта кнопка корректно преобразует текст в "Sentence Case"
+    document.getElementById('btn-sentencecase').addEventListener('click', () => {
+        textarea.value = textarea.value.toLowerCase().replace(/(^\s*|[.?!]\s*)\w/g, (c) => c.toUpperCase());
     });
     
-    // --- ИСПРАВЛЕНИЕ: ПОЛНОСТЬЮ ПЕРЕПИСАННАЯ И НАДЕЖНАЯ ЛОГИКА ---
-    document.getElementById('btn-sentencecase').addEventListener('click', () => {
-        let text = textarea.value.toLowerCase();
-        // Эта функция находит первую букву после знака конца предложения (или в самом начале)
-        // и делает ее заглавной, игнорируя пробелы и переносы строк.
-        text = text.replace(/(^\s*\w|[.?!]\s*\w)/g, (c) => c.toUpperCase());
-        textarea.value = text;
-    });
-
-    document.getElementById('btn-alternating').addEventListener('click', () => {
-        textarea.value = textarea.value.split('').map((char, i) => i % 2 ? char.toLowerCase() : char.toUpperCase()).join('');
+    // ИСПРАВЛЕНО: Теперь эта кнопка корректно делает заглавной первую букву каждого слова
+    document.getElementById('btn-capitalize').addEventListener('click', () => {
+        textarea.value = textarea.value.toLowerCase().replace(/(^|\s)\S/g, (L) => L.toUpperCase());
     });
 
     document.getElementById('btn-copy').addEventListener('click', () => {
