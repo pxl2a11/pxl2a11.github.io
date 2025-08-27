@@ -1,4 +1,4 @@
-// 28js/apps/game2048.js
+// 32js/apps/game2048.js
 
 let grid = [];
 let score = 0;
@@ -17,26 +17,16 @@ const tileColors = {
 
 export function getHtml() {
     return `
-        <!-- ИЗМЕНЕНИЕ: Добавлен тег <style> для адаптивного размера шрифта -->
-        <style>
-            .game-container {
-                container-type: inline-size;
-            }
-            .game-container .tile {
-                /* Шрифт будет 7% от ширины контейнера, но не меньше 1rem и не больше 2.5rem */
-                font-size: clamp(1rem, 7cqw, 2.5rem);
-            }
-        </style>
         <div class="flex flex-col items-center">
-            <div class="flex justify-between items-center w-full max-w-md mb-4">
+            <div class="flex justify-between items-center w-full max-w-md mb-4" style="width: 400px;">
                 <div>
                     <span class="text-lg font-bold">СЧЕТ:</span>
                     <span id="score" class="text-lg font-bold">0</span>
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <!-- ИЗМЕНЕНИЕ: Добавлен класс 'game-container' -->
-            <div id="game-board" class="game-container grid grid-cols-4 gap-3 p-3 bg-gray-400 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
+            <!-- ИЗМЕНЕНИЕ: Установлен фиксированный размер доски 400x400px -->
+            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 rounded-md relative" style="width: 400px; height: 400px;">
                  <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md">
                     <span>Конец игры!</span>
                     <button id="retry-btn" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded text-xl">Попробовать снова</button>
@@ -98,8 +88,8 @@ function renderBoard() {
                 cell.className = 'w-full h-full bg-gray-300 rounded-md';
             } else {
                 const colorClass = tileColors[tileValue] || 'bg-black text-white';
-                // ИЗМЕНЕНИЕ: Удалены классы text-2xl и md:text-4xl
-                cell.className = `tile w-full h-full flex items-center justify-center font-bold rounded-md ${colorClass}`;
+                // ИЗМЕНЕНИЕ: Возвращен класс text-4xl для фиксированного размера шрифта
+                cell.className = `tile w-full h-full flex items-center justify-center font-bold text-4xl rounded-md ${colorClass}`;
                 cell.textContent = tileValue;
             }
         }
