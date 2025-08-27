@@ -7,7 +7,7 @@ let isGameOver = false;
 
 // Цвета для плиток
 const tileColors = {
-    2: 'bg-gray-200 text-gray-800', 4: 'bg-yellow-200 text-gray-800',
+    2: 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200', 4: 'bg-yellow-200 text-gray-800 dark:bg-yellow-700 dark:text-gray-200',
     8: 'bg-orange-300 text-white', 16: 'bg-orange-400 text-white',
     32: 'bg-red-400 text-white', 64: 'bg-red-500 text-white',
     128: 'bg-yellow-400 text-white', 256: 'bg-yellow-500 text-white',
@@ -25,13 +25,14 @@ export function getHtml() {
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 dark:bg-gray-600 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
+            <div id="game-board" class="grid grid-cols-4 gap-3 p-3 bg-gray-400 dark:bg-gray-600 rounded-md relative touch-none" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
                 <!-- Ячейки будут добавлены динамически -->
-                 <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md">
+                 <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md z-10">
                     <span>Конец игры!</span>
                     <button id="retry-btn" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded text-xl">Попробовать снова</button>
                 </div>
             </div>
+             <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">Используйте клавиши со стрелками для управления.</p>
         </div>
     `;
 }
@@ -39,12 +40,14 @@ export function getHtml() {
 export function init() {
     document.getElementById('new-game-btn').addEventListener('click', startGame);
     document.getElementById('retry-btn').addEventListener('click', startGame);
-    document.addEventListener('keydown', handleKeydown);
+    // Устанавливаем обработчик на window, чтобы он работал вне зависимости от фокуса
+    window.addEventListener('keydown', handleKeydown);
     startGame();
 }
 
 export function cleanup() {
-    document.removeEventListener('keydown', handleKeydown);
+    // Важно убирать обработчик с window при выходе из приложения
+    window.removeEventListener('keydown', handleKeydown);
 }
 
 function startGame() {
@@ -52,6 +55,14 @@ function startGame() {
     score = 0;
     isGameOver = false;
     document.getElementById('game-over-overlay').classList.add('hidden');
+    // Очищаем доску от старых фоновых ячеек
+    document.getElementById('game-board').querySelectorAll('.background-cell').forEach(cell => cell.remove());
+    // Создаем фоновые ячейки один раз
+    for (let i = 0; i < gridSize * gridSize; i++) {
+        const backgroundCell = document.createElement('div');
+        backgroundCell.className = 'background-cell w-full h-full bg-gray-300 dark:bg-gray-500 rounded-md';
+        document.getElementById('game-board').appendChild(backgroundCell);
+    }
     updateScore();
     addRandomTile();
     addRandomTile();
@@ -60,31 +71,26 @@ function startGame() {
 
 function renderBoard() {
     const gameBoard = document.getElementById('game-board');
-    // Очищаем только плитки, а не оверлей
+    // Очищаем только плитки, а не фоновые ячейки или оверлей
     gameBoard.querySelectorAll('.tile').forEach(tile => tile.remove());
 
     for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
-            // Фон для пустых ячеек
-            if (!document.querySelector(`[data-row='${r}'][data-col='${c}']`)) {
-                 const backgroundCell = document.createElement('div');
-                 backgroundCell.className = 'w-full h-full bg-gray-300 dark:bg-gray-500 rounded-md';
-                 backgroundCell.style = `grid-row: ${r + 1}; grid-column: ${c + 1};`;
-                 gameBoard.appendChild(backgroundCell);
-            }
-           
             if (grid[r][c] !== 0) {
                 const tile = document.createElement('div');
-                tile.className = `tile absolute flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md transition-all duration-200 ${tileColors[grid[r][c]] || 'bg-black text-white'}`;
-                const size = gameBoard.clientWidth / gridSize;
-                const gap = (gameBoard.clientWidth - (size * gridSize)) / (gridSize + 1);
-                tile.style.width = `${size - gap}px`;
-                tile.style.height = `${size - gap}px`;
-                tile.style.top = `${r * (size)}px`;
-                tile.style.left = `${c * (size)}px`;
-                tile.style.transform = `translate(${gap*(c+1)}px, ${gap*(r+1)}px)`;
-
-                tile.textContent = grid[r][c];
+                const tileValue = grid[r][c];
+                const colorClass = tileColors[tileValue] || 'bg-black text-white';
+                // Анимация появления
+                tile.className = `tile absolute flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md ${colorClass} animate-popIn`;
+                
+                const sizePercent = 100 / gridSize;
+                
+                tile.style.width = `calc(${sizePercent}% - 12px)`;
+                tile.style.height = `calc(${sizePercent}% - 12px)`;
+                tile.style.top = `calc(${r * sizePercent}% + 6px)`;
+                tile.style.left = `calc(${c * sizePercent}% + 6px)`;
+                
+                tile.textContent = tileValue;
                 gameBoard.appendChild(tile);
             }
         }
@@ -92,15 +98,26 @@ function renderBoard() {
 }
 
 function handleKeydown(e) {
+    // ИЗМЕНЕНИЕ: Проверяем, является ли нажатая клавиша стрелкой
+    const isArrowKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key);
+    
+    if (!isArrowKey) {
+        return; // Если это не стрелка, ничего не делаем
+    }
+
+    // ИЗМЕНЕНИЕ: Предотвращаем стандартное действие (прокрутку) для стрелок
+    e.preventDefault();
+
     if (isGameOver) return;
+
     let moved = false;
     switch (e.key) {
         case 'ArrowUp': moved = moveUp(); break;
         case 'ArrowDown': moved = moveDown(); break;
         case 'ArrowLeft': moved = moveLeft(); break;
         case 'ArrowRight': moved = moveRight(); break;
-        default: return;
     }
+
     if (moved) {
         addRandomTile();
         renderBoard();
@@ -215,7 +232,8 @@ function canMove() {
 function checkGameOver() {
     if (!canMove()) {
         isGameOver = true;
-        document.getElementById('game-over-overlay').classList.remove('hidden');
-        document.getElementById('game-over-overlay').classList.add('flex');
+        const overlay = document.getElementById('game-over-overlay');
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
     }
 }
