@@ -1,6 +1,6 @@
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
-// ---29 State Management ---
+// --- State Management ---
 let timeoutId;
 let intersectionObserver;
 const RECENT_SYMBOLS_KEY = 'recentSymbols';
@@ -47,7 +47,7 @@ const allEmojis = [].concat(...emojis.map(c => c.items));
 // --- Skin Tone Data ---
 const skinToneModifiers = ['🏻', '🏼', '🏽', '🏾', '🏿'];
 const toneableCategories = ['Люди и тело', 'Активности'];
-const nonToneableExceptions = ['🧠', '🦷', '🦴', '👀', '👁', '👅', '👄', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖', '🏵', '🎗', '🎫', '🎟', '🎪', '🤹', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟', '🎯', '🎳', '🎮', '🎰'];
+const nonToneableExceptions = ['🧠', '🦷', '🦴', '👀', '👁', '👅', '👄', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖', '🏵', '🎗', '🎫', '🎟', '🎪', '🤹', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟', '🎯', '🎳', '🎮', '🎰', '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🥅', '⛳', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸', '🥌', '🎿', '⛷', '🏂', '🤺'];
 const baseEmojisWithSkinTones = emojis
     .filter(category => toneableCategories.includes(category.name))
     .flatMap(category => category.items.map(item => item.s))
