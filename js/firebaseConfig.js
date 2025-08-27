@@ -1,10 +1,4 @@
 // 32js/firebaseConfig.js
-
-// Импортируем все необходимые модули Firebase
-import firebase from "https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js";
-import "https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js";
-import "https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"; // <-- УБЕДИТЕСЬ, ЧТО ЭТА СТРОКА ЕСТЬ
-
 // Ваша персональная конфигурация Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDks7wx8Lua2rX-BW6SL_OKd83oRdTRj_Q",
