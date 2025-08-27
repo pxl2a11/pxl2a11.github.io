@@ -5,6 +5,10 @@ let audioChunks = [];
 let timerInterval;
 let seconds = 0;
 
+// ИЗМЕНЕНИЕ: Сохраняем HTML иконки в переменную для удобного переиспользования
+const recordIconHtml = `<img src="img/soundAndMicTest.svg" class="w-8 h-8 filter brightness-0 invert" alt="Record">`;
+const stopIconHtml = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h10v12H5V4z" /></svg>`;
+
 export function getHtml() {
     return `
         <div class="max-w-lg mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md text-center">
@@ -14,7 +18,8 @@ export function getHtml() {
             <div id="timer" class="text-5xl font-mono mb-6">00:00</div>
             
             <button id="record-btn" class="w-20 h-20 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center mx-auto transition-all duration-300 focus:outline-none shadow-lg">
-                 <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93V14a1 1 0 00-1-1H4a1 1 0 00-1 1v.93a7.001 7.001 0 006 6.93v-2.06a5.002 5.002 0 01-4-4.94V14h6v.93a5.002 5.002 0 01-4 4.94v2.06A7.001 7.001 0 0011 14.93z" clip-rule="evenodd" /></svg>
+                 <!-- ИЗМЕНЕНИЕ: Используем иконку из файла -->
+                 ${recordIconHtml}
             </button>
             <div id="recorder-error" class="text-red-500 mt-4"></div>
 
@@ -54,7 +59,8 @@ export function init() {
             // UI Changes
             recordBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
             recordBtn.classList.add('bg-gray-700', 'hover:bg-gray-600', 'animate-pulse');
-            recordBtn.innerHTML = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h10v12H5V4z" /></svg>`; // Stop icon
+            // ИЗМЕНЕНИЕ: Меняем иконку на "стоп"
+            recordBtn.innerHTML = stopIconHtml;
             statusDiv.textContent = 'Идёт запись...';
 
             // Timer
@@ -93,7 +99,8 @@ export function init() {
             // UI Changes
             recordBtn.classList.add('bg-red-500', 'hover:bg-red-600');
             recordBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'animate-pulse');
-            recordBtn.innerHTML = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93V14a1 1 0 00-1-1H4a1 1 0 00-1 1v.93a7.001 7.001 0 006 6.93v-2.06a5.002 5.002 0 01-4-4.94V14h6v.93a5.002 5.002 0 01-4 4.94v2.06A7.001 7.001 0 0011 14.93z" clip-rule="evenodd" /></svg>`; // Mic icon
+            // ИЗМЕНЕНИЕ: Возвращаем иконку записи
+            recordBtn.innerHTML = recordIconHtml;
             statusDiv.textContent = 'Нажмите, чтобы начать новую запись';
         }
     }
