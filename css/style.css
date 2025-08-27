@@ -1,38 +1,38 @@
 /* --- Стили для кнопок фильтрации --- */
 .filter-btn {
     padding: 0.5rem 1rem;
-    border-radius: 9999px; /* pill shape */
+    border-radius: 9999px;
     border: 1px solid transparent;
-    background-color: #f3f4f6; /* gray-100 */
-    color: #374151; /* gray-700 */
+    background-color: #f3f4f6;
+    color: #374151;
     font-weight: 500;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
 }
 
 .dark .filter-btn {
-    background-color: #374151; /* dark:gray-700 */
-    color: #d1d5db; /* dark:gray-300 */
+    background-color: #374151;
+    color: #d1d5db;
 }
 
 .filter-btn:hover {
-    background-color: #e5e7eb; /* gray-200 */
-    border-color: #60a5fa; /* blue-400 */
+    background-color: #e5e7eb;
+    border-color: #60a5fa;
 }
 
 .dark .filter-btn:hover {
-    background-color: #4b5563; /* dark:gray-600 */
+    background-color: #4b5563;
 }
 
 .filter-btn.active {
-    background-color: #3b82f6; /* blue-500 */
-    color: #ffffff; /* white */
+    background-color: #3b82f6;
+    color: #ffffff;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .dark .filter-btn.active {
-    background-color: #60a5fa; /* dark:blue-400 */
-    color: #1f2937; /* dark:gray-800 */
+    background-color: #60a5fa;
+    color: #1f2937;
 }
 
 /* --- Стили для похожих приложений --- */
@@ -51,7 +51,7 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* --- НОВЫЕ СТИЛИ ДЛЯ КНОПКИ ДОБАВЛЕНИЯ/УДАЛЕНИЯ --- */
+/* --- Стили для кнопки добавления/удаления --- */
 .add-to-my-apps-btn {
     position: absolute;
     top: 0.25rem;
@@ -62,7 +62,7 @@
     background-color: transparent;
     border: none;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
+    transition: background-color 0.2s, transform 0.2s, filter 0.2s;
     width: 24px;
     height: 24px;
     display: flex;
@@ -75,13 +75,26 @@
     transform: scale(1.1);
 }
 
+.add-to-my-apps-btn:hover .plus-icon {
+    filter: brightness(0.8);
+}
+.add-to-my-apps-btn:hover .cross-icon {
+    filter: brightness(1.1);
+}
+
+
 .dark .add-to-my-apps-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .add-to-my-apps-btn:hover .plus-icon {
+    filter: brightness(1.2);
 }
 
 .add-to-my-apps-btn img {
     width: 14px;
     height: 14px;
+    transition: filter 0.2s;
 }
 
 .add-to-my-apps-btn .cross-icon {
@@ -96,38 +109,55 @@
     display: block;
 }
 
-/* --- СТИЛИ ДЛЯ КНОПКИ ВНУТРИ ПРИЛОЖЕНИЯ --- */
+/* --- Стили для кнопки внутри приложения --- */
 #add-to-my-apps-app-view-btn .cross-icon { display: none; }
 #add-to-my-apps-app-view-btn .plus-icon { display: inline-block; }
 
-/* Стиль для добавления */
 #add-to-my-apps-app-view-btn.add-style {
-    background-color: #e5e7eb; /* gray-200 */
-    color: #1f2937; /* gray-800 */
+    background-color: #e5e7eb;
+    color: #1f2937;
 }
 #add-to-my-apps-app-view-btn.add-style:hover {
-    background-color: #d1d5db; /* gray-300 */
+    background-color: #d1d5db;
 }
 .dark #add-to-my-apps-app-view-btn.add-style {
-    background-color: #4b5563; /* dark:gray-600 */
-    color: #f9fafb; /* dark:gray-50 */
+    background-color: #4b5563;
+    color: #f9fafb;
 }
 .dark #add-to-my-apps-app-view-btn.add-style:hover {
-    background-color: #6b7280; /* dark:gray-500 */
+    background-color: #6b7280;
 }
 
-/* Стиль для удаления */
 #add-to-my-apps-app-view-btn.remove-style {
-    background-color: #fee2e2; /* red-100 */
-    color: #b91c1c; /* red-700 */
+    background-color: #fee2e2;
+    color: #b91c1c;
 }
 #add-to-my-apps-app-view-btn.remove-style:hover {
-    background-color: #fecaca; /* red-200 */
+    background-color: #fecaca;
 }
 .dark #add-to-my-apps-app-view-btn.remove-style {
-    background-color: #450a0a; /* dark:red-900 */
-    color: #fca5a5; /* dark:red-400 */
+    background-color: #450a0a;
+    color: #fca5a5;
 }
 .dark #add-to-my-apps-app-view-btn.remove-style:hover {
-    background-color: #7f1d1d; /* dark:red-800 */
+    background-color: #7f1d1d;
+}
+
+/* --- Стили для сортировки приложений --- */
+#apps-container.sortable-active .app-item {
+    cursor: grab;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background: #f0f9ff;
+}
+.dark .sortable-ghost {
+    background: #1e293b;
+}
+
+.sortable-chosen {
+    opacity: 0.9;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    transform: scale(1.03);
 }
