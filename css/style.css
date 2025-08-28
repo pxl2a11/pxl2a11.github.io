@@ -71,21 +71,24 @@
     background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* --- Новые стили для иконок в похожих приложениях --- */
+/* --- Общие стили для иконок без фона --- */
+.app-item > .w-12,
 .similar-apps-grid .app-item .w-12 {
-    background-color: transparent !important; /* Убираем фон */
-    width: 3rem !important; /* Устанавливаем единый размер контейнера */
+    background-color: transparent !important;
+    width: 3rem !important;
     height: 3rem !important;
 }
 
+.app-item img,
 .similar-apps-grid .app-item img {
-    filter: none !important; /* Убираем инвертирование для светлой темы (иконки станут темными) */
-    width: 2rem !important;  /* Устанавливаем единый размер иконки */
+    filter: none !important;
+    width: 2rem !important;
     height: 2rem !important;
 }
 
+.dark .app-item img,
 .dark .similar-apps-grid .app-item img {
-    filter: invert(1) !important; /* Инвертируем в белый цвет для темной темы */
+    filter: invert(1) !important;
 }
 
 
