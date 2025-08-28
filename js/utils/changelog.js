@@ -53,6 +53,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-08-28T12:00:00Z'), appName: 'Генератор каркаса Сайта', description: 'добавлено новое приложение для создания и скачивания JSON-каркаса сайта из ZIP-архива.' },
     { date: getRussianDate('2025-08-27T09:00:00Z'), appName: 'Архиватор файлов (ZIP)', description: 'добавлено новое приложение для создания и распаковки ZIP-архивов прямо в браузере.' },
     { date: getRussianDate('2025-08-27T09:00:00Z'), appName: '2048', description: 'добавлена новая классическая игра-головоломка 2048.' },
     { date: getRussianDate('2025-08-27T09:00:00Z'), appName: 'Генератор штрих-кодов', description: 'добавлено новое приложение для создания штрих-кодов в различных форматах (CODE128, EAN-13 и др.).' },
