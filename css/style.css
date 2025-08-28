@@ -9,6 +9,9 @@
     transition: all 0.2s ease-in-out;
     cursor: pointer;
 }
+.filter-blue {
+            filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
+        }
 
 .dark .filter-btn {
     background-color: #374151;
