@@ -35,6 +35,72 @@
     color: #1f2937;
 }
 
+/* --- Стили для карточек приложений на главном экране --- */
+#apps-container .app-item {
+    position: relative;
+    overflow: hidden;
+    background-color: #f1f5f9; /* slate-100 */
+    border: 1px solid #e2e8f0; /* slate-200 */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    padding: 0; /* Убираем паддинг, будем управлять им внутри */
+    align-items: stretch; /* Растягиваем дочерние элементы */
+    border-radius: 0.75rem; /* Добавляем скругление */
+    min-height: 72px; /* Минимальная высота карточки */
+}
+
+.dark #apps-container .app-item {
+    background-color: #1e293b; /* slate-800 */
+    border: 1px solid #334155; /* slate-700 */
+}
+
+/* Диагональный цветной фон */
+#apps-container .app-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--app-color, #6b7280); /* Цвет по умолчанию */
+    clip-path: polygon(0 0, 35% 0, 20% 100%, 0% 100%);
+    z-index: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+#apps-container .app-item:hover::before {
+    clip-path: polygon(0 0, 40% 0, 25% 100%, 0% 100%);
+}
+
+/* Контейнер для иконки */
+#apps-container .app-item .app-icon-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    width: 72px; /* Фиксированная ширина для иконки */
+    padding: 0.75rem;
+}
+
+#apps-container .app-item .app-icon-wrapper img {
+    width: 2rem;
+    height: 2rem;
+    filter: brightness(0) invert(1) !important; /* Делаем иконку белой */
+}
+
+/* Контейнер для названия */
+#apps-container .app-item .app-name-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    padding: 0.75rem;
+    padding-left: 0.5rem;
+}
+
+
 /* --- Стили для похожих приложений --- */
 .similar-apps-grid {
     display: grid;
@@ -71,26 +137,24 @@
     background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* --- Общие стили для иконок без фона --- */
-.app-item > .w-12,
-.similar-apps-grid .app-item .w-12 {
-    background-color: transparent !important;
-    width: 3rem !important;
-    height: 3rem !important;
+/* Стили для иконок в похожих приложениях (отменяем стили с главной) */
+.similar-apps-grid .app-item::before {
+    display: none;
 }
-
-.app-item img,
-.similar-apps-grid .app-item img {
-    /* Фильтр для преобразования черного в #1f2937 (темно-серый) */
+.similar-apps-grid .app-item .app-icon-wrapper {
+    width: auto;
+    padding: 0;
+}
+.similar-apps-grid .app-item .app-icon-wrapper img {
+     /* Фильтр для преобразования черного в #1f2937 (темно-серый) */
     filter: invert(13%) sepia(21%) saturate(935%) hue-rotate(176deg) brightness(92%) contrast(87%) !important;
-    width: 2rem !important;
-    height: 2rem !important;
 }
-
-.dark .app-item img,
-.dark .similar-apps-grid .app-item img {
+.dark .similar-apps-grid .app-item .app-icon-wrapper img {
     /* Фильтр для преобразования черного в #d1d5db (светло-серый) */
     filter: invert(92%) sepia(9%) saturate(147%) hue-rotate(174deg) brightness(91%) contrast(88%) !important;
+}
+.similar-apps-grid .app-item .app-name-wrapper {
+    padding: 0;
 }
 
 
