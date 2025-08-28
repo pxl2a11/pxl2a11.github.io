@@ -81,14 +81,16 @@
 
 .app-item img,
 .similar-apps-grid .app-item img {
-    filter: none !important;
+    /* Фильтр для преобразования черного в #1f2937 (темно-серый) */
+    filter: invert(13%) sepia(21%) saturate(935%) hue-rotate(176deg) brightness(92%) contrast(87%) !important;
     width: 2rem !important;
     height: 2rem !important;
 }
 
 .dark .app-item img,
 .dark .similar-apps-grid .app-item img {
-    filter: invert(1) !important;
+    /* Фильтр для преобразования черного в #d1d5db (светло-серый) */
+    filter: invert(92%) sepia(9%) saturate(147%) hue-rotate(174deg) brightness(91%) contrast(88%) !important;
 }
 
 
