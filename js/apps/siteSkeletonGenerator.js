@@ -92,7 +92,6 @@ export function getHtml() {
             
             <div id="generate-section" class="hidden">
                 <h3 class="text-lg font-semibold mb-2">3. Сгенерируйте и скачайте JSON</h3>
-                {/* --- ИЗМЕНЕНИЕ 1: Обновлен текст кнопки --- */}
                 <button id="generate-btn" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                     Скачать JSON-каркас
                 </button>
@@ -264,7 +263,6 @@ function handleTreeClick(e) {
     }
 }
 
-// --- ИЗМЕНЕНИЕ 2: Обновлена вся функция для добавления скачивания ---
 async function handleGenerateJson() {
     if (!zipInstance) return;
     generateBtn.textContent = 'Генерация...';
