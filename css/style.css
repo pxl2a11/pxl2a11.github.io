@@ -35,71 +35,104 @@
     color: #1f2937;
 }
 
-/* --- Стили для карточек приложений (главная страница и похожие) --- */
+/* --- ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ КАРТОЧЕК ПРИЛОЖЕНИЙ --- */
 .app-item {
     position: relative;
-    display: flex !important; /* Важно для перезаписи */
-    flex-direction: column !important; /* Иконка над текстом */
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-    padding: 0.5rem !important;
-    min-height: 120px;
-    
-    background-color: #fdfdfecc !important; /* Полупрозрачный фон */
-    border: 1px solid rgba(0, 0, 0, 0.05) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    
-    border-radius: 1rem !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
-    transition: all 0.2s ease-in-out !important;
-}
-
-.dark .app-item {
-    background-color: #1e293be6 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    overflow: hidden;
+    background-color: #f1f5f9; /* slate-100 */
+    border: 1px solid #e2e8f0; /* slate-200 */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    border-radius: 0.75rem !important;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    text-decoration: none !important;
+    color: inherit !important;
 }
 
 .app-item:hover {
     transform: translateY(-4px) !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
 }
 
-/* Сбрасываем лишние стили, которые могли остаться от старого дизайна */
-.app-item::before,
-.similar-apps-grid .app-item::before {
-    display: none !important;
+.dark .app-item {
+    background-color: #1e293b !important; /* slate-800 */
+    border: 1px solid #334155 !important; /* slate-700 */
+}
+
+/* Диагональный цветной фон */
+.app-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--app-color, #6b7280);
+    clip-path: polygon(0 0, 35% 0, 20% 100%, 0% 100%);
+    z-index: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+.app-item:hover::before {
+    filter: brightness(1.1);
 }
 
 /* Контейнер для иконки */
 .app-item .app-icon-wrapper {
-    width: auto !important;
-    padding: 0 !important;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    width: 88px;
+    padding: 0.75rem;
 }
 
-/* Иконка */
 .app-item .app-icon-wrapper img {
-    /* Фильтр для преобразования черного в #1f2937 (темно-серый) */
-    filter: invert(13%) sepia(21%) saturate(935%) hue-rotate(176deg) brightness(92%) contrast(87%) !important;
-    width: 2.5rem !important; /* 40px */
-    height: 2.5rem !important;
-}
-
-/* Иконка в темной теме */
-.dark .app-item .app-icon-wrapper img {
-    /* Фильтр для преобразования черного в #d1d5db (светло-серый) */
-    filter: invert(92%) sepia(9%) saturate(147%) hue-rotate(174deg) brightness(91%) contrast(88%) !important;
+    width: 2.25rem;
+    height: 2.25rem;
+    filter: brightness(0) invert(1) !important;
 }
 
 /* Контейнер для названия */
 .app-item .app-name-wrapper {
-    padding: 0 !important;
-    text-align: center;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    padding: 0.75rem 1rem 0.75rem 0.5rem;
 }
-.app-item .app-name-wrapper span {
-    margin: 0 !important;
+
+/* --- Стили для карточек на ГЛАВНОЙ СТРАНИЦЕ --- */
+#apps-container .app-item {
+    min-height: 88px;
 }
+
+/* --- Стили для карточек в ПОХОЖИХ ПРИЛОЖЕНИЯХ --- */
+.similar-apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* Адаптивность */
+    gap: 1rem;
+}
+
+.similar-apps-grid .app-item {
+    min-height: 72px; /* Чуть меньше, чем на главной */
+}
+
+.similar-apps-grid .app-item .app-icon-wrapper {
+    width: 72px; /* Уменьшаем блок иконки */
+}
+
+.similar-apps-grid .app-item .app-icon-wrapper img {
+    width: 2rem; /* Уменьшаем саму иконку */
+    height: 2rem;
+}
+
 
 /* --- Стили для кнопки добавления/удаления --- */
 .add-to-my-apps-btn {
