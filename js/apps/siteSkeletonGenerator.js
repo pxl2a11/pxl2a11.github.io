@@ -38,7 +38,9 @@ export function getHtml() {
                 padding-left: 25px;
             }
             .file-tree li.closed > ul { display: none; }
-            .file-tree li.closed > .entry-label::before { content: '📂'; } /* Could be changed to closed folder icon */
+            .file-tree li.folder.closed > .entry-label::before { content: '📁'; } /* When closed */
+            .file-tree li.folder:not(.closed) > .entry-label::before { content: '📂'; } /* When open */
+
 
             .drop-zone {
                 border: 2px dashed #cbd5e1;
@@ -210,7 +212,9 @@ function renderFileTree(tree, container) {
     const renderNode = (node, parentUl, parentPath = '') => {
         Object.keys(node.dirs).sort().forEach(dirName => {
             const li = document.createElement('li');
-            li.className = 'folder';
+            // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+            // Добавляем класс 'closed', чтобы папка была свернута по умолчанию
+            li.className = 'folder closed'; 
             const currentPath = parentPath ? `${parentPath}/${dirName}` : dirName;
             li.innerHTML = `
                 <div class="entry-label">
