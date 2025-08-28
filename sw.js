@@ -1,6 +1,6 @@
-// 07sw.js
+// sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v7'; // ВЕРСИЯ КЭША ОБНОВЛЕНА! КРИТИЧЕСКИ ВАЖНО!
+const CACHE_NAME = 'mini-apps-cache-v8'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
 // Приложения, которые НЕ работают офлайн
 const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks'];
@@ -13,7 +13,7 @@ const appModules = [
     'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'caseConverter', 'imageConverter', 
     'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame', 
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048', 
-    'barcodeGenerator', 'voiceRecorder'
+    'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator'
 ];
 
 // Эти две строки автоматически генерируют правильные пути для ВСЕХ модулей
