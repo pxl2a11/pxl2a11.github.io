@@ -91,15 +91,16 @@ export function getHtml() {
             </div>
             
             <div id="generate-section" class="hidden">
-                <h3 class="text-lg font-semibold mb-2">3. Сгенерируйте JSON</h3>
+                <h3 class="text-lg font-semibold mb-2">3. Сгенерируйте и скачайте JSON</h3>
+                {/* --- ИЗМЕНЕНИЕ 1: Обновлен текст кнопки --- */}
                 <button id="generate-btn" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                    Создать JSON-каркас
+                    Скачать JSON-каркас
                 </button>
             </div>
 
             <div id="results-container" class="hidden">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">4. Результат</h3>
+                    <h3 class="text-lg font-semibold">4. Результат (для предпросмотра)</h3>
                     <button id="copy-json-btn" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-sm font-semibold py-1 px-3 rounded-md transition-colors">Копировать</button>
                 </div>
                 <pre><code id="output-code"></code></pre>
@@ -212,8 +213,6 @@ function renderFileTree(tree, container) {
     const renderNode = (node, parentUl, parentPath = '') => {
         Object.keys(node.dirs).sort().forEach(dirName => {
             const li = document.createElement('li');
-            // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
-            // Добавляем класс 'closed', чтобы папка была свернута по умолчанию
             li.className = 'folder closed'; 
             const currentPath = parentPath ? `${parentPath}/${dirName}` : dirName;
             li.innerHTML = `
@@ -265,6 +264,7 @@ function handleTreeClick(e) {
     }
 }
 
+// --- ИЗМЕНЕНИЕ 2: Обновлена вся функция для добавления скачивания ---
 async function handleGenerateJson() {
     if (!zipInstance) return;
     generateBtn.textContent = 'Генерация...';
@@ -273,23 +273,8 @@ async function handleGenerateJson() {
     const checkedPaths = Array.from(fileTreeContainer.querySelectorAll('input[type="checkbox"]:checked'))
                              .map(cb => cb.dataset.path);
     
-    const root = { type: 'root', children: [] };
-    
-    async function buildJsonNode(path) {
-        const zipEntry = zipInstance.file(path);
-        if (!zipEntry) return null;
-        
-        if (zipEntry.dir) {
-            return { type: 'folder', name: zipEntry.name.split('/').slice(-2, -1)[0], children: [] };
-        } else {
-            const content = await zipEntry.async('string');
-            return { type: 'file', name: zipEntry.name.split('/').pop(), content: content };
-        }
-    }
-
     const structure = {};
     const filePromises = [];
-    const fileNodes = [];
 
     checkedPaths.forEach(path => {
         if (path.endsWith('/')) return; // Обрабатываем только файлы напрямую
@@ -335,10 +320,25 @@ async function handleGenerateJson() {
     }
     
     const finalJson = convertStructureToArray(structure);
+    const jsonString = JSON.stringify(finalJson, null, 2);
 
-    outputCode.textContent = JSON.stringify(finalJson, null, 2);
+    // Показываем результат на странице для предпросмотра и копирования
+    outputCode.textContent = jsonString;
     resultsContainer.classList.remove('hidden');
-    generateBtn.textContent = 'Создать JSON-каркас';
+
+    // Создаем Blob и инициируем скачивание файла
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'site-skeleton.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Возвращаем кнопку в исходное состояние
+    generateBtn.textContent = 'Скачать JSON-каркас';
     generateBtn.disabled = false;
 }
 
