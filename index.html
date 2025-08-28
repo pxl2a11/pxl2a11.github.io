@@ -55,22 +55,12 @@
         .filter-blue {
             filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
         }
-        /* --- НОВЫЙ ГРАДИЕНТНЫЙ ФОН --- */
-        body {
-            background-color: #e0eafc; /* Резервный цвет */
-            background-image: linear-gradient(135deg, #80fda8 0%, #97fd80 50%, #d5fd80 100%);
-            transition: background-image 0.5s ease;
-        }
-        .dark body {
-            background-color: #1e3a8a; /* Резервный цвет для темной темы */
-            background-image: linear-gradient(135deg, #111111 0%, ##FF7B00 50%, #333333 100%);
-        }
     </style>
     
     <!-- Главный скрипт -->
     <script type="module" src="js/main.js"></script>
 </head>
-<body class="text-gray-900 dark:text-gray-200 font-sans">
+<body class="bg-gradient-to-b from-gray-100 to-gray-200 text-gray-900 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-gray-200 font-sans p-4">
 
     <!-- Контейнер в правом верхнем углу -->
     <div class="fixed top-4 right-4 flex items-center gap-4 z-50">
@@ -89,30 +79,30 @@
     </div>
 
     <!-- Основной контейнер -->
-    <div class="flex flex-col items-center min-h-screen pt-12 pb-8 px-4">
-        <!-- ИЗМЕНЕНИЕ: Основной белый контейнер был удален. Элементы теперь находятся прямо в основном потоке. -->
-        <h1 class="text-4xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">
-            <a href="/" id="home-link">Mini Apps</a>
-        </h1>
-        <div class="relative mb-6 w-full max-w-4xl">
-            <input id="search-input" type="text" placeholder="Поиск приложений..." class="w-full p-4 pl-12 pr-4 rounded-full border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            <div id="suggestions-container" class="absolute w-full mt-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-lg hidden z-40"></div>
+    <div class="flex flex-col items-center min-h-screen pt-8 pb-8">
+        <div class="w-full max-w-4xl mx-auto p-6 text-center">
+            <h1 class="text-5xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+                <a href="/" id="home-link">Mini Apps</a>
+            </h1>
+            <div class="relative mb-6">
+                <input id="search-input" type="text" placeholder="Поиск приложений..." class="w-full p-4 pl-12 pr-4 rounded-full border border-gray-300/80 dark:border-gray-700/80 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <div id="suggestions-container" class="absolute w-full mt-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-lg hidden z-40"></div>
+            </div>
+            <div id="filter-container" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-6">
+                <button data-sort="my-apps" class="filter-btn hidden">Мои приложения</button>
+                <button data-sort="default" class="filter-btn active">Все</button>
+                <button data-sort="popular" class="filter-btn">Популярные</button>
+                <button data-sort="new" class="filter-btn">Новые</button>
+            </div>
         </div>
-        <div id="filter-container" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-6">
-            <button data-sort="my-apps" class="filter-btn hidden">Мои приложения</button>
-            <button data-sort="default" class="filter-btn active">Все</button>
-            <button data-sort="popular" class="filter-btn">Популярные</button>
-            <button data-sort="new" class="filter-btn">Новые</button>
-        </div>
-        <div id="dynamic-content-area" class="mt-4 min-h-[450px] w-full max-w-7xl"></div>
-        
-        <div id="changelog-container" class="w-full max-w-4xl mx-auto p-6 mt-8 bg-white/50 dark:bg-gray-900/50 rounded-2xl shadow-lg transition-colors backdrop-blur-sm"></div>
+        <div id="dynamic-content-area" class="mt-4 min-h-[450px] w-full max-w-6xl mx-auto"></div>
+        <div id="changelog-container" class="w-full max-w-4xl mx-auto p-6 mt-8 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors"></div>
     </div>
     
     <!-- НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ -->
     <template id="all-apps-template">
-        <a href="?app=speedTest" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Скорость интернета" data-module="speedTest">
+        <a href="?app=speedTest" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Скорость интернета" data-module="speedTest">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -120,7 +110,7 @@
             <div class="w-12 h-12 bg-cyan-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/speedTest.svg" class="w-8 h-8 filter brightness-0 invert" alt="Скорость интернета"></div>
             <span class="text-sm font-medium ml-4 pr-8">Скорость интернета</span>
         </a>
-        <a href="?app=radio" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Радио" data-module="radio">
+        <a href="?app=radio" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Радио" data-module="radio">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -128,7 +118,7 @@
             <div class="w-12 h-12 bg-indigo-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/radio.svg" class="w-8 h-8 filter brightness-0 invert" alt="Радио"></div>
             <span class="text-sm font-medium ml-4 pr-8">Радио</span>
         </a>
-        <a href="?app=notesAndTasks" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Заметки и задачи" data-module="notesAndTasks">
+        <a href="?app=notesAndTasks" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Заметки и задачи" data-module="notesAndTasks">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -136,7 +126,7 @@
             <div class="w-12 h-12 bg-amber-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/notesAndTasks.svg" class="w-8 h-8 filter brightness-0 invert" alt="Заметки и задачи"></div>
             <span class="text-sm font-medium ml-4 pr-8">Заметки и задачи</span>
         </a>
-        <a href="?app=soundAndMicTest" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Тест звука и микрофона" data-module="soundAndMicTest">
+        <a href="?app=soundAndMicTest" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Тест звука и микрофона" data-module="soundAndMicTest">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -144,7 +134,7 @@
             <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/soundAndMicTest.svg" class="w-8 h-8 filter brightness-0 invert" alt="Тест звука и микрофона"></div>
             <span class="text-sm font-medium ml-4 pr-8">Тест звука и микрофона</span>
         </a>
-        <a href="?app=audioCompressor" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Сжатие аудио" data-module="audioCompressor">
+        <a href="?app=audioCompressor" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Сжатие аудио" data-module="audioCompressor">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -152,7 +142,7 @@
             <div class="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/audioCompressor.svg" class="w-8 h-8 filter brightness-0 invert" alt="Сжатие аудио"></div>
             <span class="text-sm font-medium ml-4 pr-8">Сжатие аудио</span>
         </a>
-        <a href="?app=myIp" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Мой IP" data-module="myIp">
+        <a href="?app=myIp" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Мой IP" data-module="myIp">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -160,7 +150,7 @@
             <div class="w-12 h-12 bg-gray-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/myIp.svg" class="w-8 h-8 filter brightness-0 invert" alt="Мой IP"></div>
             <span class="text-sm font-medium ml-4 pr-8">Мой IP</span>
         </a>
-        <a href="?app=passwordGenerator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Генератор паролей" data-module="passwordGenerator">
+        <a href="?app=passwordGenerator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Генератор паролей" data-module="passwordGenerator">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -168,7 +158,7 @@
             <div class="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/passwordGenerator.svg" class="w-8 h-8 filter brightness-0 invert" alt="Генератор паролей"></div>
             <span class="text-sm font-medium ml-4 pr-8">Генератор паролей</span>
         </a>
-        <a href="?app=percentageCalculator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор процентных соотношений" data-module="percentageCalculator">
+        <a href="?app=percentageCalculator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Калькулятор процентных соотношений" data-module="percentageCalculator">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -176,7 +166,7 @@
             <div class="w-12 h-12 bg-fuchsia-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/percentageCalculator.svg" class="w-8 h-8 filter brightness-0 invert" alt="Калькулятор процентных соотношений"></div>
             <span class="text-sm font-medium ml-4 pr-8">Калькулятор процентных соотношений</span>
         </a>
-        <a href="?app=timer" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Таймер" data-module="timer">
+        <a href="?app=timer" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Таймер" data-module="timer">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -184,7 +174,7 @@
             <div class="w-12 h-12 bg-orange-400 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/timer.svg" class="w-8 h-8 filter brightness-0 invert" alt="Таймер"></div>
             <span class="text-sm font-medium ml-4 pr-8">Таймер</span>
         </a>
-        <a href="?app=fortuneWheel" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Колесо фортуны" data-module="fortuneWheel">
+        <a href="?app=fortuneWheel" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Колесо фортуны" data-module="fortuneWheel">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -192,7 +182,7 @@
             <div class="w-12 h-12 bg-purple-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/fortuneWheel.svg" class="w-8 h-8 filter brightness-0 invert" alt="Колесо фортуны"></div>
             <span class="text-sm font-medium ml-4 pr-8">Колесо фортуны</span>
         </a>
-        <a href="?app=magicBall" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Шар предсказаний" data-module="magicBall">
+        <a href="?app=magicBall" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Шар предсказаний" data-module="magicBall">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -200,7 +190,7 @@
             <div class="w-12 h-12 bg-gray-700 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/magicBall.svg" class="w-8 h-8 filter brightness-0 invert" alt="Шар предсказаний"></div>
             <span class="text-sm font-medium ml-4 pr-8">Шар предсказаний</span>
         </a>
-        <a href="?app=ticTacToe" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Крестики-нолики" data-module="ticTacToe">
+        <a href="?app=ticTacToe" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Крестики-нолики" data-module="ticTacToe">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -208,7 +198,7 @@
             <div class="w-12 h-12 bg-teal-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/ticTacToe.svg" class="w-8 h-8 filter brightness-0 invert" alt="Крестики-нолики"></div>
             <span class="text-sm font-medium ml-4 pr-8">Крестики-нолики</span>
         </a>
-        <a href="?app=minesweeper" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Сапер" data-module="minesweeper">
+        <a href="?app=minesweeper" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Сапер" data-module="minesweeper">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -218,7 +208,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Сапер</span>
         </a>
-        <a href="?app=stopwatch" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Секундомер" data-module="stopwatch">
+        <a href="?app=stopwatch" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Секундомер" data-module="stopwatch">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -226,7 +216,7 @@
             <div class="w-12 h-12 bg-lime-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/stopwatch.svg" class="w-8 h-8 filter brightness-0 invert" alt="Секундомер"></div>
             <span class="text-sm font-medium ml-4 pr-8">Секундомер</span>
         </a>
-        <a href="?app=randomColor" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Случайный цвет" data-module="randomColor">
+        <a href="?app=randomColor" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Случайный цвет" data-module="randomColor">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -234,7 +224,7 @@
             <div class="w-12 h-12 bg-rose-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/randomColor.svg" class="w-8 h-8 filter brightness-0 invert" alt="Случайный цвет"></div>
             <span class="text-sm font-medium ml-4 pr-8">Случайный цвет</span>
         </a>
-        <a href="?app=numberGenerator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Генератор чисел" data-module="numberGenerator">
+        <a href="?app=numberGenerator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Генератор чисел" data-module="numberGenerator">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -242,7 +232,7 @@
             <div class="w-12 h-12 bg-green-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/numberGenerator.svg" class="w-8 h-8 filter brightness-0 invert" alt="Генератор чисел"></div>
             <span class="text-sm font-medium ml-4 pr-8">Генератор чисел</span>
         </a>
-        <a href="?app=qrCodeGenerator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Генератор QR-кодов" data-module="qrCodeGenerator">
+        <a href="?app=qrCodeGenerator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Генератор QR-кодов" data-module="qrCodeGenerator">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -250,7 +240,7 @@
             <div class="w-12 h-12 bg-green-600 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/qrCodeGenerator.svg" class="w-8 h-8 filter brightness-0 invert" alt="Генератор QR-кодов"></div>
             <span class="text-sm font-medium ml-4 pr-8">Генератор QR-кодов</span>
         </a>
-        <a href="?app=emojiAndSymbols" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Эмодзи и символы" data-module="emojiAndSymbols">
+        <a href="?app=emojiAndSymbols" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Эмодзи и символы" data-module="emojiAndSymbols">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -258,7 +248,7 @@
             <div class="w-12 h-12 bg-orange-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/emojiAndSymbols.svg" class="w-8 h-8 filter brightness-0 invert" alt="Эмодзи и символы"></div>
             <span class="text-sm font-medium ml-4 pr-8">Эмодзи и символы</span>
         </a>
-        <a href="?app=unitConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Конвертер величин" data-module="unitConverter">
+        <a href="?app=unitConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Конвертер величин" data-module="unitConverter">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -266,7 +256,7 @@
             <div class="w-12 h-12 bg-sky-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/unitConverter.svg" class="w-8 h-8 filter brightness-0 invert" alt="Конвертер величин"></div>
             <span class="text-sm font-medium ml-4 pr-8">Конвертер величин</span>
         </a>
-        <a href="?app=dateCalculator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор дат" data-module="dateCalculator">
+        <a href="?app=dateCalculator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Калькулятор дат" data-module="dateCalculator">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -274,7 +264,7 @@
             <div class="w-12 h-12 bg-red-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/dateCalculator.svg" class="w-8 h-8 filter brightness-0 invert" alt="Калькулятор дат"></div>
             <span class="text-sm font-medium ml-4 pr-8">Калькулятор дат</span>
         </a>
-        <a href="?app=bmiCalculator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор ИМТ" data-module="bmiCalculator">
+        <a href="?app=bmiCalculator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Калькулятор ИМТ" data-module="bmiCalculator">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -282,7 +272,7 @@
             <div class="w-12 h-12 bg-emerald-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/bmiCalculator.svg" class="w-8 h-8 filter brightness-0 invert" alt="Калькулятор ИМТ"></div>
             <span class="text-sm font-medium ml-4 pr-8">Калькулятор ИМТ</span>
         </a>
-        <a href="?app=wordCounter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Счетчик слов и символов" data-module="wordCounter">
+        <a href="?app=wordCounter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Счетчик слов и символов" data-module="wordCounter">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -292,7 +282,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Счетчик слов и символов</span>
         </a>
-        <a href="?app=qrScanner" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Сканер QR-кодов" data-module="qrScanner">
+        <a href="?app=qrScanner" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Сканер QR-кодов" data-module="qrScanner">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -300,7 +290,7 @@
             <div class="w-12 h-12 bg-slate-600 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/qrScanner.svg" class="w-8 h-8 filter brightness-0 invert" alt="Сканер QR-кодов"></div>
             <span class="text-sm font-medium ml-4 pr-8">Сканер QR-кодов</span>
         </a>
-        <a href="?app=piano" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Пианино" data-module="piano">
+        <a href="?app=piano" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Пианино" data-module="piano">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -310,7 +300,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Пианино</span>
         </a>
-        <a href="?app=caseConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Конвертер регистра" data-module="caseConverter">
+        <a href="?app=caseConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Конвертер регистра" data-module="caseConverter">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -320,7 +310,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Конвертер регистра</span>
         </a>
-        <a href="?app=imageConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Конвертер форматов изображений" data-module="imageConverter">
+        <a href="?app=imageConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Конвертер форматов изображений" data-module="imageConverter">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -328,7 +318,7 @@
             <div class="w-12 h-12 bg-orange-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/imageConverter.svg" class="w-8 h-8 filter brightness-0 invert" alt="Конвертер форматов изображений"></div>
             <span class="text-sm font-medium ml-4 pr-8">Конвертер форматов изображений</span>
         </a>
-        <a href="?app=colorConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Конвертер цветов" data-module="colorConverter">
+        <a href="?app=colorConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Конвертер цветов" data-module="colorConverter">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -336,7 +326,7 @@
             <div class="w-12 h-12 bg-purple-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/colorConverter.svg" class="w-8 h-8 filter brightness-0 invert" alt="Конвертер цветов"></div>
             <span class="text-sm font-medium ml-4 pr-8">Конвертер цветов</span>
         </a>
-        <a href="?app=memoryGame" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Игра на память" data-module="memoryGame">
+        <a href="?app=memoryGame" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Игра на память" data-module="memoryGame">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -344,7 +334,7 @@
             <div class="w-12 h-12 bg-pink-500 text-white rounded-xl flex items-center justify-center flex-shrink-0"><img src="img/memoryGame.svg" class="w-8 h-8 filter brightness-0 invert" alt="Игра на память"></div>
             <span class="text-sm font-medium ml-4 pr-8">Игра на память</span>
         </a>
-        <a href="?app=textTranslit" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Транслитерация текста" data-module="textTranslit">
+        <a href="?app=textTranslit" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Транслитерация текста" data-module="textTranslit">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -354,7 +344,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Транслитерация текста</span>
         </a>
-        <a href="?app=imageResizer" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Изменение размера изображений" data-module="imageResizer">
+        <a href="?app=imageResizer" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Изменение размера изображений" data-module="imageResizer">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -364,7 +354,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Изменение размера изображений</span>
         </a>
-        <a href="?app=currencyCalculator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Калькулятор валют" data-module="currencyCalculator">
+        <a href="?app=currencyCalculator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Калькулятор валют" data-module="currencyCalculator">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -374,7 +364,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Калькулятор валют</span>
         </a>
-        <a href="?app=snakeGame" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Змейка" data-module="snakeGame">
+        <a href="?app=snakeGame" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Змейка" data-module="snakeGame">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -384,7 +374,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Змейка</span>
         </a>
-        <a href="?app=timezoneConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Конвертер часовых поясов" data-module="timezoneConverter">
+        <a href="?app=timezoneConverter" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Конвертер часовых поясов" data-module="timezoneConverter">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -395,7 +385,7 @@
             <span class="text-sm font-medium ml-4 pr-8">Конвертер часовых поясов</span>
         </a>
         <!-- НОВЫЕ ПРИЛОЖЕНИЯ -->
-        <a href="?app=textToSpeech" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Текст в речь" data-module="textToSpeech">
+        <a href="?app=textToSpeech" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Текст в речь" data-module="textToSpeech">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -405,7 +395,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Текст в речь</span>
         </a>
-        <a href="?app=rockPaperScissors" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Камень, ножницы, бумага" data-module="rockPaperScissors">
+        <a href="?app=rockPaperScissors" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Камень, ножницы, бумага" data-module="rockPaperScissors">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -415,7 +405,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Камень, ножницы, бумага</span>
         </a>
-        <a href="?app=sudoku" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Судоку" data-module="sudoku">
+        <a href="?app=sudoku" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Судоку" data-module="sudoku">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -425,7 +415,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Судоку</span>
         </a>
-        <a href="?app=zipArchiver" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Архиватор файлов (ZIP)" data-module="zipArchiver">
+        <a href="?app=zipArchiver" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Архиватор файлов (ZIP)" data-module="zipArchiver">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -435,7 +425,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Архиватор файлов (ZIP)</span>
         </a>
-        <a href="?app=game2048" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="2048" data-module="game2048">
+        <a href="?app=game2048" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="2048" data-module="game2048">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -445,7 +435,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">2048</span>
         </a>
-        <a href="?app=barcodeGenerator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Генератор штрих-кодов" data-module="barcodeGenerator">
+        <a href="?app=barcodeGenerator" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Генератор штрих-кодов" data-module="barcodeGenerator">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
@@ -455,7 +445,7 @@
             </div>
             <span class="text-sm font-medium ml-4 pr-8">Генератор штрих-кодов</span>
         </a>
-        <a href="?app=voiceRecorder" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-white dark:bg-gray-800 w-full" data-name="Диктофон" data-module="voiceRecorder">
+        <a href="?app=voiceRecorder" class="app-item relative flex flex-row items-center text-left p-3 rounded-xl transition-all group shadow-lg hover:shadow-xl hover:scale-105 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 w-full" data-name="Диктофон" data-module="voiceRecorder">
             <button class="add-to-my-apps-btn" aria-label="Добавить или удалить из моих приложений">
                 <img src="img/plusapps.svg" class="plus-icon" alt="Добавить">
                 <img src="img/minusapps.svg" class="cross-icon hidden" alt="Удалить">
