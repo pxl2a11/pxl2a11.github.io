@@ -38,42 +38,54 @@
 /* --- Стили для похожих приложений --- */
 .similar-apps-grid {
     display: grid;
-    /* Изменено: теперь 4 колонки и меньший минимальный размер */
     grid-template-columns: repeat(4, minmax(100px, 1fr));
     gap: 1rem;
 }
 
-/* Сбрасываем стили карточки для похожих приложений */
 .similar-apps-grid .app-item {
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0.5rem;
-    /* Новый макет: иконка над текстом */
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 0.5rem; /* Расстояние между иконкой и текстом */
+    gap: 0.5rem;
     transition: all 0.2s ease-in-out;
 }
 
-/* Убираем лишние отступы у дочерних элементов */
 .similar-apps-grid .app-item div,
 .similar-apps-grid .app-item span {
     margin: 0 !important;
     padding: 0 !important;
 }
 
-/* Новый эффект при наведении */
 .similar-apps-grid .app-item:hover {
     transform: translateY(-4px);
     background-color: rgba(0, 0, 0, 0.05) !important;
-    border-radius: 0.75rem; /* Скругляем фон при наведении */
+    border-radius: 0.75rem;
     box-shadow: none !important;
 }
 
 .dark .similar-apps-grid .app-item:hover {
     background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* --- Новые стили для иконок в похожих приложениях --- */
+.similar-apps-grid .app-item .w-12 {
+    background-color: transparent !important; /* Убираем фон */
+    width: 3rem !important; /* Устанавливаем единый размер контейнера */
+    height: 3rem !important;
+}
+
+.similar-apps-grid .app-item img {
+    filter: none !important; /* Убираем инвертирование для светлой темы (иконки станут темными) */
+    width: 2rem !important;  /* Устанавливаем единый размер иконки */
+    height: 2rem !important;
+}
+
+.dark .similar-apps-grid .app-item img {
+    filter: invert(1) !important; /* Инвертируем в белый цвет для темной темы */
 }
 
 
