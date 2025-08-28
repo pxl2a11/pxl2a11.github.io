@@ -62,25 +62,12 @@
     border: 1px solid #334155 !important; /* slate-700 */
 }
 
-/* Диагональный цветной фон */
+/* Убираем псевдо-элемент для диагонали */
 .app-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--app-color, #6b7280);
-    clip-path: polygon(0 0, 35% 0, 20% 100%, 0% 100%);
-    z-index: 0;
-    transition: all 0.3s ease-in-out;
+    display: none;
 }
 
-.app-item:hover::before {
-    filter: brightness(1.1);
-}
-
-/* Контейнер для иконки */
+/* Контейнер для иконки - теперь это цветной блок */
 .app-item .app-icon-wrapper {
     position: relative;
     z-index: 1;
@@ -88,14 +75,20 @@
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
-    width: 88px;
+    width: 72px; /* Фиксированная ширина для цветного блока */
     padding: 0.75rem;
+    background-color: var(--app-color, #6b7280); /* Применяем цвет сюда */
+    transition: filter 0.3s ease-in-out;
+}
+
+.app-item:hover .app-icon-wrapper {
+    filter: brightness(1.1);
 }
 
 .app-item .app-icon-wrapper img {
-    width: 2.25rem;
+    width: 2.25rem; /* 36px */
     height: 2.25rem;
-    filter: brightness(0) invert(1) !important;
+    filter: brightness(0) invert(1) !important; /* Делаем иконку белой */
 }
 
 /* Контейнер для названия */
@@ -105,7 +98,7 @@
     display: flex;
     align-items: center;
     flex-grow: 1;
-    padding: 0.75rem 1rem 0.75rem 0.5rem;
+    padding: 0.75rem 1rem;
 }
 
 /* --- Стили для карточек на ГЛАВНОЙ СТРАНИЦЕ --- */
@@ -116,20 +109,20 @@
 /* --- Стили для карточек в ПОХОЖИХ ПРИЛОЖЕНИЯХ --- */
 .similar-apps-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* Адаптивность */
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 1rem;
 }
 
 .similar-apps-grid .app-item {
-    min-height: 72px; /* Чуть меньше, чем на главной */
+    min-height: 72px; /* Чуть меньше */
 }
 
 .similar-apps-grid .app-item .app-icon-wrapper {
-    width: 72px; /* Уменьшаем блок иконки */
+    width: 72px;
 }
 
 .similar-apps-grid .app-item .app-icon-wrapper img {
-    width: 2rem; /* Уменьшаем саму иконку */
+    width: 2rem;
     height: 2rem;
 }
 
