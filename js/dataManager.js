@@ -1,4 +1,7 @@
+// js/dataManager.js
+
 import { auth, firestore } from './firebaseConfig.js';
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
 const LOCAL_STORAGE_KEY = 'miniAppsUserData';
 let userDataCache = null;
@@ -13,11 +16,12 @@ function _saveToLocalStorage() {
     }
 }
 
-// Внутренняя функция для сохранения данных в Firebase
+// Внутренняя функция для сохранения данных в Firebase (синтаксис v9)
 async function _saveToFirebase() {
     if (auth.currentUser && userDataCache) {
         try {
-            await firestore.collection('users').doc(auth.currentUser.uid).set(userDataCache, { merge: true });
+            const userDocRef = doc(firestore, 'users', auth.currentUser.uid);
+            await setDoc(userDocRef, userDataCache, { merge: true });
         } catch (error) {
             console.error("Ошибка сохранения данных в Firebase:", error);
             // Здесь можно добавить логику для повторной попытки, если пользователь офлайн
@@ -52,7 +56,7 @@ export function setOnDataLoaded(callback) {
 
 /**
  * Основная функция для получения данных пользователя.
- * Сначала загружает из кэша, затем из Firebase.
+ * Сначала загружает из кэша, затем из Firebase. (синтаксис v9)
  * @param {string} uid ID пользователя
  */
 export async function fetchUserAccountData(uid) {
@@ -60,10 +64,11 @@ export async function fetchUserAccountData(uid) {
 
     // Фоновая загрузка актуальных данных из Firebase
     try {
-        const docRef = firestore.collection('users').doc(uid);
-        const doc = await docRef.get();
-        if (doc.exists) {
-            userDataCache = doc.data();
+        const docRef = doc(firestore, 'users', uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            userDataCache = docSnap.data();
             _saveToLocalStorage(); // Обновляем локальный кэш свежими данными
             console.log("Данные аккаунта загружены из Firebase и обновлены в кэше:", userDataCache);
             if (onDataLoadedCallback) {
@@ -71,6 +76,7 @@ export async function fetchUserAccountData(uid) {
             }
         } else {
             // Если в Firebase нет документа, создаем его на основе локальных данных (если они есть)
+            console.log("В Firebase нет документа для пользователя, создаем новый.");
             await _saveToFirebase();
         }
     } catch (error) {
