@@ -51,6 +51,11 @@
     <script>
         tailwind.config = { darkMode: 'class' };
     </script>
+    <style>
+        .filter-blue {
+            filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
+        }
+    </style>
     
     <!-- Главный скрипт -->
     <script type="module" src="js/main.js"></script>
@@ -262,7 +267,6 @@
             <div class="app-icon-wrapper"><img src="img/timezoneConverter.svg" alt="Конвертер часовых поясов"></div>
             <div class="app-name-wrapper"><span class="app-name-text">Конвертер часовых поясов</span></div>
         </a>
-        <!-- НОВЫЕ ПРИЛОЖЕНИЯ -->
         <a href="?app=textToSpeech" class="app-item" style="--app-color: #0891b2;" data-name="Текст в речь" data-module="textToSpeech">
             <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
             <div class="app-icon-wrapper"><img src="img/textToSpeech.svg" alt="Текст в речь"></div>
@@ -297,6 +301,11 @@
             <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
             <div class="app-icon-wrapper"><img src="img/voiceRecorder.svg" alt="Диктофон"></div>
             <div class="app-name-wrapper"><span class="app-name-text">Диктофон</span></div>
+        </a>
+        <a href="?app=siteSkeletonGenerator" class="app-item" style="--app-color: #7e22ce;" data-name="Генератор каркаса Сайта" data-module="siteSkeletonGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/siteSkeletonGenerator.svg" alt="Генератор каркаса Сайта"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор каркаса Сайта</span></div>
         </a>
     </template>
 </body>
