@@ -1,7 +1,8 @@
 // js/apps/siteSkeletonGenerator.js
 
 let zipInstance = null;
-let fileTreeContainer, dropZone, fileInput, generateBtn, outputCode, copyBtn, instructions, resultsContainer;
+let fileTreeContainer, dropZone, fileInput, generateBtn, copyBtn, instructions;
+let lastGeneratedJson = ''; // Переменная для хранения последнего сгенерированного JSON
 
 // --- HTML-структура приложения ---
 export function getHtml() {
@@ -56,20 +57,6 @@ export function getHtml() {
                 border-color: #3b82f6;
             }
             .dark .drop-zone.dragover { background-color: #1e3a8a; }
-            #output-code {
-                max-height: 400px;
-                overflow-y: auto;
-                background-color: #f3f4f6;
-                border: 1px solid #e5e7eb;
-                padding: 1rem;
-                border-radius: 0.5rem;
-                white-space: pre-wrap;
-                word-wrap: break-word;
-            }
-            .dark #output-code {
-                background-color: #1f2937;
-                border-color: #374151;
-            }
         </style>
 
         <div class="space-y-6">
@@ -91,18 +78,15 @@ export function getHtml() {
             </div>
             
             <div id="generate-section" class="hidden">
-                <h3 class="text-lg font-semibold mb-2">3. Сгенерируйте и скачайте JSON</h3>
-                <button id="generate-btn" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                    Скачать JSON-каркас
-                </button>
-            </div>
-
-            <div id="results-container" class="hidden">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">4. Результат (для предпросмотра)</h3>
-                    <button id="copy-json-btn" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-sm font-semibold py-1 px-3 rounded-md transition-colors">Копировать</button>
+                <h3 class="text-lg font-semibold mb-2">3. Сгенерируйте результат</h3>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="generate-btn" class="flex-grow bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                        Скачать JSON-каркас
+                    </button>
+                    <button id="copy-json-btn" class="flex-grow sm:flex-grow-0 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Копировать JSON
+                    </button>
                 </div>
-                <pre><code id="output-code"></code></pre>
             </div>
         </div>
     `;
@@ -114,10 +98,8 @@ export function init() {
     dropZone = document.getElementById('drop-zone');
     fileInput = document.getElementById('zip-input');
     generateBtn = document.getElementById('generate-btn');
-    outputCode = document.getElementById('output-code');
     copyBtn = document.getElementById('copy-json-btn');
     instructions = document.getElementById('instructions');
-    resultsContainer = document.getElementById('results-container');
     
     // --- Обработчики для Drop Zone ---
     dropZone.addEventListener('click', () => fileInput.click());
@@ -126,7 +108,7 @@ export function init() {
     dropZone.addEventListener('drop', handleDrop);
     fileInput.addEventListener('change', handleFileSelect);
     
-    // --- Обработчик генерации JSON ---
+    // --- Обработчики кнопок ---
     generateBtn.addEventListener('click', handleGenerateJson);
     copyBtn.addEventListener('click', handleCopy);
 
@@ -177,6 +159,8 @@ async function processFile(file) {
         instructions.classList.add('hidden');
         document.getElementById('file-tree-section').classList.remove('hidden');
         document.getElementById('generate-section').classList.remove('hidden');
+        copyBtn.disabled = true; // Сбрасываем кнопку "Копировать" при загрузке нового файла
+        lastGeneratedJson = '';
     } catch (error) {
         console.error("Ошибка обработки ZIP-файла:", error);
         dropZone.innerHTML = `<p class="text-red-500">Не удалось прочитать архив. Попробуйте другой файл.</p>`;
@@ -267,6 +251,7 @@ async function handleGenerateJson() {
     if (!zipInstance) return;
     generateBtn.textContent = 'Генерация...';
     generateBtn.disabled = true;
+    copyBtn.disabled = true;
 
     const checkedPaths = Array.from(fileTreeContainer.querySelectorAll('input[type="checkbox"]:checked'))
                              .map(cb => cb.dataset.path);
@@ -320,11 +305,10 @@ async function handleGenerateJson() {
     const finalJson = convertStructureToArray(structure);
     const jsonString = JSON.stringify(finalJson, null, 2);
 
-    // Показываем результат на странице для предпросмотра и копирования
-    outputCode.textContent = jsonString;
-    resultsContainer.classList.remove('hidden');
+    // Сохраняем результат в переменную для копирования
+    lastGeneratedJson = jsonString;
 
-    // Создаем Blob и инициируем скачивание файла
+    // Инициируем скачивание файла
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -335,16 +319,17 @@ async function handleGenerateJson() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    // Возвращаем кнопку в исходное состояние
+    // Возвращаем кнопки в исходное состояние и активируем кнопку "Копировать"
     generateBtn.textContent = 'Скачать JSON-каркас';
     generateBtn.disabled = false;
+    copyBtn.disabled = false;
 }
 
 function handleCopy() {
-    if (outputCode.textContent) {
-        navigator.clipboard.writeText(outputCode.textContent).then(() => {
+    if (lastGeneratedJson) {
+        navigator.clipboard.writeText(lastGeneratedJson).then(() => {
             copyBtn.textContent = 'Скопировано!';
-            setTimeout(() => { copyBtn.textContent = 'Копировать'; }, 2000);
+            setTimeout(() => { copyBtn.textContent = 'Копировать JSON'; }, 2000);
         }).catch(err => {
             console.error('Не удалось скопировать текст: ', err);
             alert('Не удалось скопировать текст.');
@@ -355,6 +340,7 @@ function handleCopy() {
 // --- Очистка при выходе из приложения ---
 export function cleanup() {
     zipInstance = null;
+    lastGeneratedJson = '';
     dropZone.removeEventListener('click', () => fileInput.click());
     dropZone.removeEventListener('dragover', handleDragOver);
     dropZone.removeEventListener('dragleave', handleDragLeave);
