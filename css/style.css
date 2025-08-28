@@ -38,18 +38,44 @@
 /* --- Стили для похожих приложений --- */
 .similar-apps-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    /* Изменено: теперь 4 колонки и меньший минимальный размер */
+    grid-template-columns: repeat(4, minmax(100px, 1fr));
     gap: 1rem;
 }
 
+/* Сбрасываем стили карточки для похожих приложений */
 .similar-apps-grid .app-item {
-    transition: all 0.2s ease-in-out !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0.5rem;
+    /* Новый макет: иконка над текстом */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem; /* Расстояние между иконкой и текстом */
+    transition: all 0.2s ease-in-out;
 }
 
+/* Убираем лишние отступы у дочерних элементов */
+.similar-apps-grid .app-item div,
+.similar-apps-grid .app-item span {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Новый эффект при наведении */
 .similar-apps-grid .app-item:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    border-radius: 0.75rem; /* Скругляем фон при наведении */
+    box-shadow: none !important;
 }
+
+.dark .similar-apps-grid .app-item:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
 
 /* --- Стили для кнопки добавления/удаления --- */
 .add-to-my-apps-btn {
