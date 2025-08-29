@@ -12,7 +12,7 @@ let startTime;
 let highlightedCells = [];
 
 // --- ИЗМЕНЕНИЕ: SVG иконка для мины заменена на ссылку ---
-const mineSvg = `<img src="https://pxl2a11.github.io/img/minesweeper.svg" class="w-full h-full p-1" alt="Mine">`;
+const mineSvg = `<img src="/img/minesweeper.svg" class="w-full h-full p-1" alt="Mine">`;
 
 const flagSvg = `
 <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" class="w-full h-full p-1">
