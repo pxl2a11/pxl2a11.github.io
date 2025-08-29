@@ -1,8 +1,7 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v16'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
-
-// ... (остальной код файла остается без изменений) ...
+// ИЗМЕНЕНИЕ: Версия кэша увеличена, чтобы гарантировать обновление у всех пользователей.
+const CACHE_NAME = 'mini-apps-cache-v17'; 
 
 const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
 
@@ -13,7 +12,9 @@ const appModules = [
     'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'caseConverter', 'imageConverter', 
     'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame', 
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048', 
-    'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad'
+    'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
+    // ДОБАВЛЕНО: Недостающий модуль changelogPage
+    'changelogPage'
 ];
 
 const appJsFiles = appModules.map(module => `/js/apps/${module}.js`);
@@ -23,7 +24,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/offline.html',
-  '/manifest.json', // Он будет кэшировать манифест без ?v=2, это нормально
+  '/manifest.json',
   '/css/style.css',
   '/css/leaflet.css',
   '/js/main.js',
@@ -39,25 +40,23 @@ const urlsToCache = [
   '/js/dataManager.js',
   '/js/firebaseConfig.js',
   '/js/radioStationsData.js',
-  '/js/apps/changelogPage.js',
   
-  'https://accounts.google.com/gsi/client',
-  'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js',
-  'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js',
-
-  '/img/logo.svg', // Кэшируем основной файл
-  '/img/loading.svg',
+  // URL-ы сторонних сервисов лучше не кэшировать напрямую,
+  // так как они могут измениться. Service Worker перехватит и закэширует их при первом запросе.
+  
+  '/img/logo.svg',
+  '/img/loading.svg', // Уже был здесь, но убеждаемся, что он есть
   '/img/icons/icon-192x192.png',
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
   '/img/minesweeper.svg',
   '/img/soundAndMicTest.svg',
+  
+  // ДОБАВЛЕНО: Звуки для приложений
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
-  '/img/changelogPage.svg',
   
   ...appJsFiles,
   ...appSvgIcons
@@ -69,6 +68,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Кэш открыт для установки');
+        // Используем { cache: 'reload' } чтобы убедиться, что мы кэшируем свежие файлы, а не из HTTP-кэша браузера
         const requests = urlsToCache.map(url => new Request(url, { cache: 'reload' }));
         return cache.addAll(requests);
       })
@@ -91,37 +91,40 @@ self.addEventListener('activate', event => {
   );
 });
 
+// ИЗМЕНЕНИЕ: Улучшенная стратегия кэширования "Stale-While-Revalidate"
 self.addEventListener('fetch', event => {
+  // Пропускаем не-GET запросы и запросы к расширениям Chrome
   if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
     return;
   }
 
+  // Для навигационных запросов (переход по страницам) используем стратегию "Network falling back to Cache"
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
-        .then(response => {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-          return response;
-        })
         .catch(() => {
-          return caches.match(event.request).then(response => {
-            return response || caches.match('/offline.html');
-          });
+          // Если сеть недоступна, пытаемся отдать страницу из кэша
+          return caches.match(event.request)
+            .then(response => response || caches.match('/offline.html'));
         })
     );
     return;
   }
 
+  // Для всех остальных ресурсов (CSS, JS, изображения) используем "Stale-While-Revalidate"
   event.respondWith(
     caches.open(CACHE_NAME).then(cache => {
       return cache.match(event.request).then(response => {
+        // 1. Отдаем ресурс из кэша немедленно, если он там есть
         const fetchPromise = fetch(event.request).then(networkResponse => {
+          // 2. В фоне делаем запрос к сети
+          // 3. Если запрос успешен, обновляем кэш
           cache.put(event.request, networkResponse.clone());
           return networkResponse;
+        }).catch(() => {
+            // Если сеть недоступна и ресурса нет в кэше, вернется ошибка (что нормально для некритичных ресурсов)
         });
+        
         return response || fetchPromise;
       });
     })
