@@ -9,9 +9,15 @@ import { fetchUserAccountData, clearUserData, getUserData, saveUserData, setOnDa
 // --- Сопоставление имен приложений и метаданные ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Процентный калькулятор': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Счетчик слов и символов': 'wordCounter', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер форматов изображений': 'imageConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Транслитерация текста': 'textTranslit', 'Изменение размера изображений': 'imageResizer', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Конвертер часовых поясов': 'timezoneConverter', 'Текст в речь': 'textToSpeech', 'Камень, ножницы, бумага': 'rockPaperScissors', 'Судоку': 'sudoku', 'Архиватор файлов (ZIP)': 'zipArchiver', '2048': 'game2048', 'Генератор штрих-кодов': 'barcodeGenerator', 'Диктофон': 'voiceRecorder', 'Генератор каркаса Сайта': 'siteSkeletonGenerator',
+    'Тест мыши': 'mouseTester', // <-- ДОБАВЛЕНО
+    'Тест клавиатуры': 'keyboardTester', // <-- ДОБАВЛЕНО
+    'Графический редактор': 'drawingPad', // <-- ДОБАВЛЕНО
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'wordCounter': 82, 'timer': 70, 'stopwatch': 68, 'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageConverter': 91, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'imageResizer': 90, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74, 'timezoneConverter': 84, 'textToSpeech': 73, 'rockPaperScissors': 67, 'sudoku': 80, 'zipArchiver': 88, 'game2048': 79, 'barcodeGenerator': 84, 'voiceRecorder': 82, 'siteSkeletonGenerator': 78,
+    'mouseTester': 75, // <-- ДОБАВЛЕНО
+    'keyboardTester': 76, // <-- ДОБАВЛЕНО
+    'drawingPad': 80, // <-- ДОБАВЛЕНО
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] }, 'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] }, 'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] }, 'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] }, 'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] }, 'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] }, 'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] }, 'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] }, 'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] }, 'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] }, 'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] }, 'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] }, 'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] }, 'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random', '#color'] }, 'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] }, 'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] }, 'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] }, 'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] }, 'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] }, 'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] }, 'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] }, 'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] }, 'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] }, 'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] }, 'imageConverter': { keywords: ['конвертер', 'изображения', 'картинки', 'png', 'jpg', 'webp', 'формат', 'преобразовать'], hashtags: ['#image', '#tools', '#converter'] }, 'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] }, 'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] }, 'textTranslit': { keywords: ['транслит', 'латиница', 'кириллица', 'текст', 'перевод', 'cyrillic', 'latin'], hashtags: ['#text', '#tools'] }, 'imageResizer': { keywords: ['изображение', 'картинка', 'размер', 'уменьшить', 'увеличить', 'ресайз', 'resize'], hashtags: ['#image', '#tools'] }, 'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] }, 'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },
@@ -24,6 +30,9 @@ const appSearchMetadata = {
     'barcodeGenerator': { keywords: ['штрих-код', 'ean', 'code128', 'создать', 'генератор', 'товар'], hashtags: ['#tools', '#generator'] },
     'voiceRecorder': { keywords: ['диктофон', 'запись', 'голос', 'аудио', 'микрофон', 'записать', 'record'], hashtags: ['#audio', '#tools'] },
     'siteSkeletonGenerator': { keywords: ['каркас', 'структура', 'сайт', 'json', 'генератор', 'zip', 'архив'], hashtags: ['#tools', '#generator', '#webdev'] },
+    'mouseTester': { keywords: ['мышь', 'мышка', 'кнопки', 'колесико', 'проверка', 'клик', 'scroll', 'mouse', 'test'], hashtags: ['#tools', '#hardware'] }, // <-- ДОБАВЛЕНО
+    'keyboardTester': { keywords: ['клавиатура', 'клавиши', 'проверка', 'нажатие', 'печать', 'keyboard', 'test'], hashtags: ['#tools', '#hardware'] }, // <-- ДОБАВЛЕНО
+    'drawingPad': { keywords: ['рисование', 'редактор', 'холст', 'кисть', 'paint', 'draw', 'графика'], hashtags: ['#fun', '#design', '#tools'] }, // <-- ДОБАВЛЕНО
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
@@ -36,9 +45,9 @@ const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 let allAppCards = [];
-const homeScreenHtml = `<div id=\"apps-container\" class=\"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4\"></div>`;
+const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
-    <div id=\"app-screen\" class=\"hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors\">\n        <div class=\"flex items-center justify-between mb-6\">\n            <div class=\"flex items-center\">\n                <a href=\"/\" id=\"back-button\" class=\"p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600\"><svg class=\"h-6 w-6 text-gray-900 dark:text-gray-200\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M10 19l-7-7m0 0l7-7m-7 7h18\" /></svg></a>\n                <h2 id=\"app-title\" class=\"text-2xl font-bold ml-4\"></h2>\n            </div>\n            <button id=\"add-to-my-apps-app-view-btn\" class=\"flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors\">\n                <img src=\"img/plusapps.svg\" class=\"plus-icon h-5 w-5\" alt=\"\">\n                <img src=\"img/minusapps.svg\" class=\"cross-icon h-5 w-5 hidden\" alt=\"\">\n                <span class=\"btn-text\"></span>\n            </button>\n        </div>\n        <div id=\"app-content-container\" class=\"mt-4\"></div>\n        <div id=\"similar-apps-container\" class=\"mt-12\"></div>\n        <div id=\"app-changelog-container\" class=\"mt-8\"></div>\n    </div>`;
+    <div id="app-screen" class="hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">\n        <div class="flex items-center justify-between mb-6">\n            <div class="flex items-center">\n                <a href="/" id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"><svg class="h-6 w-6 text-gray-900 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></a>\n                <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>\n            </div>\n            <button id="add-to-my-apps-app-view-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors">\n                <img src="img/plusapps.svg" class="plus-icon h-5 w-5" alt="">\n                <img src="img/minusapps.svg" class="cross-icon h-5 w-5 hidden" alt="">\n                <span class="btn-text"></span>\n            </button>\n        </div>\n        <div id="app-content-container" class="mt-4"></div>\n        <div id="similar-apps-container" class="mt-12"></div>\n        <div id="app-changelog-container" class="mt-8"></div>\n    </div>`;
 
 let sortableInstance = null;
 
@@ -84,7 +93,7 @@ function renderGoogleButton() {
 }
 
 function updateAuthStateUI(user) {
-    const myAppsButton = document.querySelector('[data-sort=\"my-apps\"]');
+    const myAppsButton = document.querySelector('[data-sort="my-apps"]');
     if (user) {
         if (userNameElement) userNameElement.textContent = user.displayName;
         if (userAvatarElement) userAvatarElement.src = user.photoURL;
@@ -205,7 +214,7 @@ async function renderSimilarApps(currentModule, container) {
     similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
     const topSimilar = similarModules.slice(0, 4);
     if (topSimilar.length === 0) { container.innerHTML = ''; container.classList.add('hidden'); return; }
-    container.innerHTML = `<h3 class=\"text-xl font-bold mb-4\">Похожие приложения</h3>`;
+    container.innerHTML = `<h3 class="text-xl font-bold mb-4">Похожие приложения</h3>`;
     const grid = document.createElement('div');
     grid.className = 'similar-apps-grid';
     topSimilar.forEach(module => {
@@ -253,8 +262,8 @@ async function router() {
             await renderSimilarApps(moduleName, similarAppsContainer);
             if (appName !== 'История изменений') renderChangelog(appName, null, appChangelogContainer);
         } catch (error) {
-            console.error(`Ошибка загрузки модуля для \"${appName}\" (${moduleName}.js):`, error);
-            document.getElementById('app-content-container').innerHTML = `<p class=\"text-center text-red-500\">Не удалось загрузить приложение.</p>`;
+            console.error(`Ошибка загрузки модуля для "${appName}" (${moduleName}.js):`, error);
+            document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
         }
     } else {
         dynamicContentArea.innerHTML = homeScreenHtml;
@@ -318,7 +327,7 @@ function setupSearch() {
             suggestions.slice(0, 7).forEach(suggestion => {
                 const suggestionEl = document.createElement('div');
                 suggestionEl.className = 'suggestion-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
-                suggestionEl.innerHTML = `<span class=\"suggestion-name\">${suggestion.name}</span><span class=\"suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4\">${suggestion.hashtags.join(' ')}</span>`;
+                suggestionEl.innerHTML = `<span class="suggestion-name">${suggestion.name}</span><span class="suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4">${suggestion.hashtags.join(' ')}</span>`;
                 suggestionEl.addEventListener('click', () => {
                     if (suggestion.module) {
                         history.pushState({}, '', `?app=${suggestion.module}`);
@@ -358,7 +367,7 @@ async function applyAppListFilterAndRender() {
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
         if (appElements.length === 0 && activeFilter === 'my-apps') {
-            appsContainer.innerHTML = `<p class=\"col-span-full text-center text-gray-500 dark:text-gray-400\">У вас пока нет добавленных приложений. Нажмите \"+\" на карточке приложения, чтобы добавить его сюда.</p>`;
+            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400">У вас пока нет добавленных приложений. Нажмите "+" на карточке приложения, чтобы добавить его сюда.</p>`;
             return;
         }
         appElements.forEach(app => {
@@ -455,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); 
             e.stopPropagation();
             if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \"Мои приложения\".');
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
                 return;
             }
             const appCard = addBtn.closest('.app-item');
@@ -466,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
         if (addBtnAppView) {
             if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \"Мои приложения\".');
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
                 return;
             }
             const moduleName = addBtnAppView.dataset.module;
@@ -489,10 +498,10 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
-            const myAppsButton = document.querySelector('[data-sort=\"my-apps\"]');
+            const myAppsButton = document.querySelector('[data-sort="my-apps"]');
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
-                document.querySelector('[data-sort=\"default\"]')?.classList.add('active');
+                document.querySelector('[data-sort="default"]')?.classList.add('active');
             }
         }
 
