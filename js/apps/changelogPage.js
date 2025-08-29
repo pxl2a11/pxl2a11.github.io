@@ -1,13 +1,11 @@
 // js/apps/changelogPage.js
 
-import { getChangelogData, appNameToModuleFile } from '../changelog.js';
+import { getChangelogData, appNameToModuleFile } from '../changelog.js'; // <-- ИЗМЕНЕННЫЙ ПУТЬ
 
 export function getHtml() {
     let listHtml = getChangelogData().map(entry => {
         const capitalizedDescs = entry.descriptions.map(desc => desc.charAt(0).toUpperCase() + desc.slice(1));
         
-        // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
-        // Теперь всегда используется список, даже для одного элемента
         const descriptionsHtml = `<ul class=\"list-disc list-inside mt-1\">${capitalizedDescs.map(d => `<li class=\"ml-4\">${d}</li>`).join('')}</ul>`;
         
         const moduleFile = appNameToModuleFile[entry.appName];
