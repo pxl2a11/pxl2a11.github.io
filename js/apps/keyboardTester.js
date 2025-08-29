@@ -1,4 +1,4 @@
-//51 js/apps/keyboardTester.js
+// 57js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш, чтобы HTML был чище
@@ -7,15 +7,15 @@ export function getHtml() {
     return `
         <style>
             .keyboard-layout {
-                padding: 0.5rem; /* Уменьшен внутренний отступ */
+                padding: 0.5rem;
                 background-color: #212529;
                 border-radius: 0.5rem;
                 box-shadow: 0 8px 16px rgba(0,0,0,0.3), inset 0 -4px 4px rgba(0,0,0,0.2);
                 display: flex;
                 flex-direction: column;
-                gap: 0.25rem; /* Уменьшен основной отступ */
+                gap: 0.25rem;
                 width: 100%;
-                overflow-x: auto; /* Добавлена горизонтальная прокрутка на очень маленьких экранах */
+                overflow-x: auto; /* Горизонтальная прокрутка на маленьких экранах */
             }
             .keyboard-inner-wrapper {
                 display: flex;
@@ -25,7 +25,7 @@ export function getHtml() {
             }
             .key-row {
                 display: flex;
-                gap: 0.25rem; /* Уменьшен отступ в ряду */
+                gap: 0.25rem;
             }
             .key {
                 position: relative;
@@ -33,16 +33,16 @@ export function getHtml() {
                 align-items: center;
                 justify-content: center;
                 flex: 1 1 0px;
-                min-width: 35px; /* Уменьшен размер клавиши */
-                height: 35px; /* Уменьшен размер клавиши */
+                min-width: 38px; /* Немного увеличен минимальный размер для читаемости */
+                height: 38px;
                 padding: 4px;
                 background: linear-gradient(to top, #495057, #6c757d);
                 border: 1px solid #343a40;
-                border-radius: 0.25rem; /* Уменьшен радиус */
-                box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2); /* Уменьшена тень */
+                border-radius: 0.25rem;
+                box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
                 color: #f8f9fa;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                font-size: 11px; /* Уменьшен шрифт */
+                font-size: 11px;
                 font-weight: 600;
                 text-align: center;
                 transition: all 0.05s ease-out;
@@ -55,12 +55,9 @@ export function getHtml() {
             /* Пропорциональные размеры клавиш */
             .key--w-1-25 { flex-grow: 1.25; } .key--w-1-5 { flex-grow: 1.5; } .key--w-1-75 { flex-grow: 1.75; } .key--w-2 { flex-grow: 2; }
             .key--w-2-25 { flex-grow: 2.25; } .key--w-2-75 { flex-grow: 2.75; } .key--w-6-25 { flex-grow: 6.25; }
-
-            /* Высота для вертикальных клавиш Numpad */
-            .key--h-2 { height: 74px; } /* (35px * 2) + 4px gap */
+            .key--h-2 { height: 80px; } /* (38px * 2) + 4px gap */
             
             .keyboard-main, .keyboard-numpad, .keyboard-nav-arrows { display: flex; flex-direction: column; gap: 0.25rem; }
-            .nav-arrows-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.25rem; }
             .fn-key { opacity: 0.5; cursor: not-allowed; }
             .fn-key.active { opacity: 1; }
         </style>
@@ -75,10 +72,10 @@ export function getHtml() {
             <div id="virtual-keyboard" class="keyboard-layout w-full max-w-7xl mx-auto">
                 <div class="keyboard-inner-wrapper">
                     <div class="key-row">
-                        ${key('Esc', 'Escape')} <div class="key-placeholder"></div>
-                        ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')} <div class="key-placeholder" style="flex-grow:0.5;"></div>
-                        ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')} <div class="key-placeholder" style="flex-grow:0.5;"></div>
-                        ${key('F9', 'F9')} ${key('F10', 'F10')} ${key('F11', 'F11')} ${key('F12', 'F12')} <div class="key-placeholder"></div>
+                        <!-- ИЗМЕНЕНО: Убраны плейсхолдеры, все клавиши одного размера -->
+                        ${key('Esc', 'Escape')} ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')}
+                        ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')}
+                        ${key('F9', 'F9')} ${key('F10', 'F10')} ${key('F11', 'F11')} ${key('F12', 'F12')}
                         ${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}
                     </div>
                     <div class="key-row">
@@ -102,10 +99,10 @@ export function getHtml() {
                         <div class="keyboard-nav-arrows" style="flex-grow: 3.5;">
                             <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
                             <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
-                            <div class="nav-arrows-grid">
-                                <div></div> ${key('▲', 'ArrowUp')} <div></div>
-                                ${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}
-                            </div>
+                            <div class="key-placeholder" style="flex-grow: 1;"></div>
+                            <!-- ИЗМЕНЕНО: Расположение стрелок -->
+                            <div class="key-row" style="justify-content: center;">${key('▲', 'ArrowUp')}</div>
+                            <div class="key-row">${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}</div>
                         </div>
                         <div class="keyboard-numpad" style="flex-grow: 4.5;">
                             <div class="key-row">${key('Num', 'NumLock')} ${key('/', 'NumpadDivide')} ${key('*', 'NumpadMultiply')} ${key('-', 'NumpadSubtract')}</div>
