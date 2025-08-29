@@ -1,4 +1,4 @@
-// 57js/apps/keyboardTester.js
+// js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш, чтобы HTML был чище
@@ -33,7 +33,7 @@ export function getHtml() {
                 align-items: center;
                 justify-content: center;
                 flex: 1 1 0px;
-                min-width: 38px; /* Немного увеличен минимальный размер для читаемости */
+                min-width: 38px;
                 height: 38px;
                 padding: 4px;
                 background: linear-gradient(to top, #495057, #6c757d);
@@ -71,12 +71,18 @@ export function getHtml() {
 
             <div id="virtual-keyboard" class="keyboard-layout w-full max-w-7xl mx-auto">
                 <div class="keyboard-inner-wrapper">
+                    <!-- ИЗМЕНЕНО: Верхний ряд теперь разделен на блоки для точного выравнивания -->
                     <div class="key-row">
-                        <!-- ИЗМЕНЕНО: Убраны плейсхолдеры, все клавиши одного размера -->
-                        ${key('Esc', 'Escape')} ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')}
-                        ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')}
-                        ${key('F9', 'F9')} ${key('F10', 'F10')} ${key('F11', 'F11')} ${key('F12', 'F12')}
-                        ${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}
+                        <div style="flex-grow: 15; display: flex; gap: 0.25rem;">
+                            ${key('Esc', 'Escape')} <div class="key-placeholder"></div>
+                            ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')} <div class="key-placeholder" style="flex-grow:0.5;"></div>
+                            ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')} <div class="key-placeholder" style="flex-grow:0.5;"></div>
+                            ${key('F9', 'F9')} ${key('F10', 'F10')} ${key('F11', 'F11')} ${key('F12', 'F12')}
+                        </div>
+                        <div style="flex-grow: 3.5; display: flex; gap: 0.25rem;">
+                            ${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}
+                        </div>
+                        <div style="flex-grow: 4.5; display: flex; gap: 0.25rem;" class="key-placeholder"></div>
                     </div>
                     <div class="key-row">
                         <div class="keyboard-main" style="flex-grow: 15;">
@@ -100,8 +106,12 @@ export function getHtml() {
                             <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
                             <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
                             <div class="key-placeholder" style="flex-grow: 1;"></div>
-                            <!-- ИЗМЕНЕНО: Расположение стрелок -->
-                            <div class="key-row" style="justify-content: center;">${key('▲', 'ArrowUp')}</div>
+                            <!-- ИЗМЕНЕНО: Новая, правильная раскладка стрелок -->
+                            <div class="key-row" style="justify-content: center;">
+                                <div class="key-placeholder"></div>
+                                ${key('▲', 'ArrowUp')}
+                                <div class="key-placeholder"></div>
+                            </div>
                             <div class="key-row">${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}</div>
                         </div>
                         <div class="keyboard-numpad" style="flex-grow: 4.5;">
