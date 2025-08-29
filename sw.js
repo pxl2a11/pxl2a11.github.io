@@ -39,6 +39,8 @@ const urlsToCache = [
   '/js/dataManager.js',
   '/js/firebaseConfig.js',
   '/js/radioStationsData.js',
+  '/js/apps/changelogPage.js',
+  '/img/changelogPage.svg',
   
   'https://accounts.google.com/gsi/client',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js',
