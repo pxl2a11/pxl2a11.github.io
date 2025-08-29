@@ -1,8 +1,11 @@
-// 41js/apps/keyboardTester.js
+// 48js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш, чтобы HTML был чище
     const key = (name, code, classes = '') => `<div class="key ${classes}" data-code="${code}">${name}</div>`;
+    // Вспомогательная функция для создания распорок
+    const spacer = (width) => `<div style="width: ${width}; flex-shrink: 0;"></div>`;
+
 
     return `
         <style>
@@ -32,9 +35,10 @@ export function getHtml() {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                flex: 1 1 0px;
-                min-width: 38px;
+                /* ИЗМЕНЕНО: Фиксированная ширина вместо гибкой */
+                width: 38px;
                 height: 38px;
+                flex-shrink: 0; /* Запрещаем клавишам сжиматься */
                 padding: 4px;
                 background: linear-gradient(to top, #495057, #6c757d);
                 border: 1px solid #343a40;
@@ -50,11 +54,17 @@ export function getHtml() {
             }
             .dark .key { background-color: #4b5563; border-color: #374151; color: #f3f4f6; }
             .key.active { background: linear-gradient(to top, #007bff, #339aff); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.4); transform: translateY(1px); color: white; }
-            .key-placeholder { flex-grow: 1; visibility: hidden; }
+            .key-placeholder { visibility: hidden; }
 
-            /* Пропорциональные размеры клавиш */
-            .key--w-1-25 { flex-grow: 1.25; } .key--w-1-5 { flex-grow: 1.5; } .key--w-1-75 { flex-grow: 1.75; } .key--w-2 { flex-grow: 2; }
-            .key--w-2-25 { flex-grow: 2.25; } .key--w-2-75 { flex-grow: 2.75; } .key--w-6-25 { flex-grow: 6.25; }
+            /* ИЗМЕНЕНО: Пропорциональные размеры клавиш теперь задают точную ширину в px */
+            /* Расчет: (38px * Множитель) + (4px_пробел * (Множитель - 1)) */
+            .key--w-1-25 { width: 48.5px; }
+            .key--w-1-5 { width: 59px; }
+            .key--w-1-75 { width: 69.5px; }
+            .key--w-2 { width: 80px; }
+            .key--w-2-25 { width: 90.5px; }
+            .key--w-2-75 { width: 112.5px; }
+            .key--w-6-25 { width: 258.5px; }
             .key--h-2 { height: 80px; } /* (38px * 2) + 4px gap */
             
             .keyboard-main, .keyboard-numpad, .keyboard-nav-arrows { display: flex; flex-direction: column; gap: 0.25rem; }
@@ -71,18 +81,24 @@ export function getHtml() {
 
             <div id="virtual-keyboard" class="keyboard-layout w-full max-w-7xl mx-auto">
                 <div class="keyboard-inner-wrapper">
-                    <!-- ИЗМЕНЕНО: Верхний ряд для правильного выравнивания -->
+                    <!-- ИЗМЕНЕНО: Полностью переработанный верхний ряд для точного выравнивания -->
                     <div class="key-row">
-                        ${key('Esc', 'Escape')}
-                        <div class="key-placeholder" style="flex-grow: 0.5;"></div>
-                        ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')}
-                        <div class="key-placeholder" style="flex-grow: 0.5;"></div>
-                        ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')}
-                        <div class="key-placeholder" style="flex-grow: 0.5;"></div>
-                        ${key('F9', 'F9')} ${key('F10', 'F10')} ${key('F11', 'F11')} ${key('F12', 'F12')}
-                        <div class="key-placeholder" style="flex-grow: 0.25;"></div>
-                        ${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}
+                        <div style="flex-grow: 15; display: flex; gap: 0.25rem;">
+                            ${key('Esc', 'Escape')}
+                            ${spacer('38px')} <!-- Распорка для сдвига F1 над '2' -->
+                            ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')}
+                            ${spacer('19px')} <!-- Промежуток -->
+                            ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')}
+                            ${spacer('19px')} <!-- Промежуток -->
+                            ${key('F9', 'F9')} ${key('F10', 'F10')} ${key('F11', 'F11')} ${key('F12', 'F12')}
+                        </div>
+                        <div style="flex-grow: 3.5; display: flex; gap: 0.25rem;">
+                            ${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}
+                        </div>
+                        <div style="flex-grow: 4.5; display: flex; gap: 0.25rem;" class="key-placeholder"></div>
                     </div>
+                    
+                    <!-- Основной блок клавиатуры -->
                     <div class="key-row">
                         <div class="keyboard-main" style="flex-grow: 15;">
                             <div class="key-row">
@@ -104,11 +120,11 @@ export function getHtml() {
                         <div class="keyboard-nav-arrows" style="flex-grow: 3.5;">
                             <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
                             <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
-                            <div class="key-placeholder" style="flex-grow: 1;"></div>
+                            <div class="key-placeholder" style="flex-grow: 1; height: auto;"></div>
                             <div class="key-row" style="justify-content: center;">
-                                <div class="key-placeholder"></div>
+                                <div class="key key-placeholder"></div>
                                 ${key('▲', 'ArrowUp')}
-                                <div class="key-placeholder"></div>
+                                <div class="key key-placeholder"></div>
                             </div>
                             <div class="key-row">${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}</div>
                         </div>
@@ -173,5 +189,7 @@ export function init() {
 export function cleanup() {
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
-    resetHighlight();
+    // Изначально resetHighlight() вызывался здесь, что сбрасывало подсветку при уходе со страницы.
+    // Если нужно, чтобы подсветка сохранялась, эту строку можно оставить закомментированной.
+    // resetHighlight(); 
 }
