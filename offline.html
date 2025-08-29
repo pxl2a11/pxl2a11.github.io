@@ -48,6 +48,7 @@
             display: block;
             padding: 0.75rem 1rem;
             background-color: #f8fafc;
+            border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
             text-decoration: none;
             color: #3b82f6;
@@ -56,6 +57,15 @@
         }
         .app-link:hover {
             background-color: #eff6ff;
+        }
+        .app-link.disabled {
+            background-color: #f1f5f9;
+            color: #9ca3af;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .app-link.disabled:hover {
+            background-color: #f1f5f9;
         }
         .reload-btn {
             display: inline-block;
@@ -78,7 +88,7 @@
 <body>
     <div class="container">
         <h1>Вы оффлайн</h1>
-        <p>К сожалению, это приложение требует подключения к интернету. Но вы все еще можете использовать другие наши инструменты.</p>
+        <p>Некоторые приложения требуют подключения к интернету, но вы все еще можете использовать остальные.</p>
         
         <h2>Доступные приложения:</h2>
         <div id="available-apps-list" class="app-grid">
@@ -89,12 +99,10 @@
     </div>
 
     <script>
-        // Этот скрипт будет работать даже офлайн, т.к. он встроен в страницу
         document.addEventListener('DOMContentLoaded', () => {
             const appListContainer = document.getElementById('available-apps-list');
             const reloadBtn = document.getElementById('reload-btn');
 
-            // Список ВСЕХ приложений (ключ: имя, значение: модуль)
             const allApps = {
                 '2048': 'game2048', 'Судоку': 'sudoku', 'Змейка': 'snakeGame', 'Игра на память': 'memoryGame',
                 'Сапер': 'minesweeper', 'Крестики-нолики': 'ticTacToe', 'Камень, ножницы, бумага': 'rockPaperScissors',
@@ -102,23 +110,27 @@
                 'Генератор паролей': 'passwordGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Генератор штрих-кодов': 'barcodeGenerator',
                 'Генератор чисел': 'numberGenerator', 'Случайный цвет': 'randomColor', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall',
                 'Конвертер величин': 'unitConverter', 'Конвертер регистра': 'caseConverter', 'Конвертер цветов': 'colorConverter',
-                'Конвертер форматов изображений': 'imageConverter', 'Транслитерация текста': 'textTranslit',
+                'Конвертер форматов изображений': 'imageConverter', 'Транслитерация текста': 'textTranslit', 'Конвертер часовых поясов': 'timezoneConverter',
                 'Калькулятор ИМТ': 'bmiCalculator', 'Калькулятор дат': 'dateCalculator', 'Процентный калькулятор': 'percentageCalculator',
                 'Счетчик слов и символов': 'wordCounter', 'Эмодзи и символы': 'emojiAndSymbols', 'Изменение размера изображений': 'imageResizer',
                 'Текст в речь': 'textToSpeech', 'Диктофон': 'voiceRecorder', 'Архиватор файлов (ZIP)': 'zipArchiver',
                 'Сканер QR-кодов': 'qrScanner', 'Тест звука и микрофона': 'soundAndMicTest',
-                'Тест мыши': 'mouseTester', // <-- ДОБАВЛЕНО
-                'Тест клавиатуры': 'keyboardTester', // <-- ДОБАВЛЕНО
-                'Графический редактор': 'drawingPad' // <-- ДОБАВЛЕНО
+                'Тест мыши': 'mouseTester', 'Тест клавиатуры': 'keyboardTester', 'Графический редактор': 'drawingPad',
+                // Приложения, требующие онлайн
+                'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Мой IP': 'myIp', 'Калькулятор валют': 'currencyCalculator',
+                'Заметки и задачи': 'notesAndTasks', 'Генератор каркаса сайта': 'siteSkeletonGenerator'
             };
 
-            // Приложения, требующие онлайн
             const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
-
+            
+            const sortedAppNames = Object.keys(allApps).sort((a, b) => a.localeCompare(b, 'ru'));
+            
             let appLinksHtml = '';
-            for (const appName in allApps) {
+            for (const appName of sortedAppNames) {
                 const moduleName = allApps[appName];
-                if (!onlineOnlyApps.includes(moduleName)) {
+                if (onlineOnlyApps.includes(moduleName)) {
+                    appLinksHtml += `<a class="app-link disabled" title="Требуется подключение к интернету">${appName}</a>`;
+                } else {
                     appLinksHtml += `<a href="/?app=${moduleName}" class="app-link">${appName}</a>`;
                 }
             }
