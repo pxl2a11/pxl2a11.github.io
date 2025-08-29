@@ -1,4 +1,4 @@
-// js/main.js
+// 48js/main.js
 
 import { renderChangelog } from './changelog.js'; // <-- ПУТЬ ИСПРАВЛЕН
 import { auth } from './firebaseConfig.js';
