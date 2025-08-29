@@ -1,4 +1,4 @@
-// 08js/apps/keyboardTester.js
+// 06js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш
@@ -184,11 +184,19 @@ function updateLockStates(event) {
     scrollLed.classList.toggle('active', event.getModifierState("ScrollLock"));
 }
 
-// Подсветка клавиш
+// Подсветка клавиш при нажатии
 function highlightKey(event) {
     const keyElement = document.querySelector(`.key[data-code="${event.code}"]`);
     if (keyElement) {
         keyElement.classList.add('active');
+    }
+}
+
+// Снятие подсветки клавиш при отпускании
+function unhighlightKey(event) {
+    const keyElement = document.querySelector(`.key[data-code="${event.code}"]`);
+    if (keyElement) {
+        keyElement.classList.remove('active');
     }
 }
 
@@ -205,7 +213,7 @@ function handleKeyDown(e) {
 }
 
 function handleKeyUp(e) {
-    highlightKey(e);
+    unhighlightKey(e); // ИСПРАВЛЕНО: Снимаем подсветку при отпускании клавиши
     updateLockStates(e);
 }
 
@@ -224,10 +232,19 @@ export function init() {
     window.addEventListener('keyup', handleKeyUp);
     document.getElementById('reset-keyboard-btn').addEventListener('click', resetHighlight);
     
-    document.body.addEventListener('click', (e) => updateLockStates(e), { once: true });
+    // ДОБАВЛЕНО: Проверка состояния Lock-клавиш при первом взаимодействии пользователя
+    // Это необходимо, так как JavaScript не может узнать состояние клавиш до первого события.
+    const initialCheck = (e) => {
+        updateLockStates(e);
+        // Удаляем слушатель после первой проверки, чтобы он больше не срабатывал.
+        document.body.removeEventListener('click', initialCheck);
+    };
+    document.body.addEventListener('click', initialCheck);
 }
 
 export function cleanup() {
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
+    // При очистке также стоит удалить и наш временный слушатель, если он еще существует
+    // Хотя в данном случае это не обязательно, так как он самоудаляется.
 }
