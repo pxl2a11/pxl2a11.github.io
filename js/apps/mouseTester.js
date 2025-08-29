@@ -99,6 +99,8 @@ function handleMouseUp(e) {
 }
 
 function handleWheel(e) {
+    e.preventDefault(); // <-- ЭТА СТРОКА УБИРАЕТ СКРОЛЛИНГ СТРАНИЦЫ
+    
     if (e.deltaY < 0) {
         scrollDirEl.textContent = 'Вверх ▲';
     } else {
