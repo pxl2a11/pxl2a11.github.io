@@ -4,12 +4,12 @@ const CACHE_NAME = 'mini-apps-cache-v22'; // ВЕРСИЯ КЭША ОБНОВЛ�
 const APP_SHELL_URL = '/index.html';
 
 const appModules = [
-    'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator', 
-    'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch', 
-    'randomColor', 'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 'dateCalculator', 
-    'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'caseConverter', 'imageConverter', 
-    'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame', 
-    'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048', 
+    'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator',
+    'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch',
+    'randomColor', 'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 'dateCalculator',
+    'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'caseConverter', 'imageConverter',
+    'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame',
+    'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048',
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
     'changelogPage'
 ];
@@ -37,7 +37,7 @@ const urlsToCache = [
   '/js/dataManager.js',
   '/js/firebaseConfig.js',
   '/js/radioStationsData.js',
-  
+
   '/img/logo.svg',
   '/img/loading.svg',
   '/img/icons/icon-192x192.png',
@@ -45,11 +45,11 @@ const urlsToCache = [
   '/img/plusapps.svg',
   '/img/minusapps.svg',
   // ИСПРАВЛЕНО: Дубликаты удалены. Они будут добавлены автоматически ниже.
-  
+
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
-  
+
   ...appJsFiles,
   ...appSvgIcons
 ];
@@ -84,22 +84,40 @@ self.addEventListener('activate', event => {
   );
 });
 
+// --- ИСПРАВЛЕННЫЙ ОБРАБОТЧИК 'FETCH' ---
 self.addEventListener('fetch', event => {
   const { request } = event;
+
+  // Для навигационных запросов (переход по страницам)
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .catch(() => {
+          // В случае сбоя сети отдаем базовую оболочку приложения
           return caches.match(APP_SHELL_URL);
         })
     );
     return;
   }
   
+  // Для всех остальных запросов (стили, скрипты, API и т.д.)
   event.respondWith(
     caches.match(request)
       .then(response => {
-        return response || fetch(request).then(fetchResponse => {
+        // Если запрос есть в кэше, возвращаем его
+        if (response) {
+          return response;
+        }
+
+        // Если запроса нет в кэше, делаем запрос к сети
+        return fetch(request).then(fetchResponse => {
+          // Проверяем, что это GET-запрос и ответ на него успешный.
+          // Это предотвратит ошибку с POST-запросами.
+          if (request.method !== 'GET' || !fetchResponse || fetchResponse.status !== 200) {
+            return fetchResponse; // Возвращаем оригинальный ответ, не кэшируя его
+          }
+
+          // Если это валидный GET-запрос, клонируем ответ и сохраняем в кэш
           return caches.open(CACHE_NAME).then(cache => {
             cache.put(request, fetchResponse.clone());
             return fetchResponse;
