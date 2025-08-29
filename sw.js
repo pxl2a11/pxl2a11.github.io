@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v12'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v13'; // <-- ВЕРСЯ КЭША ОБНОВЛЕНА!
 
 const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
 
