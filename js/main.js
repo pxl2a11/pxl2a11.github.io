@@ -1,6 +1,6 @@
 // js/main.js
 
-import { renderChangelog } from './changelog.js';
+import { renderChangelog } from './changelog.js'; // <-- ИЗМЕНЕННЫЙ ПУТЬ
 import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { fetchUserAccountData, clearUserData, getUserData, saveUserData, setOnDataLoaded } from './dataManager.js';
@@ -8,7 +8,7 @@ import { fetchUserAccountData, clearUserData, getUserData, saveUserData, setOnDa
 // --- Сопоставление имен приложений и метаданные ---
 const appNameToModuleFile = {
     'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Процентный калькулятор': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Счетчик слов и символов': 'wordCounter', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер форматов изображений': 'imageConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Транслитерация текста': 'textTranslit', 'Изменение размера изображений': 'imageResizer', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Конвертер часовых поясов': 'timezoneConverter', 'Текст в речь': 'textToSpeech', 'Камень, ножницы, бумага': 'rockPaperScissors', 'Судоку': 'sudoku', 'Архиватор файлов (ZIP)': 'zipArchiver', '2048': 'game2048', 'Генератор штрих-кодов': 'barcodeGenerator', 'Диктофон': 'voiceRecorder', 
-    'Генератор каркаса сайта': 'siteSkeletonGenerator', // <-- ИСПРАВЛЕНО
+    'Генератор каркаса сайта': 'siteSkeletonGenerator',
     'Тест мыши': 'mouseTester',
     'Тест клавиатуры': 'keyboardTester',
     'Графический редактор': 'drawingPad',
