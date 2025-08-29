@@ -23,6 +23,9 @@
     <link rel="preconnect" href="https://www.gstatic.com">
     <link rel="preconnect" href="https://mini-apps-2c0ad.firebaseapp.com">
 
+    <!-- Tailwind CSS -->
+    <script src="js/utils/tailwind.js"></script>
+
     <!-- Внешние библиотеки -->
     <script src="js/utils/lame.min.js"></script>
     <script src="js/utils/jsQR.min.js"></script>
@@ -41,6 +44,9 @@
 
     <!-- Наши собственные стили -->
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
     <style>
         .filter-blue {
             filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
