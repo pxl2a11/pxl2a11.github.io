@@ -1,4 +1,4 @@
-// js/apps/keyboardTester.js
+//51 js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш, чтобы HTML был чище
