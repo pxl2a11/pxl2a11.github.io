@@ -1,4 +1,4 @@
-// 17js/apps/keyboardTester.js
+// 08js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш
@@ -31,13 +31,13 @@ export function getHtml() {
             .keyboard-column--nav { width: 13.63%; }
             .keyboard-column--numpad { width: 18.18%; }
 
-            /* НОВЫЙ БЛОК: Стили для светодиодных индикаторов */
+            /* ИЗМЕНЕНО: Стили индикаторов теперь проще, т.к. они внутри колонки */
             .indicator-panel {
                 display: flex;
-                justify-content: flex-end;
-                gap: 1rem;
-                padding: 0 0.25rem 0.5rem;
-                min-width: 900px; /* Для выравнивания с клавиатурой */
+                justify-content: space-around;
+                align-items: center;
+                height: 38px; /* Такая же высота, как у ряда клавиш */
+                padding: 0 0.25rem;
             }
             .indicator {
                 display: flex;
@@ -51,13 +51,13 @@ export function getHtml() {
                 width: 10px;
                 height: 10px;
                 border-radius: 50%;
-                background-color: #212529; /* Выключенный цвет */
+                background-color: #212529;
                 border: 1px solid #000;
                 box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
                 transition: all 0.2s ease;
             }
             .led-light.active {
-                background-color: #28a745; /* Включенный ярко-зеленый */
+                background-color: #28a745;
                 box-shadow: 0 0 5px #28a745, inset 0 1px 1px rgba(255,255,255,0.2);
             }
 
@@ -103,13 +103,6 @@ export function getHtml() {
             </div>
 
             <div id="virtual-keyboard" class="keyboard-layout w-full max-w-7xl mx-auto">
-                <!-- НОВЫЙ БЛОК: Панель со светодиодными индикаторами -->
-                <div class="indicator-panel">
-                    <div class="indicator"><div id="led-caps" class="led-light"></div>Caps Lock</div>
-                    <div class="indicator"><div id="led-num" class="led-light"></div>Num Lock</div>
-                    <div class="indicator"><div id="led-scroll" class="led-light"></div>Scroll Lock</div>
-                </div>
-
                 <div class="keyboard-inner-wrapper">
                     
                     <!-- 1. ОСНОВНАЯ КОЛОНКА -->
@@ -139,28 +132,36 @@ export function getHtml() {
 
                     <!-- 2. НАВИГАЦИОННАЯ КОЛОНКА -->
                     <div class="keyboard-column keyboard-column--nav">
-                        <!-- ИЗМЕНЕНО: Добавлен пустой ряд для выравнивания с F-клавишами -->
                         <div class="key-row">${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}</div>
                         <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
                         <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
-                        <div class="key-row key-placeholder" style="flex-grow: 1;"></div>
+                        <div style="flex-grow: 1;"></div> <!-- Гибкий распор, прижимающий стрелки вниз -->
                         <div class="key-row"> ${spacer()} ${key('▲', 'ArrowUp')} ${spacer()} </div>
                         <div class="key-row">${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}</div>
                     </div>
 
                     <!-- 3. ЦИФРОВАЯ КОЛОНКА -->
                     <div class="keyboard-column keyboard-column--numpad">
-                        <!-- ИЗМЕНЕНО: Добавлен пустой ряд для выравнивания с F-клавишами -->
-                        <div class="key-row key-placeholder"></div>
+                        <!-- ИЗМЕНЕНО: Панель индикаторов теперь здесь -->
+                        <div class="indicator-panel">
+                            <div class="indicator"><div id="led-caps" class="led-light"></div></div>
+                            <div class="indicator"><div id="led-num" class="led-light"></div></div>
+                            <div class="indicator"><div id="led-scroll" class="led-light"></div></div>
+                        </div>
                         <div class="key-row">${key('Num', 'NumLock')} ${key('/', 'NumpadDivide')} ${key('*', 'NumpadMultiply')} ${key('-', 'NumpadSubtract')}</div>
-                        <div class="key-row" style="align-items: flex-start; flex-grow: 2;">
+                        
+                        <!-- ИЗМЕНЕНО: Гибкий распор, прижимающий цифровой блок вниз -->
+                        <div style="flex-grow: 1;"></div> 
+
+                        <!-- ИЗМЕНЕНО: Логическая группировка цифрового блока -->
+                        <div class="key-row" style="align-items: flex-start;">
                             <div class="flex flex-col gap-1" style="flex-grow: 3">
                                 <div class="key-row">${key('7', 'Numpad7')} ${key('8', 'Numpad8')} ${key('9', 'Numpad9')}</div>
                                 <div class="key-row">${key('4', 'Numpad4')} ${key('5', 'Numpad5')} ${key('6', 'Numpad6')}</div>
                             </div>
                             ${key('+', 'NumpadAdd', 'key--h-2')}
                         </div>
-                        <div class="key-row" style="align-items: flex-start; flex-grow: 2;">
+                        <div class="key-row" style="align-items: flex-start;">
                             <div class="flex flex-col gap-1" style="flex-grow: 3">
                                 <div class="key-row">${key('1', 'Numpad1')} ${key('2', 'Numpad2')} ${key('3', 'Numpad3')}</div>
                                 <div class="key-row">${key('0', 'Numpad0', 'key--w-2')} ${key('.', 'NumpadDecimal')}</div>
@@ -175,11 +176,14 @@ export function getHtml() {
     `;
 }
 
-// НОВАЯ ФУНКЦИЯ: Обновляет состояние светодиодных индикаторов
+// Обновляет состояние светодиодных индикаторов
 function updateLockStates(event) {
     const capsLed = document.getElementById('led-caps');
     const numLed = document.getElementById('led-num');
     const scrollLed = document.getElementById('led-scroll');
+
+    // Проверяем, что элементы существуют, прежде чем менять классы
+    if (!capsLed || !numLed || !scrollLed) return;
 
     if (event.getModifierState("CapsLock")) {
         capsLed.classList.add('active');
@@ -213,13 +217,10 @@ function handleKeyDown(e) {
         keyElement.classList.add('active');
     }
 
-    // ИЗМЕНЕНО: Вызываем функцию обновления индикаторов при каждом нажатии
     updateLockStates(e);
 }
 
 function handleKeyUp(e) {
-    // Не убираем подсветку, но состояние индикаторов может измениться,
-    // например, если зажать CapsLock и отпустить.
     updateLockStates(e);
 }
 
@@ -234,11 +235,13 @@ function resetHighlight() {
 }
 
 export function init() {
-    // При инициализации нет надежного способа узнать состояние lock-клавиш,
-    // они обновятся при первом нажатии любой клавиши.
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     document.getElementById('reset-keyboard-btn').addEventListener('click', resetHighlight);
+    
+    // Попытка установить начальное состояние индикаторов.
+    // Требует клика или нажатия клавиши для активации на некоторых браузерах.
+    document.body.addEventListener('click', (e) => updateLockStates(e), { once: true });
 }
 
 export function cleanup() {
