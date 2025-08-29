@@ -1,4 +1,4 @@
-// 08js/apps/keyboardTester.js
+// 30js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш
@@ -31,12 +31,11 @@ export function getHtml() {
             .keyboard-column--nav { width: 13.63%; }
             .keyboard-column--numpad { width: 18.18%; }
 
-            /* ИЗМЕНЕНО: Стили индикаторов теперь проще, т.к. они внутри колонки */
             .indicator-panel {
                 display: flex;
                 justify-content: space-around;
                 align-items: center;
-                height: 38px; /* Такая же высота, как у ряда клавиш */
+                height: 38px;
                 padding: 0 0.25rem;
             }
             .indicator {
@@ -135,25 +134,20 @@ export function getHtml() {
                         <div class="key-row">${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}</div>
                         <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
                         <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
-                        <div style="flex-grow: 1;"></div> <!-- Гибкий распор, прижимающий стрелки вниз -->
+                        <div style="flex-grow: 1;"></div>
                         <div class="key-row"> ${spacer()} ${key('▲', 'ArrowUp')} ${spacer()} </div>
                         <div class="key-row">${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}</div>
                     </div>
 
                     <!-- 3. ЦИФРОВАЯ КОЛОНКА -->
                     <div class="keyboard-column keyboard-column--numpad">
-                        <!-- ИЗМЕНЕНО: Панель индикаторов теперь здесь -->
                         <div class="indicator-panel">
                             <div class="indicator"><div id="led-caps" class="led-light"></div></div>
                             <div class="indicator"><div id="led-num" class="led-light"></div></div>
                             <div class="indicator"><div id="led-scroll" class="led-light"></div></div>
                         </div>
                         <div class="key-row">${key('Num', 'NumLock')} ${key('/', 'NumpadDivide')} ${key('*', 'NumpadMultiply')} ${key('-', 'NumpadSubtract')}</div>
-                        
-                        <!-- ИЗМЕНЕНО: Гибкий распор, прижимающий цифровой блок вниз -->
-                        <div style="flex-grow: 1;"></div> 
-
-                        <!-- ИЗМЕНЕНО: Логическая группировка цифрового блока -->
+                        <div style="flex-grow: 1;"></div>
                         <div class="key-row" style="align-items: flex-start;">
                             <div class="flex flex-col gap-1" style="flex-grow: 3">
                                 <div class="key-row">${key('7', 'Numpad7')} ${key('8', 'Numpad8')} ${key('9', 'Numpad9')}</div>
@@ -182,45 +176,39 @@ function updateLockStates(event) {
     const numLed = document.getElementById('led-num');
     const scrollLed = document.getElementById('led-scroll');
 
-    // Проверяем, что элементы существуют, прежде чем менять классы
     if (!capsLed || !numLed || !scrollLed) return;
 
-    if (event.getModifierState("CapsLock")) {
-        capsLed.classList.add('active');
-    } else {
-        capsLed.classList.remove('active');
-    }
+    capsLed.classList.toggle('active', event.getModifierState("CapsLock"));
+    numLed.classList.toggle('active', event.getModifierState("NumLock"));
+    scrollLed.classList.toggle('active', event.getModifierState("ScrollLock"));
+}
 
-    if (event.getModifierState("NumLock")) {
-        numLed.classList.add('active');
-    } else {
-        numLed.classList.remove('active');
-    }
-
-    if (event.getModifierState("ScrollLock")) {
-        scrollLed.classList.add('active');
-    } else {
-        scrollLed.classList.remove('active');
+// ИЗМЕНЕНИЕ: Новая функция для подсветки клавиш
+function highlightKey(event) {
+    const keyElement = document.querySelector(`.key[data-code="${event.code}"]`);
+    if (keyElement) {
+        keyElement.classList.add('active');
     }
 }
 
-
 function handleKeyDown(e) {
+    // Для PrintScreen это может не сработать, но для остальных клавиш - обязательно
     e.preventDefault();
+    
     document.getElementById('key-display').textContent = e.key;
     document.getElementById('code-display').textContent = e.code;
     document.getElementById('which-display').textContent = e.which;
     document.getElementById('keyCode-display').textContent = e.keyCode;
     
-    const keyElement = document.querySelector(`.key[data-code="${e.code}"]`);
-    if (keyElement) {
-        keyElement.classList.add('active');
-    }
-
+    // ИЗМЕНЕНИЕ: Вызываем новую функцию
+    highlightKey(e);
     updateLockStates(e);
 }
 
 function handleKeyUp(e) {
+    // ИЗМЕНЕНИЕ: Вызываем функцию подсветки и здесь.
+    // Это гарантирует срабатывание для PrintScreen.
+    highlightKey(e);
     updateLockStates(e);
 }
 
@@ -239,8 +227,6 @@ export function init() {
     window.addEventListener('keyup', handleKeyUp);
     document.getElementById('reset-keyboard-btn').addEventListener('click', resetHighlight);
     
-    // Попытка установить начальное состояние индикаторов.
-    // Требует клика или нажатия клавиши для активации на некоторых браузерах.
     document.body.addEventListener('click', (e) => updateLockStates(e), { once: true });
 }
 
