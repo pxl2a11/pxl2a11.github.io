@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v13'; // <-- ВЕРСЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v14'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
 const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
 
@@ -48,6 +48,7 @@ const urlsToCache = [
 
   // Иконки, звуки и другие ресурсы
   '/img/logo.svg',
+  '/img/loading.svg', // <-- ДОБАВЛЕНО
   '/img/icons/icon-192x192.png',
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
