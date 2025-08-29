@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v11'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v12'; // <-- ВЕРСЯ КЭША ОБНОВЛЕНА!
 
 const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
 
@@ -50,7 +50,8 @@ const urlsToCache = [
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
-  '/img/minesweeper.svg', // <-- ДОБАВЛЕНА НЕДОСТАЮЩАЯ ИКОНКА
+  '/img/minesweeper.svg',
+  '/img/soundAndMicTest.svg', // <-- Добавлен недостающий ресурс для Диктофона
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
@@ -60,6 +61,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Принудительная активация нового SW
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -81,38 +83,33 @@ self.addEventListener('activate', event => {
             return caches.delete(cacheName);
           }
         })
-      );
+      ).then(() => self.clients.claim()); // Захватываем контроль над открытыми страницами
     })
   );
 });
 
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => {
-          const requestedAppModule = url.searchParams.get('app');
-          if (requestedAppModule && onlineOnlyApps.includes(requestedAppModule)) {
-            return caches.match('/offline.html');
-          }
-          return caches.match('/index.html');
-        })
-    );
+  // Игнорируем запросы, не являющиеся GET
+  if (event.request.method !== 'GET') {
     return;
   }
 
+  // Стратегия: Cache falling back to network
   event.respondWith(
     caches.open(CACHE_NAME).then(cache => {
       return cache.match(event.request).then(cachedResponse => {
-        const fetchPromise = fetch(event.request).then(networkResponse => {
-          if (networkResponse.ok) {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
+        // Если есть в кэше, отдаем из кэша
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        // Если нет в кэше, идем в сеть
+        return fetch(event.request).catch(() => {
+            // Если сеть недоступна, проверяем, это навигация или нет
+            if (event.request.mode === 'navigate') {
+                return caches.match('/offline.html');
+            }
         });
-        return cachedResponse || fetchPromise;
       });
     })
   );
