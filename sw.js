@@ -1,8 +1,8 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v15'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v16'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
-// ... (остальные константы остаются без изменений) ...
+// ... (остальной код файла остается без изменений) ...
 
 const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
 
@@ -23,7 +23,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/offline.html',
-  '/manifest.json',
+  '/manifest.json', // Он будет кэшировать манифест без ?v=2, это нормально
   '/css/style.css',
   '/css/leaflet.css',
   '/js/main.js',
@@ -45,7 +45,7 @@ const urlsToCache = [
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js',
 
-  '/img/logo.svg',
+  '/img/logo.svg', // Кэшируем основной файл
   '/img/loading.svg',
   '/img/icons/icon-192x192.png',
   '/img/icons/icon-512x512.png',
@@ -89,21 +89,15 @@ self.addEventListener('activate', event => {
   );
 });
 
-
-// --- ИЗМЕНЕНИЕ: НОВАЯ, УЛУЧШЕННАЯ ЛОГИКА ОБРАБОТКИ FETCH ---
 self.addEventListener('fetch', event => {
-  // Игнорируем запросы, не являющиеся GET
   if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
     return;
   }
 
-  // Для HTML-страниц (навигационных запросов) используем стратегию "Network First"
-  // Это гарантирует, что пользователь всегда получит самую свежую версию страницы, если есть интернет.
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // Если ответ успешный, кэшируем его
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request, responseToCache);
@@ -111,7 +105,6 @@ self.addEventListener('fetch', event => {
           return response;
         })
         .catch(() => {
-          // Если сеть недоступна, пытаемся достать из кэша
           return caches.match(event.request).then(response => {
             return response || caches.match('/offline.html');
           });
@@ -120,18 +113,13 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Для всех остальных ресурсов (JS, CSS, картинки) используем "Stale-While-Revalidate"
   event.respondWith(
     caches.open(CACHE_NAME).then(cache => {
       return cache.match(event.request).then(response => {
-        // Запрос в сеть для обновления кэша
         const fetchPromise = fetch(event.request).then(networkResponse => {
           cache.put(event.request, networkResponse.clone());
           return networkResponse;
         });
-
-        // Возвращаем ответ из кэша немедленно, если он есть,
-        // или ждем ответа из сети, если его нет в кэше.
         return response || fetchPromise;
       });
     })
