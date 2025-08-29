@@ -1,10 +1,10 @@
-// 08js/apps/keyboardTester.js
+// 06js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш, чтобы HTML был чище
     const key = (name, code, classes = '') => `<div class="key ${classes}" data-code="${code}">${name}</div>`;
     // Вспомогательная функция для создания распорок
-    const spacer = (width) => `<div style="width: ${width}; flex-shrink: 0;"></div>`;
+    const spacer = (flexGrow = 1) => `<div class="key-placeholder" style="flex-grow: ${flexGrow};"></div>`;
 
     return `
         <style>
@@ -13,18 +13,26 @@ export function getHtml() {
                 background-color: #212529;
                 border-radius: 0.5rem;
                 box-shadow: 0 8px 16px rgba(0,0,0,0.3), inset 0 -4px 4px rgba(0,0,0,0.2);
-                display: flex;
-                flex-direction: column;
-                gap: 0.25rem;
                 width: 100%;
                 overflow-x: auto; /* Горизонтальная прокрутка на маленьких экранах */
             }
+            /* ИЗМЕНЕНО: Внутренняя обертка теперь является гибким контейнером для ТРЕХ КОЛОНОК */
             .keyboard-inner-wrapper {
-                display: inline-flex; /* ИЗМЕНЕНО: Позволяет wrapper'у иметь собственную ширину, а не растягиваться */
+                display: flex;
+                gap: 0.5rem; /* Промежуток между основными колонками */
+                min-width: 900px; /* Минимальная ширина, чтобы клавиатура не "ломалась" */
+                width: 100%;
+            }
+            /* ИЗМЕНЕНО: Новые стили для вертикальных колонок */
+            .keyboard-column {
+                display: flex;
                 flex-direction: column;
                 gap: 0.25rem;
-                margin: 0 auto; /* Центрирование клавиатуры внутри layout */
             }
+            .keyboard-column--main { width: 68.18%; } /* 15/22 ключей */
+            .keyboard-column--nav { width: 13.63%; } /* 3/22 ключей */
+            .keyboard-column--numpad { width: 18.18%; } /* 4/22 ключей */
+
             .key-row {
                 display: flex;
                 gap: 0.25rem;
@@ -34,9 +42,10 @@ export function getHtml() {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 38px;
+                /* ИЗМЕНЕНО: Клавиши снова гибкие, чтобы заполнять свою колонку */
+                flex: 1 1 0px;
+                min-width: 30px;
                 height: 38px;
-                flex-shrink: 0; /* Запрещаем клавишам сжиматься */
                 padding: 4px;
                 background: linear-gradient(to top, #495057, #6c757d);
                 border: 1px solid #343a40;
@@ -52,19 +61,13 @@ export function getHtml() {
             }
             .dark .key { background-color: #4b5563; border-color: #374151; color: #f3f4f6; }
             .key.active { background: linear-gradient(to top, #007bff, #339aff); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.4); transform: translateY(1px); color: white; }
-            .key-placeholder { visibility: hidden; }
+            .key-placeholder { flex: 1; visibility: hidden; }
 
-            /* Размеры клавиш в px. Расчет: (38px * Множитель) + (4px_пробел * (Множитель - 1)) */
-            .key--w-1-25 { width: 48.5px; }
-            .key--w-1-5 { width: 59px; }
-            .key--w-1-75 { width: 69.5px; }
-            .key--w-2 { width: 80px; }
-            .key--w-2-25 { width: 90.5px; }
-            .key--w-2-75 { width: 112.5px; }
-            .key--w-6-25 { width: 258.5px; }
+            /* ИЗМЕНЕНО: Пропорциональные размеры снова основаны на flex-grow */
+            .key--w-1-25 { flex-grow: 1.25; } .key--w-1-5 { flex-grow: 1.5; } .key--w-1-75 { flex-grow: 1.75; } .key--w-2 { flex-grow: 2; }
+            .key--w-2-25 { flex-grow: 2.25; } .key--w-2-75 { flex-grow: 2.75; } .key--w-6-25 { flex-grow: 6.25; }
             .key--h-2 { height: 80px; } /* (38px * 2) + 4px gap */
             
-            .keyboard-main, .keyboard-numpad, .keyboard-nav-arrows { display: flex; flex-direction: column; gap: 0.25rem; }
             .fn-key { opacity: 0.5; cursor: not-allowed; }
             .fn-key.active { opacity: 1; }
         </style>
@@ -76,77 +79,62 @@ export function getHtml() {
                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"><div class="text-sm text-gray-500 dark:text-gray-400">event.keyCode</div><div id="keyCode-display" class="text-xl font-bold h-7 truncate">-</div></div>
             </div>
 
-            <div id="virtual-keyboard" class="keyboard-layout w-full max-w-7xl">
+            <div id="virtual-keyboard" class="keyboard-layout w-full max-w-7xl mx-auto">
+                <!-- ИЗМЕНЕНО: Вся структура теперь состоит из 3-х вертикальных колонок -->
                 <div class="keyboard-inner-wrapper">
-                    <!-- ИЗМЕНЕНО: Верхний ряд теперь в контейнерах с ФИКСИРОВАННОЙ шириной для идеального выравнивания -->
-                    <div class="key-row">
-                        <!-- Блок над основной клавиатурой (ширина 626px) -->
-                        <div style="width: 626px; display: flex; gap: 0.25rem;">
-                            ${key('Esc', 'Escape')}
-                            ${spacer('42px')} <!-- Распорка для сдвига F1 над '2' (1 клавиша + 1 промежуток) -->
-                            ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')}
-                            ${spacer('21px')} <!-- Промежуток -->
-                            ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')}
-                            ${spacer('21px')} <!-- Промежуток -->
+                    
+                    <!-- 1. ОСНОВНАЯ КОЛОНКА -->
+                    <div class="keyboard-column keyboard-column--main">
+                        <div class="key-row">
+                            ${key('Esc', 'Escape')} ${spacer(1)}
+                            ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')} ${spacer(0.5)}
+                            ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')} ${spacer(0.5)}
                             ${key('F9', 'F9')} ${key('F10', 'F10')} ${key('F11', 'F11')} ${key('F12', 'F12')}
                         </div>
-                        <!-- Блок над навигационными клавишами (ширина 122px) -->
-                        <div style="width: 122px; display: flex; gap: 0.25rem;">
-                            ${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}
+                        <div class="key-row">
+                            ${key('` ~', 'Backquote')} ${key('1 !', 'Digit1')} ${key('2 @', 'Digit2')} ${key('3 #', 'Digit3')} ${key('4 $', 'Digit4')} ${key('5 %', 'Digit5')} ${key('6 ^', 'Digit6')} ${key('7 &', 'Digit7')} ${key('8 *', 'Digit8')} ${key('9 (', 'Digit9')} ${key('0 )', 'Digit0')} ${key('- _', 'Minus')} ${key('= +', 'Equal')} ${key('Backspace', 'Backspace', 'key--w-2')}
                         </div>
-                         <!-- Блок над цифровой клавиатурой (ширина 164px) -->
-                        <div style="width: 164px;"></div>
+                        <div class="key-row">
+                            ${key('Tab', 'Tab', 'key--w-1-5')} ${key('Q', 'KeyQ')} ${key('W', 'KeyW')} ${key('E', 'KeyE')} ${key('R', 'KeyR')} ${key('T', 'KeyT')} ${key('Y', 'KeyY')} ${key('U', 'KeyU')} ${key('I', 'KeyI')} ${key('O', 'KeyO')} ${key('P', 'KeyP')} ${key('[ {', 'BracketLeft')} ${key('] }', 'BracketRight')} ${key('\\ |', 'Backslash', 'key--w-1-5')}
+                        </div>
+                        <div class="key-row">
+                            ${key('Caps Lock', 'CapsLock', 'key--w-1-75')} ${key('A', 'KeyA')} ${key('S', 'KeyS')} ${key('D', 'KeyD')} ${key('F', 'KeyF')} ${key('G', 'KeyG')} ${key('H', 'KeyH')} ${key('J', 'KeyJ')} ${key('K', 'KeyK')} ${key('L', 'KeyL')} ${key('; :', 'Semicolon')} ${key("' \"", 'Quote')} ${key('Enter', 'Enter', 'key--w-2-25')}
+                        </div>
+                        <div class="key-row">
+                            ${key('Shift', 'ShiftLeft', 'key--w-2-25')} ${key('Z', 'KeyZ')} ${key('X', 'KeyX')} ${key('C', 'KeyC')} ${key('V', 'KeyV')} ${key('B', 'KeyB')} ${key('N', 'KeyN')} ${key('M', 'KeyM')} ${key(', <', 'Comma')} ${key('. >', 'Period')} ${key('/ ?', 'Slash')} ${key('Shift', 'ShiftRight', 'key--w-2-75')}
+                        </div>
+                        <div class="key-row">
+                            ${key('Ctrl', 'ControlLeft', 'key--w-1-25')} ${key('Win', 'MetaLeft', 'key--w-1-25')} ${key('Alt', 'AltLeft', 'key--w-1-25')} ${key('Space', 'Space', 'key--w-6-25')} ${key('Alt', 'AltRight', 'key--w-1-25')} ${key('Fn', 'Fn', 'fn-key key--w-1-25')} ${key('Menu', 'ContextMenu', 'key--w-1-25')} ${key('Ctrl', 'ControlRight', 'key--w-1-25')}
+                        </div>
                     </div>
-                    
-                    <!-- ИЗМЕНЕНО: Основной блок теперь тоже в контейнерах с ФИКСИРОВАННОЙ шириной -->
-                    <div class="key-row">
-                        <!-- Основной блок (ширина 626px) -->
-                        <div class="keyboard-main" style="width: 626px;">
-                            <div class="key-row">
-                                ${key('` ~', 'Backquote')} ${key('1 !', 'Digit1')} ${key('2 @', 'Digit2')} ${key('3 #', 'Digit3')} ${key('4 $', 'Digit4')} ${key('5 %', 'Digit5')} ${key('6 ^', 'Digit6')} ${key('7 &', 'Digit7')} ${key('8 *', 'Digit8')} ${key('9 (', 'Digit9')} ${key('0 )', 'Digit0')} ${key('- _', 'Minus')} ${key('= +', 'Equal')} ${key('Backspace', 'Backspace', 'key--w-2')}
+
+                    <!-- 2. НАВИГАЦИОННАЯ КОЛОНКА -->
+                    <div class="keyboard-column keyboard-column--nav">
+                        <div class="key-row">${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}</div>
+                        <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
+                        <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
+                        <div class="key-row key-placeholder" style="flex-grow: 1;"></div>
+                        <div class="key-row"> ${spacer()} ${key('▲', 'ArrowUp')} ${spacer()} </div>
+                        <div class="key-row">${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}</div>
+                    </div>
+
+                    <!-- 3. ЦИФРОВАЯ КОЛОНКА -->
+                    <div class="keyboard-column keyboard-column--numpad">
+                        <div class="key-row key-placeholder"></div>
+                        <div class="key-row">${key('Num', 'NumLock')} ${key('/', 'NumpadDivide')} ${key('*', 'NumpadMultiply')} ${key('-', 'NumpadSubtract')}</div>
+                        <div class="key-row" style="align-items: flex-start; flex-grow: 2;">
+                            <div class="flex flex-col gap-1" style="flex-grow: 3">
+                                <div class="key-row">${key('7', 'Numpad7')} ${key('8', 'Numpad8')} ${key('9', 'Numpad9')}</div>
+                                <div class="key-row">${key('4', 'Numpad4')} ${key('5', 'Numpad5')} ${key('6', 'Numpad6')}</div>
                             </div>
-                            <div class="key-row">
-                                ${key('Tab', 'Tab', 'key--w-1-5')} ${key('Q', 'KeyQ')} ${key('W', 'KeyW')} ${key('E', 'KeyE')} ${key('R', 'KeyR')} ${key('T', 'KeyT')} ${key('Y', 'KeyY')} ${key('U', 'KeyU')} ${key('I', 'KeyI')} ${key('O', 'KeyO')} ${key('P', 'KeyP')} ${key('[ {', 'BracketLeft')} ${key('] }', 'BracketRight')} ${key('\\ |', 'Backslash', 'key--w-1-5')}
-                            </div>
-                            <div class="key-row">
-                                ${key('Caps Lock', 'CapsLock', 'key--w-1-75')} ${key('A', 'KeyA')} ${key('S', 'KeyS')} ${key('D', 'KeyD')} ${key('F', 'KeyF')} ${key('G', 'KeyG')} ${key('H', 'KeyH')} ${key('J', 'KeyJ')} ${key('K', 'KeyK')} ${key('L', 'KeyL')} ${key('; :', 'Semicolon')} ${key("' \"", 'Quote')} ${key('Enter', 'Enter', 'key--w-2-25')}
-                            </div>
-                            <div class="key-row">
-                                ${key('Shift', 'ShiftLeft', 'key--w-2-25')} ${key('Z', 'KeyZ')} ${key('X', 'KeyX')} ${key('C', 'KeyC')} ${key('V', 'KeyV')} ${key('B', 'KeyB')} ${key('N', 'KeyN')} ${key('M', 'KeyM')} ${key(', <', 'Comma')} ${key('. >', 'Period')} ${key('/ ?', 'Slash')} ${key('Shift', 'ShiftRight', 'key--w-2-75')}
-                            </div>
-                            <div class="key-row">
-                                ${key('Ctrl', 'ControlLeft', 'key--w-1-25')} ${key('Win', 'MetaLeft', 'key--w-1-25')} ${key('Alt', 'AltLeft', 'key--w-1-25')} ${key('Space', 'Space', 'key--w-6-25')} ${key('Alt', 'AltRight', 'key--w-1-25')} ${key('Fn', 'Fn', 'fn-key key--w-1-25')} ${key('Menu', 'ContextMenu', 'key--w-1-25')} ${key('Ctrl', 'ControlRight', 'key--w-1-25')}
-                            </div>
+                            ${key('+', 'NumpadAdd', 'key--h-2')}
                         </div>
-                        <!-- Навигационный блок (ширина 122px) -->
-                        <div class="keyboard-nav-arrows" style="width: 122px;">
-                            <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
-                            <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
-                            <div style="flex-grow: 1;"></div>
-                            <div class="key-row" style="justify-content: center;">
-                                <div class="key key-placeholder"></div>
-                                ${key('▲', 'ArrowUp')}
-                                <div class="key key-placeholder"></div>
+                        <div class="key-row" style="align-items: flex-start; flex-grow: 2;">
+                            <div class="flex flex-col gap-1" style="flex-grow: 3">
+                                <div class="key-row">${key('1', 'Numpad1')} ${key('2', 'Numpad2')} ${key('3', 'Numpad3')}</div>
+                                <div class="key-row">${key('0', 'Numpad0', 'key--w-2')} ${key('.', 'NumpadDecimal')}</div>
                             </div>
-                            <div class="key-row">${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}</div>
-                        </div>
-                        <!-- Цифровой блок (ширина 164px) -->
-                        <div class="keyboard-numpad" style="width: 164px;">
-                            <div class="key-row">${key('Num', 'NumLock')} ${key('/', 'NumpadDivide')} ${key('*', 'NumpadMultiply')} ${key('-', 'NumpadSubtract')}</div>
-                            <div class="key-row" style="align-items: flex-start;">
-                                <div class="flex flex-col gap-1" style="flex-grow: 3">
-                                    <div class="key-row">${key('7', 'Numpad7')} ${key('8', 'Numpad8')} ${key('9', 'Numpad9')}</div>
-                                    <div class="key-row">${key('4', 'Numpad4')} ${key('5', 'Numpad5')} ${key('6', 'Numpad6')}</div>
-                                </div>
-                                ${key('+', 'NumpadAdd', 'key--h-2')}
-                            </div>
-                            <div class="key-row" style="align-items: flex-start;">
-                                <div class="flex flex-col gap-1" style="flex-grow: 3">
-                                    <div class="key-row">${key('1', 'Numpad1')} ${key('2', 'Numpad2')} ${key('3', 'Numpad3')}</div>
-                                    <div class="key-row">${key('0', 'Numpad0', 'key--w-2')} ${key('.', 'NumpadDecimal')}</div>
-                                </div>
-                                ${key('Enter', 'NumpadEnter', 'key--h-2')}
-                            </div>
+                            ${key('Enter', 'NumpadEnter', 'key--h-2')}
                         </div>
                     </div>
                 </div>
@@ -192,5 +180,4 @@ export function init() {
 export function cleanup() {
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
-    // resetHighlight(); // Можно раскомментировать, если нужно сбрасывать подсветку при уходе со страницы
 }
