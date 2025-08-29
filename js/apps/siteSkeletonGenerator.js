@@ -228,23 +228,27 @@ function renderFileTree(tree, container) {
 }
 
 
+// --- ИСПРАВЛЕНИЕ 2: Улучшенная логика обработки кликов по дереву ---
 function handleTreeClick(e) {
     const label = e.target.closest('.entry-label');
     if (!label) return;
 
+    const li = label.closest('li');
+    if (!li) return;
+
+    // Если клик был по чекбоксу
     if (e.target.type === 'checkbox') {
-        // Логика для чекбоксов
         const isChecked = e.target.checked;
-        const li = label.closest('li');
+        // Находим все дочерние чекбоксы и меняем их состояние
         const childCheckboxes = li.querySelectorAll('input[type="checkbox"]');
         childCheckboxes.forEach(cb => cb.checked = isChecked);
-    } else {
-        // Логика для сворачивания/разворачивания папок
-        const li = e.target.closest('li.folder');
-        if (li) {
-            li.classList.toggle('closed');
-        }
+    } 
+    // Если клик был НЕ по чекбоксу, И это папка
+    else if (li.classList.contains('folder')) {
+        // Переключаем класс 'closed', чтобы раскрыть/скрыть папку
+        li.classList.toggle('closed');
     }
+    // Если клик был по файлу (не по чекбоксу), ничего не делаем.
 }
 
 async function handleGenerateJson() {
@@ -267,6 +271,8 @@ async function handleGenerateJson() {
         parts.forEach((part, index) => {
             if (index === parts.length - 1) { // Файл
                 const promise = zipInstance.file(path).async('string').then(content => {
+                    // --- ИСПРАВЛЕНИЕ 1: Сохраняем контент как есть ---
+                    // JSON.stringify() позже сам правильно всё обработает
                     currentLevel[part] = {
                         type: 'file',
                         name: part,
@@ -303,13 +309,14 @@ async function handleGenerateJson() {
     }
     
     const finalJson = convertStructureToArray(structure);
+    // JSON.stringify корректно обработает все спецсимволы, включая переносы строк
     const jsonString = JSON.stringify(finalJson, null, 2);
 
     // Сохраняем результат в переменную для копирования
     lastGeneratedJson = jsonString;
 
     // Инициируем скачивание файла
-    const blob = new Blob([jsonString], { type: 'application/json' });
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -341,6 +348,7 @@ function handleCopy() {
 export function cleanup() {
     zipInstance = null;
     lastGeneratedJson = '';
+    // Удаляем обработчики, чтобы избежать утечек памяти
     dropZone.removeEventListener('click', () => fileInput.click());
     dropZone.removeEventListener('dragover', handleDragOver);
     dropZone.removeEventListener('dragleave', handleDragLeave);
