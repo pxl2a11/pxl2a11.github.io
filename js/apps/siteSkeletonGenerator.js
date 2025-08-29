@@ -1,7 +1,7 @@
 // js/apps/siteSkeletonGenerator.js
 
 let zipInstance = null;
-let fileTreeContainer, dropZone, fileInput, generateBtn, copyBtn, instructions;
+let fileTreeContainer, dropZone, fileInput, generateBtn, copyBtn, instructions, includeContentCheckbox;
 let lastGeneratedJson = ''; // Переменная для хранения последнего сгенерированного JSON
 
 // --- HTML-структура приложения ---
@@ -79,6 +79,14 @@ export function getHtml() {
             
             <div id="generate-section" class="hidden">
                 <h3 class="text-lg font-semibold mb-2">3. Сгенерируйте результат</h3>
+                
+                <div class="flex items-center mb-4">
+                    <input id="include-content-checkbox" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-blue-600">
+                    <label for="include-content-checkbox" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                        Включить содержимое файлов
+                    </label>
+                </div>
+
                 <div class="flex flex-col sm:flex-row gap-4">
                     <button id="generate-btn" class="flex-grow bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                         Скачать JSON-каркас
@@ -100,6 +108,7 @@ export function init() {
     generateBtn = document.getElementById('generate-btn');
     copyBtn = document.getElementById('copy-json-btn');
     instructions = document.getElementById('instructions');
+    includeContentCheckbox = document.getElementById('include-content-checkbox');
     
     // --- Обработчики для Drop Zone ---
     dropZone.addEventListener('click', () => fileInput.click());
@@ -257,6 +266,7 @@ async function handleGenerateJson() {
     generateBtn.disabled = true;
     copyBtn.disabled = true;
 
+    const shouldIncludeContent = includeContentCheckbox.checked;
     const checkedPaths = Array.from(fileTreeContainer.querySelectorAll('input[type="checkbox"]:checked'))
                              .map(cb => cb.dataset.path);
     
@@ -270,16 +280,25 @@ async function handleGenerateJson() {
         
         parts.forEach((part, index) => {
             if (index === parts.length - 1) { // Файл
-                const promise = zipInstance.file(path).async('string').then(content => {
-                    // --- ИСПРАВЛЕНИЕ 1: Сохраняем контент как есть ---
-                    // JSON.stringify() позже сам правильно всё обработает
+                if (shouldIncludeContent) {
+                    const promise = zipInstance.file(path).async('string').then(content => {
+                        // --- ИСПРАВЛЕНИЕ 1: Сохраняем контент как есть ---
+                        // JSON.stringify() позже сам правильно всё обработает
+                        currentLevel[part] = {
+                            type: 'file',
+                            name: part,
+                            content: content
+                        };
+                    });
+                    filePromises.push(promise);
+                } else {
+                    // Если содержимое не нужно, создаем объект синхронно с пустым контентом
                     currentLevel[part] = {
                         type: 'file',
                         name: part,
-                        content: content
+                        content: ""
                     };
-                });
-                filePromises.push(promise);
+                }
             } else { // Папка
                 if (!currentLevel[part]) {
                     currentLevel[part] = {};
