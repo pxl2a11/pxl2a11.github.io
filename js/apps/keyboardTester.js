@@ -165,4 +165,32 @@ function handleKeyDown(e) {
     
     const keyElement = document.querySelector(`.key[data-code="${e.code}"]`);
     if (keyElement) {
-        keyElement.classList.add('
+        keyElement.classList.add('active');
+    }
+}
+
+function handleKeyUp(e) {
+    // Не убираем подсветку
+}
+
+function resetHighlight() {
+    document.querySelectorAll('.key.active').forEach(key => {
+        key.classList.remove('active');
+    });
+    document.getElementById('key-display').textContent = '-';
+    document.getElementById('code-display').textContent = '-';
+    document.getElementById('which-display').textContent = '-';
+    document.getElementById('keyCode-display').textContent = '-';
+}
+
+export function init() {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    document.getElementById('reset-keyboard-btn').addEventListener('click', resetHighlight);
+}
+
+export function cleanup() {
+    window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('keyup', handleKeyUp);
+    // resetHighlight(); // Можно раскомментировать, если нужно сбрасывать подсветку при уходе со страницы
+}
