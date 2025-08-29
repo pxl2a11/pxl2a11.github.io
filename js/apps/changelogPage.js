@@ -1,4 +1,4 @@
-// js/apps/changelogPage.js
+// 34js/apps/changelogPage.js
 
 import { getChangelogData, appNameToModuleFile } from '../changelog.js'; // <-- ИЗМЕНЕННЫЙ ПУТЬ
 
