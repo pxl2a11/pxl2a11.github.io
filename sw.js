@@ -1,9 +1,6 @@
 // sw.js
 
-// ИЗМЕНЕНИЕ: Версия кэша увеличена, чтобы гарантировать обновление у всех пользователей.
-const CACHE_NAME = 'mini-apps-cache-v17'; 
-
-const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
+const CACHE_NAME = 'mini-apps-cache-v18'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
 const appModules = [
     'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator', 
@@ -13,7 +10,6 @@ const appModules = [
     'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame', 
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048', 
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
-    // ДОБАВЛЕНО: Недостающий модуль changelogPage
     'changelogPage'
 ];
 
@@ -41,11 +37,8 @@ const urlsToCache = [
   '/js/firebaseConfig.js',
   '/js/radioStationsData.js',
   
-  // URL-ы сторонних сервисов лучше не кэшировать напрямую,
-  // так как они могут измениться. Service Worker перехватит и закэширует их при первом запросе.
-  
   '/img/logo.svg',
-  '/img/loading.svg', // Уже был здесь, но убеждаемся, что он есть
+  '/img/loading.svg',
   '/img/icons/icon-192x192.png',
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
@@ -53,7 +46,6 @@ const urlsToCache = [
   '/img/minesweeper.svg',
   '/img/soundAndMicTest.svg',
   
-  // ДОБАВЛЕНО: Звуки для приложений
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
@@ -68,7 +60,6 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Кэш открыт для установки');
-        // Используем { cache: 'reload' } чтобы убедиться, что мы кэшируем свежие файлы, а не из HTTP-кэша браузера
         const requests = urlsToCache.map(url => new Request(url, { cache: 'reload' }));
         return cache.addAll(requests);
       })
@@ -91,40 +82,35 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ИЗМЕНЕНИЕ: Улучшенная стратегия кэширования "Stale-While-Revalidate"
+// ИЗМЕНЕНИЕ: Улучшенная логика для обработки fetch-запросов
 self.addEventListener('fetch', event => {
-  // Пропускаем не-GET запросы и запросы к расширениям Chrome
   if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
     return;
   }
 
-  // Для навигационных запросов (переход по страницам) используем стратегию "Network falling back to Cache"
+  // СТРАТЕГИЯ ДЛЯ НАВИГАЦИИ (SPA): Кэш, с фолбэком на сеть и оффлайн-страницу
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
+      caches.match('/index.html') // Всегда отдаем главный файл-оболочку
+        .then(response => {
+          return response || fetch(event.request); // Если его нет в кэше, пробуем сеть
+        })
         .catch(() => {
-          // Если сеть недоступна, пытаемся отдать страницу из кэша
-          return caches.match(event.request)
-            .then(response => response || caches.match('/offline.html'));
+          return caches.match('/offline.html'); // Если и сеть не работает, показываем оффлайн-страницу
         })
     );
     return;
   }
 
-  // Для всех остальных ресурсов (CSS, JS, изображения) используем "Stale-While-Revalidate"
+  // СТРАТЕГИЯ ДЛЯ ОСТАЛЬНЫХ РЕСУРСОВ (JS, CSS, картинки): Кэш, с обновлением в фоне (Stale-While-Revalidate)
   event.respondWith(
     caches.open(CACHE_NAME).then(cache => {
       return cache.match(event.request).then(response => {
-        // 1. Отдаем ресурс из кэша немедленно, если он там есть
         const fetchPromise = fetch(event.request).then(networkResponse => {
-          // 2. В фоне делаем запрос к сети
-          // 3. Если запрос успешен, обновляем кэш
           cache.put(event.request, networkResponse.clone());
           return networkResponse;
-        }).catch(() => {
-            // Если сеть недоступна и ресурса нет в кэше, вернется ошибка (что нормально для некритичных ресурсов)
         });
-        
+        // Отдаем из кэша сразу, если есть, а в фоне обновляем
         return response || fetchPromise;
       });
     })
