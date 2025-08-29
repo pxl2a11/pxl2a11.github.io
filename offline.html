@@ -116,12 +116,14 @@
                 'Текст в речь': 'textToSpeech', 'Диктофон': 'voiceRecorder', 'Архиватор файлов (ZIP)': 'zipArchiver',
                 'Сканер QR-кодов': 'qrScanner', 'Тест звука и микрофона': 'soundAndMicTest',
                 'Тест мыши': 'mouseTester', 'Тест клавиатуры': 'keyboardTester', 'Графический редактор': 'drawingPad',
+                'Генератор каркаса сайта': 'siteSkeletonGenerator',
                 // Приложения, требующие онлайн
                 'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Мой IP': 'myIp', 'Калькулятор валют': 'currencyCalculator',
-                'Заметки и задачи': 'notesAndTasks', 'Генератор каркаса сайта': 'siteSkeletonGenerator'
+                'Заметки и задачи': 'notesAndTasks'
             };
-
-            const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
+            
+            // ИСПРАВЛЕННЫЙ СПИСОК: siteSkeletonGenerator убран отсюда
+            const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks'];
             
             const sortedAppNames = Object.keys(allApps).sort((a, b) => a.localeCompare(b, 'ru'));
             
