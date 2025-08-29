@@ -92,6 +92,14 @@ function destroyDragAndDrop() {
     }
 }
 
+// ИЗМЕНЕНИЕ: Функции для управления оверлеем авторизации
+function showAuthLoader() {
+    document.getElementById('auth-loading-overlay')?.classList.remove('hidden');
+}
+function hideAuthLoader() {
+    document.getElementById('auth-loading-overlay')?.classList.add('hidden');
+}
+
 const userProfileElement = document.getElementById('user-profile');
 const userAvatarElement = document.getElementById('user-avatar');
 const userNameElement = document.getElementById('user-name');
@@ -128,9 +136,14 @@ async function getMyApps() { return getUserData('myApps', []); }
 async function saveMyApps(myAppsModules) { await saveUserData('myApps', myAppsModules); }
 
 function handleCredentialResponse(response) {
+    // ИЗМЕНЕНИЕ: Показываем лоадер при начале входа
+    showAuthLoader();
     const googleCredential = GoogleAuthProvider.credential(response.credential);
     signInWithCredential(auth, googleCredential)
-        .catch((error) => console.error("Firebase sign-in error", error));
+        .catch((error) => {
+            console.error("Firebase sign-in error", error);
+            hideAuthLoader(); // Скрываем лоадер при ошибке
+        });
 }
 
 function handleSignOut() {
@@ -528,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
             await router(); 
-            // ИЗМЕНЕНИЕ: Скрываем оверлей после первой отрисовки
+            // Скрываем оверлей после первой отрисовки
             const loader = document.getElementById('initial-loading-overlay');
             if (loader) {
                 loader.style.display = 'none';
@@ -541,6 +554,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isGsiInitialized) {
             renderGoogleButton();
         }
+        
+        // ИЗМЕНЕНИЕ: Скрываем лоадер авторизации в любом случае после завершения всех операций
+        hideAuthLoader();
     });
     
     const checkGoogle = setInterval(() => {
