@@ -1,24 +1,12 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v18'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v19'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
-const appModules = [
-    'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator', 
-    'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch', 
-    'randomColor', 'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 'dateCalculator', 
-    'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'caseConverter', 'imageConverter', 
-    'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame', 
-    'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048', 
-    'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
-    'changelogPage'
-];
-
-const appJsFiles = appModules.map(module => `/js/apps/${module}.js`);
-const appSvgIcons = appModules.map(module => `/img/${module}.svg`);
+const APP_SHELL_URL = '/index.html'; // Явно указываем наш главный файл
 
 const urlsToCache = [
   '/',
-  '/index.html',
+  APP_SHELL_URL, // Обязательно кэшируем главный файл
   '/offline.html',
   '/manifest.json',
   '/css/style.css',
@@ -36,7 +24,6 @@ const urlsToCache = [
   '/js/dataManager.js',
   '/js/firebaseConfig.js',
   '/js/radioStationsData.js',
-  
   '/img/logo.svg',
   '/img/loading.svg',
   '/img/icons/icon-192x192.png',
@@ -45,74 +32,93 @@ const urlsToCache = [
   '/img/minusapps.svg',
   '/img/minesweeper.svg',
   '/img/soundAndMicTest.svg',
-  
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
-  
-  ...appJsFiles,
-  ...appSvgIcons
+  // Динамически добавляемые ресурсы
+  ...[
+    'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator', 
+    'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch', 
+    'randomColor', 'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 'dateCalculator', 
+    'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'caseConverter', 'imageConverter', 
+    'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame', 
+    'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048', 
+    'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
+    'changelogPage'
+  ].flatMap(module => [`/js/apps/${module}.js`, `/img/${module}.svg`])
 ];
 
+// Установка Service Worker и кэширование всех ресурсов
 self.addEventListener('install', event => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Кэш открыт для установки');
-        const requests = urlsToCache.map(url => new Request(url, { cache: 'reload' }));
-        return cache.addAll(requests);
+        console.log('Кэширование основных ресурсов...');
+        return cache.addAll(urlsToCache);
       })
+      .then(() => self.skipWaiting()) // Активируем новый SW сразу
   );
 });
 
+// Активация и очистка старых кэшей
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME) {
             console.log('Удаление старого кэша:', cacheName);
             return caches.delete(cacheName);
           }
         })
-      ).then(() => self.clients.claim());
-    })
+      );
+    }).then(() => self.clients.claim()) // Берем контроль над открытыми страницами
   );
 });
 
-// ИЗМЕНЕНИЕ: Улучшенная логика для обработки fetch-запросов
+// Перехват сетевых запросов
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
-    return;
-  }
+  const { request } = event;
 
-  // СТРАТЕГИЯ ДЛЯ НАВИГАЦИИ (SPA): Кэш, с фолбэком на сеть и оффлайн-страницу
-  if (event.request.mode === 'navigate') {
+  // Для навигационных запросов (переход по страницам, запуск, обновление)
+  if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match('/index.html') // Всегда отдаем главный файл-оболочку
+      // Сначала пытаемся загрузить из сети
+      fetch(request)
         .then(response => {
-          return response || fetch(event.request); // Если его нет в кэше, пробуем сеть
+          // Если успешно, кэшируем свежую версию и отдаем ее
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, responseToCache));
+          return response;
         })
         .catch(() => {
-          return caches.match('/offline.html'); // Если и сеть не работает, показываем оффлайн-страницу
+          // Если сеть недоступна, отдаем главный файл из кэша
+          return caches.match(APP_SHELL_URL);
         })
     );
     return;
   }
 
-  // СТРАТЕГИЯ ДЛЯ ОСТАЛЬНЫХ РЕСУРСОВ (JS, CSS, картинки): Кэш, с обновлением в фоне (Stale-While-Revalidate)
+  // Для всех остальных запросов (CSS, JS, картинки) - стратегия "Сначала кэш"
   event.respondWith(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.match(event.request).then(response => {
-        const fetchPromise = fetch(event.request).then(networkResponse => {
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
+    caches.match(request)
+      .then(response => {
+        // Если ресурс есть в кэше - отдаем его
+        if (response) {
+          return response;
+        }
+        // Если нет - идем в сеть
+        return fetch(request).then(networkResponse => {
+            // И кэшируем его на будущее
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, responseToCache));
+            return networkResponse;
         });
-        // Отдаем из кэша сразу, если есть, а в фоне обновляем
-        return response || fetchPromise;
-      });
-    })
+      })
+      .catch(() => {
+        // Если ресурс не найден ни в кэше, ни в сети (для не-навигационных запросов)
+        // можно вернуть заглушку, но для JS/CSS это обычно не нужно.
+        // Для картинок можно было бы вернуть картинку-заглушку.
+      })
   );
 });
