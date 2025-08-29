@@ -1,4 +1,4 @@
-// 30js/apps/keyboardTester.js
+// 08js/apps/keyboardTester.js
 
 export function getHtml() {
     // Вспомогательная функция для создания клавиш
@@ -41,7 +41,7 @@ export function getHtml() {
             .indicator {
                 display: flex;
                 align-items: center;
-                gap: 0.3rem;
+                gap: 0.4rem; /* Немного увеличен отступ */
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                 font-size: 10px;
                 color: #adb5bd;
@@ -94,7 +94,7 @@ export function getHtml() {
             .fn-key.active { opacity: 1; }
         </style>
         <div class="flex flex-col gap-6 items-center">
-            <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+            <div class="w-full grid grid-cols-2 md-grid-cols-4 gap-3 text-center">
                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"><div class="text-sm text-gray-500 dark:text-gray-400">event.key</div><div id="key-display" class="text-xl font-bold h-7 truncate">-</div></div>
                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"><div class="text-sm text-gray-500 dark:text-gray-400">event.code</div><div id="code-display" class="text-xl font-bold h-7 truncate">-</div></div>
                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"><div class="text-sm text-gray-500 dark:text-gray-400">event.which</div><div id="which-display" class="text-xl font-bold h-7 truncate">-</div></div>
@@ -141,10 +141,11 @@ export function getHtml() {
 
                     <!-- 3. ЦИФРОВАЯ КОЛОНКА -->
                     <div class="keyboard-column keyboard-column--numpad">
+                        <!-- ИЗМЕНЕНИЕ: Исправлен порядок индикаторов и добавлены подписи -->
                         <div class="indicator-panel">
-                            <div class="indicator"><div id="led-caps" class="led-light"></div></div>
-                            <div class="indicator"><div id="led-num" class="led-light"></div></div>
-                            <div class="indicator"><div id="led-scroll" class="led-light"></div></div>
+                            <div class="indicator"><div id="led-num" class="led-light"></div>Num</div>
+                            <div class="indicator"><div id="led-caps" class="led-light"></div>Caps</div>
+                            <div class="indicator"><div id="led-scroll" class="led-light"></div>Scroll</div>
                         </div>
                         <div class="key-row">${key('Num', 'NumLock')} ${key('/', 'NumpadDivide')} ${key('*', 'NumpadMultiply')} ${key('-', 'NumpadSubtract')}</div>
                         <div style="flex-grow: 1;"></div>
@@ -183,7 +184,7 @@ function updateLockStates(event) {
     scrollLed.classList.toggle('active', event.getModifierState("ScrollLock"));
 }
 
-// ИЗМЕНЕНИЕ: Новая функция для подсветки клавиш
+// Подсветка клавиш
 function highlightKey(event) {
     const keyElement = document.querySelector(`.key[data-code="${event.code}"]`);
     if (keyElement) {
@@ -192,7 +193,6 @@ function highlightKey(event) {
 }
 
 function handleKeyDown(e) {
-    // Для PrintScreen это может не сработать, но для остальных клавиш - обязательно
     e.preventDefault();
     
     document.getElementById('key-display').textContent = e.key;
@@ -200,14 +200,11 @@ function handleKeyDown(e) {
     document.getElementById('which-display').textContent = e.which;
     document.getElementById('keyCode-display').textContent = e.keyCode;
     
-    // ИЗМЕНЕНИЕ: Вызываем новую функцию
     highlightKey(e);
     updateLockStates(e);
 }
 
 function handleKeyUp(e) {
-    // ИЗМЕНЕНИЕ: Вызываем функцию подсветки и здесь.
-    // Это гарантирует срабатывание для PrintScreen.
     highlightKey(e);
     updateLockStates(e);
 }
