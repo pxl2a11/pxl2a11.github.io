@@ -1,4 +1,4 @@
-// js/apps/siteSkeletonGenerator.js
+// 37js/apps/siteSkeletonGenerator.js
 
 let zipInstance = null;
 let fileTreeContainer, dropZone, fileInput, generateBtn, copyBtn, instructions, includeContentCheckbox;
