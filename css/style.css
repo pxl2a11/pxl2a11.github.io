@@ -1,3 +1,7 @@
+/* TailwindCSS v3.4.1 | MIT License | https://tailwindcss.com */
+*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}
+/* ... (здесь будет очень много сгенерированного кода Tailwind) ... */
+
 /* --- Стили для кнопок фильтрации --- */
 .filter-btn {
     padding: 0.5rem 1rem;
@@ -65,12 +69,10 @@
     border: 1px solid #334155 !important; /* slate-700 */
 }
 
-/* Убираем псевдо-элемент для диагонали */
 .app-item::before {
     display: none;
 }
 
-/* Контейнер для иконки - теперь это цветной блок */
 .app-item .app-icon-wrapper {
     position: relative;
     z-index: 1;
@@ -94,7 +96,6 @@
     filter: brightness(0) invert(1) !important; /* Делаем иконку белой */
 }
 
-/* Контейнер для названия */
 .app-item .app-name-wrapper {
     position: relative;
     z-index: 1;
@@ -104,12 +105,10 @@
     padding: 0.75rem 1rem;
 }
 
-/* --- Стили для карточек на ГЛАВНОЙ СТРАНИЦЕ --- */
 #apps-container .app-item {
     min-height: 88px;
 }
 
-/* --- Стили для карточек в ПОХОЖИХ ПРИЛОЖЕНИЯХ --- */
 .similar-apps-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -129,8 +128,6 @@
     height: 2rem;
 }
 
-
-/* --- Стили для кнопки добавления/удаления --- */
 .add-to-my-apps-btn {
     position: absolute;
     top: 0.25rem;
@@ -188,7 +185,6 @@
     display: block;
 }
 
-/* --- Стили для кнопки внутри приложения --- */
 #add-to-my-apps-app-view-btn .cross-icon { display: none; }
 #add-to-my-apps-app-view-btn .plus-icon { display: inline-block; }
 
@@ -222,7 +218,6 @@
     background-color: #7f1d1d;
 }
 
-/* --- Стили для сортировки приложений --- */
 #apps-container.sortable-active .app-item {
     cursor: grab;
 }
