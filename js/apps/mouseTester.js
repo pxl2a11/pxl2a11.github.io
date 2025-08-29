@@ -4,7 +4,7 @@ export function getHtml() {
     return `
         <style>
             #mouse-test-area {
-                touch-action: none; /* Отключает сенсорные жесты, чтобы не мешать тесту */
+                touch-action: none;
                 position: relative;
                 overflow: hidden;
             }
@@ -16,7 +16,7 @@ export function getHtml() {
                 background-color: rgba(59, 130, 246, 0.7);
                 transform: translate(-50%, -50%) scale(0);
                 animation: click-animation 0.5s ease-out;
-                pointer-events: none; /* Чтобы индикатор не перехватывал события мыши */
+                pointer-events: none;
             }
             @keyframes click-animation {
                 from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
@@ -33,7 +33,6 @@ export function getHtml() {
             <div class="space-y-4">
                 <h3 class="text-xl font-semibold text-center">Информация</h3>
                 
-                <!-- Координаты -->
                 <div class="grid grid-cols-2 gap-3 text-center">
                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
                         <div class="text-sm text-gray-500 dark:text-gray-400">X</div>
@@ -45,17 +44,22 @@ export function getHtml() {
                     </div>
                 </div>
 
-                <!-- Кнопки мыши -->
                 <div class="flex justify-around items-center p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
                     <div id="btn-left" class="mouse-button border-2 border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 transition-colors">ЛКМ</div>
                     <div id="btn-middle" class="mouse-button border-2 border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 transition-colors">СКМ</div>
                     <div id="btn-right" class="mouse-button border-2 border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 transition-colors">ПКМ</div>
                 </div>
 
-                <!-- Прокрутка -->
-                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
-                     <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Прокрутка</div>
-                     <div id="scroll-direction" class="text-lg font-bold h-6">-</div>
+                <!-- ИЗМЕНЕНО: Блоки прокрутки и дабл-клика -->
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Прокрутка</div>
+                        <div id="scroll-direction" class="text-lg font-bold h-6">-</div>
+                    </div>
+                    <div id="double-click-status" class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg transition-colors">
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Дабл-клик</div>
+                        <div class="text-lg font-bold h-6">--</div>
+                    </div>
                 </div>
 
                  <button id="reset-mouse-test" class="w-full mt-2 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">Сброс</button>
@@ -64,8 +68,8 @@ export function getHtml() {
     `;
 }
 
-let testArea, xEl, yEl, leftBtn, middleBtn, rightBtn, scrollDirEl;
-let scrollTimeout;
+let testArea, xEl, yEl, leftBtn, middleBtn, rightBtn, scrollDirEl, dblClickEl;
+let scrollTimeout, dblClickTimeout;
 
 function updateCoordinates(e) {
     const rect = testArea.getBoundingClientRect();
@@ -80,7 +84,6 @@ function handleMouseDown(e) {
         buttonMap[e.button].classList.add('bg-blue-500', 'text-white', 'border-blue-500');
         buttonMap[e.button].classList.remove('dark:border-gray-600');
     }
-    // Анимация клика
     const indicator = document.createElement('div');
     indicator.className = 'click-indicator';
     const rect = testArea.getBoundingClientRect();
@@ -99,28 +102,33 @@ function handleMouseUp(e) {
 }
 
 function handleWheel(e) {
-    e.preventDefault(); // <-- ЭТА СТРОКА УБИРАЕТ СКРОЛЛИНГ СТРАНИЦЫ
-    
-    if (e.deltaY < 0) {
-        scrollDirEl.textContent = 'Вверх ▲';
-    } else {
-        scrollDirEl.textContent = 'Вниз ▼';
-    }
+    e.preventDefault();
+    scrollDirEl.textContent = e.deltaY < 0 ? 'Вверх ▲' : 'Вниз ▼';
     clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-        scrollDirEl.textContent = '-';
-    }, 1000);
+    scrollTimeout = setTimeout(() => { scrollDirEl.textContent = '-'; }, 1000);
+}
+
+// НОВАЯ ФУНКЦИЯ для дабл-клика
+function handleDoubleClick() {
+    dblClickEl.classList.add('bg-green-200', 'dark:bg-green-800');
+    dblClickEl.querySelector('div:last-child').textContent = '✔️';
+    clearTimeout(dblClickTimeout);
+    dblClickTimeout = setTimeout(() => {
+        dblClickEl.classList.remove('bg-green-200', 'dark:bg-green-800');
+        dblClickEl.querySelector('div:last-child').textContent = '--';
+    }, 1500);
 }
 
 function resetTest() {
     xEl.textContent = '0';
     yEl.textContent = '0';
     scrollDirEl.textContent = '-';
+    dblClickEl.classList.remove('bg-green-200', 'dark:bg-green-800');
+    dblClickEl.querySelector('div:last-child').textContent = '--';
     [leftBtn, middleBtn, rightBtn].forEach(btn => {
          btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
          btn.classList.add('dark:border-gray-600');
     });
-    // Удаляем все индикаторы кликов, если они остались
     testArea.querySelectorAll('.click-indicator').forEach(el => el.remove());
 }
 
@@ -132,22 +140,25 @@ export function init() {
     middleBtn = document.getElementById('btn-middle');
     rightBtn = document.getElementById('btn-right');
     scrollDirEl = document.getElementById('scroll-direction');
+    dblClickEl = document.getElementById('double-click-status');
     const resetBtn = document.getElementById('reset-mouse-test');
 
     testArea.addEventListener('mousemove', updateCoordinates);
     testArea.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp); // Слушаем на window, чтобы поймать отпускание кнопки вне области
+    window.addEventListener('mouseup', handleMouseUp);
     testArea.addEventListener('wheel', handleWheel);
-    testArea.addEventListener('contextmenu', e => e.preventDefault()); // Отключаем контекстное меню
+    testArea.addEventListener('dblclick', handleDoubleClick); // <-- ДОБАВЛЕНО
+    testArea.addEventListener('contextmenu', e => e.preventDefault());
     resetBtn.addEventListener('click', resetTest);
 }
 
 export function cleanup() {
-    // Удаляем все слушатели событий
     testArea.removeEventListener('mousemove', updateCoordinates);
     testArea.removeEventListener('mousedown', handleMouseDown);
     window.removeEventListener('mouseup', handleMouseUp);
     testArea.removeEventListener('wheel', handleWheel);
+    testArea.removeEventListener('dblclick', handleDoubleClick); // <-- ДОБАВЛЕНО
     testArea.removeEventListener('contextmenu', e => e.preventDefault());
     clearTimeout(scrollTimeout);
+    clearTimeout(dblClickTimeout); // <-- ДОБАВЛЕНО
 }
