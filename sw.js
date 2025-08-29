@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v12'; // <-- ВЕРСЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v12'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
 const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
 
@@ -25,18 +25,20 @@ const urlsToCache = [
   '/css/style.css',
   '/css/leaflet.css',
   '/js/main.js',
-  '/js/lame.min.js',
-  '/js/jsQR.min.js',
-  '/js/leaflet.js',
-  '/js/qrcode.min.js',
-  '/js/jszip.min.js',
-  '/js/JsBarcode.all.min.js',
-  '/js/tailwind.js',
-  '/js/Sortable.min.js',
+  // --- ИЗМЕНЕННЫЕ ПУТИ ---
+  '/js/utils/lame.min.js',
+  '/js/utils/jsQR.min.js',
+  '/js/utils/leaflet.js',
+  '/js/utils/qrcode.min.js',
+  '/js/utils/jszip.min.js',
+  '/js/utils/JsBarcode.all.min.js',
+  '/js/utils/tailwind.js',
+  '/js/utils/Sortable.min.js',
+  '/js/changelog.js', // <-- ИЗМЕНЕННЫЙ ПУТЬ
+  // --- КОНЕЦ ИЗМЕНЕНИЙ ---
   '/js/dataManager.js',
   '/js/firebaseConfig.js',
   '/js/radioStationsData.js',
-  '/js/utils/changelog.js',
   
   // Кэшируем основные библиотеки Firebase и Google
   'https://accounts.google.com/gsi/client',
@@ -51,7 +53,7 @@ const urlsToCache = [
   '/img/plusapps.svg',
   '/img/minusapps.svg',
   '/img/minesweeper.svg',
-  '/img/soundAndMicTest.svg', // <-- Добавлен недостающий ресурс для Диктофона
+  '/img/soundAndMicTest.svg',
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
