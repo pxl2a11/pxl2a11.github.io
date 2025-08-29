@@ -1,5 +1,22 @@
-<svg class="w-24 h-24" fill="#2563eb" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<title>?????? ? ?????? M</title>
-            <!-- ???????????? ???? ??? ????? "M" -->
-            <path d="M4 21L4 3L12 15L20 3L20 21"/>
+<svg class="loader-svg-squares" viewBox="0 0 68 68" xmlns="http://www.w3.org/2000/svg">
+            <style>
+                /* Стили для статичных квадратов SVG, теперь встроены */
+                .square-rect {
+                    fill: #4299e1; /* Tailwind blue-500 */
+                    opacity: 1; /* Полная непрозрачность, анимация удалена */
+                    /* rx/ry атрибуты на rect уже обеспечивают скругление */
+                }
+
+                .light-blue-square {
+                    fill: #90CDF4; /* Светло-голубой цвет (Tailwind blue-300) */
+                }
+            </style>
+            <!-- Верхний левый квадрат - теперь светло-синий -->
+            <rect class="square-rect light-blue-square" x="0" y="0" width="32" height="32" rx="4" ry="4" />
+            <!-- Верхний правый квадрат -->
+            <rect class="square-rect" x="36" y="0" width="32" height="32" rx="4" ry="4" />
+            <!-- Нижний левый квадрат -->
+            <rect class="square-rect" x="0" y="36" width="32" height="32" rx="4" ry="4" />
+            <!-- Нижний правый квадрат -->
+            <rect class="square-rect" x="36" y="36" width="32" height="32" rx="4" ry="4" />
         </svg>
