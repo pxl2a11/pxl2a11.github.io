@@ -1,7 +1,7 @@
-// 06js/apps/keyboardTester.js
+// 17js/apps/keyboardTester.js
 
 export function getHtml() {
-    // Вспомогательная функция для создания клавиш, чтобы HTML был чище
+    // Вспомогательная функция для создания клавиш
     const key = (name, code, classes = '') => `<div class="key ${classes}" data-code="${code}">${name}</div>`;
     // Вспомогательная функция для создания распорок
     const spacer = (flexGrow = 1) => `<div class="key-placeholder" style="flex-grow: ${flexGrow};"></div>`;
@@ -14,35 +14,59 @@ export function getHtml() {
                 border-radius: 0.5rem;
                 box-shadow: 0 8px 16px rgba(0,0,0,0.3), inset 0 -4px 4px rgba(0,0,0,0.2);
                 width: 100%;
-                overflow-x: auto; /* Горизонтальная прокрутка на маленьких экранах */
+                overflow-x: auto;
             }
-            /* ИЗМЕНЕНО: Внутренняя обертка теперь является гибким контейнером для ТРЕХ КОЛОНОК */
             .keyboard-inner-wrapper {
                 display: flex;
-                gap: 0.5rem; /* Промежуток между основными колонками */
-                min-width: 900px; /* Минимальная ширина, чтобы клавиатура не "ломалась" */
+                gap: 0.5rem;
+                min-width: 900px;
                 width: 100%;
             }
-            /* ИЗМЕНЕНО: Новые стили для вертикальных колонок */
             .keyboard-column {
                 display: flex;
                 flex-direction: column;
                 gap: 0.25rem;
             }
-            .keyboard-column--main { width: 68.18%; } /* 15/22 ключей */
-            .keyboard-column--nav { width: 13.63%; } /* 3/22 ключей */
-            .keyboard-column--numpad { width: 18.18%; } /* 4/22 ключей */
+            .keyboard-column--main { width: 68.18%; }
+            .keyboard-column--nav { width: 13.63%; }
+            .keyboard-column--numpad { width: 18.18%; }
 
-            .key-row {
+            /* НОВЫЙ БЛОК: Стили для светодиодных индикаторов */
+            .indicator-panel {
                 display: flex;
-                gap: 0.25rem;
+                justify-content: flex-end;
+                gap: 1rem;
+                padding: 0 0.25rem 0.5rem;
+                min-width: 900px; /* Для выравнивания с клавиатурой */
             }
+            .indicator {
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                font-size: 10px;
+                color: #adb5bd;
+            }
+            .led-light {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: #212529; /* Выключенный цвет */
+                border: 1px solid #000;
+                box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+                transition: all 0.2s ease;
+            }
+            .led-light.active {
+                background-color: #28a745; /* Включенный ярко-зеленый */
+                box-shadow: 0 0 5px #28a745, inset 0 1px 1px rgba(255,255,255,0.2);
+            }
+
+            .key-row { display: flex; gap: 0.25rem; }
             .key {
                 position: relative;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                /* ИЗМЕНЕНО: Клавиши снова гибкие, чтобы заполнять свою колонку */
                 flex: 1 1 0px;
                 min-width: 30px;
                 height: 38px;
@@ -63,10 +87,9 @@ export function getHtml() {
             .key.active { background: linear-gradient(to top, #007bff, #339aff); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.4); transform: translateY(1px); color: white; }
             .key-placeholder { flex: 1; visibility: hidden; }
 
-            /* ИЗМЕНЕНО: Пропорциональные размеры снова основаны на flex-grow */
             .key--w-1-25 { flex-grow: 1.25; } .key--w-1-5 { flex-grow: 1.5; } .key--w-1-75 { flex-grow: 1.75; } .key--w-2 { flex-grow: 2; }
             .key--w-2-25 { flex-grow: 2.25; } .key--w-2-75 { flex-grow: 2.75; } .key--w-6-25 { flex-grow: 6.25; }
-            .key--h-2 { height: 80px; } /* (38px * 2) + 4px gap */
+            .key--h-2 { height: 80px; }
             
             .fn-key { opacity: 0.5; cursor: not-allowed; }
             .fn-key.active { opacity: 1; }
@@ -80,7 +103,13 @@ export function getHtml() {
             </div>
 
             <div id="virtual-keyboard" class="keyboard-layout w-full max-w-7xl mx-auto">
-                <!-- ИЗМЕНЕНО: Вся структура теперь состоит из 3-х вертикальных колонок -->
+                <!-- НОВЫЙ БЛОК: Панель со светодиодными индикаторами -->
+                <div class="indicator-panel">
+                    <div class="indicator"><div id="led-caps" class="led-light"></div>Caps Lock</div>
+                    <div class="indicator"><div id="led-num" class="led-light"></div>Num Lock</div>
+                    <div class="indicator"><div id="led-scroll" class="led-light"></div>Scroll Lock</div>
+                </div>
+
                 <div class="keyboard-inner-wrapper">
                     
                     <!-- 1. ОСНОВНАЯ КОЛОНКА -->
@@ -110,6 +139,7 @@ export function getHtml() {
 
                     <!-- 2. НАВИГАЦИОННАЯ КОЛОНКА -->
                     <div class="keyboard-column keyboard-column--nav">
+                        <!-- ИЗМЕНЕНО: Добавлен пустой ряд для выравнивания с F-клавишами -->
                         <div class="key-row">${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}</div>
                         <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
                         <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
@@ -120,6 +150,7 @@ export function getHtml() {
 
                     <!-- 3. ЦИФРОВАЯ КОЛОНКА -->
                     <div class="keyboard-column keyboard-column--numpad">
+                        <!-- ИЗМЕНЕНО: Добавлен пустой ряд для выравнивания с F-клавишами -->
                         <div class="key-row key-placeholder"></div>
                         <div class="key-row">${key('Num', 'NumLock')} ${key('/', 'NumpadDivide')} ${key('*', 'NumpadMultiply')} ${key('-', 'NumpadSubtract')}</div>
                         <div class="key-row" style="align-items: flex-start; flex-grow: 2;">
@@ -144,6 +175,32 @@ export function getHtml() {
     `;
 }
 
+// НОВАЯ ФУНКЦИЯ: Обновляет состояние светодиодных индикаторов
+function updateLockStates(event) {
+    const capsLed = document.getElementById('led-caps');
+    const numLed = document.getElementById('led-num');
+    const scrollLed = document.getElementById('led-scroll');
+
+    if (event.getModifierState("CapsLock")) {
+        capsLed.classList.add('active');
+    } else {
+        capsLed.classList.remove('active');
+    }
+
+    if (event.getModifierState("NumLock")) {
+        numLed.classList.add('active');
+    } else {
+        numLed.classList.remove('active');
+    }
+
+    if (event.getModifierState("ScrollLock")) {
+        scrollLed.classList.add('active');
+    } else {
+        scrollLed.classList.remove('active');
+    }
+}
+
+
 function handleKeyDown(e) {
     e.preventDefault();
     document.getElementById('key-display').textContent = e.key;
@@ -155,10 +212,15 @@ function handleKeyDown(e) {
     if (keyElement) {
         keyElement.classList.add('active');
     }
+
+    // ИЗМЕНЕНО: Вызываем функцию обновления индикаторов при каждом нажатии
+    updateLockStates(e);
 }
 
 function handleKeyUp(e) {
-    // Не убираем подсветку
+    // Не убираем подсветку, но состояние индикаторов может измениться,
+    // например, если зажать CapsLock и отпустить.
+    updateLockStates(e);
 }
 
 function resetHighlight() {
@@ -172,6 +234,8 @@ function resetHighlight() {
 }
 
 export function init() {
+    // При инициализации нет надежного способа узнать состояние lock-клавиш,
+    // они обновятся при первом нажатии любой клавиши.
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     document.getElementById('reset-keyboard-btn').addEventListener('click', resetHighlight);
