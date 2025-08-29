@@ -1,11 +1,10 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v9'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v10'; // <-- ВЕРСИЯ КЭША ОБНОВЛЕНА!
 
 // Приложения, которые НЕ работают офлайн
-const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks'];
+const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'siteSkeletonGenerator'];
 
-// ИЗ СПИСКА УДАЛЕН 'changelogPage', так как у него нет отдельных файлов
 const appModules = [
     'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator', 
     'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch', 
@@ -13,13 +12,9 @@ const appModules = [
     'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'caseConverter', 'imageConverter', 
     'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame', 
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048', 
-    'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator',
-    'mouseTester', // <-- ДОБАВЛЕНО
-    'keyboardTester', // <-- ДОБАВЛЕНО
-    'drawingPad' // <-- ДОБАВЛЕНО
+    'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad'
 ];
 
-// Эти две строки автоматически генерируют правильные пути для ВСЕХ модулей
 const appJsFiles = appModules.map(module => `/js/apps/${module}.js`);
 const appSvgIcons = appModules.map(module => `/img/${module}.svg`);
 
@@ -39,14 +34,29 @@ const urlsToCache = [
   '/js/jszip.min.js',
   '/js/JsBarcode.all.min.js',
   '/js/tailwind.js',
-  '/js/Sortable.min.js',
+  '/js/Sortable.min.js', // <-- ИСПРАВЛЕН ПУТЬ!
+  '/js/dataManager.js',
+  '/js/firebaseConfig.js',
+  '/js/radioStationsData.js',
+  '/js/utils/changelog.js',
+  
+  // Кэшируем основные библиотеки Firebase и Google
+  'https://accounts.google.com/gsi/client',
+  'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js',
+
+  // Иконки и звуки
   '/img/logo.svg',
   '/img/icons/icon-192x192.png',
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
+  '/sounds/notification.wav',
+  '/sounds/wheel-spinning.wav',
+  '/sounds/wheel-winner.wav',
   
-  // РУЧНОЕ ДОБАВЛЕНИЕ УДАЛЕНО. Теперь всё добавляется автоматически и без ошибок.
+  // Автоматически сгенерированные списки
   ...appJsFiles,
   ...appSvgIcons
 ];
@@ -57,7 +67,13 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Кэш открыт для установки');
-        return cache.addAll(urlsToCache);
+        // Используем { cache: 'reload' } чтобы убедиться, что мы кэшируем свежие файлы, а не из HTTP-кэша браузера
+        const requests = urlsToCache.map(url => new Request(url, { cache: 'reload' }));
+        return cache.addAll(requests).catch(err => {
+            console.error("Не удалось закэшировать все файлы при установке:", err);
+            // Если какой-то файл не удалось загрузить, установка SW провалится.
+            // Это хорошо, т.к. предотвращает установку "сломанной" версии.
+        });
       })
   );
 });
@@ -81,14 +97,13 @@ self.addEventListener('activate', event => {
 
 // Перехват сетевых запросов
 self.addEventListener('fetch', event => {
-  if (event.request.url.includes('firebase') || event.request.url.includes('google.com') || event.request.url.includes('googleapis.com')) {
-    return;
-  }
+  const url = new URL(event.request.url);
+
+  // Для навигации: пытаемся загрузить из сети, при ошибке показываем офлайн-страницу
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .catch(() => {
-          const url = new URL(event.request.url);
           const requestedAppModule = url.searchParams.get('app');
           if (requestedAppModule && onlineOnlyApps.includes(requestedAppModule)) {
             return caches.match('/offline.html');
@@ -98,10 +113,31 @@ self.addEventListener('fetch', event => {
     );
     return;
   }
+
+  // Для статических ресурсов: сначала из кэша, потом из сети (Cache First)
+  // Это подходит для большинства наших локальных файлов (css, js, img)
+  if (url.origin === self.location.origin) {
+      event.respondWith(
+        caches.match(event.request)
+          .then(cachedResponse => {
+            return cachedResponse || fetch(event.request);
+          })
+      );
+      return;
+  }
+
+  // Для сторонних ресурсов (Firebase, Google, Leaflet): сначала из сети, потом из кэша (Network Falling Back to Cache)
+  // Это обеспечивает актуальность библиотек, но позволяет работать офлайн
   event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        return cachedResponse || fetch(event.request);
-      })
+    caches.open(CACHE_NAME).then(cache => {
+      return fetch(event.request).then(response => {
+        // Если запрос успешен, кэшируем его и возвращаем
+        cache.put(event.request, response.clone());
+        return response;
+      }).catch(() => {
+        // Если сеть недоступна, пытаемся найти ответ в кэше
+        return caches.match(event.request);
+      });
+    })
   );
 });
