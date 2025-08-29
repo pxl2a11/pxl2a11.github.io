@@ -1,44 +1,30 @@
-// 08js/apps/keyboardTester.js
+//13 js/apps/keyboardTester.js
 
 export function getHtml() {
-    // Вспомогательная функция для создания клавиш, чтобы HTML был чище
-    const key = (name, code, classes = '') => `<div class="key ${classes}" data-code="${code}">${name}</div>`;
-
     return `
         <style>
+            /* --- ОСНОВНАЯ СТРУКТУРА НА GRID --- */
             .keyboard-layout {
-                padding: 0.5rem;
+                display: grid;
+                grid-template-columns: repeat(24, 1fr); /* 24 колонки для точного позиционирования */
+                grid-template-rows: repeat(6, 42px); /* 6 рядов по 42px высотой */
+                gap: 4px;
+                padding: 10px;
                 background-color: #212529;
-                border-radius: 0.5rem;
-                box-shadow: 0 8px 16px rgba(0,0,0,0.3), inset 0 -4px 4px rgba(0,0,0,0.2);
-                display: flex;
-                flex-direction: column;
-                gap: 0.25rem;
+                border-radius: 8px;
                 width: 100%;
-                overflow-x: auto; /* Горизонтальная прокрутка на маленьких экранах */
+                min-width: 980px; /* Минимальная ширина для предотвращения "слома" макета */
+                overflow-x: auto;
             }
-            .keyboard-inner-wrapper {
-                display: flex;
-                flex-direction: column;
-                gap: 0.25rem;
-                min-width: 900px; /* Минимальная ширина, чтобы клавиатура не "ломалась" */
-            }
-            .key-row {
-                display: flex;
-                gap: 0.25rem;
-            }
+
+            /* --- СТИЛИ КЛАВИШ --- */
             .key {
-                position: relative;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                flex: 1 1 0px;
-                min-width: 38px;
-                height: 38px;
-                padding: 4px;
                 background: linear-gradient(to top, #495057, #6c757d);
                 border: 1px solid #343a40;
-                border-radius: 0.25rem;
+                border-radius: 4px;
                 box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
                 color: #f8f9fa;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -47,19 +33,40 @@ export function getHtml() {
                 text-align: center;
                 transition: all 0.05s ease-out;
                 user-select: none;
+                grid-column: span 2; /* Базовая ширина клавиши = 2 колонки сетки */
             }
             .dark .key { background-color: #4b5563; border-color: #374151; color: #f3f4f6; }
             .key.active { background: linear-gradient(to top, #007bff, #339aff); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.4); transform: translateY(1px); color: white; }
-            .key-placeholder { flex: 1; visibility: hidden; }
-
-            /* Пропорциональные размеры клавиш */
-            .key--w-1-25 { flex-grow: 1.25; } .key--w-1-5 { flex-grow: 1.5; } .key--w-1-75 { flex-grow: 1.75; } .key--w-2 { flex-grow: 2; }
-            .key--w-2-25 { flex-grow: 2.25; } .key--w-2-75 { flex-grow: 2.75; } .key--w-6-25 { flex-grow: 6.25; }
-            .key--h-2 { height: 80px; } /* (38px * 2) + 4px gap */
-            
-            .keyboard-main, .keyboard-numpad, .keyboard-nav-arrows { display: flex; flex-direction: column; gap: 0.25rem; }
             .fn-key { opacity: 0.5; cursor: not-allowed; }
-            .fn-key.active { opacity: 1; }
+
+            /* --- ПОЗИЦИОНИРОВАНИЕ КЛАВИШ В СЕТКЕ --- */
+            /* Каждый data-code - это уникальный селектор для позиционирования */
+            [data-code="Escape"] { grid-column: 1 / 3; }
+            [data-code="F1"] { grid-column: 4 / 6; } [data-code="F2"] { grid-column: 6 / 8; } [data-code="F3"] { grid-column: 8 / 10; } [data-code="F4"] { grid-column: 10 / 12; }
+            [data-code="F5"] { grid-column: 13 / 15; } [data-code="F6"] { grid-column: 15 / 17; } [data-code="F7"] { grid-column: 17 / 19; } [data-code="F8"] { grid-column: 19 / 21; }
+            [data-code="F9"] { grid-column: 22 / 24; } [data-code="F10"] { grid-column: 24 / 26; } [data-code="F11"] { grid-column: 26 / 28; } [data-code="F12"] { grid-column: 28 / 30; }
+            [data-code="PrintScreen"] { grid-column: 31 / 33; } [data-code="ScrollLock"] { grid-column: 33 / 35; } [data-code="Pause"] { grid-column: 35 / 37; }
+
+            [data-code="Backquote"] { grid-column: 1 / 3; } [data-code="Digit1"] { grid-column: 3 / 5; } [data-code="Digit2"] { grid-column: 5 / 7; } [data-code="Digit3"] { grid-column: 7 / 9; } [data-code="Digit4"] { grid-column: 9 / 11; } [data-code="Digit5"] { grid-column: 11 / 13; } [data-code="Digit6"] { grid-column: 13 / 15; } [data-code="Digit7"] { grid-column: 15 / 17; } [data-code="Digit8"] { grid-column: 17 / 19; } [data-code="Digit9"] { grid-column: 19 / 21; } [data-code="Digit0"] { grid-column: 21 / 23; } [data-code="Minus"] { grid-column: 23 / 25; } [data-code="Equal"] { grid-column: 25 / 27; } [data-code="Backspace"] { grid-column: 27 / 31; }
+            [data-code="Insert"] { grid-column: 32 / 34; } [data-code="Home"] { grid-column: 34 / 36; } [data-code="PageUp"] { grid-column: 36 / 38; }
+            [data-code="NumLock"] { grid-column: 39 / 41; } [data-code="NumpadDivide"] { grid-column: 41 / 43; } [data-code="NumpadMultiply"] { grid-column: 43 / 45; } [data-code="NumpadSubtract"] { grid-column: 45 / 47; }
+            
+            [data-code="Tab"] { grid-column: 1 / 4; } [data-code="KeyQ"] { grid-column: 4 / 6; } [data-code="KeyW"] { grid-column: 6 / 8; } [data-code="KeyE"] { grid-column: 8 / 10; } [data-code="KeyR"] { grid-column: 10 / 12; } [data-code="KeyT"] { grid-column: 12 / 14; } [data-code="KeyY"] { grid-column: 14 / 16; } [data-code="KeyU"] { grid-column: 16 / 18; } [data-code="KeyI"] { grid-column: 18 / 20; } [data-code="KeyO"] { grid-column: 20 / 22; } [data-code="KeyP"] { grid-column: 22 / 24; } [data-code="BracketLeft"] { grid-column: 24 / 26; } [data-code="BracketRight"] { grid-column: 26 / 28; } [data-code="Backslash"] { grid-column: 28 / 31; }
+            [data-code="Delete"] { grid-column: 32 / 34; } [data-code="End"] { grid-column: 34 / 36; } [data-code="PageDown"] { grid-column: 36 / 38; }
+            [data-code="Numpad7"] { grid-column: 39 / 41; } [data-code="Numpad8"] { grid-column: 41 / 43; } [data-code="Numpad9"] { grid-column: 43 / 45; }
+            [data-code="NumpadAdd"] { grid-column: 45 / 47; grid-row: span 2; }
+
+            [data-code="CapsLock"] { grid-column: 1 / 5; } [data-code="KeyA"] { grid-column: 5 / 7; } [data-code="KeyS"] { grid-column: 7 / 9; } [data-code="KeyD"] { grid-column: 9 / 11; } [data-code="KeyF"] { grid-column: 11 / 13; } [data-code="KeyG"] { grid-column: 13 / 15; } [data-code="KeyH"] { grid-column: 15 / 17; } [data-code="KeyJ"] { grid-column: 17 / 19; } [data-code="KeyK"] { grid-column: 19 / 21; } [data-code="KeyL"] { grid-column: 21 / 23; } [data-code="Semicolon"] { grid-column: 23 / 25; } [data-code="Quote"] { grid-column: 25 / 27; } [data-code="Enter"] { grid-column: 27 / 31; }
+            [data-code="Numpad4"] { grid-column: 39 / 41; } [data-code="Numpad5"] { grid-column: 41 / 43; } [data-code="Numpad6"] { grid-column: 43 / 45; }
+
+            [data-code="ShiftLeft"] { grid-column: 1 / 6; } [data-code="KeyZ"] { grid-column: 6 / 8; } [data-code="KeyX"] { grid-column: 8 / 10; } [data-code="KeyC"] { grid-column: 10 / 12; } [data-code="KeyV"] { grid-column: 12 / 14; } [data-code="KeyB"] { grid-column: 14 / 16; } [data-code="KeyN"] { grid-column: 16 / 18; } [data-code="KeyM"] { grid-column: 18 / 20; } [data-code="Comma"] { grid-column: 20 / 22; } [data-code="Period"] { grid-column: 22 / 24; } [data-code="Slash"] { grid-column: 24 / 26; } [data-code="ShiftRight"] { grid-column: 26 / 31; }
+            [data-code="ArrowUp"] { grid-column: 34 / 36; }
+            [data-code="Numpad1"] { grid-column: 39 / 41; } [data-code="Numpad2"] { grid-column: 41 / 43; } [data-code="Numpad3"] { grid-column: 43 / 45; }
+            [data-code="NumpadEnter"] { grid-column: 45 / 47; grid-row: span 2; }
+            
+            [data-code="ControlLeft"] { grid-column: 1 / 4; } [data-code="MetaLeft"] { grid-column: 4 / 6; } [data-code="AltLeft"] { grid-column: 6 / 8; } [data-code="Space"] { grid-column: 8 / 21; } [data-code="AltRight"] { grid-column: 21 / 23; } [data-code="Fn"] { grid-column: 23 / 25; } [data-code="ContextMenu"] { grid-column: 25 / 27; } [data-code="ControlRight"] { grid-column: 27 / 30; }
+            [data-code="ArrowLeft"] { grid-column: 32 / 34; } [data-code="ArrowDown"] { grid-column: 34 / 36; } [data-code="ArrowRight"] { grid-column: 36 / 38; }
+            [data-code="Numpad0"] { grid-column: 39 / 43; } [data-code="NumpadDecimal"] { grid-column: 43 / 45; }
         </style>
         <div class="flex flex-col gap-6 items-center">
             <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
@@ -69,70 +76,14 @@ export function getHtml() {
                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"><div class="text-sm text-gray-500 dark:text-gray-400">event.keyCode</div><div id="keyCode-display" class="text-xl font-bold h-7 truncate">-</div></div>
             </div>
 
-            <div id="virtual-keyboard" class="keyboard-layout w-full max-w-7xl mx-auto">
-                <div class="keyboard-inner-wrapper">
-                    <!-- ИЗМЕНЕНО: Верхний ряд теперь разделен на блоки для точного выравнивания -->
-                    <div class="key-row">
-                        <div style="flex-grow: 15; display: flex; gap: 0.25rem;">
-                            ${key('Esc', 'Escape')} <div class="key-placeholder"></div>
-                            ${key('F1', 'F1')} ${key('F2', 'F2')} ${key('F3', 'F3')} ${key('F4', 'F4')} <div class="key-placeholder" style="flex-grow:0.5;"></div>
-                            ${key('F5', 'F5')} ${key('F6', 'F6')} ${key('F7', 'F7')} ${key('F8', 'F8')} <div class="key-placeholder" style="flex-grow:0.5;"></div>
-                            ${key('F9', 'F9')} ${key('F10', 'F10')} ${key('F11', 'F11')} ${key('F12', 'F12')}
-                        </div>
-                        <div style="flex-grow: 3.5; display: flex; gap: 0.25rem;">
-                            ${key('PrtSc', 'PrintScreen')} ${key('Scroll', 'ScrollLock')} ${key('Pause', 'Pause')}
-                        </div>
-                        <div style="flex-grow: 4.5; display: flex; gap: 0.25rem;" class="key-placeholder"></div>
-                    </div>
-                    <div class="key-row">
-                        <div class="keyboard-main" style="flex-grow: 15;">
-                            <div class="key-row">
-                                ${key('` ~', 'Backquote')} ${key('1 !', 'Digit1')} ${key('2 @', 'Digit2')} ${key('3 #', 'Digit3')} ${key('4 $', 'Digit4')} ${key('5 %', 'Digit5')} ${key('6 ^', 'Digit6')} ${key('7 &', 'Digit7')} ${key('8 *', 'Digit8')} ${key('9 (', 'Digit9')} ${key('0 )', 'Digit0')} ${key('- _', 'Minus')} ${key('= +', 'Equal')} ${key('Backspace', 'Backspace', 'key--w-2')}
-                            </div>
-                            <div class="key-row">
-                                ${key('Tab', 'Tab', 'key--w-1-5')} ${key('Q', 'KeyQ')} ${key('W', 'KeyW')} ${key('E', 'KeyE')} ${key('R', 'KeyR')} ${key('T', 'KeyT')} ${key('Y', 'KeyY')} ${key('U', 'KeyU')} ${key('I', 'KeyI')} ${key('O', 'KeyO')} ${key('P', 'KeyP')} ${key('[ {', 'BracketLeft')} ${key('] }', 'BracketRight')} ${key('\\ |', 'Backslash', 'key--w-1-5')}
-                            </div>
-                            <div class="key-row">
-                                ${key('Caps Lock', 'CapsLock', 'key--w-1-75')} ${key('A', 'KeyA')} ${key('S', 'KeyS')} ${key('D', 'KeyD')} ${key('F', 'KeyF')} ${key('G', 'KeyG')} ${key('H', 'KeyH')} ${key('J', 'KeyJ')} ${key('K', 'KeyK')} ${key('L', 'KeyL')} ${key('; :', 'Semicolon')} ${key("' \"", 'Quote')} ${key('Enter', 'Enter', 'key--w-2-25')}
-                            </div>
-                            <div class="key-row">
-                                ${key('Shift', 'ShiftLeft', 'key--w-2-25')} ${key('Z', 'KeyZ')} ${key('X', 'KeyX')} ${key('C', 'KeyC')} ${key('V', 'KeyV')} ${key('B', 'KeyB')} ${key('N', 'KeyN')} ${key('M', 'KeyM')} ${key(', <', 'Comma')} ${key('. >', 'Period')} ${key('/ ?', 'Slash')} ${key('Shift', 'ShiftRight', 'key--w-2-75')}
-                            </div>
-                            <div class="key-row">
-                                ${key('Ctrl', 'ControlLeft', 'key--w-1-25')} ${key('Win', 'MetaLeft', 'key--w-1-25')} ${key('Alt', 'AltLeft', 'key--w-1-25')} ${key('Space', 'Space', 'key--w-6-25')} ${key('Alt', 'AltRight', 'key--w-1-25')} ${key('Fn', 'Fn', 'fn-key key--w-1-25')} ${key('Menu', 'ContextMenu', 'key--w-1-25')} ${key('Ctrl', 'ControlRight', 'key--w-1-25')}
-                            </div>
-                        </div>
-                        <div class="keyboard-nav-arrows" style="flex-grow: 3.5;">
-                            <div class="key-row">${key('Ins', 'Insert')} ${key('Home', 'Home')} ${key('PgUp', 'PageUp')}</div>
-                            <div class="key-row">${key('Del', 'Delete')} ${key('End', 'End')} ${key('PgDn', 'PageDown')}</div>
-                            <div class="key-placeholder" style="flex-grow: 1;"></div>
-                            <!-- ИЗМЕНЕНО: Новая, правильная раскладка стрелок -->
-                            <div class="key-row" style="justify-content: center;">
-                                <div class="key-placeholder"></div>
-                                ${key('▲', 'ArrowUp')}
-                                <div class="key-placeholder"></div>
-                            </div>
-                            <div class="key-row">${key('◄', 'ArrowLeft')} ${key('▼', 'ArrowDown')} ${key('►', 'ArrowRight')}</div>
-                        </div>
-                        <div class="keyboard-numpad" style="flex-grow: 4.5;">
-                            <div class="key-row">${key('Num', 'NumLock')} ${key('/', 'NumpadDivide')} ${key('*', 'NumpadMultiply')} ${key('-', 'NumpadSubtract')}</div>
-                            <div class="key-row" style="align-items: flex-start;">
-                                <div class="flex flex-col gap-1" style="flex-grow: 3">
-                                    <div class="key-row">${key('7', 'Numpad7')} ${key('8', 'Numpad8')} ${key('9', 'Numpad9')}</div>
-                                    <div class="key-row">${key('4', 'Numpad4')} ${key('5', 'Numpad5')} ${key('6', 'Numpad6')}</div>
-                                </div>
-                                ${key('+', 'NumpadAdd', 'key--h-2')}
-                            </div>
-                            <div class="key-row" style="align-items: flex-start;">
-                                <div class="flex flex-col gap-1" style="flex-grow: 3">
-                                    <div class="key-row">${key('1', 'Numpad1')} ${key('2', 'Numpad2')} ${key('3', 'Numpad3')}</div>
-                                    <div class="key-row">${key('0', 'Numpad0', 'key--w-2')} ${key('.', 'NumpadDecimal')}</div>
-                                </div>
-                                ${key('Enter', 'NumpadEnter', 'key--h-2')}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="virtual-keyboard" class="keyboard-layout">
+                ${['Escape', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'PrintScreen', 'ScrollLock', 'Pause', 'Backquote', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0', 'Minus', 'Equal', 'Backspace', 'Insert', 'Home', 'PageUp', 'NumLock', 'NumpadDivide', 'NumpadMultiply', 'NumpadSubtract', 'Tab', 'KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash', 'Delete', 'End', 'PageDown', 'Numpad7', 'Numpad8', 'Numpad9', 'NumpadAdd', 'CapsLock', 'KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyG', 'KeyH', 'KeyJ', 'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Enter', 'Numpad4', 'Numpad5', 'Numpad6', 'ShiftLeft', 'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'ShiftRight', 'ArrowUp', 'Numpad1', 'Numpad2', 'Numpad3', 'NumpadEnter', 'ControlLeft', 'MetaLeft', 'AltLeft', 'Space', 'AltRight', 'Fn', 'ContextMenu', 'ControlRight', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'Numpad0', 'NumpadDecimal']
+                .map(code => {
+                    const names = {'Escape': 'Esc', 'PrintScreen':'PrtSc', 'ScrollLock': 'Scroll', 'Backquote': '`', 'Digit1': '1', 'Digit2': '2', 'Digit3': '3', 'Digit4': '4', 'Digit5': '5', 'Digit6': '6', 'Digit7': '7', 'Digit8': '8', 'Digit9': '9', 'Digit0': '0', 'Minus': '-', 'Equal': '=', 'BracketLeft': '[', 'BracketRight': ']', 'Backslash': '\\', 'Semicolon': ';', 'Quote': "'", 'Comma': ',', 'Period': '.', 'Slash': '/', 'ArrowUp': '▲', 'ArrowLeft': '◄', 'ArrowDown': '▼', 'ArrowRight': '►'};
+                    const name = names[code] || code.replace('Key', '').replace('Left', '').replace('Right', '').replace('Numpad', '');
+                    const classes = code === 'Fn' ? 'fn-key' : '';
+                    return `<div class="key ${classes}" data-code="${code}">${name}</div>`;
+                }).join('')}
             </div>
              <button id="reset-keyboard-btn" class="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">Сбросить подсветку</button>
         </div>
