@@ -4,12 +4,15 @@ import { getUserData, saveUserData } from '../dataManager.js';
 
 export function getHtml() {
     return `
+        <style>
+            .lock-btn svg.locked { color: #3b82f6; } /* blue-500 */
+            .dark .lock-btn svg.locked { color: #60a5fa; } /* dark:blue-400 */
+        </style>
         <div class="flex flex-col md:flex-row w-full md:gap-8">
             <div class="flex-shrink-0 flex flex-col items-center gap-4 mb-6 md:mb-0 md:w-56">
-                <!-- Измененный блок основного цвета с замком -->
-                <div id="main-color-wrapper" class="relative group w-full">
+                <div class="relative group w-full">
                     <div id="color-display" class="w-full h-56 rounded-xl shadow-lg transition-colors duration-300 border-4 border-gray-200 dark:border-gray-700"></div>
-                    <button id="lock-main-color" class="lock-btn absolute top-2 right-2 p-1.5 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity" title="Заморозить цвет">
+                    <button data-id="main-0" class="lock-btn absolute top-2 right-2 p-1.5 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity" title="Заморозить цвет">
                         <svg class="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     </button>
                 </div>
@@ -38,13 +41,13 @@ export function getHtml() {
                             </button>
                         </div>
                         <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                            <span id="color-code-rgb" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate\">rgb(255, 255, 255)</span>
+                            <span id="color-code-rgb" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">rgb(255, 255, 255)</span>
                              <button id="copy-rgb" title="Скопировать" class="copy-btn flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
                                 <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             </button>
                         </div>
                         <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                            <span id="color-code-hsl" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate\">hsl(0, 0%, 100%)</span>
+                            <span id="color-code-hsl" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">hsl(0, 0%, 100%)</span>
                              <button id="copy-hsl" title="Скопировать" class="copy-btn flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
                                 <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             </button>
@@ -53,7 +56,7 @@ export function getHtml() {
                 </div>
                 
                 <div class="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white\">Избранное</h3>
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Избранное</h3>
                     <div id="favorite-colors-container" class="flex flex-wrap gap-3">
                         <p id="no-favorites-msg" class="text-gray-500 dark:text-gray-400">Нет сохраненных цветов.</p>
                     </div>
@@ -61,11 +64,11 @@ export function getHtml() {
 
                 <div class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div>
-                        <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300\">Комплементарная палитра</h4>
+                        <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300">Комплементарная палитра</h4>
                         <div id="complementary-palette" class="flex gap-3"></div>
                     </div>
                     <div>
-                        <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300\">Аналоговая палитра</h4>
+                        <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300">Аналоговая палитра</h4>
                         <div id="analogous-palette" class="flex gap-3"></div>
                     </div>
                 </div>
@@ -85,10 +88,10 @@ export function init() {
     const favBtn = document.getElementById('save-to-favorites-btn');
     const favContainer = document.getElementById('favorite-colors-container');
     const noFavoritesMsg = document.getElementById('no-favorites-msg');
-
+    
     let colorHistory = [];
     let favoriteColors = [];
-    let lockedColors = new Set();
+    let lockedColors = new Map(); // Используем Map для хранения hex-значения по ID
     const HISTORY_LIMIT = 5;
 
     function hexToRgb(hex) {
@@ -121,7 +124,7 @@ export function init() {
         if (r.length == 1) r = "0" + r; if (g.length == 1) g = "0" + g; if (b.length == 1) b = "0" + b;
         return "#" + r + g + b;
     }
-
+    
     const renderPalette = (el, colors, paletteName) => {
         el.innerHTML = '';
         colors.forEach((color, index) => {
@@ -134,17 +137,18 @@ export function init() {
             swatch.style.backgroundColor = color;
             swatch.title = `Нажмите, чтобы выбрать ${color}`;
             swatch.onclick = () => {
-                if (!lockedColors.has(id)) updateUI(color);
+                if (!lockedColors.has('main-0')) updateUI(color);
             };
 
             const lockBtn = document.createElement('button');
             lockBtn.className = 'lock-btn absolute top-1 right-1 p-1 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity';
-            lockBtn.dataset.colorId = id;
-            lockBtn.dataset.hex = color;
-            lockBtn.innerHTML = lockedColors.has(id)
-                ? `<svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>`
-                : `<svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`;
+            lockBtn.dataset.id = id;
             lockBtn.onclick = () => toggleLock(id, color);
+            
+            const isLocked = lockedColors.has(id);
+            lockBtn.innerHTML = isLocked
+                ? `<svg class="w-4 h-4 locked" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>`
+                : `<svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`;
             
             swatchWrapper.appendChild(swatch);
             swatchWrapper.appendChild(lockBtn);
@@ -156,14 +160,10 @@ export function init() {
         if (lockedColors.has(id)) {
             lockedColors.delete(id);
         } else {
-            lockedColors.add(id);
+            lockedColors.set(id, hex);
         }
-        updateUI(codeHex.textContent); // Re-render to update lock icons
+        updateUI(codeHex.textContent, false);
     };
-    
-    document.getElementById('lock-main-color').addEventListener('click', () => {
-        toggleLock('main-0', codeHex.textContent);
-    });
 
     const updateHistory = (newColor) => {
         if (colorHistory[0] === newColor) return;
@@ -212,13 +212,7 @@ export function init() {
     const updateFavButtonState = (hex) => {
         const isFavorite = favoriteColors.includes(hex);
         const svg = favBtn.querySelector('svg');
-        if (isFavorite) {
-            favBtn.title = 'Удалить из избранного';
-            svg.style.fill = 'currentColor';
-        } else {
-            favBtn.title = 'Добавить в избранное';
-            svg.style.fill = 'none';
-        }
+        svg.style.fill = isFavorite ? 'currentColor' : 'none';
     };
 
     const toggleFavorite = (colorToToggle) => {
@@ -231,7 +225,7 @@ export function init() {
         updateFavButtonState(color);
     };
     
-    const updateUI = (hex) => {
+    const updateUI = (hex, shouldUpdateHistory = true) => {
         display.style.backgroundColor = hex;
         codeHex.textContent = hex;
         const rgb = hexToRgb(hex);
@@ -239,29 +233,30 @@ export function init() {
         codeRgb.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
         codeHsl.textContent = `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
         
-        const complementaryH = (hsl.h + 180) % 360;
-        const complementaryHex = hslToHex(complementaryH, hsl.s, hsl.l);
-        
-        const analogousH1 = (hsl.h + 30) % 360;
-        const analogousH2 = (hsl.h - 30 + 360) % 360;
-        
-        renderPalette(complementaryPaletteEl, [hex, complementaryHex], 'comp');
-        renderPalette(analogousPaletteEl, [hslToHex(analogousH2, hsl.s, hsl.l), hex, hslToHex(analogousH1, hsl.s, hsl.l)], 'analog');
+        const compHex = lockedColors.get('comp-1') || hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l);
+        const analogHex1 = lockedColors.get('analog-0') || hslToHex((hsl.h - 30 + 360) % 360, hsl.s, hsl.l);
+        const analogHex2 = lockedColors.get('analog-2') || hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l);
+
+        renderPalette(complementaryPaletteEl, [hex, compHex], 'comp');
+        renderPalette(analogousPaletteEl, [analogHex1, hex, analogHex2], 'analog');
         
         updateFavButtonState(hex);
-        const mainLockBtn = document.getElementById('lock-main-color');
+        const mainLockBtn = document.querySelector('.lock-btn[data-id="main-0"]');
         mainLockBtn.innerHTML = lockedColors.has('main-0')
-            ? `<svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>`
-            : `<svg class="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`;
+            ? `<svg class="w-5 h-5 locked" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>`
+            : `<svg class="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`;
+        
+        if (shouldUpdateHistory) {
+            updateHistory(hex);
+        }
     };
 
     const generateColor = () => {
-        let mainHex = codeHex.textContent;
-        if (!lockedColors.has('main-0')) {
+        let mainHex = lockedColors.get('main-0');
+        if (!mainHex) {
              mainHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
         }
         updateUI(mainHex);
-        updateHistory(mainHex);
     };
 
     const copyToClipboard = (text, btnEl) => {
@@ -272,6 +267,13 @@ export function init() {
         });
     };
     
+    document.body.addEventListener('click', e => {
+        const lockButton = e.target.closest('.lock-btn');
+        if (lockButton) {
+            toggleLock(lockButton.dataset.id, codeHex.textContent);
+        }
+    });
+
     btn.addEventListener('click', generateColor);
     favBtn.addEventListener('click', () => toggleFavorite());
     document.getElementById('copy-hex').addEventListener('click', (e) => copyToClipboard(codeHex.textContent, e.currentTarget));
@@ -283,4 +285,4 @@ export function init() {
     generateColor();
 }
 
-export function cleanup() {}
+export function cleanup() {}```
