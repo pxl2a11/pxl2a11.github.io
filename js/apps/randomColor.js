@@ -1,4 +1,4 @@
-//32 js/apps/randomColor.js
+// js/apps/randomColor.js
 
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -91,7 +91,7 @@ export function init() {
     
     let colorHistory = [];
     let favoriteColors = [];
-    let lockedColors = new Map(); // Используем Map для хранения hex-значения по ID
+    let lockedColors = new Map();
     const HISTORY_LIMIT = 5;
 
     function hexToRgb(hex) {
@@ -162,7 +162,7 @@ export function init() {
         } else {
             lockedColors.set(id, hex);
         }
-        updateUI(codeHex.textContent, false);
+        updateUI(codeHex.textContent, false); // Re-render to update lock icons
     };
 
     const updateHistory = (newColor) => {
@@ -233,12 +233,16 @@ export function init() {
         codeRgb.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
         codeHsl.textContent = `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
         
-        const compHex = lockedColors.get('comp-1') || hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l);
-        const analogHex1 = lockedColors.get('analog-0') || hslToHex((hsl.h - 30 + 360) % 360, hsl.s, hsl.l);
-        const analogHex2 = lockedColors.get('analog-2') || hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l);
+        const mainColor = lockedColors.get('main-0') || hex;
+        const mainHsl = rgbToHsl(hexToRgb(mainColor).r, hexToRgb(mainColor).g, hexToRgb(mainColor).b);
 
-        renderPalette(complementaryPaletteEl, [hex, compHex], 'comp');
-        renderPalette(analogousPaletteEl, [analogHex1, hex, analogHex2], 'analog');
+        const compHex = lockedColors.get('comp-1') || hslToHex((mainHsl.h + 180) % 360, mainHsl.s, mainHsl.l);
+        const analogHex1 = lockedColors.get('analog-0') || hslToHex((mainHsl.h - 30 + 360) % 360, mainHsl.s, mainHsl.l);
+        const analogHex2 = lockedColors.get('analog-2') || hslToHex((mainHsl.h + 30) % 360, mainHsl.s, mainHsl.l);
+        
+        const mainPaletteColor = lockedColors.get('main-0') || hex;
+        renderPalette(complementaryPaletteEl, [mainPaletteColor, compHex], 'comp');
+        renderPalette(analogousPaletteEl, [analogHex1, mainPaletteColor, analogHex2], 'analog');
         
         updateFavButtonState(hex);
         const mainLockBtn = document.querySelector('.lock-btn[data-id="main-0"]');
@@ -270,9 +274,21 @@ export function init() {
     document.body.addEventListener('click', e => {
         const lockButton = e.target.closest('.lock-btn');
         if (lockButton) {
-            toggleLock(lockButton.dataset.id, codeHex.textContent);
+            const colorId = lockButton.dataset.id;
+            // Находим цвет, соответствующий этой кнопке
+            const paletteWrapper = lockButton.closest('.flex, .relative');
+            const colorDiv = paletteWrapper.querySelector('.w-12, .w-full');
+            const colorHex = colorDiv ? rgbToHex(colorDiv.style.backgroundColor) : codeHex.textContent;
+            toggleLock(colorId, colorHex);
         }
     });
+
+    // Вспомогательная функция для преобразования rgb() в hex
+    const rgbToHex = (rgb) => {
+        if (!rgb) return '#000000';
+        let [r, g, b] = rgb.match(/\d+/g).map(Number);
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    };
 
     btn.addEventListener('click', generateColor);
     favBtn.addEventListener('click', () => toggleFavorite());
