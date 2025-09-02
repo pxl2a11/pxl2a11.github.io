@@ -1,4 +1,4 @@
-// --- js/randomColor.js ---
+// --- 11 js/randomColor.js ---
 
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -12,9 +12,7 @@ export function getHtml() {
                         Новый цвет
                     </button>
                     <button id="freeze-color-btn" title="Заморозить цвет" class="flex-shrink-0 p-3 bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H4.5a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                        </svg>
+                        <img id="freeze-icon" src="img/unlock.svg" alt="Статус заморозки" class="w-6 h-6">
                     </button>
                 </div>
                 <div class="w-full space-y-2">
@@ -89,10 +87,7 @@ export function init() {
     const favContainer = document.getElementById('favorite-colors-container');
     const noFavoritesMsg = document.getElementById('no-favorites-msg');
 
-    // --- Новые элементы и переменные состояния для "заморозки" ---
     const freezeBtn = document.getElementById('freeze-color-btn');
-    const lockedIcon = `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m9 11.25h-10.5a2.25 2.25 0 01-2.25-2.25v-6.75a2.25 2.25 0 012.25-2.25H16.5a2.25 2.25 0 012.25 2.25v6.75a2.25 2.25 0 01-2.25 2.25z" /></svg>`;
-    const unlockedIcon = `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H4.5a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>`;
     let isColorFrozen = false;
     
     let colorHistory = [];
@@ -138,7 +133,7 @@ export function init() {
             swatch.style.backgroundColor = color;
             swatch.title = `Нажмите, чтобы выбрать ${color}`;
             swatch.onclick = () => {
-                if(isColorFrozen) { // Если цвет заморожен, не позволяем палитре менять основной цвет
+                if(isColorFrozen) {
                     copyToClipboard(color, swatch);
                     return;
                 }
@@ -225,24 +220,24 @@ export function init() {
         updateFavButtonState(color);
     };
 
-    // --- Новая функция для "заморозки" ---
     const toggleFreeze = () => {
         isColorFrozen = !isColorFrozen;
+        const freezeIcon = document.getElementById('freeze-icon');
+
         if (isColorFrozen) {
             freezeBtn.title = 'Разморозить цвет';
-            freezeBtn.innerHTML = lockedIcon;
-            freezeBtn.classList.add('bg-blue-200', 'dark:bg-blue-800', 'text-blue-800', 'dark:text-blue-100');
+            freezeIcon.src = 'img/lock.svg'; // Меняем на иконку замка
+            freezeBtn.classList.add('bg-blue-200', 'dark:bg-blue-800');
             display.classList.add('ring-4', 'ring-blue-500', 'dark:ring-blue-500');
         } else {
             freezeBtn.title = 'Заморозить цвет';
-            freezeBtn.innerHTML = unlockedIcon;
-            freezeBtn.classList.remove('bg-blue-200', 'dark:bg-blue-800', 'text-blue-800', 'dark:text-blue-100');
+            freezeIcon.src = 'img/unlock.svg'; // Меняем на иконку открытого замка
+            freezeBtn.classList.remove('bg-blue-200', 'dark:bg-blue-800');
             display.classList.remove('ring-4', 'ring-blue-500', 'dark:ring-blue-500');
         }
     };
 
     const updateUI = (hex) => {
-        // Обновляем основной цвет только если он не заморожен, или если это первая генерация
         if (!isColorFrozen || display.style.backgroundColor === '') {
             display.style.backgroundColor = hex;
             codeHex.textContent = hex;
@@ -252,17 +247,14 @@ export function init() {
             codeHsl.textContent = `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
         }
         
-        // Получаем HSL текущего (возможно, замороженного) цвета для генерации палитр
         const currentHex = codeHex.textContent;
         const currentRgb = hexToRgb(currentHex);
         const currentHsl = rgbToHsl(currentRgb.r, currentRgb.g, currentRgb.b);
 
-        // --- Логика генерации палитр ---
         let paletteS = currentHsl.s;
         let paletteL = currentHsl.l;
 
         if (isColorFrozen) {
-            // Если цвет заморожен, вносим случайность в S и L для "новых" палитр
             paletteS = Math.max(20, Math.min(95, currentHsl.s + (Math.random() * 40 - 20)));
             paletteL = Math.max(20, Math.min(80, currentHsl.l + (Math.random() * 30 - 15)));
         }
@@ -284,7 +276,6 @@ export function init() {
             updateUI(randomColor);
             updateHistory(randomColor);
         } else {
-            // Если цвет заморожен, просто перерисовываем UI для генерации новых палитр
             updateUI(codeHex.textContent); 
         }
     };
@@ -293,26 +284,22 @@ export function init() {
         navigator.clipboard.writeText(text).then(() => {
             const originalContent = btnEl.innerHTML;
             const originalTitle = btnEl.title;
-            if (btnEl.className.includes('copy-btn')) { // Если это кнопка копирования
+            if (btnEl.className.includes('copy-btn')) {
                 btnEl.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
                  setTimeout(() => { btnEl.innerHTML = originalContent; }, 1500);
-            } else { // Если это образец цвета в палитре
+            } else {
                  btnEl.title = 'Скопировано!';
                  setTimeout(() => { btnEl.title = originalTitle; }, 1500);
             }
         });
     };
     
-    // --- Инициализация и слушатели событий ---
-
     btn.addEventListener('click', generateColor);
     favBtn.addEventListener('click', () => toggleFavorite());
-    freezeBtn.addEventListener('click', toggleFreeze); // Новый слушатель
+    freezeBtn.addEventListener('click', toggleFreeze);
     document.getElementById('copy-hex').addEventListener('click', (e) => copyToClipboard(codeHex.textContent, e.currentTarget));
     document.getElementById('copy-rgb').addEventListener('click', (e) => copyToClipboard(codeRgb.textContent, e.currentTarget));
     document.getElementById('copy-hsl').addEventListener('click', (e) => copyToClipboard(codeHsl.textContent, e.currentTarget));
-    
-    // --- Первоначальная загрузка данных ---
     
     favoriteColors = getUserData('favoriteColors', []);
     renderFavorites();
