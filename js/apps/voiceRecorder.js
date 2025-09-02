@@ -5,7 +5,6 @@ let audioChunks = [];
 let timerInterval;
 let seconds = 0;
 
-// ИЗМЕНЕНИЕ: Сохраняем HTML иконки в переменную для удобного переиспользования
 const recordIconHtml = `<img src="img/soundAndMicTest.svg" class="w-8 h-8 filter brightness-0 invert" alt="Record">`;
 const stopIconHtml = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h10v12H5V4z" /></svg>`;
 
@@ -18,7 +17,6 @@ export function getHtml() {
             <div id="timer" class="text-5xl font-mono mb-6">00:00</div>
             
             <button id="record-btn" class="w-20 h-20 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center mx-auto transition-all duration-300 focus:outline-none shadow-lg">
-                 <!-- ИЗМЕНЕНИЕ: Используем иконку из файла -->
                  ${recordIconHtml}
             </button>
             <div id="recorder-error" class="text-red-500 mt-4"></div>
@@ -56,14 +54,11 @@ export function init() {
             mediaRecorder = new MediaRecorder(stream);
             mediaRecorder.start();
 
-            // UI Changes
             recordBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
             recordBtn.classList.add('bg-gray-700', 'hover:bg-gray-600', 'animate-pulse');
-            // ИЗМЕНЕНИЕ: Меняем иконку на "стоп"
             recordBtn.innerHTML = stopIconHtml;
             statusDiv.textContent = 'Идёт запись...';
 
-            // Timer
             seconds = 0;
             timerInterval = setInterval(() => {
                 seconds++;
@@ -81,7 +76,6 @@ export function init() {
                 const audioUrl = URL.createObjectURL(audioBlob);
                 addRecordingToList(audioUrl);
                 audioChunks = [];
-                 // Stop all tracks on the stream to turn off the mic indicator
                 stream.getTracks().forEach(track => track.stop());
             });
 
@@ -96,10 +90,8 @@ export function init() {
             mediaRecorder.stop();
             clearInterval(timerInterval);
             
-            // UI Changes
             recordBtn.classList.add('bg-red-500', 'hover:bg-red-600');
             recordBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'animate-pulse');
-            // ИЗМЕНЕНИЕ: Возвращаем иконку записи
             recordBtn.innerHTML = recordIconHtml;
             statusDiv.textContent = 'Нажмите, чтобы начать новую запись';
         }
@@ -111,29 +103,41 @@ export function init() {
             hasRecordings = true;
         }
 
+        const recordingId = `rec_${Date.now()}`;
         const recordingDiv = document.createElement('div');
-        recordingDiv.className = 'p-3 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center gap-4';
+        recordingDiv.className = 'p-3 bg-gray-100 dark:bg-gray-700 rounded-lg space-y-3';
         
         const audio = new Audio(audioUrl);
         audio.controls = true;
         audio.className = 'w-full';
 
-        const downloadLink = document.createElement('a');
-        downloadLink.href = audioUrl;
         const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
-        downloadLink.download = `record_${timestamp}.webm`;
-        downloadLink.innerHTML = `<svg class="w-6 h-6 text-blue-500 hover:text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>`;
-        downloadLink.title = "Скачать запись";
+        const defaultFilename = `record_${timestamp}`;
+
+        const namingDiv = document.createElement('div');
+        namingDiv.className = 'flex items-center gap-2';
+        namingDiv.innerHTML = `
+            <input type="text" id="name-input-${recordingId}" value="${defaultFilename}" class="flex-grow p-2 border rounded-md dark:bg-gray-600 dark:border-gray-500" placeholder="Название записи...">
+            <a id="download-link-${recordingId}" href="${audioUrl}" download="${defaultFilename}.webm" class="flex-shrink-0 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" title="Скачать">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            </a>
+        `;
         
         recordingDiv.appendChild(audio);
-        recordingDiv.appendChild(downloadLink);
+        recordingDiv.appendChild(namingDiv);
         
         recordingsContainer.prepend(recordingDiv);
+
+        const nameInput = document.getElementById(`name-input-${recordingId}`);
+        const downloadLink = document.getElementById(`download-link-${recordingId}`);
+        nameInput.addEventListener('input', () => {
+            const newName = nameInput.value.trim() || defaultFilename;
+            downloadLink.download = `${newName}.webm`;
+        });
     }
 }
 
 export function cleanup() {
-    // Останавливаем запись, если она идет при выходе из приложения
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
     }
