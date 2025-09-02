@@ -1,22 +1,27 @@
-// js/apps/timezoneConverter.js
+//41 js/apps/timezoneConverter.js
 
 let dateInput, timeInput, addTimezoneSelect, addTimezoneBtn, outputContainer, setCurrentTimeBtn, localTimezoneDisplay, searchInput;
 let targetTimezones = new Set(); 
 
-// Список популярных часовых поясов с русскими названиями для удобства
-const commonTimezones = [
-    { iana: 'Europe/Moscow', ru: 'Москва' }, { iana: 'Europe/London', ru: 'Лондон' },
-    { iana: 'America/New_York', ru: 'Нью-Йорк' }, { iana: 'America/Los_Angeles', ru: 'Лос-Анджелес' },
-    { iana: 'Europe/Paris', ru: 'Париж' }, { iana: 'Europe/Berlin', ru: 'Берлин' },
-    { iana: 'Asia/Tokyo', ru: 'Токио' }, { iana: 'Asia/Dubai', ru: 'Дубай' },
-    { iana: 'Asia/Shanghai', ru: 'Шанхай' }, { iana: 'Australia/Sydney', ru: 'Сидней' },
-    { iana: 'Europe/Kaliningrad', ru: 'Калининград' }, { iana: 'Europe/Samara', ru: 'Самара' },
-    { iana: 'Asia/Yekaterinburg', ru: 'Екатеринбург' }, { iana: 'Asia/Omsk', ru: 'Омск' },
-    { iana: 'Asia/Krasnoyarsk', ru: 'Красноярск' }, { iana: 'Asia/Irkutsk', ru: 'Иркутск' },
-    { iana: 'Asia/Yakutsk', ru: 'Якутск' }, { iana: 'Asia/Vladivostok', ru: 'Владивосток' },
-    { iana: 'Asia/Magadan', ru: 'Магадан' }, { iana: 'Asia/Kamchatka', ru: 'Петропавловск-Камчатский' },
-    { iana: 'UTC', ru: 'UTC' }
-];
+// Словарь для корректной транслитерации и замены названий городов
+const timezoneNameMap = {
+    'Moscow': 'Москва', 'London': 'Лондон', 'New_York': 'Нью-Йорк', 'Los_Angeles': 'Лос-Анджелес',
+    'Paris': 'Париж', 'Berlin': 'Берлин', 'Tokyo': 'Токио', 'Dubai': 'Дубай', 'Shanghai': 'Шанхай',
+    'Sydney': 'Сидней', 'Kaliningrad': 'Калининград', 'Samara': 'Самара', 'Yekaterinburg': 'Екатеринбург',
+    'Omsk': 'Омск', 'Krasnoyarsk': 'Красноярск', 'Irkutsk': 'Иркутск', 'Yakutsk': 'Якутск',
+    'Vladivostok': 'Владивосток', 'Magadan': 'Магадан', 'Kamchatka': 'Камчатка', 'UTC': 'UTC',
+    'Kiev': 'Киев', 'Minsk': 'Минск', 'Vilnius': 'Вильнюс', 'Riga': 'Рига', 'Tallinn': 'Таллин',
+    'Warsaw': 'Варшава', 'Prague': 'Прага', 'Vienna': 'Вена', 'Rome': 'Рим', 'Madrid': 'Мадрид',
+    'Lisbon': 'Лиссабон', 'Athens': 'Афины', 'Istanbul': 'Стамбул', 'Helsinki': 'Хельсинки',
+    'Stockholm': 'Стокгольм', 'Oslo': 'Осло', 'Copenhagen': 'Копенгаген', 'Amsterdam': 'Амстердам',
+    'Brussels': 'Брюссель', 'Zurich': 'Цюрих', 'Cairo': 'Каир', 'Jerusalem': 'Иерусалим',
+    'Singapore': 'Сингапур', 'Hong_Kong': 'Гонконг', 'Seoul': 'Сеул', 'Bangkok': 'Бангкок',
+    'Jakarta': 'Джакарта', 'Manila': 'Манила', 'Ho_Chi_Minh': 'Хошимин', 'Tashkent': 'Ташкент',
+    'Almaty': 'Алматы', 'Bishkek': 'Бишкек', 'Tbilisi': 'Тбилиси', 'Yerevan': 'Ереван',
+    'Baku': 'Баку', 'Chicago': 'Чикаго', 'Denver': 'Денвер', 'Phoenix': 'Финикс',
+    'Anchorage': 'Анкоридж', 'Honolulu': 'Гонолулу', 'Toronto': 'Торонто', 'Vancouver': 'Ванкувер',
+    'Mexico_City': 'Мехико', 'Sao_Paulo': 'Сан-Паулу', 'Buenos_Aires': 'Буэнос-Айрес'
+};
 
 export function getHtml() {
     return `
@@ -75,7 +80,7 @@ export function init() {
     populateTimezoneSelect();
     
     const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    localTimezoneDisplay.textContent = getRussianName(localTz) || localTz.replace(/_/g, ' ');
+    localTimezoneDisplay.textContent = getFriendlyTimezoneName(localTz).name;
     
     targetTimezones.add(localTz);
     targetTimezones.add('UTC');
@@ -92,23 +97,26 @@ export function cleanup() {
     outputContainer.innerHTML = '';
 }
 
-function getRussianName(iana) {
-    const found = commonTimezones.find(tz => tz.iana === iana);
-    return found ? found.ru : null;
+function getFriendlyTimezoneName(iana) {
+    const city = iana.split('/').pop();
+    const ruName = timezoneNameMap[city];
+    return {
+        name: ruName || city.replace(/_/g, ' '),
+        full: iana.replace(/_/g, ' ')
+    };
 }
 
 function populateTimezoneSelect() {
     const timezones = Intl.supportedValuesOf('timeZone');
-    // Сначала добавляем популярные, потом остальные
     const allTzFormatted = timezones.map(tz => {
-        const ruName = getRussianName(tz);
+        const friendly = getFriendlyTimezoneName(tz);
         return {
             value: tz,
-            text: ruName ? `${ruName} (${tz.replace(/_/g, ' ')})` : tz.replace(/_/g, ' ')
+            text: `${friendly.name} (${friendly.full})`
         };
     });
 
-    allTzFormatted.sort((a, b) => a.text.localeCompare(b.text));
+    allTzFormatted.sort((a, b) => a.text.localeCompare(b.text, 'ru'));
 
     allTzFormatted.forEach(tz => {
         const option = document.createElement('option');
@@ -180,12 +188,12 @@ function createTimezoneCard(timezone, date) {
     const timeString = date.toLocaleTimeString('ru-RU', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false });
     const dateString = date.toLocaleDateString('ru-RU', { timeZone: timezone, weekday: 'long', day: 'numeric', month: 'long' });
     const offset = getOffsetString(date, timezone);
-    const ruName = getRussianName(timezone);
+    const friendlyName = getFriendlyTimezoneName(timezone).name;
     
     card.innerHTML = `
         <div class="flex-grow">
             <h4 class="text-2xl font-bold text-gray-900 dark:text-gray-100">${timeString}</h4>
-            <p class="text-md font-semibold text-blue-700 dark:text-blue-400 mt-1">${ruName || timezone.replace(/_/g, ' ')}</p>
+            <p class="text-md font-semibold text-blue-700 dark:text-blue-400 mt-1">${friendlyName}</p>
             <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">${dateString}</p>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${offset}</p>
         </div>
