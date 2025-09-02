@@ -1,27 +1,128 @@
 //41 js/apps/timezoneConverter.js
 
 let dateInput, timeInput, addTimezoneSelect, addTimezoneBtn, outputContainer, setCurrentTimeBtn, localTimezoneDisplay, searchInput;
-let targetTimezones = new Set(); 
+let targetTimezones = new Set();
 
-// Словарь для корректной транслитерации и замены названий городов
+// Расширенный словарь для корректной транслитерации и замены названий городов
 const timezoneNameMap = {
-    'Moscow': 'Москва', 'London': 'Лондон', 'New_York': 'Нью-Йорк', 'Los_Angeles': 'Лос-Анджелес',
-    'Paris': 'Париж', 'Berlin': 'Берлин', 'Tokyo': 'Токио', 'Dubai': 'Дубай', 'Shanghai': 'Шанхай',
-    'Sydney': 'Сидней', 'Kaliningrad': 'Калининград', 'Samara': 'Самара', 'Yekaterinburg': 'Екатеринбург',
-    'Omsk': 'Омск', 'Krasnoyarsk': 'Красноярск', 'Irkutsk': 'Иркутск', 'Yakutsk': 'Якутск',
-    'Vladivostok': 'Владивосток', 'Magadan': 'Магадан', 'Kamchatka': 'Камчатка', 'UTC': 'UTC',
-    'Kiev': 'Киев', 'Minsk': 'Минск', 'Vilnius': 'Вильнюс', 'Riga': 'Рига', 'Tallinn': 'Таллин',
-    'Warsaw': 'Варшава', 'Prague': 'Прага', 'Vienna': 'Вена', 'Rome': 'Рим', 'Madrid': 'Мадрид',
-    'Lisbon': 'Лиссабон', 'Athens': 'Афины', 'Istanbul': 'Стамбул', 'Helsinki': 'Хельсинки',
-    'Stockholm': 'Стокгольм', 'Oslo': 'Осло', 'Copenhagen': 'Копенгаген', 'Amsterdam': 'Амстердам',
-    'Brussels': 'Брюссель', 'Zurich': 'Цюрих', 'Cairo': 'Каир', 'Jerusalem': 'Иерусалим',
-    'Singapore': 'Сингапур', 'Hong_Kong': 'Гонконг', 'Seoul': 'Сеул', 'Bangkok': 'Бангкок',
-    'Jakarta': 'Джакарта', 'Manila': 'Манила', 'Ho_Chi_Minh': 'Хошимин', 'Tashkent': 'Ташкент',
-    'Almaty': 'Алматы', 'Bishkek': 'Бишкек', 'Tbilisi': 'Тбилиси', 'Yerevan': 'Ереван',
-    'Baku': 'Баку', 'Chicago': 'Чикаго', 'Denver': 'Денвер', 'Phoenix': 'Финикс',
-    'Anchorage': 'Анкоридж', 'Honolulu': 'Гонолулу', 'Toronto': 'Торонто', 'Vancouver': 'Ванкувер',
-    'Mexico_City': 'Мехико', 'Sao_Paulo': 'Сан-Паулу', 'Buenos_Aires': 'Буэнос-Айрес'
+    // Европа
+    'Andorra': 'Андорра', 'Athens': 'Афины', 'Belgrade': 'Белград', 'Berlin': 'Берлин',
+    'Bratislava': 'Братислава', 'Brussels': 'Брюссель', 'Bucharest': 'Бухарест', 'Budapest': 'Будапешт',
+    'Busingen': 'Бюзинген', 'Chisinau': 'Кишинев', 'Copenhagen': 'Копенгаген', 'Dublin': 'Дублин',
+    'Gibraltar': 'Гибралтар', 'Guernsey': 'Гернси', 'Helsinki': 'Хельсинки', 'Isle_of_Man': 'Остров Мэн',
+    'Istanbul': 'Стамбул', 'Jersey': 'Джерси', 'Kaliningrad': 'Калининград', 'Kiev': 'Киев',
+    'Kirov': 'Киров', 'Lisbon': 'Лиссабон', 'Ljubljana': 'Любляна', 'London': 'Лондон',
+    'Luxembourg': 'Люксембург', 'Madrid': 'Мадрид', 'Malta': 'Мальта', 'Mariehamn': 'Мариехамн',
+    'Minsk': 'Минск', 'Monaco': 'Монако', 'Moscow': 'Москва', 'Oslo': 'Осло',
+    'Paris': 'Париж', 'Podgorica': 'Подгорица', 'Prague': 'Прага', 'Riga': 'Рига',
+    'Rome': 'Рим', 'Samara': 'Самара', 'San_Marino': 'Сан-Марино', 'Sarajevo': 'Сараево',
+    'Saratov': 'Саратов', 'Simferopol': 'Симферополь', 'Skopje': 'Скопье', 'Sofia': 'София',
+    'Stockholm': 'Стокгольм', 'Tallinn': 'Таллин', 'Tirane': 'Тирана', 'Ulyanovsk': 'Ульяновск',
+    'Uzhgorod': 'Ужгород', 'Vaduz': 'Вадуц', 'Vatican': 'Ватикан', 'Vienna': 'Вена',
+    'Vilnius': 'Вильнюс', 'Volgograd': 'Волгоград', 'Warsaw': 'Варшава', 'Zagreb': 'Загреб',
+    'Zaporozhye': 'Запорожье', 'Zurich': 'Цюрих',
+
+    // Азия
+    'Almaty': 'Алматы', 'Amman': 'Амман', 'Anadyr': 'Анадырь', 'Aqtau': 'Актау',
+    'Aqtobe': 'Актобе', 'Ashgabat': 'Ашхабад', 'Atyrau': 'Атырау', 'Baghdad': 'Багдад',
+    'Bahrain': 'Бахрейн', 'Baku': 'Баку', 'Bangkok': 'Бангкок', 'Barnaul': 'Барнаул',
+    'Beirut': 'Бейрут', 'Bishkek': 'Бишкек', 'Brunei': 'Бруней', 'Chita': 'Чита',
+    'Choibalsan': 'Чойбалсан', 'Colombo': 'Коломбо', 'Damascus': 'Дамаск', 'Dhaka': 'Дакка',
+    'Dili': 'Дили', 'Dubai': 'Дубай', 'Dushanbe': 'Душанбе', 'Famagusta': 'Фамагуста',
+    'Gaza': 'Газа', 'Hebron': 'Хеврон', 'Ho_Chi_Minh': 'Хошимин', 'Hong_Kong': 'Гонконг',
+    'Hovd': 'Ховд', 'Irkutsk': 'Иркутск', 'Jakarta': 'Джакарта', 'Jayapura': 'Джаяпура',
+    'Jerusalem': 'Иерусалим', 'Kabul': 'Кабул', 'Kamchatka': 'Камчатка', 'Karachi': 'Карачи',
+    'Kathmandu': 'Катманду', 'Khandyga': 'Хандыга', 'Kolkata': 'Калькутта', 'Krasnoyarsk': 'Красноярск',
+    'Kuala_Lumpur': 'Куала-Лумпур', 'Kuching': 'Кучинг', 'Kuwait': 'Кувейт', 'Macau': 'Макао',
+    'Magadan': 'Магадан', 'Makassar': 'Макассар', 'Manila': 'Манила', 'Muscat': 'Маскат',
+    'Nicosia': 'Никосия', 'Novokuznetsk': 'Новокузнецк', 'Novosibirsk': 'Новосибирск', 'Omsk': 'Омск',
+    'Oral': 'Уральск', 'Phnom_Penh': 'Пномпень', 'Pontianak': 'Понтианак', 'Pyongyang': 'Пхеньян',
+    'Qatar': 'Катар', 'Qostanay': 'Костанай', 'Qyzylorda': 'Кызылорда', 'Riyadh': 'Эр-Рияд',
+    'Sakhalin': 'Сахалин', 'Samarkand': 'Самарканд', 'Seoul': 'Сеул', 'Shanghai': 'Шанхай',
+    'Singapore': 'Сингапур', 'Srednekolymsk': 'Среднеколымск', 'Taipei': 'Тайбэй', 'Tashkent': 'Ташкент',
+    'Tbilisi': 'Тбилиси', 'Tehran': 'Тегеран', 'Thimphu': 'Тхимпху', 'Tokyo': 'Токио',
+    'Tomsk': 'Томск', 'Ulaanbaatar': 'Улан-Батор', 'Urumqi': 'Урумчи', 'Ust-Nera': 'Усть-Нера',
+    'Vientiane': 'Вьентьян', 'Vladivostok': 'Владивосток', 'Yakutsk': 'Якутск', 'Yangon': 'Янгон',
+    'Yekaterinburg': 'Екатеринбург', 'Yerevan': 'Ереван',
+
+    // Америка
+    'Adak': 'Адак', 'Anchorage': 'Анкоридж', 'Anguilla': 'Ангилья', 'Antigua': 'Антигуа',
+    'Araguaina': 'Арагуаина', 'Argentina/Buenos_Aires': 'Буэнос-Айрес', 'Argentina/Catamarca': 'Катамарка',
+    'Argentina/Cordoba': 'Кордова', 'Argentina/Jujuy': 'Жужуй', 'Argentina/La_Rioja': 'Ла-Риоха',
+    'Argentina/Mendoza': 'Мендоса', 'Argentina/Rio_Gallegos': 'Рио-Гальегос', 'Argentina/Salta': 'Сальта',
+    'Argentina/San_Juan': 'Сан-Хуан', 'Argentina/San_Luis': 'Сан-Луис', 'Argentina/Tucuman': 'Тукуман',
+    'Argentina/Ushuaia': 'Ушуайя', 'Aruba': 'Аруба', 'Asuncion': 'Асунсьон', 'Atikokan': 'Атикокан',
+    'Bahia': 'Баия', 'Bahia_Banderas': 'Баия-де-Бандерас', 'Barbados': 'Барбадос', 'Belem': 'Белен',
+    'Belize': 'Белиз', 'Blanc-Sablon': 'Блан-Саблон', 'Boa_Vista': 'Боа-Виста', 'Bogota': 'Богота',
+    'Boise': 'Бойсе', 'Buenos_Aires': 'Буэнос-Айрес', 'Cambridge_Bay': 'Кеймбридж-Бей',
+    'Campo_Grande': 'Кампу-Гранди', 'Cancun': 'Канкун', 'Caracas': 'Каракас', 'Cayenne': 'Кайенна',
+    'Cayman': 'Кайман', 'Chicago': 'Чикаго', 'Chihuahua': 'Чиуауа', 'Costa_Rica': 'Коста-Рика',
+    'Creston': 'Крестон', 'Cuiaba': 'Куяба', 'Curacao': 'Кюрасао', 'Danmarkshavn': 'Данмарксхавн',
+    'Dawson': 'Доусон', 'Dawson_Creek': 'Доусон-Крик', 'Denver': 'Денвер', 'Detroit': 'Детройт',
+    'Dominica': 'Доминика', 'Edmonton': 'Эдмонтон', 'Eirunepe': 'Эйрунепе', 'El_Salvador': 'Сальвадор',
+    'Fort_Nelson': 'Форт-Нельсон', 'Fortaleza': 'Форталеза', 'Glace_Bay': 'Глейс-Бей', 'Godthab': 'Нуук',
+    'Goose_Bay': 'Гус-Бей', 'Grand_Turk': 'Гранд-Терк', 'Grenada': 'Гренада', 'Guadeloupe': 'Гваделупа',
+    'Guatemala': 'Гватемала', 'Guayaquil': 'Гуаякиль', 'Guyana': 'Гайана', 'Halifax': 'Галифакс',
+    'Havana': 'Гавана', 'Hermosillo': 'Эрмосильо', 'Indiana/Indianapolis': 'Индианаполис',
+    'Indiana/Knox': 'Нокс (Индиана)', 'Indiana/Marengo': 'Маренго (Индиана)', 'Indiana/Petersburg': 'Питерсберг (Индиана)',
+    'Indiana/Tell_City': 'Телл-Сити (Индиана)', 'Indiana/Vevay': 'Вивей (Индиана)', 'Indiana/Vincennes': 'Венсен (Индиана)',
+    'Indiana/Winamac': 'Уинамак (Индиана)', 'Indianapolis': 'Индианаполис', 'Inuvik': 'Инувик',
+    'Iqaluit': 'Икалуит', 'Jamaica': 'Ямайка', 'Juneau': 'Джуно', 'Kentucky/Louisville': 'Луисвилл (Кентукки)',
+    'Kentucky/Monticello': 'Монтиселло (Кентукки)', 'Knox_IN': 'Нокс (Индиана)', 'Kralendijk': 'Кралендейк',
+    'La_Paz': 'Ла-Пас', 'Lima': 'Лима', 'Los_Angeles': 'Лос-Анджелес', 'Louisville': 'Луисвилл',
+    'Lower_Princes': 'Лоуэр-Принсес', 'Maceio': 'Масейо', 'Managua': 'Манагуа', 'Manaus': 'Манаус',
+    'Marigot': 'Мариго', 'Martinique': 'Мартиника', 'Matamoros': 'Матаморос', 'Mazatlan': 'Масатлан',
+    'Menominee': 'Меномини', 'Merida': 'Мерида', 'Metlakatla': 'Метлакатла', 'Mexico_City': 'Мехико',
+    'Miquelon': 'Микелон', 'Moncton': 'Монктон', 'Monterrey': 'Монтеррей', 'Montevideo': 'Монтевидео',
+    'Montserrat': 'Монтсеррат', 'Nassau': 'Нассау', 'New_York': 'Нью-Йорк', 'Nipigon': 'Нипигон',
+    'Nome': 'Ном', 'Noronha': 'Норонья', 'North_Dakota/Beulah': 'Бьюла (Сев. Дакота)',
+    'North_Dakota/Center': 'Сентер (Сев. Дакота)', 'North_Dakota/New_Salem': 'Нью-Сейлем (Сев. Дакота)',
+    'Ojinaga': 'Охинага', 'Panama': 'Панама', 'Pangnirtung': 'Пангниртунг', 'Paramaribo': 'Парамарибо',
+    'Phoenix': 'Финикс', 'Port-au-Prince': 'Порт-о-Пренс', 'Port_of_Spain': 'Порт-оф-Спейн',
+    'Porto_Velho': 'Порту-Велью', 'Puerto_Rico': 'Пуэрто-Рико', 'Punta_Arenas': 'Пунта-Аренас',
+    'Rainy_River': 'Рейни-Ривер', 'Rankin_Inlet': 'Ранкин-Инлет', 'Recife': 'Ресифи', 'Regina': 'Реджайна',
+    'Resolute': 'Резольют', 'Rio_Branco': 'Риу-Бранку', 'Santarem': 'Сантарен', 'Santiago': 'Сантьяго',
+    'Santo_Domingo': 'Санто-Доминго', 'Sao_Paulo': 'Сан-Паулу', 'Scoresbysund': 'Иттоккортоормиут',
+    'Sitka': 'Ситка', 'St_Barthelemy': 'Сен-Бартелеми', 'St_Johns': 'Сент-Джонс', 'St_Kitts': 'Сент-Китс',
+    'St_Lucia': 'Сент-Люсия', 'St_Thomas': 'Сент-Томас', 'St_Vincent': 'Сент-Винсент', 'Swift_Current': 'Свифт-Каррент',
+    'Tegucigalpa': 'Тегусигальпа', 'Thule': 'Туле', 'Thunder_Bay': 'Тандер-Бей', 'Tijuana': 'Тихуана',
+    'Toronto': 'Торонто', 'Tortola': 'Тортола', 'Vancouver': 'Ванкувер', 'Whitehorse': 'Уайтхорс',
+    'Winnipeg': 'Виннипег', 'Yakutat': 'Якутат', 'Yellowknife': 'Йеллоунайф',
+
+    // Африка
+    'Abidjan': 'Абиджан', 'Accra': 'Аккра', 'Addis_Ababa': 'Аддис-Абеба', 'Algiers': 'Алжир',
+    'Asmara': 'Асмэра', 'Bamako': 'Бамако', 'Bangui': 'Банги', 'Banjul': 'Банжул',
+    'Bissau': 'Бисау', 'Blantyre': 'Блантайр', 'Brazzaville': 'Браззавиль', 'Bujumbura': 'Бужумбура',
+    'Cairo': 'Каир', 'Casablanca': 'Касабланка', 'Ceuta': 'Сеута', 'Conakry': 'Конакри',
+    'Dakar': 'Дакар', 'Dar_es_Salaam': 'Дар-эс-Салам', 'Djibouti': 'Джибути', 'Douala': 'Дуала',
+    'El_Aaiun': 'Эль-Аюн', 'Freetown': 'Фритаун', 'Gaborone': 'Габороне', 'Harare': 'Хараре',
+    'Johannesburg': 'Йоханнесбург', 'Juba': 'Джуба', 'Kampala': 'Кампала', 'Khartoum': 'Хартум',
+    'Kigali': 'Кигали', 'Kinshasa': 'Киншаса', 'Lagos': 'Лагос', 'Libreville': 'Либревиль',
+    'Lome': 'Ломе', 'Luanda': 'Луанда', 'Lubumbashi': 'Лубумбаши', 'Lusaka': 'Лусака',
+    'Malabo': 'Малабо', 'Maputo': 'Мапуту', 'Maseru': 'Масеру', 'Mbabane': 'Мбабане',
+    'Mogadishu': 'Могадишо', 'Monrovia': 'Монровия', 'Nairobi': 'Найроби', 'Ndjamena': 'Нджамена',
+    'Niamey': 'Ниамей', 'Nouakchott': 'Нуакшот', 'Ouagadougou': 'Уагадугу', 'Porto-Novo': 'Порто-Ново',
+    'Sao_Tome': 'Сан-Томе', 'Tripoli': 'Триполи', 'Tunis': 'Тунис', 'Windhoek': 'Виндхук',
+
+    // Австралия и Океания
+    'Adelaide': 'Аделаида', 'Brisbane': 'Брисбен', 'Broken_Hill': 'Брокен-Хилл', 'Currie': 'Карри',
+    'Darwin': 'Дарвин', 'Eucla': 'Юкла', 'Hobart': 'Хобарт', 'Lindeman': 'Линдеман',
+    'Lord_Howe': 'Лорд-Хау', 'Melbourne': 'Мельбурн', 'Perth': 'Перт', 'Sydney': 'Сидней',
+    'Apia': 'Апиа', 'Auckland': 'Окленд', 'Bougainville': 'Бугенвиль', 'Chatham': 'Чатем',
+    'Chuuk': 'Трук', 'Easter': 'Остров Пасхи', 'Efate': 'Эфате', 'Enderbury': 'Эндербери',
+    'Fakaofo': 'Факаофо', 'Fiji': 'Фиджи', 'Funafuti': 'Фунафути', 'Galapagos': 'Галапагос',
+    'Gambier': 'Гамбье', 'Guadalcanal': 'Гвадалканал', 'Guam': 'Гуам', 'Honolulu': 'Гонолулу',
+    'Kiritimati': 'Киритимати', 'Kosrae': 'Кусаие', 'Kwajalein': 'Кваджалейн', 'Majuro': 'Маджуро',
+    'Marquesas': 'Маркизские острова', 'Midway': 'Мидуэй', 'Nauru': 'Науру', 'Niue': 'Ниуэ',
+    'Norfolk': 'Норфолк', 'Noumea': 'Нумеа', 'Pago_Pago': 'Паго-Паго', 'Palau': 'Палау',
+    'Pitcairn': 'Питкэрн', 'Pohnpei': 'Понпеи', 'Port_Moresby': 'Порт-Морсби', 'Rarotonga': 'Раротонга',
+    'Saipan': 'Сайпан', 'Tahiti': 'Таити', 'Tarawa': 'Тарава', 'Tongatapu': 'Тонгатапу',
+    'Wake': 'Уэйк', 'Wallis': 'Уоллис',
+
+    // Другое
+    'UTC': 'UTC'
 };
+
 
 export function getHtml() {
     return `
@@ -100,11 +201,16 @@ export function cleanup() {
 function getFriendlyTimezoneName(iana) {
     const city = iana.split('/').pop();
     const ruName = timezoneNameMap[city];
+    
+    // Попробуем найти перевод для составных имен, например 'Argentina/Buenos_Aires'
+    const fullRuName = timezoneNameMap[iana];
+
     return {
-        name: ruName || city.replace(/_/g, ' '),
+        name: fullRuName || ruName || city.replace(/_/g, ' '),
         full: iana.replace(/_/g, ' ')
     };
 }
+
 
 function populateTimezoneSelect() {
     const timezones = Intl.supportedValuesOf('timeZone');
@@ -207,7 +313,7 @@ function createTimezoneCard(timezone, date) {
 function getOffsetString(date, timeZone) {
     const options = { timeZone, timeZoneName: 'longOffset' };
     const dateString = date.toLocaleString('en-US', options);
-    const match = dateString.match(/GMT([+-]\\d{1,2}(:\\d{2})?)/);
+    const match = dateString.match(/GMT([+-]\d{1,2}(:\d{2})?)/);
     if (match) return `UTC${match[1]}`;
     return 'UTC';
 }
