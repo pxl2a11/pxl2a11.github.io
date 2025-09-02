@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v22'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v23'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 
 const appModules = [
@@ -11,6 +11,9 @@ const appModules = [
     'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame',
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048',
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
+    // --- НОВЫЕ ПРИЛОЖЕНИЯ ---
+    'textDiffTool', 'faviconGenerator', 'loanCalculator', 'typingTest',
+    // -----------------------
     'changelogPage'
 ];
 
@@ -44,7 +47,6 @@ const urlsToCache = [
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
-  // ИСПРАВЛЕНО: Дубликаты удалены. Они будут добавлены автоматически ниже.
 
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
@@ -84,40 +86,29 @@ self.addEventListener('activate', event => {
   );
 });
 
-// --- ИСПРАВЛЕННЫЙ ОБРАБОТЧИК 'FETCH' ---
 self.addEventListener('fetch', event => {
   const { request } = event;
 
-  // Для навигационных запросов (переход по страницам)
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .catch(() => {
-          // В случае сбоя сети отдаем базовую оболочку приложения
           return caches.match(APP_SHELL_URL);
         })
     );
     return;
   }
   
-  // Для всех остальных запросов (стили, скрипты, API и т.д.)
   event.respondWith(
     caches.match(request)
       .then(response => {
-        // Если запрос есть в кэше, возвращаем его
         if (response) {
           return response;
         }
-
-        // Если запроса нет в кэше, делаем запрос к сети
         return fetch(request).then(fetchResponse => {
-          // Проверяем, что это GET-запрос и ответ на него успешный.
-          // Это предотвратит ошибку с POST-запросами.
           if (request.method !== 'GET' || !fetchResponse || fetchResponse.status !== 200) {
-            return fetchResponse; // Возвращаем оригинальный ответ, не кэшируя его
+            return fetchResponse;
           }
-
-          // Если это валидный GET-запрос, клонируем ответ и сохраняем в кэш
           return caches.open(CACHE_NAME).then(cache => {
             cache.put(request, fetchResponse.clone());
             return fetchResponse;
