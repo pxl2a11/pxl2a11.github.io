@@ -1,4 +1,15 @@
+// js/apps/stopwatch.js
+
+import { auth } from '../firebaseConfig.js';
+import { getUserData, saveUserData } from '../dataManager.js';
+
 let stopwatchInterval;
+let eventListeners = [];
+
+function addListener(element, event, handler) {
+    element.addEventListener(event, handler);
+    eventListeners.push({ element, event, handler });
+}
 
 export function getHtml() {
     return `
@@ -11,11 +22,21 @@ export function getHtml() {
             <div id="laps-container" class="w-full mt-4">
                 <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">
                     <h3 class="font-bold text-lg">Круги</h3>
-                    <button id="sw-export-btn" class="hidden bg-blue-500 text-white font-bold py-1 px-3 text-sm rounded-lg hover:bg-blue-600">Экспорт</button>
+                    <div class="flex items-center gap-2">
+                        <button id="sw-save-session-btn" class="hidden bg-purple-500 text-white font-bold py-1 px-3 text-sm rounded-lg hover:bg-purple-600">Сохранить</button>
+                        <button id="sw-export-btn" class="hidden bg-blue-500 text-white font-bold py-1 px-3 text-sm rounded-lg hover:bg-blue-600">Экспорт</button>
+                    </div>
                 </div>
                 <div id="laps-list" class="w-full space-y-2 p-2 rounded-lg">
                     <p id="laps-placeholder" class="text-center text-gray-500 py-4">Нет зафиксированных кругов.</p>
                 </div>
+            </div>
+            <!-- Новый блок для сохраненных сессий -->
+            <div id="sw-sessions-container" class="hidden w-full mt-4">
+                 <h3 class="font-bold text-lg mb-2 text-center">Сохраненные сессии</h3>
+                 <select id="sw-sessions-select" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600">
+                    <option value="">-- Выберите сессию для просмотра --</option>
+                 </select>
             </div>
         </div>
         <style>
@@ -30,22 +51,29 @@ export function getHtml() {
         `;
 }
 
-export function init() {
-    const display = document.getElementById('stopwatch-display'),
-        startStopBtn = document.getElementById('sw-start-stop-btn'),
-        lapResetBtn = document.getElementById('sw-lap-reset-btn'),
-        lapsList = document.getElementById('laps-list'),
-        lapsPlaceholder = document.getElementById('laps-placeholder'),
-        exportBtn = document.getElementById('sw-export-btn');
+export async function init() {
+    const display = document.getElementById('stopwatch-display');
+    const startStopBtn = document.getElementById('sw-start-stop-btn');
+    const lapResetBtn = document.getElementById('sw-lap-reset-btn');
+    const lapsList = document.getElementById('laps-list');
+    const lapsPlaceholder = document.getElementById('laps-placeholder');
+    const exportBtn = document.getElementById('sw-export-btn');
+    const saveSessionBtn = document.getElementById('sw-save-session-btn');
+    const sessionsContainer = document.getElementById('sw-sessions-container');
+    const sessionsSelect = document.getElementById('sw-sessions-select');
 
     let startTime, updatedTime, difference, running = false, savedTime = 0, lapCounter = 0;
+    let currentLaps = [];
 
-    const formatTime = time => {
+    const formatTime = (time, forDisplay = true) => {
         let h = Math.floor((time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
         let m = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
         let s = Math.floor((time % (1000 * 60)) / 1000).toString().padStart(2, '0');
         let ms = Math.floor(time % 1000).toString().padStart(3, '0');
-        return `${h}:${m}:${s}<span class="text-4xl text-gray-500">.${ms}</span>`;
+        if (forDisplay) {
+            return `${h}:${m}:${s}<span class="text-4xl text-gray-500">.${ms}</span>`;
+        }
+        return `${h}:${m}:${s}.${ms}`;
     };
 
     const updateDisplay = () => {
@@ -66,6 +94,21 @@ export function init() {
             lapResetBtn.disabled = false;
         }
     };
+    
+    const renderLaps = (laps) => {
+        lapsList.innerHTML = '';
+        if (laps.length === 0) {
+            lapsList.appendChild(lapsPlaceholder);
+            return;
+        }
+         laps.forEach((lapData, index) => {
+            const lapEl = document.createElement('div');
+            lapEl.className = 'flex justify-between items-baseline p-2 border-b border-gray-200 dark:border-gray-700 text-lg';
+            const lapTime = formatTime(lapData.time, true).replace(/<span.*span>/, (match) => match.replace('text-4xl', 'text-base'));
+            lapEl.innerHTML = `<span class="text-sm text-gray-500 dark:text-gray-400">Круг ${laps.length - index}</span><span class="font-mono">${lapTime}</span>`;
+            lapsList.prepend(lapEl);
+        });
+    };
 
     const stop = () => {
         if (running) {
@@ -85,62 +128,106 @@ export function init() {
         difference = 0;
         lapCounter = 0;
         running = false;
+        currentLaps = [];
         display.innerHTML = '00:00:00<span class="text-4xl text-gray-500">.000</span>';
-        lapsList.innerHTML = '';
-        lapsList.appendChild(lapsPlaceholder);
+        renderLaps([]);
         startStopBtn.textContent = 'Старт';
         startStopBtn.classList.replace('bg-red-500', 'bg-green-500');
         startStopBtn.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
         lapResetBtn.textContent = 'Сброс';
         lapResetBtn.disabled = true;
         exportBtn.classList.add('hidden');
+        if (auth.currentUser) saveSessionBtn.classList.add('hidden');
     };
 
     const lap = () => {
         if (running) {
-            if (lapsPlaceholder) lapsPlaceholder.remove();
             lapCounter++;
-            const lapTime = formatTime(difference).replace(/<span.*span>/, (match) => match.replace('text-4xl', 'text-base'));
-            const lapEl = document.createElement('div');
-            lapEl.className = 'flex justify-between items-baseline p-2 border-b border-gray-200 dark:border-gray-700 text-lg';
-            lapEl.innerHTML = `<span class="text-sm text-gray-500 dark:text-gray-400">Круг ${lapCounter}</span><span class="font-mono">${lapTime}</span>`;
-            lapsList.prepend(lapEl);
+            currentLaps.push({ lap: lapCounter, time: difference });
+            renderLaps(currentLaps);
             if (exportBtn.classList.contains('hidden')) {
                 exportBtn.classList.remove('hidden');
+            }
+            if (auth.currentUser && saveSessionBtn.classList.contains('hidden')) {
+                saveSessionBtn.classList.remove('hidden');
             }
         }
     };
 
+    const saveSession = async () => {
+        if (!auth.currentUser || currentLaps.length === 0) return;
+        const sessions = getUserData('stopwatchSessions', []);
+        const sessionName = new Date().toLocaleString('ru-RU');
+        sessions.unshift({ name: sessionName, laps: currentLaps });
+        if (sessions.length > 20) sessions.pop(); // Ограничение на 20 сессий
+        await saveUserData('stopwatchSessions', sessions);
+        
+        saveSessionBtn.textContent = 'Сохранено!';
+        setTimeout(() => { saveSessionBtn.textContent = 'Сохранить'; }, 2000);
+        await populateSessions();
+    };
+
+    const populateSessions = async () => {
+        if (!auth.currentUser) return;
+        const sessions = getUserData('stopwatchSessions', []);
+        if (sessions.length > 0) {
+            sessionsContainer.classList.remove('hidden');
+            sessionsSelect.innerHTML = '<option value="">-- Выберите сессию для просмотра --</option>';
+            sessions.forEach((session, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = session.name;
+                sessionsSelect.appendChild(option);
+            });
+        }
+    };
+
+    const loadSession = () => {
+        const index = sessionsSelect.value;
+        if (index === '') return;
+        reset();
+        const sessions = getUserData('stopwatchSessions', []);
+        const session = sessions[index];
+        if (session) {
+            currentLaps = session.laps;
+            const lastLap = session.laps[session.laps.length - 1];
+            difference = lastLap.time;
+            display.innerHTML = formatTime(difference);
+            renderLaps(currentLaps);
+            exportBtn.classList.remove('hidden');
+        }
+    };
+    
     const exportLaps = () => {
-        const lapsData = Array.from(lapsList.children)
-            .map(lapEl => lapEl.innerText.replace('\t', ': '))
-            .reverse()
-            .join('\n');
+        const lapsData = currentLaps
+            .map(lapData => `Круг ${lapData.lap}: ${formatTime(lapData.time, false)}`)
+            .join('\\n');
 
         if (lapsData && navigator.clipboard) {
             navigator.clipboard.writeText(lapsData).then(() => {
                 const originalText = exportBtn.textContent;
                 exportBtn.textContent = 'Скопировано!';
-                exportBtn.disabled = true;
-                setTimeout(() => {
-                    exportBtn.textContent = originalText;
-                    exportBtn.disabled = false;
-                }, 2000);
-            }).catch(err => {
-                console.error('Ошибка копирования в буфер обмена: ', err);
-                alert('Не удалось скопировать.');
+                setTimeout(() => { exportBtn.textContent = 'Экспорт'; }, 2000);
             });
         }
     };
+    
+    addListener(startStopBtn, 'click', () => running ? stop() : start());
+    addListener(lapResetBtn, 'click', () => running ? lap() : reset());
+    addListener(exportBtn, 'click', exportLaps);
+    addListener(saveSessionBtn, 'click', saveSession);
+    addListener(sessionsSelect, 'change', loadSession);
 
-    startStopBtn.addEventListener('click', () => running ? stop() : start());
-    lapResetBtn.addEventListener('click', () => running ? lap() : reset());
-    exportBtn.addEventListener('click', exportLaps);
+    if (auth.currentUser) {
+        await populateSessions();
+    }
 }
 
 export function cleanup() {
-    if (stopwatchInterval) {
-        clearInterval(stopwatchInterval);
-        stopwatchInterval = null;
-    }
+    clearInterval(stopwatchInterval);
+    stopwatchInterval = null;
+    eventListeners.forEach(({ element, event, handler }) => {
+        element.removeEventListener(event, handler);
+    });
+    eventListeners = [];
 }
