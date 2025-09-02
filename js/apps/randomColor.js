@@ -285,4 +285,4 @@ export function init() {
     generateColor();
 }
 
-export function cleanup() {}```
+export function cleanup() {}
