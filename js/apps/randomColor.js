@@ -1,4 +1,4 @@
-// --- 11 js/randomColor.js ---
+// --- 29Файл: js/randomColor.js ---
 
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -11,7 +11,8 @@ export function getHtml() {
                     <button id="generate-color-btn" class="flex-grow bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">
                         Новый цвет
                     </button>
-                    <button id="freeze-color-btn" title="Заморозить цвет" class="flex-shrink-0 p-3 bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
+                    <!-- ИЗМЕНЕНИЕ: Классы кнопки замка обновлены для единого стиля -->
+                    <button id="freeze-color-btn" title="Заморозить цвет" class="flex-shrink-0 p-3 bg-gray-600 text-gray-300 rounded-lg hover:bg-gray-500 transition-colors">
                         <img id="freeze-icon" src="img/unlock.svg" alt="Статус заморозки" class="w-6 h-6">
                     </button>
                 </div>
@@ -35,19 +36,19 @@ export function getHtml() {
                          <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
                             <span id="color-code-hex" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">#ffffff</span>
                             <button id="copy-hex" title="Скопировать" class="copy-btn flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
-                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2_0 01-2-2V6a2 2_0 012-2h8a2 2_0 012 2v2m-6 12h8a2 2_0 002-2v-8a2 2_0 00-2-2h-8a2 2_0 00-2 2v8a2 2_0 002 2z"></path></svg>
                             </button>
                         </div>
                         <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
                             <span id="color-code-rgb" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">rgb(255, 255, 255)</span>
                              <button id="copy-rgb" title="Скопировать" class="copy-btn flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
-                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2_0 01-2-2V6a2 2_0 012-2h8a2 2_0 012 2v2m-6 12h8a2 2_0 002-2v-8a2 2_0 00-2-2h-8a2 2_0 00-2 2v8a2 2_0 002 2z"></path></svg>
                             </button>
                         </div>
                         <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
                             <span id="color-code-hsl" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">hsl(0, 0%, 100%)</span>
                              <button id="copy-hsl" title="Скопировать" class="copy-btn flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
-                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2_0 01-2-2V6a2 2_0 012-2h8a2 2_0 012 2v2m-6 12h8a2 2_0 002-2v-8a2 2_0 00-2-2h-8a2 2_0 00-2 2v8a2 2_0 002 2z"></path></svg>
                             </button>
                         </div>
                     </div>
@@ -226,14 +227,16 @@ export function init() {
 
         if (isColorFrozen) {
             freezeBtn.title = 'Разморозить цвет';
-            freezeIcon.src = 'img/lock.svg'; // Меняем на иконку замка
-            freezeBtn.classList.add('bg-blue-200', 'dark:bg-blue-800');
-            display.classList.add('ring-4', 'ring-blue-500', 'dark:ring-blue-500');
+            freezeIcon.src = 'img/lock.svg';
+            // ИЗМЕНЕНИЕ: Используется единый класс для активного состояния
+            freezeBtn.classList.add('bg-blue-800');
+            display.classList.add('ring-4', 'ring-blue-500');
         } else {
             freezeBtn.title = 'Заморозить цвет';
-            freezeIcon.src = 'img/unlock.svg'; // Меняем на иконку открытого замка
-            freezeBtn.classList.remove('bg-blue-200', 'dark:bg-blue-800');
-            display.classList.remove('ring-4', 'ring-blue-500', 'dark:ring-blue-500');
+            freezeIcon.src = 'img/unlock.svg';
+            // ИЗМЕНЕНИЕ: Используется единый класс для активного состояния
+            freezeBtn.classList.remove('bg-blue-800');
+            display.classList.remove('ring-4', 'ring-blue-500');
         }
     };
 
