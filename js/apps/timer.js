@@ -4,11 +4,8 @@ let timerInterval = null;
 let totalSeconds = 0;
 let eventListeners = [];
 
-// Элементы UI
-let hoursInput, minutesInput, secondsInput;
-let timerDisplay;
-let startPauseButton, resetButton, presetsContainer;
-let notificationSound;
+let hoursInput, minutesInput, secondsInput, timerDisplay, startPauseButton, resetButton, presetsContainer, soundSelect;
+let notificationSounds = {};
 
 function addListener(element, event, handler) {
     element.addEventListener(event, handler);
@@ -16,13 +13,11 @@ function addListener(element, event, handler) {
 }
 
 function validateInputs() {
-    // Эта функция вызывается только при ручном вводе
-    if (timerInterval) return; // Не меняем состояние кнопки, если таймер запущен
+    if (timerInterval) return;
     const h = parseInt(hoursInput.value) || 0;
     const m = parseInt(minutesInput.value) || 0;
     const s = parseInt(secondsInput.value) || 0;
     const total = h * 3600 + m * 60 + s;
-
     startPauseButton.disabled = total <= 0;
 }
 
@@ -45,7 +40,6 @@ function updateDisplay() {
 }
 
 function startTimer() {
-    // Получаем время из полей ввода только если таймер не на паузе
     if (totalSeconds <= 0 && timerInterval === null) {
         const h = parseInt(hoursInput.value) || 0;
         const m = parseInt(minutesInput.value) || 0;
@@ -55,7 +49,7 @@ function startTimer() {
     
     if (totalSeconds <= 0) return;
 
-    startPauseButton.disabled = false; // *** ИСПРАВЛЕНИЕ: Всегда активируем кнопку при старте
+    startPauseButton.disabled = false;
     startPauseButton.textContent = 'Пауза';
     startPauseButton.classList.replace('bg-blue-500', 'bg-amber-500');
     startPauseButton.classList.replace('hover:bg-blue-600', 'hover:bg-amber-600');
@@ -71,9 +65,14 @@ function startTimer() {
             startPauseButton.textContent = 'Старт';
             startPauseButton.classList.replace('bg-amber-500', 'bg-blue-500');
             startPauseButton.classList.replace('hover:bg-amber-600', 'hover:bg-blue-600');
-            notificationSound.play();
+            
+            const selectedSound = soundSelect.value;
+            if (notificationSounds[selectedSound]) {
+                notificationSounds[selectedSound].play();
+            }
+
             timerDisplay.classList.add('animate-pulse', 'text-red-500');
-            validateInputs(); // Проверяем, нужно ли деактивировать кнопку после окончания
+            validateInputs();
             updateTitle();
         }
     }, 1000);
@@ -116,7 +115,10 @@ function handleReset() {
 export function getHtml() {
     return `
         <div class="flex flex-col items-center text-center max-w-md mx-auto space-y-8">
-            <audio id="timer-notification" src="sounds/notification.wav" preload="auto"></audio>
+            <audio id="timer-notification-1" src="sounds/notification.mp3" preload="auto"></audio>
+            <audio id="timer-notification-2" src="sounds/notification2.mp3" preload="auto"></audio>
+            <audio id="timer-notification-3" src="sounds/notification3.mp3" preload="auto"></audio>
+            <audio id="timer-notification-4" src="sounds/notification4.mp3" preload="auto"></audio>
 
             <p id="timer-display" class="text-7xl font-mono font-light tracking-tighter">00:00:00</p>
 
@@ -133,6 +135,17 @@ export function getHtml() {
                 <button data-time="300" class="preset-btn">5 мин</button>
                 <button data-time="600" class="preset-btn">10 мин</button>
                 <button data-time="900" class="preset-btn">15 мин</button>
+            </div>
+
+             <!-- Новый блок выбора звука -->
+            <div class="w-full max-w-xs">
+                <label for="timer-sound-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Звук уведомления</label>
+                <select id="timer-sound-select" class="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600">
+                    <option value="1">Звук 1 (Стандартный)</option>
+                    <option value="2">Звук 2</option>
+                    <option value="3">Звук 3</option>
+                    <option value="4">Звук 4</option>
+                </select>
             </div>
 
             <div class="flex items-center justify-center space-x-6 w-full">
@@ -169,15 +182,28 @@ export function init() {
     timerDisplay = document.getElementById('timer-display');
     startPauseButton = document.getElementById('timer-start-pause');
     resetButton = document.getElementById('timer-reset');
-    notificationSound = document.getElementById('timer-notification');
     presetsContainer = document.getElementById('timer-presets');
+    soundSelect = document.getElementById('timer-sound-select');
     
+    notificationSounds = {
+        '1': document.getElementById('timer-notification-1'),
+        '2': document.getElementById('timer-notification-2'),
+        '3': document.getElementById('timer-notification-3'),
+        '4': document.getElementById('timer-notification-4'),
+    };
+    
+    const savedSound = localStorage.getItem('timerSound') || '1';
+    soundSelect.value = savedSound;
+
     addListener(startPauseButton, 'click', handleStartPause);
     addListener(resetButton, 'click', handleReset);
-    
     addListener(hoursInput, 'input', validateInputs);
     addListener(minutesInput, 'input', validateInputs);
     addListener(secondsInput, 'input', validateInputs);
+    
+    addListener(soundSelect, 'change', () => {
+        localStorage.setItem('timerSound', soundSelect.value);
+    });
 
     addListener(presetsContainer, 'click', (e) => {
         const target = e.target.closest('.preset-btn');
