@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v24'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v25'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 
 const appModules = [
@@ -45,6 +45,10 @@ const urlsToCache = [
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
+  // --- ДОБАВЛЕННЫЕ ИКОНКИ ---
+  '/img/lock.svg',
+  '/img/unlock.svg',
+  // -------------------------
 
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
