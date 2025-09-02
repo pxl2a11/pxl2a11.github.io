@@ -1,24 +1,22 @@
-// js/apps/randomColor.js
+// --- js/randomColor.js ---
 
 import { getUserData, saveUserData } from '../dataManager.js';
 
 export function getHtml() {
     return `
-        <style>
-            .lock-btn svg.locked { color: #3b82f6; } /* blue-500 */
-            .dark .lock-btn svg.locked { color: #60a5fa; } /* dark:blue-400 */
-        </style>
         <div class="flex flex-col md:flex-row w-full md:gap-8">
             <div class="flex-shrink-0 flex flex-col items-center gap-4 mb-6 md:mb-0 md:w-56">
-                <div class="relative group w-full">
-                    <div id="color-display" class="w-full h-56 rounded-xl shadow-lg transition-colors duration-300 border-4 border-gray-200 dark:border-gray-700"></div>
-                    <button data-id="main-0" class="lock-btn absolute top-2 right-2 p-1.5 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity" title="Заморозить цвет">
-                        <svg class="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <div id="color-display" class="w-full h-56 rounded-xl shadow-lg transition-all duration-300 border-4 border-gray-200 dark:border-gray-700"></div>
+                <div class="flex w-full gap-2">
+                    <button id="generate-color-btn" class="flex-grow bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">
+                        Новый цвет
+                    </button>
+                    <button id="freeze-color-btn" title="Заморозить цвет" class="flex-shrink-0 p-3 bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H4.5a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
                     </button>
                 </div>
-                <button id="generate-color-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">
-                    Новый цвет
-                </button>
                 <div class="w-full space-y-2">
                     <h4 class="text-sm font-semibold text-center text-gray-500 dark:text-gray-400">История</h4>
                     <div id="color-history" class="flex justify-center gap-2"></div>
@@ -27,10 +25,12 @@ export function getHtml() {
 
             <div class="flex-grow flex flex-col space-y-5 min-w-0">
                 <div class="space-y-3">
-                     <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
                         <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Коды цвета</h3>
                         <button id="save-to-favorites-btn" title="Добавить в избранное" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                            <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
                         </button>
                     </div>
                     <div class="space-y-2">
@@ -88,10 +88,15 @@ export function init() {
     const favBtn = document.getElementById('save-to-favorites-btn');
     const favContainer = document.getElementById('favorite-colors-container');
     const noFavoritesMsg = document.getElementById('no-favorites-msg');
+
+    // --- Новые элементы и переменные состояния для "заморозки" ---
+    const freezeBtn = document.getElementById('freeze-color-btn');
+    const lockedIcon = `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m9 11.25h-10.5a2.25 2.25 0 01-2.25-2.25v-6.75a2.25 2.25 0 012.25-2.25H16.5a2.25 2.25 0 012.25 2.25v6.75a2.25 2.25 0 01-2.25 2.25z" /></svg>`;
+    const unlockedIcon = `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H4.5a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>`;
+    let isColorFrozen = false;
     
     let colorHistory = [];
     let favoriteColors = [];
-    let lockedColors = new Map();
     const HISTORY_LIMIT = 5;
 
     function hexToRgb(hex) {
@@ -125,52 +130,22 @@ export function init() {
         return "#" + r + g + b;
     }
     
-    // ИСПРАВЛЕНИЕ: Вспомогательная функция для преобразования rgb() в hex
-    const rgbToHex = (rgb) => {
-        if (!rgb || !rgb.includes('rgb')) return '#000000';
-        let [r, g, b] = rgb.match(/\d+/g).map(Number);
-        const toHex = c => ("0" + c.toString(16)).slice(-2);
-        return "#" + toHex(r) + toHex(g) + toHex(b);
-    };
-    
-    const renderPalette = (el, colors, paletteName) => {
+    const renderPalette = (el, colors) => {
         el.innerHTML = '';
-        colors.forEach((color, index) => {
-            const id = `${paletteName}-${index}`;
-            const swatchWrapper = document.createElement('div');
-            swatchWrapper.className = 'relative group';
-            
+        colors.forEach(color => {
             const swatch = document.createElement('div');
             swatch.className = 'w-12 h-12 rounded-lg shadow-inner cursor-pointer border-2 border-gray-200 dark:border-gray-700';
             swatch.style.backgroundColor = color;
             swatch.title = `Нажмите, чтобы выбрать ${color}`;
             swatch.onclick = () => {
-                if (!lockedColors.has('main-0')) updateUI(color);
+                if(isColorFrozen) { // Если цвет заморожен, не позволяем палитре менять основной цвет
+                    copyToClipboard(color, swatch);
+                    return;
+                }
+                updateUI(color);
             };
-
-            const lockBtn = document.createElement('button');
-            lockBtn.className = 'lock-btn absolute top-1 right-1 p-1 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity';
-            lockBtn.dataset.id = id;
-            
-            const isLocked = lockedColors.has(id);
-            lockBtn.innerHTML = isLocked
-                ? `<svg class="w-4 h-4 locked" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>`
-                : `<svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`;
-            
-            swatchWrapper.appendChild(swatch);
-            swatchWrapper.appendChild(lockBtn);
-            el.appendChild(swatchWrapper);
+            el.appendChild(swatch);
         });
-    };
-    
-    // ИСПРАВЛЕНИЕ: Обновленная логика блокировки
-    const toggleLock = (id, hex) => {
-        if (lockedColors.has(id)) {
-            lockedColors.delete(id);
-        } else {
-            lockedColors.set(id, hex);
-        }
-        updateUI(codeHex.textContent, false); // Перерисовываем UI, чтобы обновить иконки замков
     };
 
     const updateHistory = (newColor) => {
@@ -193,24 +168,31 @@ export function init() {
     };
 
     const renderFavorites = () => {
-        favContainer.innerHTML = '';
+        favContainer.innerHTML = ''; 
         if (favoriteColors.length === 0) {
-            if (noFavoritesMsg) favContainer.appendChild(noFavoritesMsg);
+            favContainer.appendChild(noFavoritesMsg); 
             return;
         }
+
         favoriteColors.forEach(color => {
             const swatchWrapper = document.createElement('div');
             swatchWrapper.className = 'relative group';
+
             const swatch = document.createElement('div');
             swatch.className = 'w-12 h-12 rounded-lg shadow-inner cursor-pointer border-2 border-gray-200 dark:border-gray-700';
             swatch.style.backgroundColor = color;
             swatch.title = `Нажмите, чтобы выбрать ${color}`;
             swatch.onclick = () => updateUI(color);
+
             const removeBtn = document.createElement('button');
             removeBtn.className = 'absolute -top-1 -right-1 p-0.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity';
             removeBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>`;
             removeBtn.title = `Удалить из избранного`;
-            removeBtn.onclick = (e) => { e.stopPropagation(); toggleFavorite(color); };
+            removeBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleFavorite(color);
+            };
+
             swatchWrapper.appendChild(swatch);
             swatchWrapper.appendChild(removeBtn);
             favContainer.appendChild(swatchWrapper);
@@ -220,101 +202,121 @@ export function init() {
     const updateFavButtonState = (hex) => {
         const isFavorite = favoriteColors.includes(hex);
         const svg = favBtn.querySelector('svg');
-        svg.style.fill = isFavorite ? 'currentColor' : 'none';
+        if (isFavorite) {
+            favBtn.title = 'Удалить из избранного';
+            svg.style.fill = 'currentColor';
+        } else {
+            favBtn.title = 'Добавить в избранное';
+            svg.style.fill = 'none';
+        }
     };
 
     const toggleFavorite = (colorToToggle) => {
         const color = colorToToggle || codeHex.textContent;
         const index = favoriteColors.indexOf(color);
-        if (index > -1) favoriteColors.splice(index, 1);
-        else favoriteColors.unshift(color);
+        if (index > -1) {
+            favoriteColors.splice(index, 1);
+        } else {
+            favoriteColors.unshift(color);
+        }
+        
         saveUserData('favoriteColors', favoriteColors);
         renderFavorites();
         updateFavButtonState(color);
     };
-    
-    const updateUI = (hex, shouldUpdateHistory = true) => {
-        display.style.backgroundColor = hex;
-        codeHex.textContent = hex;
-        const rgb = hexToRgb(hex);
-        const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-        codeRgb.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-        codeHsl.textContent = `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
-        
-        // Используем заблокированный цвет если он есть, иначе - текущий `hex`
-        const mainColorForPalette = lockedColors.get('main-0') || hex;
-        const mainHsl = rgbToHsl(hexToRgb(mainColorForPalette).r, hexToRgb(mainColorForPalette).g, hexToRgb(mainColorForPalette).b);
 
-        // Формируем палитры, учитывая заблокированные цвета
-        const compHex = lockedColors.get('comp-1') || hslToHex((mainHsl.h + 180) % 360, mainHsl.s, mainHsl.l);
-        const analogHex1 = lockedColors.get('analog-0') || hslToHex((mainHsl.h - 30 + 360) % 360, mainHsl.s, mainHsl.l);
-        const analogHex2 = lockedColors.get('analog-2') || hslToHex((mainHsl.h + 30) % 360, mainHsl.s, mainHsl.l);
-        
-        const mainPaletteColor = lockedColors.get('main-0') || hex;
-        
-        // В комплементарную палитру передаем главный цвет и его комплементарный
-        renderPalette(complementaryPaletteEl, [mainPaletteColor, compHex], 'comp');
-        // В аналоговую палитру - два аналоговых и главный цвет
-        renderPalette(analogousPaletteEl, [analogHex1, mainPaletteColor, analogHex2], 'analog');
-        
-        updateFavButtonState(hex);
-        const mainLockBtn = document.querySelector('.lock-btn[data-id="main-0"]');
-        mainLockBtn.innerHTML = lockedColors.has('main-0')
-            ? `<svg class="w-5 h-5 locked" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>`
-            : `<svg class="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`;
-        
-        if (shouldUpdateHistory) {
-            updateHistory(hex);
+    // --- Новая функция для "заморозки" ---
+    const toggleFreeze = () => {
+        isColorFrozen = !isColorFrozen;
+        if (isColorFrozen) {
+            freezeBtn.title = 'Разморозить цвет';
+            freezeBtn.innerHTML = lockedIcon;
+            freezeBtn.classList.add('bg-blue-200', 'dark:bg-blue-800', 'text-blue-800', 'dark:text-blue-100');
+            display.classList.add('ring-4', 'ring-blue-500', 'dark:ring-blue-500');
+        } else {
+            freezeBtn.title = 'Заморозить цвет';
+            freezeBtn.innerHTML = unlockedIcon;
+            freezeBtn.classList.remove('bg-blue-200', 'dark:bg-blue-800', 'text-blue-800', 'dark:text-blue-100');
+            display.classList.remove('ring-4', 'ring-blue-500', 'dark:ring-blue-500');
         }
     };
 
-    const generateColor = () => {
-        // Если основной цвет заблокирован, используем его. Если нет - генерируем новый.
-        let mainHex = lockedColors.get('main-0');
-        if (!mainHex) {
-             mainHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+    const updateUI = (hex) => {
+        // Обновляем основной цвет только если он не заморожен, или если это первая генерация
+        if (!isColorFrozen || display.style.backgroundColor === '') {
+            display.style.backgroundColor = hex;
+            codeHex.textContent = hex;
+            const rgb = hexToRgb(hex);
+            codeRgb.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+            codeHsl.textContent = `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
         }
-        // Обновляем UI на основе этого цвета (заблокированного или нового)
-        updateUI(mainHex);
+        
+        // Получаем HSL текущего (возможно, замороженного) цвета для генерации палитр
+        const currentHex = codeHex.textContent;
+        const currentRgb = hexToRgb(currentHex);
+        const currentHsl = rgbToHsl(currentRgb.r, currentRgb.g, currentRgb.b);
+
+        // --- Логика генерации палитр ---
+        let paletteS = currentHsl.s;
+        let paletteL = currentHsl.l;
+
+        if (isColorFrozen) {
+            // Если цвет заморожен, вносим случайность в S и L для "новых" палитр
+            paletteS = Math.max(20, Math.min(95, currentHsl.s + (Math.random() * 40 - 20)));
+            paletteL = Math.max(20, Math.min(80, currentHsl.l + (Math.random() * 30 - 15)));
+        }
+
+        const complementaryH = (currentHsl.h + 180) % 360;
+        const complementaryHex = hslToHex(complementaryH, paletteS, paletteL);
+        renderPalette(complementaryPaletteEl, [currentHex, complementaryHex]);
+        
+        const analogousH1 = (currentHsl.h + 30) % 360;
+        const analogousH2 = (currentHsl.h - 30 + 360) % 360;
+        renderPalette(analogousPaletteEl, [hslToHex(analogousH2, paletteS, paletteL), currentHex, hslToHex(analogousH1, paletteS, paletteL)]);
+        
+        updateFavButtonState(currentHex);
+    };
+
+    const generateColor = () => {
+        if (!isColorFrozen) {
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            updateUI(randomColor);
+            updateHistory(randomColor);
+        } else {
+            // Если цвет заморожен, просто перерисовываем UI для генерации новых палитр
+            updateUI(codeHex.textContent); 
+        }
     };
 
     const copyToClipboard = (text, btnEl) => {
         navigator.clipboard.writeText(text).then(() => {
-            const originalIcon = btnEl.innerHTML;
-            btnEl.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-            setTimeout(() => { btnEl.innerHTML = originalIcon; }, 1500);
+            const originalContent = btnEl.innerHTML;
+            const originalTitle = btnEl.title;
+            if (btnEl.className.includes('copy-btn')) { // Если это кнопка копирования
+                btnEl.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                 setTimeout(() => { btnEl.innerHTML = originalContent; }, 1500);
+            } else { // Если это образец цвета в палитре
+                 btnEl.title = 'Скопировано!';
+                 setTimeout(() => { btnEl.title = originalTitle; }, 1500);
+            }
         });
     };
     
-    // ИСПРАВЛЕНИЕ: Глобальный обработчик кликов для кнопок блокировки
-    document.body.addEventListener('click', e => {
-        const lockButton = e.target.closest('.lock-btn');
-        if (lockButton) {
-            e.stopPropagation(); // Предотвращаем другие клики
-            const colorId = lockButton.dataset.id;
-            
-            // Находим div с цветом, который относится к этой кнопке
-            const wrapper = lockButton.closest('.relative.group');
-            const colorDiv = wrapper ? wrapper.querySelector('.w-12, .w-full') : null;
-            
-            // Получаем цвет: из style для палитр или из основного span для главного цвета
-            const colorHex = colorDiv ? rgbToHex(colorDiv.style.backgroundColor) : codeHex.textContent;
-            
-            toggleLock(colorId, colorHex);
-        }
-    });
+    // --- Инициализация и слушатели событий ---
 
     btn.addEventListener('click', generateColor);
     favBtn.addEventListener('click', () => toggleFavorite());
+    freezeBtn.addEventListener('click', toggleFreeze); // Новый слушатель
     document.getElementById('copy-hex').addEventListener('click', (e) => copyToClipboard(codeHex.textContent, e.currentTarget));
     document.getElementById('copy-rgb').addEventListener('click', (e) => copyToClipboard(codeRgb.textContent, e.currentTarget));
     document.getElementById('copy-hsl').addEventListener('click', (e) => copyToClipboard(codeHsl.textContent, e.currentTarget));
+    
+    // --- Первоначальная загрузка данных ---
     
     favoriteColors = getUserData('favoriteColors', []);
     renderFavorites();
     generateColor();
 }
 
-export function cleanup() {
-    // В будущем здесь можно будет удалять обработчик событий с body, если потребуется
-}
+export function cleanup() {}
