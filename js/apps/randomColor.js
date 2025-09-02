@@ -125,6 +125,14 @@ export function init() {
         return "#" + r + g + b;
     }
     
+    // ИСПРАВЛЕНИЕ: Вспомогательная функция для преобразования rgb() в hex
+    const rgbToHex = (rgb) => {
+        if (!rgb || !rgb.includes('rgb')) return '#000000';
+        let [r, g, b] = rgb.match(/\d+/g).map(Number);
+        const toHex = c => ("0" + c.toString(16)).slice(-2);
+        return "#" + toHex(r) + toHex(g) + toHex(b);
+    };
+    
     const renderPalette = (el, colors, paletteName) => {
         el.innerHTML = '';
         colors.forEach((color, index) => {
@@ -143,7 +151,6 @@ export function init() {
             const lockBtn = document.createElement('button');
             lockBtn.className = 'lock-btn absolute top-1 right-1 p-1 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity';
             lockBtn.dataset.id = id;
-            lockBtn.onclick = () => toggleLock(id, color);
             
             const isLocked = lockedColors.has(id);
             lockBtn.innerHTML = isLocked
@@ -156,13 +163,14 @@ export function init() {
         });
     };
     
+    // ИСПРАВЛЕНИЕ: Обновленная логика блокировки
     const toggleLock = (id, hex) => {
         if (lockedColors.has(id)) {
             lockedColors.delete(id);
         } else {
             lockedColors.set(id, hex);
         }
-        updateUI(codeHex.textContent, false); // Re-render to update lock icons
+        updateUI(codeHex.textContent, false); // Перерисовываем UI, чтобы обновить иконки замков
     };
 
     const updateHistory = (newColor) => {
@@ -187,7 +195,7 @@ export function init() {
     const renderFavorites = () => {
         favContainer.innerHTML = '';
         if (favoriteColors.length === 0) {
-            favContainer.appendChild(noFavoritesMsg);
+            if (noFavoritesMsg) favContainer.appendChild(noFavoritesMsg);
             return;
         }
         favoriteColors.forEach(color => {
@@ -233,15 +241,20 @@ export function init() {
         codeRgb.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
         codeHsl.textContent = `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
         
-        const mainColor = lockedColors.get('main-0') || hex;
-        const mainHsl = rgbToHsl(hexToRgb(mainColor).r, hexToRgb(mainColor).g, hexToRgb(mainColor).b);
+        // Используем заблокированный цвет если он есть, иначе - текущий `hex`
+        const mainColorForPalette = lockedColors.get('main-0') || hex;
+        const mainHsl = rgbToHsl(hexToRgb(mainColorForPalette).r, hexToRgb(mainColorForPalette).g, hexToRgb(mainColorForPalette).b);
 
+        // Формируем палитры, учитывая заблокированные цвета
         const compHex = lockedColors.get('comp-1') || hslToHex((mainHsl.h + 180) % 360, mainHsl.s, mainHsl.l);
         const analogHex1 = lockedColors.get('analog-0') || hslToHex((mainHsl.h - 30 + 360) % 360, mainHsl.s, mainHsl.l);
         const analogHex2 = lockedColors.get('analog-2') || hslToHex((mainHsl.h + 30) % 360, mainHsl.s, mainHsl.l);
         
         const mainPaletteColor = lockedColors.get('main-0') || hex;
+        
+        // В комплементарную палитру передаем главный цвет и его комплементарный
         renderPalette(complementaryPaletteEl, [mainPaletteColor, compHex], 'comp');
+        // В аналоговую палитру - два аналоговых и главный цвет
         renderPalette(analogousPaletteEl, [analogHex1, mainPaletteColor, analogHex2], 'analog');
         
         updateFavButtonState(hex);
@@ -256,10 +269,12 @@ export function init() {
     };
 
     const generateColor = () => {
+        // Если основной цвет заблокирован, используем его. Если нет - генерируем новый.
         let mainHex = lockedColors.get('main-0');
         if (!mainHex) {
              mainHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
         }
+        // Обновляем UI на основе этого цвета (заблокированного или нового)
         updateUI(mainHex);
     };
 
@@ -271,24 +286,23 @@ export function init() {
         });
     };
     
+    // ИСПРАВЛЕНИЕ: Глобальный обработчик кликов для кнопок блокировки
     document.body.addEventListener('click', e => {
         const lockButton = e.target.closest('.lock-btn');
         if (lockButton) {
+            e.stopPropagation(); // Предотвращаем другие клики
             const colorId = lockButton.dataset.id;
-            // Находим цвет, соответствующий этой кнопке
-            const paletteWrapper = lockButton.closest('.flex, .relative');
-            const colorDiv = paletteWrapper.querySelector('.w-12, .w-full');
+            
+            // Находим div с цветом, который относится к этой кнопке
+            const wrapper = lockButton.closest('.relative.group');
+            const colorDiv = wrapper ? wrapper.querySelector('.w-12, .w-full') : null;
+            
+            // Получаем цвет: из style для палитр или из основного span для главного цвета
             const colorHex = colorDiv ? rgbToHex(colorDiv.style.backgroundColor) : codeHex.textContent;
+            
             toggleLock(colorId, colorHex);
         }
     });
-
-    // Вспомогательная функция для преобразования rgb() в hex
-    const rgbToHex = (rgb) => {
-        if (!rgb) return '#000000';
-        let [r, g, b] = rgb.match(/\d+/g).map(Number);
-        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-    };
 
     btn.addEventListener('click', generateColor);
     favBtn.addEventListener('click', () => toggleFavorite());
@@ -301,4 +315,6 @@ export function init() {
     generateColor();
 }
 
-export function cleanup() {}
+export function cleanup() {
+    // В будущем здесь можно будет удалять обработчик событий с body, если потребуется
+}
