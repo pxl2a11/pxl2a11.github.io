@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v23'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v24'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 
 const appModules = [
@@ -11,9 +11,7 @@ const appModules = [
     'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame',
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048',
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
-    // --- НОВЫЕ ПРИЛОЖЕНИЯ ---
     'textDiffTool', 'faviconGenerator', 'loanCalculator', 'typingTest',
-    // -----------------------
     'changelogPage'
 ];
 
@@ -51,6 +49,12 @@ const urlsToCache = [
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
+  // --- НОВЫЕ ЗВУКИ ДЛЯ ТАЙМЕРА ---
+  '/sounds/notification.mp3',
+  '/sounds/notification2.mp3',
+  '/sounds/notification3.mp3',
+  '/sounds/notification4.mp3',
+  // ----------------------------------
 
   ...appJsFiles,
   ...appSvgIcons
