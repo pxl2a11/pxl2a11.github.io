@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v27'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v28'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -14,6 +14,7 @@ const appModules = [
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048',
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
     'textDiffTool', 'faviconGenerator', 'loanCalculator', 'typingTest',
+    'screenRecorder', // <-- ДОБАВЛЕНО
     'changelogPage'
 ];
 
@@ -80,7 +81,6 @@ self.addEventListener('install', event => {
         return cache.addAll(requests);
       })
       .catch(error => {
-        // Эта ошибка больше не должна появляться
         console.error('Ошибка при кэшировании:', error);
       })
   );
