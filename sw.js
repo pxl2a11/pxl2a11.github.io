@@ -1,7 +1,8 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v25'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v26'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
+const OFFLINE_URL = '/offline.html';
 
 const appModules = [
     'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator',
@@ -21,7 +22,7 @@ const appSvgIcons = appModules.map(module => `/img/${module}.svg`);
 const urlsToCache = [
   '/',
   APP_SHELL_URL,
-  '/offline.html',
+  OFFLINE_URL,
   '/manifest.json',
   '/css/style.css',
   '/css/leaflet.css',
@@ -45,20 +46,16 @@ const urlsToCache = [
   '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
-  // --- ДОБАВЛЕННЫЕ ИКОНКИ ---
   '/img/lock.svg',
   '/img/unlock.svg',
-  // -------------------------
 
   '/sounds/notification.wav',
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
-  // --- НОВЫЕ ЗВУКИ ДЛЯ ТАЙМЕРА ---
   '/sounds/notification.mp3',
   '/sounds/notification2.mp3',
   '/sounds/notification3.mp3',
   '/sounds/notification4.mp3',
-  // ----------------------------------
 
   ...appJsFiles,
   ...appSvgIcons
@@ -97,26 +94,45 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const { request } = event;
 
+  // Стратегия для навигационных запросов (переход по страницам)
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .catch(() => {
-          return caches.match(APP_SHELL_URL);
-        })
+      (async () => {
+        try {
+          // Сначала пытаемся загрузить из сети
+          const networkResponse = await fetch(request);
+          return networkResponse;
+        } catch (error) {
+          // Если сеть не удалась, ищем в кеше основную страницу
+          console.log('Сетевой запрос не удался. Попытка открыть из кеша...');
+          const cachedResponse = await caches.match(APP_SHELL_URL);
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Если и в кеше нет, показываем оффлайн-страницу
+          console.log('Основная страница не найдена в кеше. Показываем оффлайн-страницу.');
+          return await caches.match(OFFLINE_URL);
+        }
+      })()
     );
     return;
   }
-  
+
+  // Стратегия "сначала кеш, потом сеть" для остальных ресурсов (JS, CSS, картинки)
   event.respondWith(
     caches.match(request)
       .then(response => {
+        // Если ресурс есть в кеше, возвращаем его
         if (response) {
           return response;
         }
+        // Иначе, делаем запрос в сеть
         return fetch(request).then(fetchResponse => {
+          // Не кешируем неудачные запросы или не-GET запросы
           if (request.method !== 'GET' || !fetchResponse || fetchResponse.status !== 200) {
             return fetchResponse;
           }
+          // Клонируем ответ и сохраняем его в кеш для будущего использования
           return caches.open(CACHE_NAME).then(cache => {
             cache.put(request, fetchResponse.clone());
             return fetchResponse;
