@@ -1,9 +1,10 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v26'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v27'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
+// Список модулей приложений для автоматического кеширования их JS и SVG файлов
 const appModules = [
     'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator',
     'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch',
@@ -16,9 +17,11 @@ const appModules = [
     'changelogPage'
 ];
 
+// Автоматически генерируем пути к файлам на основе списка модулей
 const appJsFiles = appModules.map(module => `/js/apps/${module}.js`);
 const appSvgIcons = appModules.map(module => `/img/${module}.svg`);
 
+// Основной список файлов для кеширования
 const urlsToCache = [
   '/',
   APP_SHELL_URL,
@@ -26,7 +29,15 @@ const urlsToCache = [
   '/manifest.json',
   '/css/style.css',
   '/css/leaflet.css',
+  
+  // Основные скрипты
   '/js/main.js',
+  '/js/changelog.js',
+  '/js/dataManager.js',
+  '/js/firebaseConfig.js',
+  '/js/radioStationsData.js',
+  
+  // Библиотеки из папки /js/utils/
   '/js/utils/lame.min.js',
   '/js/utils/jsQR.min.js',
   '/js/utils/leaflet.js',
@@ -35,28 +46,26 @@ const urlsToCache = [
   '/js/utils/JsBarcode.all.min.js',
   '/js/utils/tailwind.js',
   '/js/utils/Sortable.min.js',
-  '/js/changelog.js',
-  '/js/dataManager.js',
-  '/js/firebaseConfig.js',
-  '/js/radioStationsData.js',
-
+  
+  // Изображения из папки /img/
   '/img/logo.svg',
   '/img/loading.svg',
-  '/img/icons/icon-192x192.png',
-  '/img/icons/icon-512x512.png',
   '/img/plusapps.svg',
   '/img/minusapps.svg',
   '/img/lock.svg',
   '/img/unlock.svg',
-
-  '/sounds/notification.wav',
+  '/img/icons/icon-192x192.png',
+  '/img/icons/icon-512x512.png',
+  
+  // Звуки из папки /sounds/
   '/sounds/wheel-spinning.wav',
   '/sounds/wheel-winner.wav',
   '/sounds/notification.mp3',
   '/sounds/notification2.mp3',
   '/sounds/notification3.mp3',
   '/sounds/notification4.mp3',
-
+  
+  // Автоматически добавленные JS-файлы приложений и их иконки
   ...appJsFiles,
   ...appSvgIcons
 ];
@@ -71,6 +80,7 @@ self.addEventListener('install', event => {
         return cache.addAll(requests);
       })
       .catch(error => {
+        // Эта ошибка больше не должна появляться
         console.error('Ошибка при кэшировании:', error);
       })
   );
