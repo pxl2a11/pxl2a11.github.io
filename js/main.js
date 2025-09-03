@@ -1,6 +1,6 @@
-// 48js/main.js
+// js/main.js
 
-import { renderChangelog } from './changelog.js'; // <-- ПУТЬ ИСПРАВЛЕН
+import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { fetchUserAccountData, clearUserData, getUserData, saveUserData, setOnDataLoaded } from './dataManager.js';
@@ -16,6 +16,7 @@ const appNameToModuleFile = {
     'Генератор Favicon': 'faviconGenerator',
     'Калькулятор кредита': 'loanCalculator',
     'Тест скорости печати': 'typingTest',
+    'Запись экрана': 'screenRecorder',
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'wordCounter': 82, 'timer': 70, 'stopwatch': 68, 'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageConverter': 91, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'imageResizer': 90, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74, 'timezoneConverter': 84, 'textToSpeech': 73, 'rockPaperScissors': 67, 'sudoku': 80, 'zipArchiver': 88, 'game2048': 79, 'barcodeGenerator': 84, 'voiceRecorder': 82, 'siteSkeletonGenerator': 78,
@@ -26,6 +27,7 @@ const appPopularity = {
     'faviconGenerator': 85,
     'loanCalculator': 80,
     'typingTest': 88,
+    'screenRecorder': 90,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] }, 'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] }, 'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] }, 'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] }, 'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] }, 'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] }, 'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] }, 'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] }, 'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] }, 'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] }, 'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] }, 'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] }, 'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] }, 'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random', '#color'] }, 'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] }, 'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] }, 'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] }, 'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] }, 'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] }, 'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] }, 'wordCounter': { keywords: ['счетчик', 'слова', 'символы', 'текст', 'статистика', 'подсчет'], hashtags: ['#text', '#tools'] }, 'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] }, 'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] }, 'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] }, 'imageConverter': { keywords: ['конвертер', 'изображения', 'картинки', 'png', 'jpg', 'webp', 'формат', 'преобразовать'], hashtags: ['#image', '#tools', '#converter'] }, 'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] }, 'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] }, 'textTranslit': { keywords: ['транслит', 'латиница', 'кириллица', 'текст', 'перевод', 'cyrillic', 'latin'], hashtags: ['#text', '#tools'] }, 'imageResizer': { keywords: ['изображение', 'картинка', 'размер', 'уменьшить', 'увеличить', 'ресайз', 'resize'], hashtags: ['#image', '#tools'] }, 'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] }, 'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },
@@ -45,6 +47,7 @@ const appSearchMetadata = {
     'faviconGenerator': { keywords: ['favicon', 'иконка', 'сайт', 'генератор', 'png', 'ico'], hashtags: ['#image', '#tools', '#webdev'] },
     'loanCalculator': { keywords: ['кредит', 'ипотека', 'калькулятор', 'платеж', 'проценты', 'финансы'], hashtags: ['#finance', '#calculator'] },
     'typingTest': { keywords: ['печать', 'скорость', 'тест', 'клавиатура', 'wpm', 'набор', 'текста'], hashtags: ['#tools', '#fun'] },
+    'screenRecorder': { keywords: ['запись', 'экрана', 'видео', 'демонстрация', 'screencast', 'record'], hashtags: ['#tools', '#video'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
@@ -58,7 +61,6 @@ let activeAppModule = null;
 const appCardElements = new Map();
 let allAppCards = [];
 
-// --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
 const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
     <div id="app-screen" class="hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
@@ -104,7 +106,6 @@ function destroyDragAndDrop() {
     }
 }
 
-// ИЗМЕНЕНИЕ: Функции для управления оверлеем авторизации
 function showAuthLoader() {
     document.getElementById('auth-loading-overlay')?.classList.remove('hidden');
 }
@@ -148,13 +149,12 @@ async function getMyApps() { return getUserData('myApps', []); }
 async function saveMyApps(myAppsModules) { await saveUserData('myApps', myAppsModules); }
 
 function handleCredentialResponse(response) {
-    // ИЗМЕНЕНИЕ: Показываем лоадер при начале входа
     showAuthLoader();
     const googleCredential = GoogleAuthProvider.credential(response.credential);
     signInWithCredential(auth, googleCredential)
         .catch((error) => {
             console.error("Firebase sign-in error", error);
-            hideAuthLoader(); // Скрываем лоадер при ошибке
+            hideAuthLoader();
         });
 }
 
@@ -526,17 +526,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Устанавливаем callback, который перерисует интерфейс, когда придут свежие данные
     setOnDataLoaded(async () => {
         console.log("Получены свежие данные из Firebase, интерфейс будет обновлен.");
-        // Просто вызываем router, он сам всё перерисует на основе новых данных
         await router(); 
     });
 
     let isInitialAuthCheckDone = false;
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // Эта функция сначала загрузит данные из локального кэша, а потом из сети
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
@@ -549,17 +546,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateAuthStateUI(user);
         
-        // Роутер запускается мгновенно с локальными данными (или пустыми, если их нет)
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
             await router(); 
-            // Скрываем оверлей после первой отрисовки
             const loader = document.getElementById('initial-loading-overlay');
             if (loader) {
                 loader.style.display = 'none';
             }
         } else {
-            // При логине/выходе также перерисовываем
             await router();
         }
 
@@ -567,7 +561,6 @@ document.addEventListener('DOMContentLoaded', () => {
             renderGoogleButton();
         }
         
-        // ИЗМЕНЕНИЕ: Скрываем лоадер авторизации в любом случае после завершения всех операций
         hideAuthLoader();
     });
     
@@ -578,7 +571,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 100);
 
-    // --- Регистрация Service Worker для PWA ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
