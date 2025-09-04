@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v28'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v29'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -15,6 +15,7 @@ const appModules = [
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
     'textDiffTool', 'faviconGenerator', 'loanCalculator', 'typingTest',
     'screenRecorder', // <-- ДОБАВЛЕНО
+    'flappyBird',
     'changelogPage'
 ];
 
