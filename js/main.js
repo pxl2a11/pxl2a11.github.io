@@ -72,7 +72,12 @@ const appScreenHtml = `
                 <a href=\"/\" id=\"back-button\" class=\"p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600\"><svg class=\"h-6 w-6 text-gray-900 dark:text-gray-200\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M10 19l-7-7m0 0l7-7m-7 7h18\" /></svg></a>
                 <h2 id=\"app-title\" class=\"text-2xl font-bold ml-4\"></h2>
             </div>
-            <button id=\"add-to-my-apps-app-view-btn\" class=\"flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors\">\n                <img src=\"img/plusapps.svg\" class=\"plus-icon h-5 w-5\" alt=\"\">\n                <img src=\"img/minusapps.svg\" class=\"cross-icon h-5 w-5 hidden\" alt=\"\">\n                <span class=\"btn-text\"></span>\n            </button>\n        </div>
+            <button id=\"add-to-my-apps-app-view-btn\" class=\"flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors\">
+                <img src=\"img/plusapps.svg\" class=\"plus-icon h-5 w-5\" alt=\"\">
+                <img src=\"img/minusapps.svg\" class=\"cross-icon h-5 w-5 hidden\" alt=\"\">
+                <span class=\"btn-text\"></span>
+            </button>
+        </div>
         <div id=\"app-content-container\" class=\"mt-4\"></div>
         <div id=\"similar-apps-container\" class=\"mt-12\"></div>
         <div id=\"app-changelog-container\" class=\"mt-8\"></div>
@@ -217,16 +222,19 @@ async function updateAppViewButton(moduleName, myAppsList) {
     plusIcon.classList.toggle('hidden', isAdded);
     crossIcon.classList.toggle('hidden', !isAdded);
     if (isAdded) {
-        textSpan.textContent = 'Удалить из Моих приложений';
+        // ИЗМЕНЕНИЕ: Текст кнопки
+        textSpan.textContent = 'Удалить';
         button.classList.add('remove-style');
         button.classList.remove('add-style');
     } else {
-        textSpan.textContent = 'Добавить в Мои приложения';
+        // ИЗМЕНЕНИЕ: Текст кнопки
+        textSpan.textContent = 'Добавить';
         button.classList.add('add-style');
         button.classList.remove('remove-style');
     }
     button.dataset.module = moduleName;
 }
+
 
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
@@ -408,7 +416,7 @@ async function applyAppListFilterAndRender() {
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
         if (appElements.length === 0 && activeFilter === 'my-apps') {
-            appsContainer.innerHTML = `<p class=\"col-span-full text-center text-gray-500 dark:text-gray-400\">У вас пока нет добавленных приложений. Нажмите \"+\" на карточке приложения, чтобы добавить его сюда.</p>`;
+            appsContainer.innerHTML = `<p class=\"col-span-full text-center text-gray-500 dark:text-gray-400\">У вас пока нет добавленных приложений. Нажмите \\\"+\\\" на карточке приложения, чтобы добавить его сюда.</p>`;
             return;
         }
         appElements.forEach(app => {
@@ -547,6 +555,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
+            
+            // ИЗМЕНЕНИЕ: Открывать "Мои приложения" по умолчанию для залогиненных
+            const params = new URLSearchParams(window.location.search);
+            const appModule = params.get('app');
+            if (user && !appModule) { // Только на главной странице
+                document.querySelector('[data-sort="default"]')?.classList.remove('active');
+                document.querySelector('[data-sort="my-apps"]')?.classList.add('active');
+            }
+            
             await router(); 
             const loader = document.getElementById('initial-loading-overlay');
             if (loader) {
