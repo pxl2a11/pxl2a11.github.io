@@ -28,7 +28,7 @@ const appPopularity = {
     'faviconGenerator': 85,
     'loanCalculator': 80,
     'typingTest': 88,
-    'screenRecorder': 90,
+    'Recorder': 90,
     'flappyBird': 78,
 };
 const appSearchMetadata = {
@@ -49,7 +49,7 @@ const appSearchMetadata = {
     'faviconGenerator': { keywords: ['favicon', 'иконка', 'сайт', 'генератор', 'png', 'ico'], hashtags: ['#image', '#tools', '#webdev'] },
     'loanCalculator': { keywords: ['кредит', 'ипотека', 'калькулятор', 'платеж', 'проценты', 'финансы'], hashtags: ['#finance', '#calculator'] },
     'typingTest': { keywords: ['печать', 'скорость', 'тест', 'клавиатура', 'wpm', 'набор', 'текста'], hashtags: ['#tools', '#fun'] },
-    'screenRecorder': { keywords: ['запись', 'экрана', 'видео', 'демонстрация', 'screencast', 'record'], hashtags: ['#tools', '#video'] },
+    'Recorder': { keywords: ['запись', 'экрана', 'видео', 'демонстрация', 'cast', 'record'], hashtags: ['#tools', '#video'] },
     'flappyBird': { keywords: ['игра', 'птица', 'трубы', 'аркада', 'flappy', 'bird'], hashtags: ['#game', '#fun'] },
 };
 const moduleFileToAppName = Object.fromEntries(
@@ -66,21 +66,21 @@ let allAppCards = [];
 
 const homeScreenHtml = `<div id=\"apps-container\" class=\"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4\"></div>`;
 const appScreenHtml = `
-    <div id=\"app-screen\" class=\"hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors\">
-        <div class=\"flex items-center justify-between mb-6\">
-            <div class=\"flex items-center\">
-                <a href=\"/\" id=\"back-button\" class=\"p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600\"><svg class=\"h-6 w-6 text-gray-900 dark:text-gray-200\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M10 19l-7-7m0 0l7-7m-7 7h18\" /></svg></a>
-                <h2 id=\"app-title\" class=\"text-2xl font-bold ml-4\"></h2>
+    <div id="app-screen" class="hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <a href="/" id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"><svg class="h-6 w-6 text-gray-900 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></a>
+                <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>
             </div>
-            <button id=\"add-to-my-apps-app-view-btn\" class=\"flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors\">
-                <img src=\"img/plusapps.svg\" class=\"plus-icon h-5 w-5\" alt=\"\">
-                <img src=\"img/minusapps.svg\" class=\"cross-icon h-5 w-5 hidden\" alt=\"\">
-                <span class=\"btn-text\"></span>
+            <button id="add-to-my-apps-app-view-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors">
+                <img src="img/appplus.svg" class="plus-icon h-5 w-5" alt="Добавить">
+                <img src="img/appminus.svg" class="cross-icon h-5 w-5 hidden" alt="Удалить">
+                <span class="btn-text"></span>
             </button>
         </div>
-        <div id=\"app-content-container\" class=\"mt-4\"></div>
-        <div id=\"similar-apps-container\" class=\"mt-12\"></div>
-        <div id=\"app-changelog-container\" class=\"mt-8\"></div>
+        <div id="app-content-container" class="mt-4"></div>
+        <div id="similar-apps-container" class="mt-12"></div>
+        <div id="app-changelog-container" class="mt-8"></div>
     </div>`;
 
 let sortableInstance = null;
