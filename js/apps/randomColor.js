@@ -1,4 +1,4 @@
-// --- 29Файл: js/randomColor.js ---
+// --- 22Файл: js/randomColor.js ---
 
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -40,7 +40,7 @@ export function getHtml() {
                             </button>
                         </div>
                         <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                            <span id="color-code-rgb" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate">rgb(255, 255, 255)</span>
+                            <span id="color-code-rgb" class="text-base md:text-lg font-mono text-gray-900 dark:text-gray-200 truncate\">rgb(255, 255, 255)</span>
                              <button id="copy-rgb" title="Скопировать" class="copy-btn flex-shrink-0 p-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
                                 <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2_0 01-2-2V6a2 2_0 012-2h8a2 2_0 012 2v2m-6 12h8a2 2_0 002-2v-8a2 2_0 00-2-2h-8a2 2_0 00-2 2v8a2 2_0 002 2z"></path></svg>
                             </button>
@@ -55,7 +55,7 @@ export function getHtml() {
                 </div>
                 
                 <div class="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Избранное</h3>
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white\">Избранное</h3>
                     <div id="favorite-colors-container" class="flex flex-wrap gap-3">
                         <p id="no-favorites-msg" class="text-gray-500 dark:text-gray-400">Нет сохраненных цветов.</p>
                     </div>
@@ -70,6 +70,11 @@ export function getHtml() {
                         <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300">Аналоговая палитра</h4>
                         <div id="analogous-palette" class="flex gap-3"></div>
                     </div>
+                    <!-- НОВЫЙ БЛОК -->
+                    <div>
+                        <h4 class="font-semibold mb-3 text-gray-700 dark:text-gray-300">Триадическая палитра</h4>
+                        <div id="triadic-palette" class="flex gap-3"></div>
+                    </div>
                 </div>
             </div>
         </div>`;
@@ -83,6 +88,7 @@ export function init() {
     const btn = document.getElementById('generate-color-btn');
     const complementaryPaletteEl = document.getElementById('complementary-palette');
     const analogousPaletteEl = document.getElementById('analogous-palette');
+    const triadicPaletteEl = document.getElementById('triadic-palette'); // НОВЫЙ ЭЛЕМЕНТ
     const historyEl = document.getElementById('color-history');
     const favBtn = document.getElementById('save-to-favorites-btn');
     const favContainer = document.getElementById('favorite-colors-container');
@@ -269,6 +275,16 @@ export function init() {
         const analogousH1 = (currentHsl.h + 30) % 360;
         const analogousH2 = (currentHsl.h - 30 + 360) % 360;
         renderPalette(analogousPaletteEl, [hslToHex(analogousH2, paletteS, paletteL), currentHex, hslToHex(analogousH1, paletteS, paletteL)]);
+        
+        // --- НОВЫЙ КОД ДЛЯ ТРИАДИЧЕСКОЙ ПАЛИТРЫ ---
+        const triadicH1 = (currentHsl.h + 120) % 360;
+        const triadicH2 = (currentHsl.h + 240) % 360;
+        renderPalette(triadicPaletteEl, [
+            currentHex, 
+            hslToHex(triadicH1, paletteS, paletteL), 
+            hslToHex(triadicH2, paletteS, paletteL)
+        ]);
+        // --- КОНЕЦ НОВОГО КОДА ---
         
         updateFavButtonState(currentHex);
     };
