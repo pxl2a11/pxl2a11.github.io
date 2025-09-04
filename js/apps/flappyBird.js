@@ -3,13 +3,17 @@
 let canvas, ctx;
 let bird, pipes, score, gameSpeed, gravity;
 let gameLoopId, isGameOver;
+let keydownHandler; // Переменная для хранения обработчика событий
+
+// Переменные для хранения DOM-элементов
+let scoreEl, overlay, overlayTitle, overlayText;
 
 // Размеры и константы игры
 const BIRD_SIZE = 20;
 const PIPE_WIDTH = 50;
 const PIPE_GAP = 120;
 
-function getHtml() {
+export function getHtml() {
     return `
         <style>
             #flappy-bird-canvas-container {
@@ -45,13 +49,13 @@ function getHtml() {
                 border-radius: 0.5rem;
             }
         </style>
-        <div class=\"flex flex-col items-center gap-4\">
-            <div class=\"font-bold text-2xl\">Счет: <span id=\"flappy-score\">0</span></div>
-            <div id=\"flappy-bird-canvas-container\">
-                <canvas id=\"flappy-bird-canvas\"></canvas>
-                <div id=\"flappy-bird-overlay\">
-                    <h3 id=\"flappy-overlay-title\" class=\"text-2xl font-bold\">Flappy Bird</h3>
-                    <p id=\"flappy-overlay-text\" class=\"mt-2\">Нажмите, чтобы начать</p>
+        <div class="flex flex-col items-center gap-4">
+            <div class="font-bold text-2xl">Счет: <span id="flappy-score">0</span></div>
+            <div id="flappy-bird-canvas-container">
+                <canvas id="flappy-bird-canvas"></canvas>
+                <div id="flappy-bird-overlay">
+                    <h3 id="flappy-overlay-title" class="text-2xl font-bold">Flappy Bird</h3>
+                    <p id="flappy-overlay-text" class="mt-2">Нажмите, чтобы начать</p>
                 </div>
             </div>
         </div>
@@ -71,7 +75,6 @@ function resetGame() {
     gravity = 0.3;
     isGameOver = false;
 
-    // Создаем первую пару труб
     pipes.push(createPipe(width));
 }
 
@@ -87,33 +90,23 @@ function createPipe(startX) {
 }
 
 function gameLoop() {
-    if (isGameOver) {
-        return;
-    }
-
+    if (isGameOver) return;
     update();
     draw();
-
     gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 function update() {
-    // Движение птицы
     bird.velocityY += gravity;
     bird.y += bird.velocityY;
 
-    // Движение труб
-    pipes.forEach(pipe => {
-        pipe.x -= gameSpeed;
-    });
+    pipes.forEach(pipe => { pipe.x -= gameSpeed; });
 
-    // Добавление новых труб
     if (pipes[0].x < -PIPE_WIDTH) {
         pipes.shift();
         pipes.push(createPipe(pipes[pipes.length - 1].x + 200));
     }
 
-    // Проверка столкновений
     const { x, y } = bird;
     if (y > canvas.height - BIRD_SIZE || y < 0) {
         endGame();
@@ -127,8 +120,6 @@ function update() {
         ) {
             endGame();
         }
-
-        // Подсчет очков
         if (pipe.x + PIPE_WIDTH < x && !pipe.passed) {
             score++;
             pipe.passed = true;
@@ -137,34 +128,28 @@ function update() {
 }
 
 function draw() {
-    const { width, height } = canvas;
-    // Фон
-    ctx.clearRect(0, 0, width, height);
-
-    // Птица
-    ctx.fillStyle = '#FFD700'; // Yellow
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#FFD700';
     ctx.fillRect(bird.x, bird.y, BIRD_SIZE, BIRD_SIZE);
-
-    // Трубы
-    ctx.fillStyle = '#008000'; // Green
+    ctx.fillStyle = '#008000';
     pipes.forEach(pipe => {
         ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
-        ctx.fillRect(pipe.x, pipe.bottomY, PIPE_WIDTH, height - pipe.bottomY);
+        ctx.fillRect(pipe.x, pipe.bottomY, PIPE_WIDTH, canvas.height - pipe.bottomY);
     });
-
-    // Счет
-    document.getElementById('flappy-score').textContent = score;
+    if (scoreEl) scoreEl.textContent = score;
 }
 
-function birdJump() {
+function birdJump(e) {
+    if (e && (e.code === 'Space' || e.key === ' ')) {
+        e.preventDefault();
+    }
     if (!isGameOver) {
         bird.velocityY = -6;
     }
 }
 
 function startGame() {
-    const overlay = document.getElementById('flappy-bird-overlay');
-    overlay.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
     isGameOver = false;
     resetGame();
     gameLoop();
@@ -175,44 +160,46 @@ function endGame() {
     isGameOver = true;
     cancelAnimationFrame(gameLoopId);
 
-    const overlay = document.getElementById('flappy-bird-overlay');
-    document.getElementById('flappy-overlay-title').textContent = 'Игра окончена!';
-    document.getElementById('flappy-overlay-text').textContent = `Ваш счет: ${score}. Нажмите, чтобы начать заново.`;
-    overlay.style.display = 'flex';
+    if (overlay && overlayTitle && overlayText) {
+        overlayTitle.textContent = 'Игра окончена!';
+        overlayText.textContent = `Ваш счет: ${score}. Нажмите, чтобы начать заново.`;
+        overlay.style.display = 'flex';
+    }
 }
 
-// --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
 export function init(appContentContainer) {
-    // Ищем элементы внутри предоставленного контейнера
     const container = appContentContainer.querySelector('#flappy-bird-canvas-container');
     canvas = appContentContainer.querySelector('#flappy-bird-canvas');
-    const overlay = appContentContainer.querySelector('#flappy-bird-overlay');
+    overlay = appContentContainer.querySelector('#flappy-bird-overlay');
+    scoreEl = appContentContainer.querySelector('#flappy-score');
+    overlayTitle = appContentContainer.querySelector('#flappy-overlay-title');
+    overlayText = appContentContainer.querySelector('#flappy-overlay-text');
     
-    // Проверка, что все элементы найдены
-    if (!container || !canvas || !overlay) {
+    if (!container || !canvas || !overlay || !scoreEl) {
         console.error("Не удалось инициализировать игру Flappy Bird: один из ключевых элементов не найден.");
         return;
     }
     
-    // Устанавливаем размеры canvas на основе контейнера
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
-    
     ctx = canvas.getContext('2d');
 
-    overlay.addEventListener('click', startGame);
-    window.addEventListener('keydown', (e) => {
+    keydownHandler = (e) => {
         if (e.code === 'Space' || e.key === ' ') {
-            e.preventDefault();
-            birdJump();
+            birdJump(e);
         }
-    });
+    };
+    
+    overlay.addEventListener('click', startGame);
+    window.addEventListener('keydown', keydownHandler);
     canvas.addEventListener('click', birdJump);
 }
 
 export function cleanup() {
     cancelAnimationFrame(gameLoopId);
     isGameOver = true;
-    // Важно удалить глобальные обработчики событий, чтобы они не мешали другим приложениям
-    window.removeEventListener('keydown', birdJump);
+    if (keydownHandler) {
+        window.removeEventListener('keydown', keydownHandler);
+        keydownHandler = null;
+    }
 }
