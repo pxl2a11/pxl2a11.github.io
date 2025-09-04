@@ -77,7 +77,8 @@ function resetGame() {
     pipes = [];
     score = 0;
     gameSpeed = 2;
-    gravity = 0.3;
+    // --- ИЗМЕНЕНИЕ: Уменьшена чувствительность ---
+    gravity = 0.25; // Птичка падает медленнее
     isGameOver = false;
 
     pipes.push(createPipe(width));
@@ -136,7 +137,6 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Рисуем SVG птичку
     if (birdImage.complete) {
         ctx.drawImage(birdImage, bird.x, bird.y, BIRD_WIDTH, BIRD_HEIGHT);
     }
@@ -154,7 +154,8 @@ function birdJump(e) {
         e.preventDefault();
     }
     if (!isGameOver) {
-        bird.velocityY = -6;
+        // --- ИЗМЕНЕНИЕ: Уменьшена чувствительность ---
+        bird.velocityY = -5.5; // Прыжок стал ниже и плавнее
     }
 }
 
@@ -194,7 +195,6 @@ export function init(appContentContainer) {
     canvas.height = container.clientHeight;
     ctx = canvas.getContext('2d');
 
-    // --- ИСПРАВЛЕНИЕ: Загрузка SVG в Image ---
     const svg_url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(SVG_BIRD);
     birdImage.src = svg_url;
     
@@ -212,7 +212,6 @@ export function init(appContentContainer) {
 export function cleanup() {
     cancelAnimationFrame(gameLoopId);
     isGameOver = true;
-    // --- ИСПРАВЛЕНИЕ: Корректное удаление обработчика ---
     if (keydownHandler) {
         window.removeEventListener('keydown', keydownHandler);
         keydownHandler = null;
