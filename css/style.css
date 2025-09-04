@@ -191,7 +191,14 @@
 /* --- ИЗМЕНЕНИЕ: Крестик становится красным --- */
 .add-to-my-apps-btn.is-added .cross-icon,
 #add-to-my-apps-app-view-btn.remove-style .cross-icon {
-    filter: invert(34%) sepia(90%) saturate(2500%) hue-rotate(345deg) brightness(95%) contrast(90%);
+    /* Этот CSS-фильтр преобразует исходное изображение в красный цвет (#ef4444) */
+    filter: invert(39%) sepia(86%) saturate(1394%) hue-rotate(331deg) brightness(97%) contrast(92%);
+}
+
+/* ИСПРАВЛЕНИЕ: Добавляем правило для hover-состояния, чтобы красный цвет не пропадал */
+.add-to-my-apps-btn.is-added:hover .cross-icon {
+    /* Применяем тот же красный фильтр + небольшое увеличение яркости */
+    filter: invert(39%) sepia(86%) saturate(1394%) hue-rotate(331deg) brightness(97%) contrast(92%) brightness(1.2);
 }
 
 
