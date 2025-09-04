@@ -73,8 +73,8 @@ const appScreenHtml = `
                 <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>
             </div>
             <button id="add-to-my-apps-app-view-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors">
-                <img src="img/appplus.svg" class="plus-icon h-5 w-5" alt="Добавить">
-                <img src="img/appminus.svg" class="cross-icon h-5 w-5 hidden" alt="Удалить">
+                <img src="img/plusapps.svg" class="plus-icon h-5 w-5" alt="Добавить">
+                <img src="img/minusapps.svg" class="cross-icon h-5 w-5 hidden" alt="Удалить">
                 <span class="btn-text"></span>
             </button>
         </div>
