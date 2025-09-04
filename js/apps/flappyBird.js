@@ -1,4 +1,4 @@
-// js/apps/flappyBird.js
+//45 js/apps/flappyBird.js
 
 let canvas, ctx;
 let bird, pipes, score, gameSpeed, gravity;
