@@ -207,20 +207,22 @@
     background-color: #6b7280;
 }
 
+/* ИЗМЕНЕНИЕ: Кнопка "Удалить" стала серой */
 #add-to-my-apps-app-view-btn.remove-style {
-    background-color: #fee2e2;
-    color: #b91c1c;
+    background-color: #e5e7eb; /* gray-200 */
+    color: #1f2937;      /* gray-800 */
 }
 #add-to-my-apps-app-view-btn.remove-style:hover {
-    background-color: #fecaca;
+    background-color: #d1d5db; /* gray-300 */
 }
 .dark #add-to-my-apps-app-view-btn.remove-style {
-    background-color: #450a0a;
-    color: #fca5a5;
+    background-color: #4b5563; /* gray-600 */
+    color: #f9fafb;      /* gray-50 */
 }
 .dark #add-to-my-apps-app-view-btn.remove-style:hover {
-    background-color: #7f1d1d;
+    background-color: #6b7280; /* gray-500 */
 }
+
 
 /* --- Стили для сортировки приложений --- */
 #apps-container.sortable-active .app-item {
