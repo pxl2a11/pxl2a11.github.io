@@ -203,9 +203,18 @@
 
 
 /* --- Стили для кнопки внутри приложения --- */
-#add-to-my-apps-app-view-btn .cross-icon { display: none; }
-#add-to-my-apps-app-view-btn .plus-icon { display: inline-block; }
 
+/* Показываем нужную иконку в зависимости от стиля кнопки */
+#add-to-my-apps-app-view-btn.add-style .cross-icon,
+#add-to-my-apps-app-view-btn.remove-style .plus-icon {
+    display: none;
+}
+#add-to-my-apps-app-view-btn.add-style .plus-icon,
+#add-to-my-apps-app-view-btn.remove-style .cross-icon {
+    display: inline-block;
+}
+
+/* Стили для кнопки "Добавить" */
 #add-to-my-apps-app-view-btn.add-style {
     background-color: #e5e7eb;
     color: #1f2937;
@@ -221,7 +230,7 @@
     background-color: #6b7280;
 }
 
-/* ИЗМЕНЕНИЕ: Кнопка "Удалить" стала серой */
+/* Стили для кнопки "Удалить" */
 #add-to-my-apps-app-view-btn.remove-style {
     background-color: #e5e7eb; /* gray-200 */
     color: #1f2937;      /* gray-800 */
