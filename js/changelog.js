@@ -46,6 +46,7 @@ export const appNameToModuleFile = {
     'Тест мыши': 'mouseTester', // <-- ДОБАВЛЕНО
     'Тест клавиатуры': 'keyboardTester', // <-- ДОБАВЛЕНО
     'Графический редактор': 'drawingPad', // <-- ДОБАВЛЕНО
+    'Flappy Bird': 'flappyBird',
     'Общее': null, 
 };
 
@@ -61,6 +62,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-09-04T11:00:00Z'), appName: 'Flappy Bird', description: 'добавлена новая аркадная игра Flappy Bird.' },
     { date: getRussianDate('2025-09-04T10:00:00Z'), appName: 'Случайный цвет', description: 'добавлена генерация триадической цветовой палитры.' },
     { date: getRussianDate('2025-09-03T09:00:00Z'), appName: 'Запись экрана', description: 'добавлено новое приложение для записи видео с экрана, отдельного окна или вкладки браузера.' },
     { date: getRussianDate('2025-09-02T12:00:00Z'), appName: 'Секундомер', description: 'для авторизованных пользователей добавлена возможность сохранять и просматривать сессии с результатами кругов.' },
