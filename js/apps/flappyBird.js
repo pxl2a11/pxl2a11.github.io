@@ -181,10 +181,18 @@ function endGame() {
     overlay.style.display = 'flex';
 }
 
-export function init() {
-    canvas = document.getElementById('flappy-bird-canvas');
-    const container = document.getElementById('flappy-bird-canvas-container');
-    const overlay = document.getElementById('flappy-bird-overlay');
+// --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+export function init(appContentContainer) {
+    // Ищем элементы внутри предоставленного контейнера
+    const container = appContentContainer.querySelector('#flappy-bird-canvas-container');
+    canvas = appContentContainer.querySelector('#flappy-bird-canvas');
+    const overlay = appContentContainer.querySelector('#flappy-bird-overlay');
+    
+    // Проверка, что все элементы найдены
+    if (!container || !canvas || !overlay) {
+        console.error("Не удалось инициализировать игру Flappy Bird: один из ключевых элементов не найден.");
+        return;
+    }
     
     // Устанавливаем размеры canvas на основе контейнера
     canvas.width = container.clientWidth;
@@ -205,4 +213,6 @@ export function init() {
 export function cleanup() {
     cancelAnimationFrame(gameLoopId);
     isGameOver = true;
+    // Важно удалить глобальные обработчики событий, чтобы они не мешали другим приложениям
+    window.removeEventListener('keydown', birdJump);
 }
