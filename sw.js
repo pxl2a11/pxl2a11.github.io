@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v29'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v30'; // ИЗМЕНЕНИЕ: ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -14,7 +14,7 @@ const appModules = [
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048',
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
     'textDiffTool', 'faviconGenerator', 'loanCalculator', 'typingTest',
-    'screenRecorder', // <-- ДОБАВЛЕНО
+    'screenRecorder',
     'flappyBird',
     'changelogPage'
 ];
@@ -28,7 +28,7 @@ const urlsToCache = [
   '/',
   APP_SHELL_URL,
   OFFLINE_URL,
-  '/manifest.json',
+  '/manifest.json?v=3', // ИЗМЕНЕНИЕ: Добавлена версия
   '/css/style.css',
   '/css/leaflet.css',
   
