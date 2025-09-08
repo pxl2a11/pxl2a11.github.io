@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v34'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v35'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -18,7 +18,8 @@ const appModules = [
     'flappyBird',
     'changelogPage',
     'textAnalyzer',
-    'virtualDice'
+    'virtualDice',
+    'calorieCalculator'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
