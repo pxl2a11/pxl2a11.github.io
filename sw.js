@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v33'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v34'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -17,7 +17,8 @@ const appModules = [
     'screenRecorder',
     'flappyBird',
     'changelogPage',
-    'textAnalyzer'
+    'textAnalyzer',
+    'virtualDice'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
