@@ -34,6 +34,14 @@ export function getHtml() {
                 50% { transform: scale(1.1) rotate(180deg); }
                 100% { transform: scale(1) rotate(360deg); opacity: 1; }
             }
+            .no-spinner::-webkit-outer-spin-button,
+            .no-spinner::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            .no-spinner {
+                -moz-appearance: textfield;
+            }
         </style>
         <div class="max-w-xl mx-auto p-4 space-y-6">
             <div id="dice-results-container" class="p-4 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-inner">
@@ -49,7 +57,7 @@ export function getHtml() {
             <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl grid grid-cols-2 sm:grid-cols-3 gap-4 items-end">
                 <div>
                     <label for="dice-count" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Количество</label>
-                    <input type="number" id="dice-count" value="1" min="1" max="10" class="mt-1 w-full p-2 text-center rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-white dark:bg-gray-800">
+                    <input type="number" id="dice-count" value="1" min="1" max="10" class="no-spinner mt-1 w-full p-2 text-center rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-white dark:bg-gray-800">
                 </div>
                  <div>
                     <label for="dice-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Тип кубика</label>
