@@ -13,7 +13,7 @@ const appNameToModuleFile = {
     'Тест клавиатуры': 'keyboardTester',
     'Графический редактор': 'drawingPad',
     'Сравнение текста': 'textDiffTool',
-    'Генератор Favicon': 'faviconGenerator',
+    'Генератор favicon': 'faviconGenerator',
     'Калькулятор кредита': 'loanCalculator',
     'Тест скорости печати': 'typingTest',
     'Запись экрана': 'screenRecorder',
