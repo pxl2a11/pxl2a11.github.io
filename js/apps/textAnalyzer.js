@@ -16,7 +16,7 @@ export function getHtml() {
             </div>
             
             <!-- Блок со статистикой -->
-            <div id="text-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div id="text-stats" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
                 <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
                     <div id="stat-words" class="text-3xl font-bold">0</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Слов</div>
@@ -24,6 +24,10 @@ export function getHtml() {
                 <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
                     <div id="stat-chars" class="text-3xl font-bold">0</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Символов</div>
+                </div>
+                 <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
+                    <div id="stat-chars-no-spaces" class="text-3xl font-bold">0</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Симв. (без пр.)</div>
                 </div>
                 <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
                     <div id="stat-sentences" class="text-3xl font-bold">0</div>
@@ -33,13 +37,15 @@ export function getHtml() {
                     <div id="stat-paragraphs" class="text-3xl font-bold">0</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Абзацев</div>
                 </div>
-                <div class="col-span-2 p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
+            </div>
+             <!-- Блок для времени чтения и ключевых слов -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg text-center">
                     <div id="stat-reading-time" class="text-3xl font-bold">0 сек</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">Время чтения</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Примерное время чтения</div>
                 </div>
-                <!-- Блок для ключевых слов -->
-                <div class="col-span-2 p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
-                    <h4 class="text-lg font-semibold mb-2">Ключевые слова</h4>
+                <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
+                    <h4 class="text-lg font-semibold mb-2 text-center">Ключевые слова</h4>
                     <div id="keyword-list" class="space-y-1 text-left">
                         <p class="text-gray-500 dark:text-gray-400">Нет данных для анализа.</p>
                     </div>
@@ -56,11 +62,11 @@ function analyzeText() {
     const words = text.trim().split(/\s+/).filter(Boolean);
     const wordCount = words.length;
     const charCount = text.length;
-    // Более точный подсчет предложений
+    const charNoSpacesCount = text.replace(/\s/g, '').length;
     const sentenceCount = text.match(/[.!?…]+(\s|$)/g)?.length || (text.trim().length > 0 ? 1 : 0);
     const paragraphCount = text.split(/\n\s*\n/).filter(Boolean).length;
 
-    // --- Время чтения ---
+    // --- Время чтения (средняя скорость 225 слов/мин) ---
     const wpm = 225;
     const readingTimeSeconds = Math.floor((wordCount / wpm) * 60);
     let readingTimeText = '0 сек';
@@ -73,11 +79,12 @@ function analyzeText() {
     // --- Обновление UI статистики ---
     statsElements.words.textContent = wordCount;
     statsElements.chars.textContent = charCount;
+    statsElements.charsNoSpaces.textContent = charNoSpacesCount;
     statsElements.sentences.textContent = sentenceCount;
     statsElements.paragraphs.textContent = paragraphCount;
     statsElements.readingTime.textContent = readingTimeText;
 
-    // --- Анализ ключевых слов ---
+    // --- Анализ ключевых слов (исключая стоп-слова) ---
     const stopWords = new Set(['и', 'в', 'во', 'не', 'что', 'он', 'на', 'я', 'с', 'со', 'как', 'а', 'то', 'все', 'она', 'так', 'его', 'но', 'да', 'ты', 'к', 'у', 'же', 'вы', 'за', 'бы', 'по', 'только', 'ее', 'мне', 'было', 'вот', 'от', 'меня', 'еще', 'нет', 'о', 'из', 'ему', 'теперь', 'когда', 'даже', 'ну', 'вдруг', 'ли', 'если', 'уже', 'или', 'ни', 'быть', 'был', 'него', 'до', 'вас', 'нибудь', 'опять', 'уж', 'вам', 'ведь', 'там', 'потом', 'себя', 'ничего', 'ей', 'может', 'они', 'тут', 'где', 'есть', 'надо', 'ней', 'для', 'мы', 'тебя', 'их', 'чем', 'была', 'сам', 'чтоб', 'без', 'будто', 'чего', 'раз', 'тоже', 'себе', 'под', 'будет', 'ж', 'тогда', 'кто', 'этот', 'того', 'потому', 'этого', 'какой', 'совсем', 'ним', 'здесь', 'этом', 'один', 'почти', 'мой', 'тем', 'чтобы', 'нее', 'сейчас', 'были', 'куда', 'зачем', 'всех', 'никогда', 'можно', 'при', 'наконец', 'два', 'об', 'другой', 'хоть', 'после', 'над', 'больше', 'тот', 'через', 'эти', 'нас', 'про', 'всего', 'них', 'какая', 'много', 'разве', 'три', 'эту', 'моя', 'впрочем', 'хорошо', 'свою', 'этой', 'перед', 'иногда', 'лучше', 'чуть', 'том', 'нельзя', 'такой', 'им', 'более', 'всегда', 'конечно', 'всю', 'между', 'a', 'an', 'the', 'and', 'is', 'in', 'it', 'of', 'for', 'on', 'with', 'as', 'i', 'to', 'was', 'he', 'that', 'she', 'his', 'her', 'you', 'at', 'by']);
     const wordFrequencies = {};
     const cleanedWords = text.toLowerCase().match(/[a-zа-яё-]{3,}/g) || [];
@@ -90,7 +97,7 @@ function analyzeText() {
 
     const sortedKeywords = Object.entries(wordFrequencies)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 7);
+        .slice(0, 5); // Показываем топ-5 слов
 
     // --- Обновление UI ключевых слов ---
     keywordList.innerHTML = '';
@@ -113,6 +120,7 @@ export function init() {
     statsElements = {
         words: document.getElementById('stat-words'),
         chars: document.getElementById('stat-chars'),
+        charsNoSpaces: document.getElementById('stat-chars-no-spaces'),
         sentences: document.getElementById('stat-sentences'),
         paragraphs: document.getElementById('stat-paragraphs'),
         readingTime: document.getElementById('stat-reading-time'),
@@ -121,7 +129,7 @@ export function init() {
 
     addListener(textarea, 'input', analyzeText);
     
-    // Инициализация при загрузке, если в поле уже есть текст
+    // Инициализация при загрузке
     analyzeText();
 }
 
