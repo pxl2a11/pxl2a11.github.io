@@ -1,4 +1,4 @@
-//59 js/main.js
+// js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -14,6 +14,7 @@ const appNameToModuleFile = {
     'Графический редактор': 'drawingPad',
     'Сравнение текста': 'textDiffTool',
     'Генератор favicon': 'faviconGenerator',
+    'Анализатор текста': 'textAnalyzer',
     'Калькулятор кредита': 'loanCalculator',
     'Тест скорости печати': 'typingTest',
     'Запись экрана': 'screenRecorder',
@@ -26,6 +27,7 @@ const appPopularity = {
     'drawingPad': 80,
     'textDiffTool': 70,
     'faviconGenerator': 85,
+    'textAnalyzer': 78,
     'loanCalculator': 80,
     'typingTest': 88,
     'Recorder': 90,
@@ -47,6 +49,7 @@ const appSearchMetadata = {
     'drawingPad': { keywords: ['рисование', 'редактор', 'холст', 'кисть', 'paint', 'draw', 'графика'], hashtags: ['#fun', '#design', '#tools'] },
     'textDiffTool': { keywords: ['сравнение', 'текст', 'различия', 'diff', 'код'], hashtags: ['#text', '#tools', '#webdev'] },
     'faviconGenerator': { keywords: ['favicon', 'иконка', 'сайт', 'генератор', 'png', 'ico'], hashtags: ['#image', '#tools', '#webdev'] },
+    'textAnalyzer': { keywords: ['анализ', 'статистика', 'текст', 'слова', 'ключевые', 'частота'], hashtags: ['#text', '#tools'] },
     'loanCalculator': { keywords: ['кредит', 'ипотека', 'калькулятор', 'платеж', 'проценты', 'финансы'], hashtags: ['#finance', '#calculator'] },
     'typingTest': { keywords: ['печать', 'скорость', 'тест', 'клавиатура', 'wpm', 'набор', 'текста'], hashtags: ['#tools', '#fun'] },
     'Recorder': { keywords: ['запись', 'экрана', 'видео', 'демонстрация', 'cast', 'record'], hashtags: ['#tools', '#video'] },
@@ -64,7 +67,7 @@ let activeAppModule = null;
 const appCardElements = new Map();
 let allAppCards = [];
 
-const homeScreenHtml = `<div id=\"apps-container\" class=\"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4\"></div>`;
+const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
 const appScreenHtml = `
     <div id="app-screen" class="hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
         <div class="flex items-center justify-between mb-6">
@@ -134,7 +137,7 @@ function renderGoogleButton() {
 }
 
 function updateAuthStateUI(user) {
-    const myAppsButton = document.querySelector('[data-sort=\"my-apps\"]');
+    const myAppsButton = document.querySelector('[data-sort="my-apps"]');
     if (user) {
         if (userNameElement) userNameElement.textContent = user.displayName;
         if (userAvatarElement) userAvatarElement.src = user.photoURL;
@@ -262,7 +265,7 @@ async function renderSimilarApps(currentModule, container) {
     similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
     const topSimilar = similarModules.slice(0, 4);
     if (topSimilar.length === 0) { container.innerHTML = ''; container.classList.add('hidden'); return; }
-    container.innerHTML = `<h3 class=\"text-xl font-bold mb-4\">Похожие приложения</h3>`;
+    container.innerHTML = `<h3 class="text-xl font-bold mb-4">Похожие приложения</h3>`;
     const grid = document.createElement('div');
     grid.className = 'similar-apps-grid';
     topSimilar.forEach(module => {
@@ -311,8 +314,8 @@ async function router() {
             await renderSimilarApps(moduleName, similarAppsContainer);
             if (appName !== 'История изменений') renderChangelog(appName, null, appChangelogContainer);
         } catch (error) {
-            console.error(`Ошибка загрузки модуля для \"${appName}\" (${moduleName}.js):`, error);
-            document.getElementById('app-content-container').innerHTML = `<p class=\"text-center text-red-500\">Не удалось загрузить приложение.</p>`;
+            console.error(`Ошибка загрузки модуля для "${appName}" (${moduleName}.js):`, error);
+            document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
         }
     } else {
         dynamicContentArea.innerHTML = homeScreenHtml;
@@ -376,7 +379,7 @@ function setupSearch() {
             suggestions.slice(0, 7).forEach(suggestion => {
                 const suggestionEl = document.createElement('div');
                 suggestionEl.className = 'suggestion-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
-                suggestionEl.innerHTML = `<span class=\"suggestion-name\">${suggestion.name}</span><span class=\"suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4\">${suggestion.hashtags.join(' ')}</span>`;
+                suggestionEl.innerHTML = `<span class="suggestion-name">${suggestion.name}</span><span class="suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4">${suggestion.hashtags.join(' ')}</span>`;
                 suggestionEl.addEventListener('click', () => {
                     if (suggestion.module) {
                         history.pushState({}, '', `?app=${suggestion.module}`);
@@ -416,7 +419,7 @@ async function applyAppListFilterAndRender() {
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
         if (appElements.length === 0 && activeFilter === 'my-apps') {
-            appsContainer.innerHTML = `<p class=\"col-span-full text-center text-gray-500 dark:text-gray-400\">У вас пока нет добавленных приложений. Нажмите \\\"+\\\" на карточке приложения, чтобы добавить его сюда.</p>`;
+            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400">У вас пока нет добавленных приложений. Нажмите "+" на карточке приложения, чтобы добавить его сюда.</p>`;
             return;
         }
         appElements.forEach(app => {
@@ -513,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); 
             e.stopPropagation();
             if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \\\"Мои приложения\\\".');
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
                 return;
             }
             const appCard = addBtn.closest('.app-item');
@@ -524,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
         if (addBtnAppView) {
             if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \\\"Мои приложения\\\".');
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
                 return;
             }
             const moduleName = addBtnAppView.dataset.module;
@@ -544,10 +547,10 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
-            const myAppsButton = document.querySelector('[data-sort=\\\"my-apps\\\"]');
+            const myAppsButton = document.querySelector('[data-sort="my-apps"]');
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
-                document.querySelector('[data-sort=\\\"default\\\"]')?.classList.add('active');
+                document.querySelector('[data-sort="default"]')?.classList.add('active');
             }
         }
 
@@ -560,8 +563,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const appModule = params.get('app');
             if (user && !appModule) { // Только на главной странице
-                document.querySelector('[data-sort=\"default\"]')?.classList.remove('active');
-                document.querySelector('[data-sort=\"my-apps\"]')?.classList.add('active');
+                document.querySelector('[data-sort="default"]')?.classList.remove('active');
+                document.querySelector('[data-sort="my-apps"]')?.classList.add('active');
             }
             
             await router(); 
