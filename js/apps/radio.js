@@ -48,13 +48,14 @@ function updateMediaSession() {
 }
 
 export function getHtml() {
-    // HTML-код остается без изменений
     return `
         <div class="radio-container p-4">
             <div class="mb-4">
                 <input id="radio-search-input" type="text" placeholder="Поиск станций..." class="w-full p-3 rounded-full border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"/>
             </div>
             <div id="radio-stations" class="grid grid-cols-2 sm:grid-cols-3 gap-6"></div>
+            <!-- ИЗМЕНЕНИЕ: Добавлен невидимый блок-распорка -->
+            <div id="radio-player-spacer" style="height: 0; transition: height 0.3s ease;"></div>
         </div>
         <div id="fixed-player-container" class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-xl hidden">
             <div class="flex flex-col md:flex-row items-center justify-between max-w-4xl mx-auto w-full">
@@ -85,9 +86,6 @@ export function getHtml() {
 export function init() {
     const radioStationsContainer = document.getElementById('radio-stations');
     audioPlayer = document.getElementById('audio-player');
-
-    // === ИСПРАВЛЕНИЕ ЗДЕСЬ ===
-    // Длинная строка разделена на несколько для читаемости и исправления синтаксической ошибки.
     const playPauseBtn = document.getElementById('play-pause-btn');
     const playIcon = document.getElementById('play-icon');
     const pauseIcon = document.getElementById('pause-icon');
@@ -97,7 +95,6 @@ export function init() {
     const fixedPlayerContainer = document.getElementById('fixed-player-container');
     const searchInput = document.getElementById('radio-search-input');
     const qualityBtns = document.querySelectorAll('.quality-btn');
-    // === КОНЕЦ ИСПРАВЛЕНИЯ ===
 
     let currentQuality = 'med', playAttemptId = 0;
     const stationCards = [];
@@ -200,7 +197,13 @@ export function init() {
         }
 
         fixedPlayerContainer.classList.remove('hidden');
-        document.body.style.paddingBottom = `${fixedPlayerContainer.offsetHeight}px`;
+
+        // ИЗМЕНЕНИЕ: Устанавливаем высоту распорки
+        const spacer = document.getElementById('radio-player-spacer');
+        if (spacer) {
+            spacer.style.height = `${fixedPlayerContainer.offsetHeight}px`;
+        }
+
         playCurrentStation();
     }
 
@@ -272,7 +275,15 @@ export function init() {
 }
 
 export function cleanup() {
-    document.body.style.paddingBottom = '0';
+    // ИЗМЕНЕНИЕ: Сбрасываем высоту распорки
+    const spacer = document.getElementById('radio-player-spacer');
+    if (spacer) {
+        spacer.style.height = '0px';
+    }
+    
+    // Удаляем старый код, который менял padding у body
+    // document.body.style.paddingBottom = '0';
+
     if (audioPlayer) {
         audioPlayer.pause();
         audioPlayer.src = "";
