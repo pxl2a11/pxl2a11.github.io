@@ -1,4 +1,4 @@
-// radio.js
+// 07radio.js
 // Импортируем станции из нового файла, учитывая новую структуру папок.
 // Предполагается, что radio.js находится в js/apps/, а radioStationsData.js - в js/
 import { radioStations } from '../radioStationsData.js'; // Исправлен путь импорта
