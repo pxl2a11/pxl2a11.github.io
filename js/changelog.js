@@ -53,6 +53,7 @@ export const appNameToModuleFile = {
     'Flappy Bird': 'flappyBird',
     'Анализатор текста': 'textAnalyzer',
     'Виртуальный кубик': 'virtualDice',
+    'Калькулятор калорий': 'calorieCalculator',
     'Общее': null,
 };
 
