@@ -47,7 +47,7 @@ export const appNameToModuleFile = {
     'Тест клавиатуры': 'keyboardTester',
     'Графический редактор': 'drawingPad',
     'Сравнение текста': 'textDiffTool',
-    'Генератор Favicon': 'faviconGenerator', // <-- ДОБАВЛЕНА ЭТА СТРОКА
+    'Генератор favicon': 'faviconGenerator',
     'Калькулятор кредита': 'loanCalculator',
     'Тест скорости печати': 'typingTest',
     'Запись экрана': 'screenRecorder',
@@ -67,7 +67,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
-    { date: getRussianDate('2025-09-08T08:00:00Z'), appName: 'Генератор Favicon', description: 'добавлена возможность выбора формата для скачивания (PNG, ICO, или PNG+ICO в ZIP-архиве).' },
+    { date: getRussianDate('2025-09-08T08:00:00Z'), appName: 'Генератор favicon', description: 'добавлена возможность выбора формата для скачивания (PNG, ICO, или PNG+ICO в ZIP-архиве).' },
     { date: getRussianDate('2025-09-04T11:00:00Z'), appName: 'Flappy Bird', description: 'добавлена новая аркадная игра Flappy Bird.' },
     { date: getRussianDate('2025-09-04T10:00:00Z'), appName: 'Случайный цвет', description: 'добавлена генерация триадической цветовой палитры.' },
     { date: getRussianDate('2025-09-03T09:00:00Z'), appName: 'Запись экрана', description: 'добавлено новое приложение для записи видео с экрана, отдельного окна или вкладки браузера.' },
@@ -77,7 +77,7 @@ const changelogData = [
     { date: getRussianDate('2025-09-02T09:00:00Z'), appName: 'Диктофон', description: 'теперь перед скачиванием записи можно задать ей произвольное имя.' },
     { date: getRussianDate('2025-09-02T08:00:00Z'), appName: 'Случайный цвет', description: 'добавлена функция "заморозки" цвета, позволяющая зафиксировать понравившийся цвет и генерировать новые палитры на его основе.' },
     { date: getRussianDate('2025-09-02T10:00:00Z'), appName: 'Сравнение текста', description: 'добавлено новое приложение для поиска различий между двумя текстами.' },
-    { date: getRussianDate('2025-09-02T10:00:00Z'), appName: 'Генератор Favicon', description: 'добавлено новое приложение для создания набора favicon из одного изображения.' },
+    { date: getRussianDate('2025-09-02T10:00:00Z'), appName: 'Генератор favicon', description: 'добавлено новое приложение для создания набора favicon из одного изображения.' },
     { date: getRussianDate('2025-09-02T10:00:00Z'), appName: 'Калькулятор кредита', description: 'добавлено новое приложение для расчета ежемесячного платежа и переплаты по кредиту.' },
     { date: getRussianDate('2025-09-02T10:00:00Z'), appName: 'Тест скорости печати', description: 'добавлено новое приложение для измерения скорости набора текста.' },
     { date: getRussianDate('2025-08-29T11:00:00Z'), appName: 'Генератор каркаса сайта', description: 'добавлена опция для скачивания JSON-структуры без содержимого файлов.' },
