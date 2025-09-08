@@ -1,4 +1,4 @@
-/* Убираем полосу прокрутки во время загрузки */
+/*39 Убираем полосу прокрутки во время загрузки */
 body:has(#initial-loading-overlay:not([style*="display: none"])) {
     overflow: hidden;
 }
