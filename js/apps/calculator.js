@@ -1,4 +1,7 @@
-// js/apps/calculator.js
+//53 js/apps/calculator.js
+
+// --- НОВЫЙ КОД: Переменная для хранения ссылки на обработчик ---
+let handleKeyDown;
 
 export function getHtml() {
     return `
@@ -135,6 +138,15 @@ export function init() {
         previousValue = '';
         operator = null;
     }
+    
+    // --- НОВЫЙ КОД: Функция для удаления последнего символа (Backspace) ---
+    function backspace() {
+        if (shouldResetDisplay) return;
+        currentValue = currentValue.slice(0, -1);
+        if (currentValue.length === 0) {
+            currentValue = '0';
+        }
+    }
 
     function handleAction(action) {
         switch (action) {
@@ -163,6 +175,32 @@ export function init() {
         
         updateDisplay();
     });
+    
+    // --- НОВЫЙ КОД: Функция-обработчик нажатий клавиатуры ---
+    handleKeyDown = (e) => {
+        e.preventDefault();
+        if (e.key >= '0' && e.key <= '9') handleNumber(e.key);
+        if (e.key === '.' || e.key === ',') handleAction('decimal');
+        if (e.key === 'Enter' || e.key === '=') handleAction('equals');
+        if (e.key === 'Backspace') backspace();
+        if (e.key === 'Escape') handleAction('clear');
+        if (e.key === '+') handleOperator('add');
+        if (e.key === '-') handleOperator('subtract');
+        if (e.key === '*') handleOperator('multiply');
+        if (e.key === '/') handleOperator('divide');
+        updateDisplay();
+    };
+
+    // --- НОВЫЙ КОД: Добавляем глобальный слушатель ---
+    window.addEventListener('keydown', handleKeyDown);
 
     updateDisplay();
+}
+
+// --- НОВЫЙ КОД: Создаем и экспортируем функцию очистки ---
+export function cleanup() {
+    // Удаляем слушатель, чтобы он не мешал другим приложениям
+    if (handleKeyDown) {
+        window.removeEventListener('keydown', handleKeyDown);
+    }
 }
