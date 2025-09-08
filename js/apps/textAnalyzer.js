@@ -59,12 +59,12 @@ function analyzeText() {
     const text = textarea.value;
 
     // --- Базовая статистика ---
-    const words = text.trim().split(/\s+/).filter(Boolean);
+    const words = text.trim().split(/\\s+/).filter(Boolean);
     const wordCount = words.length;
     const charCount = text.length;
-    const charNoSpacesCount = text.replace(/\s/g, '').length;
-    const sentenceCount = text.match(/[.!?…]+(\s|$)/g)?.length || (text.trim().length > 0 ? 1 : 0);
-    const paragraphCount = text.split(/\n\s*\n/).filter(Boolean).length;
+    const charNoSpacesCount = text.replace(/\\s/g, '').length;
+    const sentenceCount = text.match(/[.!?…]+(\\s|$)/g)?.length || (text.trim().length > 0 ? 1 : 0);
+    const paragraphCount = text.split(/\\n\\s*\\n/).filter(Boolean).length;
 
     // --- Время чтения (средняя скорость 225 слов/мин) ---
     const wpm = 225;
