@@ -1,10 +1,8 @@
-// 07radio.js
-// Импортируем станции из нового файла, учитывая новую структуру папок.
-// Предполагается, что radio.js находится в js/apps/, а radioStationsData.js - в js/
-import { radioStations } from '../radioStationsData.js'; // Исправлен путь импорта
+// js/apps/radio.js
+import { radioStations } from '../radioStationsData.js'; 
 
-let audioPlayer; // Module-level variable
-let currentStation = null; // Module-level variable for the current station
+let audioPlayer; 
+let currentStation = null;
 
 /**
  * Updates the browser's media session to show info in OS-level UI.
@@ -14,7 +12,7 @@ function updateMediaSession() {
         return;
     }
 
-    navigator.mediaSession.metadata = new MediaMetadata({playCurrentStation();
+    navigator.mediaSession.metadata = new MediaMetadata({
         title: currentStation.name,
         artist: 'Интернет-радио',
         album: 'Mini Apps Radio',
@@ -23,7 +21,6 @@ function updateMediaSession() {
         ]
     });
 
-    // Action handler for the "Play" button in the media notification
     navigator.mediaSession.setActionHandler('play', () => {
         if (audioPlayer && audioPlayer.paused) {
             const playIcon = document.getElementById('play-icon');
@@ -36,7 +33,6 @@ function updateMediaSession() {
         }
     });
 
-    // Action handler for the "Pause" button in the media notification
     navigator.mediaSession.setActionHandler('pause', () => {
         if (audioPlayer && !audioPlayer.paused) {
             audioPlayer.pause();
@@ -51,8 +47,8 @@ function updateMediaSession() {
     });
 }
 
-
 export function getHtml() {
+    // HTML-код остается без изменений
     return `
         <div class="radio-container p-4">
             <div class="mb-4">
@@ -87,10 +83,22 @@ export function getHtml() {
 }
 
 export function init() {
-    // radioStations теперь импортируется из radioStationsData.js
     const radioStationsContainer = document.getElementById('radio-stations');
     audioPlayer = document.getElementById('audio-player');
-    const playPauseBtn = document.getElementById('play-pause-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), stationNameDisplay = document.getElementById('station-name-display'), stationLogoContainer = document.getElementById('station-logo-container'), volumeSlider = document.getElementById('volume-slider'), fixedPlayerContainer = document.getElementById('fixed-player-container'), searchInput = document.getElementById('radio-search-input'), qualityBtns = document.querySelectorAll('.quality-btn');
+
+    // === ИСПРАВЛЕНИЕ ЗДЕСЬ ===
+    // Длинная строка разделена на несколько для читаемости и исправления синтаксической ошибки.
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    const stationNameDisplay = document.getElementById('station-name-display');
+    const stationLogoContainer = document.getElementById('station-logo-container');
+    const volumeSlider = document.getElementById('volume-slider');
+    const fixedPlayerContainer = document.getElementById('fixed-player-container');
+    const searchInput = document.getElementById('radio-search-input');
+    const qualityBtns = document.querySelectorAll('.quality-btn');
+    // === КОНЕЦ ИСПРАВЛЕНИЯ ===
+
     let currentQuality = 'med', playAttemptId = 0;
     const stationCards = [];
     const savedQuality = localStorage.getItem('radioQuality');
@@ -170,7 +178,7 @@ export function init() {
         if (buttonElement) buttonElement.classList.add('card-active');
         currentStation = station;
         stationNameDisplay.textContent = currentStation.name;
-        stationLogoContainer.innerHTML = ''; // Очищаем контейнер перед добавлением нового логотипа
+        stationLogoContainer.innerHTML = ''; 
 
         if (currentStation.logoUrl) {
             const img = document.createElement('img');
@@ -185,7 +193,6 @@ export function init() {
             };
             stationLogoContainer.appendChild(img);
         } else {
-            // Запасной вариант, если logoUrl отсутствует
             const fallbackIcon = document.createElement('div');
             fallbackIcon.className = 'w-16 h-16 rounded-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300';
             fallbackIcon.textContent = 'Нет лого';
@@ -224,7 +231,7 @@ export function init() {
         playPauseBtn.disabled = true;
         playIcon.classList.remove('hidden');
         pauseIcon.classList.add('hidden');
-        stationNameDisplay.classList.remove('text-red-500'); // Убираем индикатор ошибки
+        stationNameDisplay.classList.remove('text-red-500');
     });
 
     volumeSlider.addEventListener('input', (e) => {
@@ -242,28 +249,26 @@ export function init() {
     qualityBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const newQuality = btn.dataset.quality;
-            if(newQuality === currentQuality) return; // Если качество не изменилось, ничего не делаем
+            if(newQuality === currentQuality) return;
 
-            const wasPlaying = !audioPlayer.paused && audioPlayer.currentTime > 0; // Проверяем, играло ли радио
+            const wasPlaying = !audioPlayer.paused && audioPlayer.currentTime > 0;
 
             currentQuality = newQuality;
-            localStorage.setItem('radioQuality', currentQuality); // Сохраняем выбранное качество
-            updateQualityUI(); // Обновляем UI кнопок качества
+            localStorage.setItem('radioQuality', currentQuality);
+            updateQualityUI();
 
-            // Если станция была выбрана и играла, перезапускаем поток с новым качеством
             if(currentStation && wasPlaying){
                 playCurrentStation();
             } else if (currentStation) {
-                // Если станция выбрана, но не играла, просто обновляем источник, чтобы при следующем нажатии играло с новым качеством
                 audioPlayer.src = currentStation.streams[currentQuality];
             }
         });
     });
 
     createStationButtons();
-    updateQualityUI(); // Устанавливаем начальное состояние кнопок качества
-    audioPlayer.volume = 1.0; // Устанавливаем начальную громкость
-    playPauseBtn.disabled = true; // Отключаем кнопку до выбора станции
+    updateQualityUI();
+    audioPlayer.volume = 1.0;
+    playPauseBtn.disabled = true;
 }
 
 export function cleanup() {
@@ -277,7 +282,6 @@ export function cleanup() {
     if (fixedPlayerContainer) {
         fixedPlayerContainer.classList.add('hidden');
     }
-    // Clear the media session when leaving the app
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = null;
         navigator.mediaSession.playbackState = 'none';
