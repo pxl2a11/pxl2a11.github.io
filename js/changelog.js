@@ -62,6 +62,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-09-08T08:00:00Z'), appName: 'Генератор Favicon', description: 'добавлена возможность выбора формата для скачивания (PNG, ICO, или PNG+ICO в ZIP-архиве).' },
     { date: getRussianDate('2025-09-04T11:00:00Z'), appName: 'Flappy Bird', description: 'добавлена новая аркадная игра Flappy Bird.' },
     { date: getRussianDate('2025-09-04T10:00:00Z'), appName: 'Случайный цвет', description: 'добавлена генерация триадической цветовой палитры.' },
     { date: getRussianDate('2025-09-03T09:00:00Z'), appName: 'Запись экрана', description: 'добавлено новое приложение для записи видео с экрана, отдельного окна или вкладки браузера.' },
