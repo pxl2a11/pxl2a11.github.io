@@ -38,16 +38,21 @@ export const appNameToModuleFile = {
     'Текст в речь': 'textToSpeech',
     'Камень, ножницы, бумага': 'rockPaperScissors',
     'Судоку': 'sudoku',
-    'Архиватор файлов (ZIP)': 'zipArchiver', // <-- Убедитесь, что эта строка есть
-    '2048': 'game2048', // <-- Убедитесь, что эта строка есть
-    'Генератор штрих-кодов': 'barcodeGenerator', // <-- Убедитесь, что эта строка есть
-    'Диктофон': 'voiceRecorder', // <-- Убедитесь, что эта строка есть
+    'Архиватор файлов (ZIP)': 'zipArchiver',
+    '2048': 'game2048',
+    'Генератор штрих-кодов': 'barcodeGenerator',
+    'Диктофон': 'voiceRecorder',
     'Генератор каркаса сайта': 'siteSkeletonGenerator',
-    'Тест мыши': 'mouseTester', // <-- ДОБАВЛЕНО
-    'Тест клавиатуры': 'keyboardTester', // <-- ДОБАВЛЕНО
-    'Графический редактор': 'drawingPad', // <-- ДОБАВЛЕНО
+    'Тест мыши': 'mouseTester',
+    'Тест клавиатуры': 'keyboardTester',
+    'Графический редактор': 'drawingPad',
+    'Сравнение текста': 'textDiffTool',
+    'Генератор Favicon': 'faviconGenerator', // <-- ДОБАВЛЕНА ЭТА СТРОКА
+    'Калькулятор кредита': 'loanCalculator',
+    'Тест скорости печати': 'typingTest',
+    'Запись экрана': 'screenRecorder',
     'Flappy Bird': 'flappyBird',
-    'Общее': null, 
+    'Общее': null,
 };
 
 const getRussianDate = (dateString) => {
