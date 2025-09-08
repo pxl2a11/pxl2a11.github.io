@@ -52,6 +52,7 @@ export const appNameToModuleFile = {
     'Тест скорости печати': 'typingTest',
     'Запись экрана': 'screenRecorder',
     'Flappy Bird': 'flappyBird',
+    'Анализатор текста': 'textAnalyzer',
     'Общее': null,
 };
 
@@ -67,6 +68,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-09-08T09:00:00Z'), appName: 'Анализатор текста', description: 'добавлено новое приложение для подробной статистики по тексту, включая подсчет слов, символов, предложений и определение ключевых слов.' },
     { date: getRussianDate('2025-09-08T08:00:00Z'), appName: 'Генератор favicon', description: 'добавлена возможность выбора формата для скачивания (PNG, ICO, или PNG+ICO в ZIP-архиве).' },
     { date: getRussianDate('2025-09-04T11:00:00Z'), appName: 'Flappy Bird', description: 'добавлена новая аркадная игра Flappy Bird.' },
     { date: getRussianDate('2025-09-04T10:00:00Z'), appName: 'Случайный цвет', description: 'добавлена генерация триадической цветовой палитры.' },
