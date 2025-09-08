@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v31'; // ИЗМЕНЕНИЕ: ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v32'; // ИЗМЕНЕНИЕ: ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -16,7 +16,8 @@ const appModules = [
     'textDiffTool', 'faviconGenerator', 'loanCalculator', 'typingTest',
     'screenRecorder',
     'flappyBird',
-    'changelogPage'
+    'changelogPage',
+    'textAnalyzer'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
