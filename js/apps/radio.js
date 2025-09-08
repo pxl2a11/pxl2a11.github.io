@@ -48,38 +48,42 @@ function updateMediaSession() {
 }
 
 export function getHtml() {
-    // HTML-код остается без изменений
+    // === ИЗМЕНЕНИЕ №1: HTML-структура ===
+    // 1. Контейнеру ".radio-container" добавлен класс "relative", чтобы он стал
+    //    точкой отсчета для абсолютно позиционированного плеера.
+    // 2. Блок плеера "#fixed-player-container" перемещен ВНУТРЬ ".radio-container".
+    // 3. У плеера класс "fixed" заменен на "absolute".
+    // 4. Списку станций "#radio-stations" добавлен класс "pb-32" (padding-bottom),
+    //    чтобы плеер не перекрывал нижний ряд станций.
     return `
-        <div class="radio-container p-4">
+        <div class="radio-container p-4 relative h-full">
             <div class="mb-4">
                 <input id="radio-search-input" type="text" placeholder="Поиск станций..." class="w-full p-3 rounded-full border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"/>
             </div>
-            <div id="radio-stations" class="grid grid-cols-2 sm:grid-cols-3 gap-6"></div>
-        </div>
-        
-        <!-- === ВОТ КЛЮЧЕВОЙ МОМЕНТ ДЛЯ ПОЗИЦИОНИРОВАНИЯ === -->
-        <!-- Классы 'fixed bottom-0 left-0 right-0' заставляют этот блок "прилипнуть" к низу экрана -->
-        <div id="fixed-player-container" class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-xl hidden">
-            <div class="flex flex-col md:flex-row items-center justify-between max-w-4xl mx-auto w-full">
-                <div id="current-station-info" class="flex items-center mb-4 md:mb-0 min-h-[4rem] text-center md:text-left flex-grow">
-                    <div id="station-logo-container" class="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white/20 dark:border-gray-800/20 shadow-lg flex-shrink-0">
-                        <div id="logo-placeholder" class="w-full h-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Нет лого</div>
+            <div id="radio-stations" class="grid grid-cols-2 sm:grid-cols-3 gap-6 pb-32"></div>
+            
+            <div id="fixed-player-container" class="absolute bottom-0 left-0 right-0 z-50 p-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-xl hidden">
+                <div class="flex flex-col md:flex-row items-center justify-between max-w-4xl mx-auto w-full">
+                    <div id="current-station-info" class="flex items-center mb-4 md:mb-0 min-h-[4rem] text-center md:text-left flex-grow">
+                        <div id="station-logo-container" class="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white/20 dark:border-gray-800/20 shadow-lg flex-shrink-0">
+                            <div id="logo-placeholder" class="w-full h-full flex items-center justify-center text-xs bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Нет лого</div>
+                        </div>
+                        <div class="flex flex-col items-start"><p class="text-sm font-light text-gray-500 dark:text-gray-400">Сейчас играет:</p><p id="station-name-display" class="text-xl font-bold mt-1 drop-shadow-md text-gray-900 dark:text-gray-100">Выберите станцию</p></div>
                     </div>
-                    <div class="flex flex-col items-start"><p class="text-sm font-light text-gray-500 dark:text-gray-400">Сейчас играет:</p><p id="station-name-display" class="text-xl font-bold mt-1 drop-shadow-md text-gray-900 dark:text-gray-100">Выберите станцию</p></div>
+                    <div class="flex items-center space-x-4 w-full md:w-auto justify-center">
+                        <button id="play-pause-btn" class="bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200 ease-in-out disabled:opacity-30 disabled:cursor-not-allowed"><svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
+                        <div class="flex items-center space-x-2">
+                            <svg id="volume-icon" class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.383 3.003A.75.75 0 0110 3v14a.75.75 0 01-1.67-.504l-4.226-4.577H3a.75.75 0 01-.75-.75v-4.346a.75.75 0 01.75-.75h1.597L8.33 3.504A.75.75 0 019.383 3.003z" clip-rule="evenodd" /></svg>
+                            <input type="range" id="volume-slider" min="0" max="100" value="100" class="w-24 sm:w-32 h-1 rounded-full appearance-none cursor-pointer">
+                        </div>
+                        <div class="flex items-center rounded-full bg-gray-200 dark:bg-gray-700 p-1">
+                            <button data-quality="low" class="quality-btn text-xs font-bold py-1 px-2 rounded-full transition-colors">Low</button>
+                            <button data-quality="med" class="quality-btn text-xs font-bold py-1 px-2 rounded-full transition-colors">Med</button>
+                            <button data-quality="hi" class="quality-btn text-xs font-bold py-1 px-2 rounded-full transition-colors">High</button>
+                        </div>
+                    </div>
+                    <audio id="audio-player"></audio>
                 </div>
-                <div class="flex items-center space-x-4 w-full md:w-auto justify-center">
-                    <button id="play-pause-btn" class="bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200 ease-in-out disabled:opacity-30 disabled:cursor-not-allowed"><svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
-                    <div class="flex items-center space-x-2">
-                        <svg id="volume-icon" class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.383 3.003A.75.75 0 0110 3v14a.75.75 0 01-1.67-.504l-4.226-4.577H3a.75.75 0 01-.75-.75v-4.346a.75.75 0 01.75-.75h1.597L8.33 3.504A.75.75 0 019.383 3.003z" clip-rule="evenodd" /></svg>
-                        <input type="range" id="volume-slider" min="0" max="100" value="100" class="w-24 sm:w-32 h-1 rounded-full appearance-none cursor-pointer">
-                    </div>
-                    <div class="flex items-center rounded-full bg-gray-200 dark:bg-gray-700 p-1">
-                        <button data-quality="low" class="quality-btn text-xs font-bold py-1 px-2 rounded-full transition-colors">Low</button>
-                        <button data-quality="med" class="quality-btn text-xs font-bold py-1 px-2 rounded-full transition-colors">Med</button>
-                        <button data-quality="hi" class="quality-btn text-xs font-bold py-1 px-2 rounded-full transition-colors">High</button>
-                    </div>
-                </div>
-                <audio id="audio-player"></audio>
             </div>
         </div>
     `;
@@ -200,9 +204,10 @@ export function init() {
         }
 
         fixedPlayerContainer.classList.remove('hidden');
-        
-        // Эта строка нужна, чтобы плеер не перекрывал контент при прокрутке до самого низа
-        document.body.style.paddingBottom = `${fixedPlayerContainer.offsetHeight}px`;
+        // === ИЗМЕНЕНИЕ №2: Удалена манипуляция с padding для body ===
+        // Эта строка больше не нужна, так как плеер находится внутри контейнера
+        // и не влияет на общую компоновку страницы.
+        // document.body.style.paddingBottom = `${fixedPlayerContainer.offsetHeight}px`;
         playCurrentStation();
     }
 
@@ -274,8 +279,9 @@ export function init() {
 }
 
 export function cleanup() {
-    // Убираем отступ, когда уходим со страницы радио
-    document.body.style.paddingBottom = '0';
+    // === ИЗМЕНЕНИЕ №3: Удалена манипуляция с padding для body ===
+    // Эта строка больше не нужна.
+    // document.body.style.paddingBottom = '0';
     if (audioPlayer) {
         audioPlayer.pause();
         audioPlayer.src = "";
