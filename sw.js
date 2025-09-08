@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v32'; // ИЗМЕНЕНИЕ: ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v33'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -9,7 +9,7 @@ const appModules = [
     'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator',
     'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch',
     'randomColor', 'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 'dateCalculator',
-    'bmiCalculator', 'wordCounter', 'qrScanner', 'piano', 'caseConverter', 'imageConverter',
+    'bmiCalculator', 'qrScanner', 'piano', 'caseConverter', 'imageConverter',
     'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame',
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048',
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
@@ -29,7 +29,7 @@ const urlsToCache = [
   '/',
   APP_SHELL_URL,
   OFFLINE_URL,
-  '/manifest.json?v=3', // ИЗМЕНЕНИЕ: Добавлена версия
+  '/manifest.json?v=3',
   '/css/style.css',
   '/css/leaflet.css',
   
