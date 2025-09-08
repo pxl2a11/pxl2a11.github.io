@@ -1,4 +1,4 @@
-// 55js/utils/changelog.js
+// js/changelog.js
 
 export const appNameToModuleFile = {
     'Скорость интернета': 'speedTest',
@@ -22,7 +22,6 @@ export const appNameToModuleFile = {
     'Калькулятор дат': 'dateCalculator',
     'Калькулятор ИМТ': 'bmiCalculator',
     'Сжатие аудио': 'audioCompressor',
-    'Счетчик слов и символов': 'wordCounter',
     'Сканер QR-кодов': 'qrScanner',
     'Пианино': 'piano',
     'История изменений': 'changelogPage',
