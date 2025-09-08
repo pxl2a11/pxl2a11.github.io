@@ -48,6 +48,11 @@
     <script>
         tailwind.config = { darkMode: 'class' };
     </script>
+    <style>
+        .filter-blue {
+            filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
+        }
+    </style>
     
     <!-- Главный скрипт -->
     <script type="module" src="js/main.js"></script>
@@ -335,9 +340,9 @@
             <div class="app-icon-wrapper"><img src="img/textDiffTool.svg" alt="Сравнение текста"></div>
             <div class="app-name-wrapper"><span class="app-name-text">Сравнение текста</span></div>
         </a>
-        <a href="?app=faviconGenerator" class="app-item" style="--app-color: #fb7185;" data-name="Генератор Favicon" data-module="faviconGenerator">
+        <a href="?app=faviconGenerator" class="app-item" style="--app-color: #fb7185;" data-name="Генератор favicon" data-module="faviconGenerator">
             <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
-            <div class="app-icon-wrapper"><img src="img/faviconGenerator.svg" alt="Генератор Favicon"></div>
+            <div class="app-icon-wrapper"><img src="img/faviconGenerator.svg" alt="Генератор favicon"></div>
             <div class="app-name-wrapper"><span class="app-name-text">Генератор favicon</span></div>
         </a>
         <a href="?app=loanCalculator" class="app-item" style="--app-color: #a78bfa;" data-name="Калькулятор кредита" data-module="loanCalculator">
