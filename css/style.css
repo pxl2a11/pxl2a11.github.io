@@ -1,3 +1,8 @@
+/* Убираем полосу прокрутки во время загрузки */
+body:has(#initial-loading-overlay:not([style*="display: none"])) {
+    overflow: hidden;
+}
+
 /* --- Стили для кнопок фильтрации --- */
 .filter-btn {
     padding: 0.5rem 1rem;
