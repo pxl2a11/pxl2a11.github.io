@@ -14,7 +14,7 @@ function updateMediaSession() {
         return;
     }
 
-    navigator.mediaSession.metadata = new MediaMetadata({
+    navigator.mediaSession.metadata = new MediaMetadata({playCurrentStation();
         title: currentStation.name,
         artist: 'Интернет-радио',
         album: 'Mini Apps Radio',
@@ -193,6 +193,7 @@ export function init() {
         }
 
         fixedPlayerContainer.classList.remove('hidden');
+        document.body.style.paddingBottom = `${fixedPlayerContainer.offsetHeight}px`;
         playCurrentStation();
     }
 
@@ -266,6 +267,7 @@ export function init() {
 }
 
 export function cleanup() {
+    document.body.style.paddingBottom = '0';
     if (audioPlayer) {
         audioPlayer.pause();
         audioPlayer.src = "";
