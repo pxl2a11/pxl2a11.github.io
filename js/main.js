@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); 
             e.stopPropagation();
             if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \"Мои приложения\".');
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \\\"Мои приложения\\\".');
                 return;
             }
             const appCard = addBtn.closest('.app-item');
@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
         if (addBtnAppView) {
             if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \"Мои приложения\".');
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \\\"Мои приложения\\\".');
                 return;
             }
             const moduleName = addBtnAppView.dataset.module;
@@ -544,10 +544,10 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
-            const myAppsButton = document.querySelector('[data-sort=\"my-apps\"]');
+            const myAppsButton = document.querySelector('[data-sort=\\\"my-apps\\\"]');
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
-                document.querySelector('[data-sort=\"default\"]')?.classList.add('active');
+                document.querySelector('[data-sort=\\\"default\\\"]')?.classList.add('active');
             }
         }
 
@@ -560,8 +560,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const appModule = params.get('app');
             if (user && !appModule) { // Только на главной странице
-                document.querySelector('[data-sort="default"]')?.classList.remove('active');
-                document.querySelector('[data-sort="my-apps"]')?.classList.add('active');
+                document.querySelector('[data-sort=\"default\"]')?.classList.remove('active');
+                document.querySelector('[data-sort=\"my-apps\"]')?.classList.add('active');
             }
             
             await router(); 
