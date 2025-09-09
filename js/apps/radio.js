@@ -1,4 +1,4 @@
-//41 js/apps/radio.js
+//34 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 
 // --- Глобальные переменные модуля для управления состоянием и очистки ---
