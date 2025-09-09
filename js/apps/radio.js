@@ -114,20 +114,28 @@ export function getHtml() {
                 <audio id="radio-audio-element" class="hidden"></audio>
                 <div class="flex items-center gap-4 mt-4">
                     <button id="prev-station-btn" title="Предыдущая" class="p-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md">
-                        <svg fill="#000000" width="800px" height="800px" viewBox="0 0 512 512" id="Layer_1" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M297.2,478l20.7-21.6L108.7,256L317.9,55.6L297.2,34L65.5,256L297.2,478z M194.1,256L425.8,34l20.7,21.6L237.3,256  l209.2,200.4L425.8,478L194.1,256z"/></svg>
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M15.707 4.293a1 1 0 0 0-1.414 0L8 10.586 1.707 4.293A1 1 0 0 0 .293 5.707l7 7a1 1 0 0 0 1.414 0l7-7a1 1 0 0 0 0-1.414Z" transform="rotate(90 10 10)" /></svg>
                     </button>
                     <button id="play-pause-btn" class="p-4 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         <svg id="play-icon" class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.118V15.882A1.5 1.5 0 006.3 17.16l8.72-5.882a1.5 1.5 0 000-2.558L6.3 2.841z"></path></svg>
                         <svg id="pause-icon" class="w-8 h-8 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M5.75 4.5a.75.75 0 00-.75.75v10.5a.75.75 0 001.5 0V5.25a.75.75 0 00-.75-.75zm8.5 0a.75.75 0 00-.75.75v10.5a.75.75 0 001.5 0V5.25a.75.75 0 00-.75-.75z"></path></svg>
                     </button>
                     <button id="next-station-btn" title="Следующая" class="p-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md">
-                        <svg fill="#000000" width="800px" height="800px" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"><path d="M214.78,478l-20.67-21.57L403.27,256,194.11,55.57,214.78,34,446.46,256ZM317.89,256,86.22,34,65.54,55.57,274.7,256,65.54,456.43,86.22,478Z"/></svg>
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M15.707 4.293a1 1 0 0 0-1.414 0L8 10.586 1.707 4.293A1 1 0 0 0 .293 5.707l7 7a1 1 0 0 0 1.414 0l7-7a1 1 0 0 0 0-1.414Z" transform="rotate(-90 10 10)" /></svg>
                     </button>
                 </div>
                 <div class="flex items-center gap-2 mt-6 w-full max-w-xs">
                     <button id="mute-btn" title="Выключить звук" class="p-2 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
-                        <svg id="volume-on-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M18.97 3.97a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-2.25 2.25a.75.75 0 0 1-1.06-1.06L20.44 7l-1.47-1.47a.75.75 0 0 1 0-1.06Zm-15 0a.75.75 0 0 1 0 1.06L5.56 6.5 3.97 7.97a.75.75 0 0 1-1.06-1.06L5.16 4.66a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06L6.22 10.22a.75.75 0 0 1-1.06-1.06L6.69 7.5 3.97 4.66a.75.75 0 0 1 0-1.06ZM12 3a1 1 0 0 1 1 1v16a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Z" clip-rule="evenodd"/></svg>
-                        <svg id="volume-off-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 3a1 1 0 0 1 .894.553l8 16A1 1 0 0 1 20 21H4a1 1 0 0 1-.894-1.447l8-16A1 1 0 0 1 12 3Zm0 5.263L7.155 18h9.69L12 8.263Z" clip-rule="evenodd"/></svg>
+                        <svg id="volume-on-icon" class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 16V8H6L11 4V20L6 16H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M13 9C13 9 15 9.5 15 12C15 14.5 13 15 13 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15 7C15 7 18 7.83333 18 12C18 16.1667 15 17 15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <svg id="volume-off-icon" class="w-6 h-6 hidden" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 16V8H6L11 4V20L6 16H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14.5 15L20.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14.5 9L20.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </button>
                     <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="Громкость" class="w-full">
                 </div>
