@@ -381,41 +381,5 @@
             <div class="app-name-wrapper"><span class="app-name-text">Калькулятор</span></div>
         </a>
     </template>
-        <!-- =================================================================== -->
-    <!-- ================ НОВЫЙ ПОСТОЯННО ВИДИМЫЙ РАДИО-ПЛЕЕР =============== -->
-    <!-- =================================================================== -->
-    <div id="radio-player-container" class="fixed bottom-0 left-0 right-0 z-[1000] p-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-2xl transform transition-transform duration-300">
-        <div class="flex items-center justify-between max-w-7xl mx-auto w-full gap-4">
-            
-            <!-- Инфо о станции (слева) -->
-            <div class="flex items-center gap-4 flex-1 min-w-0">
-                <img id="radio-logo-display" class="w-16 h-16 rounded-lg shadow-md bg-gray-200 dark:bg-gray-700" src="img/radio.svg" alt="Логотип станции">
-                <div class="flex flex-col min-w-0">
-                    <p id="radio-name-display" class="text-lg font-bold truncate text-gray-900 dark:text-gray-100">Радио не выбрано</p>
-                    <div id="radio-quality-selector" class="flex items-center rounded-full bg-gray-200 dark:bg-gray-700 p-1 mt-1">
-                        <button data-quality="low" class="quality-btn text-xs font-bold py-1 px-3 rounded-full transition-colors">Low</button>
-                        <button data-quality="med" class="quality-btn text-xs font-bold py-1 px-3 rounded-full transition-colors">Med</button>
-                        <button data-quality="hi" class="quality-btn text-xs font-bold py-1 px-3 rounded-full transition-colors">High</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Кнопка Play/Pause (центр) -->
-            <div class="flex items-center justify-center">
-                <button id="radio-play-pause-btn" class="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-all transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    <svg id="radio-play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    <svg id="radio-pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                </button>
-            </div>
-            
-            <!-- Громкость (справа, для десктопов) -->
-            <div class="hidden md:flex items-center space-x-3 flex-1 justify-end">
-                <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.383 3.003A.75.75 0 0110 3v14a.75.75 0 01-1.67-.504l-4.226-4.577H3a.75.75 0 01-.75-.75v-4.346a.75.75 0 01.75-.75h1.597L8.33 3.504A.75.75 0 019.383 3.003z" clip-rule="evenodd" /></svg>
-                <input type="range" id="radio-volume-slider" min="0" max="100" value="100" class="w-32 h-1 bg-gray-300 dark:bg-gray-600 rounded-full appearance-none cursor-pointer">
-            </div>
-            
-            <audio id="radio-audio-player" class="hidden"></audio>
-        </div>
-    </div>
 </body>
 </html>
