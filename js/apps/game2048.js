@@ -5,6 +5,13 @@ let score = 0;
 const gridSize = 4;
 let isGameOver = false;
 
+// Переменные для обработки свайпов
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+
+
 // Цвета для плиток
 const tileColors = {
     2: 'bg-gray-200 text-gray-800', 4: 'bg-yellow-200 text-gray-800',
@@ -37,14 +44,33 @@ export function getHtml() {
 }
 
 export function init() {
+    const gameBoard = document.getElementById('game-board');
+
     document.getElementById('new-game-btn').addEventListener('click', startGame);
     document.getElementById('retry-btn').addEventListener('click', startGame);
+
+    // Управление с клавиатуры
     document.addEventListener('keydown', handleKeydown);
+
+    // Управление с тачскрина
+    gameBoard.addEventListener('touchstart', handleTouchStart, { passive: false });
+    gameBoard.addEventListener('touchmove', handleTouchMove, { passive: false });
+    gameBoard.addEventListener('touchend', handleTouchEnd);
+
     startGame();
 }
 
 export function cleanup() {
+    const gameBoard = document.getElementById('game-board');
+
     document.removeEventListener('keydown', handleKeydown);
+
+    // Убираем слушатели тачскрина
+    if (gameBoard) {
+        gameBoard.removeEventListener('touchstart', handleTouchStart);
+        gameBoard.removeEventListener('touchmove', handleTouchMove);
+        gameBoard.removeEventListener('touchend', handleTouchEnd);
+    }
 }
 
 function startGame() {
@@ -94,7 +120,6 @@ function renderBoard() {
     }
 }
 
-
 function handleKeydown(e) {
     if (isGameOver) return;
     let moved = false;
@@ -123,6 +148,63 @@ function handleKeydown(e) {
         checkGameOver();
     }
 }
+
+// --- НОВЫЕ ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ СВАЙПОМ ---
+
+function handleTouchStart(e) {
+    e.preventDefault();
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+}
+
+function handleTouchEnd(e) {
+    if (isGameOver) return;
+
+    touchEndX = e.changedTouches[0].clientX;
+    touchEndY = e.changedTouches[0].clientY;
+
+    handleSwipe();
+}
+
+function handleSwipe() {
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    const minSwipeDistance = 30; // Минимальная дистанция свайпа в пикселях
+    let moved = false;
+
+    // Определяем, был ли свайп больше горизонтальным или вертикальным
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Горизонтальный свайп
+        if (Math.abs(deltaX) > minSwipeDistance) {
+            if (deltaX > 0) {
+                moved = moveRight();
+            } else {
+                moved = moveLeft();
+            }
+        }
+    } else {
+        // Вертикальный свайп
+        if (Math.abs(deltaY) > minSwipeDistance) {
+            if (deltaY > 0) {
+                moved = moveDown();
+            } else {
+                moved = moveUp();
+            }
+        }
+    }
+
+    if (moved) {
+        addRandomTile();
+        renderBoard();
+        checkGameOver();
+    }
+}
+
+// --- ОСНОВНАЯ ЛОГИКА ИГРЫ (без изменений) ---
 
 function slide(row) {
     let arr = row.filter(val => val);
