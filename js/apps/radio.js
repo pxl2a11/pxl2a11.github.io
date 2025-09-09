@@ -1,11 +1,11 @@
-//04 js/apps/radio.js
+//15 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 
 // --- Глобальные переменные модуля для управления состоянием и очистки ---
-let audioElement, currentStation = null, stationCards = [], eventListeners = [];
-// --- Переменные для элементов UI ---
-let playerStationName, playerArtwork, playerPlaceholder, playPauseBtn, playIcon, pauseIcon, volumeOnIcon, volumeOffIcon, muteBtn;
-
+let audioElement;
+let currentStation = null;
+let stationCards = [];
+let eventListeners = [];
 
 /**
  * Вспомогательная функция для безопасного добавления и отслеживания обработчиков событий.
@@ -15,144 +15,122 @@ function addListener(element, event, handler) {
     eventListeners.push({ element, event, handler });
 }
 
-// --- Функции для управления плеером ---
-function playStation(station) {
-    if (!station) return;
-    currentStation = station;
-    playerStationName.textContent = 'Загрузка...';
-    audioElement.src = station.streams.hi;
-    audioElement.play().then(() => {
-        updatePlayerUI();
-        setupMediaSession(station);
-    }).catch(error => {
-        console.error("Ошибка воспроизведения:", error);
-        playerStationName.textContent = 'Выберите станцию'; // ИЗМЕНЕНИЕ: Убрана ошибка потока
-        currentStation = null;
-        updatePlayerUI();
-    });
-}
-
-function playNextStation() {
-    if (!currentStation) {
-        playStation(radioStations[0]);
-        return;
-    }
-    const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
-    const nextIndex = (currentIndex + 1) % radioStations.length;
-    playStation(radioStations[nextIndex]);
-}
-
-function playPreviousStation() {
-    if (!currentStation) {
-        playStation(radioStations[0]);
-        return;
-    }
-    const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
-    const prevIndex = (currentIndex - 1 + radioStations.length) % radioStations.length;
-    playStation(radioStations[prevIndex]);
-}
-
-
-// --- Функции для управления Media Session API ---
-function clearMediaSession() {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = null;
-        navigator.mediaSession.setActionHandler('play', null);
-        navigator.mediaSession.setActionHandler('pause', null);
-        navigator.mediaSession.setActionHandler('stop', null);
-        navigator.mediaSession.setActionHandler('nexttrack', null);
-        navigator.mediaSession.setActionHandler('previoustrack', null);
-        navigator.mediaSession.playbackState = "none";
-    }
-}
-
-function setupMediaSession(station) {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: station.name,
-            artist: 'Mini Apps Radio',
-            album: 'Прямой эфир',
-            artwork: [
-                { src: station.logoUrl || 'img/radio.svg', sizes: '192x192', type: 'image/png' },
-                { src: station.logoUrl || 'img/radio.svg', sizes: '512x512', type: 'image/png' },
-            ]
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => audioElement?.play());
-        navigator.mediaSession.setActionHandler('pause', () => audioElement?.pause());
-        navigator.mediaSession.setActionHandler('nexttrack', playNextStation);
-        navigator.mediaSession.setActionHandler('previoustrack', playPreviousStation);
-    }
-}
-
-
 // --- HTML-структура приложения ---
 export function getHtml() {
     return `
         <style>
-            .station-card { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s ease-in-out; border: 2px solid transparent; width: 100%; text-align: left; }
-            .station-card:hover { background-color: #f3f4f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-            .dark .station-card:hover { background-color: #374151; }
-            .station-card.playing { background-color: #dbeafe; border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-            .dark .station-card.playing { background-color: #1e3a8a; border-color: #60a5fa; box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3); }
-            .station-card img { width: 50px; height: 50px; border-radius: 0.5rem; object-fit: cover; flex-shrink: 0; }
-            .station-card span { flex-grow: 1; }
-            #radio-stations-grid::-webkit-scrollbar { width: 8px; }
-            #radio-stations-grid::-webkit-scrollbar-track { background: transparent; }
-            #radio-stations-grid::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
-            #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
-            .dark #radio-stations-grid::-webkit-scrollbar-thumb { background-color: #4b5563; }
-            .dark #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
-            
-            .player-control-btn { background-color: transparent; color: #4b5563; border-radius: 9999px; transition: background-color 0.2s, color 0.2s; }
-            .dark .player-control-btn { color: #d1d5db; }
-            .player-control-btn:hover { background-color: #e5e7eb; }
-            .dark .player-control-btn:hover { background-color: #4b5563; }
-            #volume-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: #e5e7eb; border-radius: 5px; outline: none; transition: opacity .2s; }
-            .dark #volume-slider { background: #4b5563; }
-            #volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
-            .dark #volume-slider::-webkit-slider-thumb { background: #60a5fa; }
+            /* --- Стили для карточек станций --- */
+            .station-card {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem; /* 12px */
+                padding: 0.5rem; /* 8px */
+                border-radius: 0.75rem; /* 12px */
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
+                border: 2px solid transparent;
+                width: 100%;
+                text-align: left;
+            }
+            .station-card:hover {
+                background-color: #f3f4f6; /* gray-100 */
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            }
+            .dark .station-card:hover {
+                background-color: #374151; /* gray-700 */
+            }
+            .station-card.playing {
+                background-color: #dbeafe; /* blue-100 */
+                border-color: #3b82f6; /* blue-500 */
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+            .dark .station-card.playing {
+                background-color: #1e3a8a;
+                border-color: #60a5fa; /* blue-400 */
+                box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+            }
+            .station-card img {
+                width: 50px;
+                height: 50px;
+                border-radius: 0.5rem; /* 8px */
+                object-fit: cover;
+                flex-shrink: 0;
+            }
+            .station-card span {
+                flex-grow: 1;
+            }
+
+            /* --- СТИЛИ ДЛЯ ПОЛОСЫ ПРОКРУТКИ --- */
+            #radio-stations-grid::-webkit-scrollbar {
+                width: 8px;
+            }
+            #radio-stations-grid::-webkit-scrollbar-track {
+                background: transparent; /* Фон трека */
+            }
+            #radio-stations-grid::-webkit-scrollbar-thumb {
+                background-color: #d1d5db; /* gray-300 */
+                border-radius: 4px;
+                border: 2px solid transparent;
+                background-clip: content-box;
+            }
+            #radio-stations-grid::-webkit-scrollbar-thumb:hover {
+                background-color: #9ca3af; /* gray-400 */
+            }
+            .dark #radio-stations-grid::-webkit-scrollbar-thumb {
+                background-color: #4b5563; /* gray-600 */
+            }
+            .dark #radio-stations-grid::-webkit-scrollbar-thumb:hover {
+                background-color: #6b7280; /* gray-500 */
+            }
         </style>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-2 md:p-4">
+            
+            <!-- Левая колонка: Плеер -->
             <div class="md:col-span-1 flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
-                <div id="player-artwork-container" class="w-32 h-32 rounded-2xl shadow-lg mb-6 flex justify-center items-center bg-gray-200 dark:bg-gray-900/50 overflow-hidden">
-                    <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full object-cover hidden transition-opacity duration-300">
-                    <svg id="player-placeholder" class="w-16 h-16 text-gray-400 dark:text-gray-600" fill="currentColor" viewBox="-8 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg"><title>music</title><path d="M16.080 4.72c-0.24-0.16-0.56-0.16-0.8-0.040l-10.080 4.68c-0.28 0.12-0.48 0.44-0.48 0.76v11.28c-0.44-0.24-0.96-0.4-1.52-0.4-1.76 0-3.2 1.44-3.2 3.2s1.44 3.2 3.2 3.2 3.2-1.44 3.2-3.2v-9.52l8.4-3.92v5.96c-0.44-0.24-0.96-0.4-1.52-0.4-1.76 0-3.2 1.44-3.2 3.2s1.44 3.2 3.2 3.2 3.2-1.44 3.2-3.2v-14.080c-0.040-0.28-0.16-0.56-0.4-0.72zM3.2 25.72c-0.84 0-1.52-0.68-1.52-1.52s0.68-1.52 1.52-1.52 1.52 0.68 1.52 1.52-0.72 1.52-1.52 1.52zM6.36 12.84v-2.16l8.4-3.92v2.16l-8.4 3.92zM13.28 21.040c-0.84 0-1.52-0.68-1.52-1.52s0.68-1.52 1.52-1.52 1.52 0.68 1.52 1.52c-0.040 0.84-0.72 1.52-1.52 1.52z"></path></svg>
+                
+                <div id="player-artwork-container" class="w-40 h-40 rounded-full shadow-xl border-4 border-white dark:border-gray-700 mb-4 flex justify-center items-center text-center bg-gray-200 dark:bg-gray-700">
+                    <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full rounded-full object-cover hidden">
+                    <span id="player-placeholder" class="font-semibold text-gray-500 dark:text-gray-400 p-4">Выберите станцию</span>
                 </div>
-                <div class="text-center mb-6">
-                    <h3 id="player-station-name" class="text-xl font-bold text-gray-800 dark:text-gray-200">Выберите станцию</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Прямой эфир</p>
-                </div>
+                
+                <h3 id="player-station-name" class="text-xl font-bold text-center h-14"></h3>
+                
                 <audio id="radio-audio-element" class="hidden"></audio>
-                <div class="w-full max-w-xs space-y-4">
-                    <div class="flex items-center justify-center gap-4">
-                        <button id="prev-station-btn" title="Предыдущая" class="player-control-btn p-3">
-                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM13.7071 8.29289C14.0976 8.68342 14.0976 9.31658 13.7071 9.70711L11.4142 12L13.7071 14.2929C14.0976 14.6834 14.0976 15.3166 13.7071 15.7071C13.3166 16.0976 12.6834 16.0976 12.2929 15.7071L9.5554 12.9696C9.0199 12.4341 9.0199 11.5659 9.55541 11.0304L12.2929 8.29289C12.6834 7.90237 13.3166 7.90237 13.7071 8.29289Z"/></svg>
-                        </button>
-                        <button id="play-pause-btn" class="p-4 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                            <svg id="play-icon" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM15.5963 10.3318C16.8872 11.0694 16.8872 12.9307 15.5963 13.6683L11.154 16.2068C9.9715 16.8825 8.5002 16.0287 8.5002 14.6667L8.5002 9.33339C8.5002 7.97146 9.9715 7.11762 11.154 7.79333L15.5963 10.3318Z"/></svg>
-                            <svg id="pause-icon" class="w-8 h-8 hidden" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM14 8C14.5523 8 15 8.44772 15 9L15 15C15 15.5523 14.5523 16 14 16C13.4477 16 13 15.5523 13 15L13 9C13 8.44772 13.4477 8 14 8ZM10 8C10.5523 8 11 8.44772 11 9L11 15C11 15.5523 10.5523 16 10 16C9.44771 16 9 15.5523 9 15L9 9C9 8.44772 9.44772 8 10 8Z"/></svg>
-                        </button>
-                        <button id="next-station-btn" title="Следующая" class="player-control-btn p-3">
-                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM10.2929 15.7071C9.90237 15.3166 9.90237 14.6834 10.2929 14.2929L12.5858 12L10.2929 9.70711C9.90237 9.31658 9.90237 8.68342 10.2929 8.29289C10.6834 7.90237 11.3166 7.90237 11.7071 8.29289L14.4229 11.0087C14.9704 11.5562 14.9704 12.4438 14.4229 12.9913L11.7071 15.7071C11.3166 16.0976 10.6834 16.0976 10.2929 15.7071Z"/></svg>
-                        </button>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <button id="mute-btn" title="Выключить звук" class="player-control-btn p-2">
-                            <svg id="volume-on-icon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 16V8H6L11 4V20L6 16H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 9C13 9 15 9.5 15 12C15 14.5 13 15 13 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7C15 7 18 7.83333 18 12C18 16.1667 15 17 15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            <svg id="volume-off-icon" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 16V8H6L11 4V20L6 16H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 15L20.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 9L20.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </button>
-                        <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="Громкость" class="w-full">
-                    </div>
+
+                <div id="player-controls" class="flex items-center gap-2 mt-4">
+                    <button id="prev-station-btn" title="Предыдущая станция" class="p-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M15.707 4.293a1 1 0 00-1.414 0L8 10.586 2.707 5.293a1 1 0 00-1.414 1.414l6 6a1 1 0 001.414 0l6-6a1 1 0 000-1.414z" transform="rotate(-90 10 10) translate(0 4)"></path></svg>
+                    </button>
+                    <button id="play-pause-btn" class="p-4 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg id="play-icon" class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.118V15.882A1.5 1.5 0 006.3 17.16l8.72-5.882a1.5 1.5 0 000-2.558L6.3 2.841z"></path></svg>
+                        <svg id="pause-icon" class="w-8 h-8 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M5.75 4.5a.75.75 0 00-.75.75v10.5a.75.75 0 001.5 0V5.25a.75.75 0 00-.75-.75zm8.5 0a.75.75 0 00-.75.75v10.5a.75.75 0 001.5 0V5.25a.75.75 0 00-.75-.75z"></path></svg>
+                    </button>
+                    <button id="next-station-btn" title="Следующая станция" class="p-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M15.707 4.293a1 1 0 00-1.414 0L8 10.586 2.707 5.293a1 1 0 00-1.414 1.414l6 6a1 1 0 001.414 0l6-6a1 1 0 000-1.414z" transform="rotate(90 10 10) translate(0 -4)"></path></svg>
+                    </button>
+                </div>
+                 <div class="flex items-center gap-2 mt-4 w-full max-w-xs">
+                    <button id="mute-btn" title="Выключить звук" class="p-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-full hover:bg-gray-300 dark:hover:bg-gray-600">
+                        <svg id="unmuted-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2.5a.75.75 0 00-1.5 0v15a.75.75 0 001.5 0V2.5zM3.5 6a.75.75 0 00-1.5 0v8a.75.75 0 001.5 0V6zM16.5 6a.75.75 0 00-1.5 0v8a.75.75 0 001.5 0V6z"></path></svg>
+                        <svg id="muted-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2.5a.75.75 0 00-1.5 0v15a.75.75 0 001.5 0V2.5zm-3.25.75a.75.75 0 00-1.5 0v13.5a.75.75 0 001.5 0V3.25zm6.5 0a.75.75 0 00-1.5 0v13.5a.75.75 0 001.5 0V3.25zm-9 3a.75.75 0 00-1.5 0v7.5a.75.75 0 001.5 0V6.25zm11.5 0a.75.75 0 00-1.5 0v7.5a.75.75 0 001.5 0V6.25z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="Громкость" class="w-full">
                 </div>
             </div>
+
+            <!-- Правая колонка: Список станций -->
             <div class="md:col-span-2 p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
                 <h3 class="text-xl font-bold mb-4">Поиск станций</h3>
                 <div class="relative mb-4">
                     <input id="radio-search-input" type="search" placeholder="Введите название..." class="w-full p-3 pl-10 rounded-full border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"/>
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-                <div id="radio-stations-grid" class="mt-2 space-y-2 max-h-[400px] overflow-y-auto pr-2 pt-2"></div>
+                <div id="radio-stations-grid" class="mt-2 space-y-2 max-h-[400px] overflow-y-auto pr-2 pt-2">
+                    <!-- Карточки станций будут сгенерированы здесь -->
+                </div>
             </div>
         </div>
     `;
@@ -160,31 +138,89 @@ export function getHtml() {
 
 // --- Функции инициализации и управления ---
 export function init() {
-    // Присваиваем элементы глобальным переменным модуля
     const stationsGrid = document.getElementById('radio-stations-grid');
     const searchInput = document.getElementById('radio-search-input');
-    playerArtwork = document.getElementById('player-artwork');
-    playerPlaceholder = document.getElementById('player-placeholder');
-    playerStationName = document.getElementById('player-station-name');
-    playPauseBtn = document.getElementById('play-pause-btn');
-    playIcon = document.getElementById('play-icon');
-    pauseIcon = document.getElementById('pause-icon');
+    
+    // Элементы плеера
+    const playerArtwork = document.getElementById('player-artwork');
+    const playerPlaceholder = document.getElementById('player-placeholder');
+    const playerStationName = document.getElementById('player-station-name');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
     const volumeSlider = document.getElementById('volume-slider');
-    const prevBtn = document.getElementById('prev-station-btn');
-    const nextBtn = document.getElementById('next-station-btn');
-    muteBtn = document.getElementById('mute-btn');
-    volumeOnIcon = document.getElementById('volume-on-icon');
-    volumeOffIcon = document.getElementById('volume-off-icon');
+    const prevStationBtn = document.getElementById('prev-station-btn');
+    const nextStationBtn = document.getElementById('next-station-btn');
+    const muteBtn = document.getElementById('mute-btn');
+    const unmutedIcon = document.getElementById('unmuted-icon');
+    const mutedIcon = document.getElementById('muted-icon');
     audioElement = document.getElementById('radio-audio-element');
 
+    /**
+     * Воспроизводит выбранную радиостанцию.
+     * @param {object} station - Объект станции для воспроизведения.
+     */
+    function playStation(station) {
+        if (!station) return;
+        currentStation = station;
+        playerStationName.textContent = 'Загрузка...';
+        audioElement.src = station.streams.hi; // По умолчанию высокое качество
+        
+        audioElement.play().then(() => {
+            updatePlayerUI();
+            updateMediaSessionMetadata();
+        }).catch(error => {
+            console.error("Ошибка воспроизведения:", error);
+            playerStationName.textContent = "Ошибка потока";
+            currentStation = null;
+            updatePlayerUI();
+            updateMediaSessionMetadata();
+        });
+    }
+
+    /**
+     * Переключает на следующую станцию в списке.
+     */
+    function playNextStation() {
+        if (!currentStation) return;
+        const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
+        const nextIndex = (currentIndex + 1) % radioStations.length;
+        playStation(radioStations[nextIndex]);
+    }
+
+    /**
+     * Переключает на предыдущую станцию в списке.
+     */
+    function playPreviousStation() {
+        if (!currentStation) return;
+        const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
+        const prevIndex = (currentIndex - 1 + radioStations.length) % radioStations.length;
+        playStation(radioStations[prevIndex]);
+    }
+
+    /**
+     * Включает или выключает звук.
+     */
+    function toggleMute() {
+        audioElement.muted = !audioElement.muted;
+        updatePlayerUI();
+    }
+    
+    /**
+     * Обновляет интерфейс плеера и список станций в соответствии с текущим состоянием.
+     */
     function updatePlayerUI() {
         const isPlaying = !audioElement.paused && currentStation !== null;
+
         playIcon.classList.toggle('hidden', isPlaying);
         pauseIcon.classList.toggle('hidden', !isPlaying);
         playPauseBtn.disabled = !currentStation;
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-        }
+        nextStationBtn.disabled = !currentStation;
+        prevStationBtn.disabled = !currentStation;
+        
+        mutedIcon.classList.toggle('hidden', !audioElement.muted);
+        unmutedIcon.classList.toggle('hidden', audioElement.muted);
+
         if (currentStation) {
             playerArtwork.src = currentStation.logoUrl || 'img/radio.svg';
             playerArtwork.classList.remove('hidden');
@@ -193,60 +229,118 @@ export function init() {
         } else {
             playerArtwork.classList.add('hidden');
             playerPlaceholder.classList.remove('hidden');
-            playerStationName.textContent = 'Выберите станцию';
-            clearMediaSession();
+            playerStationName.textContent = '';
         }
+
         stationCards.forEach(card => {
             const isCurrent = card.dataset.name === currentStation?.name;
             card.classList.toggle('playing', isCurrent);
         });
     }
 
+    /**
+     * Обновляет метаданные для Media Session API.
+     */
+    function updateMediaSessionMetadata() {
+        if ('mediaSession' in navigator) {
+            if (!currentStation) {
+                navigator.mediaSession.metadata = null;
+                navigator.mediaSession.playbackState = "none";
+                return;
+            }
+
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: currentStation.name,
+                artist: 'Интернет-радио',
+                artwork: [
+                    { src: currentStation.logoUrl || 'img/radio.svg', sizes: '512x512', type: 'image/png' },
+                ]
+            });
+            navigator.mediaSession.playbackState = audioElement.paused ? "paused" : "playing";
+        }
+    }
+
+    /**
+     * Устанавливает обработчики действий для Media Session API.
+     */
+    function setupMediaSessionHandlers() {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('play', () => audioElement.play());
+            navigator.mediaSession.setActionHandler('pause', () => audioElement.pause());
+            navigator.mediaSession.setActionHandler('previoustrack', playPreviousStation);
+            navigator.mediaSession.setActionHandler('nexttrack', playNextStation);
+        }
+    }
+
+    /**
+     * Создает и отображает карточки всех радиостанций.
+     */
     function createStationCards() {
         stationsGrid.innerHTML = '';
         stationCards.length = 0;
+        
         radioStations.forEach((station) => {
             const card = document.createElement('button');
             card.className = 'station-card';
             card.dataset.name = station.name;
-            card.innerHTML = `<img src="${station.logoUrl || 'img/radio.svg'}" alt="${station.name}" onerror="this.onerror=null;this.src='img/radio.svg';"><span class="font-semibold truncate flex-grow">${station.name}</span>`;
+
+            card.innerHTML = `
+                <img src="${station.logoUrl || 'img/radio.svg'}" alt="${station.name}" onerror="this.onerror=null;this.src='img/radio.svg';">
+                <span class="font-semibold truncate flex-grow">${station.name}</span>
+            `;
+            
             addListener(card, 'click', () => playStation(station));
+
             stationsGrid.appendChild(card);
             stationCards.push(card);
         });
     }
 
-    function toggleMute() {
-        audioElement.muted = !audioElement.muted;
-        volumeOnIcon.classList.toggle('hidden', audioElement.muted);
-        volumeOffIcon.classList.toggle('hidden', !audioElement.muted);
-        muteBtn.title = audioElement.muted ? "Включить звук" : "Выключить звук";
-    }
-
     // --- Назначение обработчиков событий ---
+    
     addListener(playPauseBtn, 'click', () => {
-        if (audioElement.paused) audioElement.play().catch(e => console.error("Ошибка при возобновлении:", e));
-        else audioElement.pause();
+        if (audioElement.paused) {
+            audioElement.play().catch(e => console.error("Ошибка при возобновлении:", e));
+        } else {
+            audioElement.pause();
+        }
     });
-    addListener(prevBtn, 'click', playPreviousStation);
-    addListener(nextBtn, 'click', playNextStation);
+
+    addListener(nextStationBtn, 'click', playNextStation);
+    addListener(prevStationBtn, 'click', playPreviousStation);
     addListener(muteBtn, 'click', toggleMute);
-    addListener(volumeSlider, 'input', () => { audioElement.volume = volumeSlider.value; });
+
+    addListener(volumeSlider, 'input', () => {
+        audioElement.volume = volumeSlider.value;
+        if (audioElement.muted && volumeSlider.value > 0) {
+            audioElement.muted = false;
+        }
+        updatePlayerUI();
+    });
+
     addListener(searchInput, 'input', () => {
         const searchTerm = searchInput.value.toLowerCase();
-        stationCards.forEach(card => card.style.display = card.dataset.name.toLowerCase().includes(searchTerm) ? 'flex' : 'none');
+        stationCards.forEach(card => {
+            const isVisible = card.dataset.name.toLowerCase().includes(searchTerm);
+            card.style.display = isVisible ? 'flex' : 'none';
+        });
     });
+
+    // Слушатели на самом аудио-элементе для синхронизации UI
     addListener(audioElement, 'play', updatePlayerUI);
     addListener(audioElement, 'pause', updatePlayerUI);
     addListener(audioElement, 'ended', updatePlayerUI);
+    addListener(audioElement, 'volumechange', updatePlayerUI); // Для синхронизации иконки звука
     addListener(audioElement, 'error', () => {
-        playerStationName.textContent = "Выберите станцию"; // ИЗМЕНЕНИЕ: Убрана ошибка потока
+        playerStationName.textContent = "Ошибка потока";
         currentStation = null;
         updatePlayerUI();
+        updateMediaSessionMetadata();
     });
 
     // --- Первоначальный запуск ---
     createStationCards();
+    setupMediaSessionHandlers();
     updatePlayerUI();
 }
 
@@ -254,10 +348,21 @@ export function init() {
 export function cleanup() {
     if (audioElement) {
         audioElement.pause();
-        audioElement.src = '';
+        audioElement.src = ''; // Прерываем загрузку
     }
-    eventListeners.forEach(({ element, event, handler }) => element.removeEventListener(event, handler));
-    eventListeners = [];
+
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null;
+        navigator.mediaSession.playbackState = "none";
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+    }
+    
+    eventListeners.forEach(({ element, event, handler }) => {
+        element.removeEventListener(event, handler);
+    });
+    eventListeners = []; // Очищаем массив
     currentStation = null;
-    clearMediaSession();
 }
