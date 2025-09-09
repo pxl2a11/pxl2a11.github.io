@@ -3,31 +3,41 @@ import { getUserData, saveUserData } from '/js/dataManager.js';
 export function getHtml() {
     return `
         <div class="p-4">
-            <!-- Кнопка Создать -->
-            <div class="text-center mb-4">
-                <button id="show-create-modal-btn" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors">
-                    + Создать
-                </button>
+            <!-- Верхняя панель управления -->
+            <div class="flex justify-between items-center mb-4 relative">
+                <!-- Кнопка Создать и выпадающее меню -->
+                <div class="relative">
+                    <button id="create-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"></path></svg>
+                        Создать
+                    </button>
+                    <!-- Выбор типа для создания -->
+                    <div id="create-choice-box" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-48">
+                        <button data-type="task" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Список задач</button>
+                        <button data-type="note" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Заметку</button>
+                    </div>
+                </div>
+
+                <!-- Фильтры -->
+                <div id="filter-buttons" class="flex gap-2 p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                    <button data-filter="all" class="filter-btn active px-3 py-1 text-sm font-semibold rounded-md">Все</button>
+                    <button data-filter="task" class="filter-btn px-3 py-1 text-sm font-semibold rounded-md">Задачи</button>
+                    <button data-filter="note" class="filter-btn px-3 py-1 text-sm font-semibold rounded-md">Заметки</button>
+                </div>
             </div>
 
-            <!-- Фильтры -->
-            <div id="filter-buttons" class="flex justify-center gap-2 p-1 mb-4 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <button data-filter="all" class="filter-btn active px-3 py-1 text-sm font-semibold rounded-md">Все</button>
-                <button data-filter="tasks" class="filter-btn px-3 py-1 text-sm font-semibold rounded-md">Задачи</button>
-                <button data-filter="notes" class="filter-btn px-3 py-1 text-sm font-semibold rounded-md">Заметки</button>
-            </div>
+            <!-- Контейнер для списков -->
+            <div id="lists-container" class="space-y-4"></div>
 
-            <!-- Контейнер для задач и заметок -->
-            <div id="items-list" class="space-y-2"></div>
-
-            <!-- Модальное окно для выбора -->
-            <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm relative">
-                    <button id="close-modal-btn" class="absolute top-2 right-3 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold">&times;</button>
-                    <h3 class="text-lg font-semibold text-center mb-4">Что вы хотите создать?</h3>
-                    <div class="flex flex-col gap-3">
-                        <button id="create-task-btn" class="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600">Задачу</button>
-                        <button id="create-note-btn" class="w-full bg-yellow-500 text-white p-3 rounded-lg hover:bg-yellow-600">Заметку</button>
+            <!-- Модальное окно для создания/редактирования -->
+            <div id="editor-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-5 w-full max-w-lg relative">
+                    <button id="close-modal-btn" class="absolute top-3 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold">&times;</button>
+                    <h3 id="modal-title" class="text-xl font-semibold mb-4">Новый список</h3>
+                    <div class="space-y-4">
+                        <input id="modal-input-title" type="text" placeholder="Название..." class="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600">
+                        <textarea id="modal-textarea-content" rows="6" class="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"></textarea>
+                        <button id="modal-save-btn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">Сохранить</button>
                     </div>
                 </div>
             </div>
@@ -36,113 +46,141 @@ export function getHtml() {
 }
 
 export async function init() {
-    const itemsList = document.getElementById('items-list');
+    // --- Получение элементов DOM ---
+    const listsContainer = document.getElementById('lists-container');
+    const createBtn = document.getElementById('create-btn');
+    const createChoiceBox = document.getElementById('create-choice-box');
     const filterButtonsContainer = document.getElementById('filter-buttons');
-    const showCreateModalBtn = document.getElementById('show-create-modal-btn');
-    const createModal = document.getElementById('create-modal');
+    const editorModal = document.getElementById('editor-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
-    const createTaskBtn = document.getElementById('create-task-btn');
-    const createNoteBtn = document.getElementById('create-note-btn');
+    const modalTitle = document.getElementById('modal-title');
+    const modalInputTitle = document.getElementById('modal-input-title');
+    const modalTextareaContent = document.getElementById('modal-textarea-content');
+    const modalSaveBtn = document.getElementById('modal-save-btn');
 
-
-    let items = getUserData('items', []);
+    // --- Состояние приложения ---
+    let lists = getUserData('lists', []);
     let currentFilter = 'all';
 
-    const saveItems = () => saveUserData('items', items);
+    const saveLists = () => saveUserData('lists', lists);
 
-    const renderItems = () => {
-        const filteredItems = items.filter(item => {
-            if (currentFilter === 'all') return true;
-            return item.type === currentFilter.slice(0, -1);
-        });
+    // --- ЛОГИКА ОТРИСОВКИ ---
+    const renderLists = () => {
+        const filteredLists = lists.filter(list => currentFilter === 'all' || list.type === currentFilter);
 
-        if (filteredItems.length === 0) {
-            itemsList.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Список пуст. Нажмите "Создать", чтобы добавить запись.</p>';
+        if (filteredLists.length === 0) {
+            listsContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Ничего не найдено. Нажмите "Создать", чтобы добавить запись.</p>';
             return;
         }
 
-        itemsList.innerHTML = filteredItems.map(item => {
-            const originalIndex = items.indexOf(item);
-            if (item.type === 'task') {
-                return `
-                    <div class="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                        <div class="flex items-center flex-grow min-w-0">
-                            <input type="checkbox" data-index="${originalIndex}" class="item-checkbox h-5 w-5 rounded-full flex-shrink-0" ${item.completed ? 'checked' : ''}>
-                            <span class="ml-3 break-all ${item.completed ? 'line-through text-gray-500' : ''}">${item.text}</span>
-                        </div>
-                        <button data-index="${originalIndex}" class="item-delete-btn text-red-500 hover:text-red-700 font-bold ml-2 flex-shrink-0">✖</button>
-                    </div>`;
-            } else {
-                return `
-                    <div class="flex items-start justify-between p-3 bg-yellow-100 dark:bg-gray-800 rounded-lg">
-                        <span class="break-all mr-4">${item.text}</span>
-                        <button data-index="${originalIndex}" class="item-delete-btn text-red-500 hover:text-red-700 font-bold ml-4 flex-shrink-0">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
-                        </button>
-                    </div>`;
+        listsContainer.innerHTML = filteredLists.map((list, index) => {
+            const originalIndex = lists.indexOf(list);
+            let contentHtml = '';
+
+            if (list.type === 'task') {
+                contentHtml = list.items.length > 0 ? list.items.map((task, taskIndex) => `
+                    <div class="flex items-center p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
+                        <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
+                        <span class="ml-3 break-all ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
+                    </div>
+                `).join('') : '<p class="text-sm text-gray-400 px-1">Задач нет</p>';
+            } else { // note
+                contentHtml = `<p class="whitespace-pre-wrap break-words p-1">${list.content}</p>`;
             }
+
+            return `
+                <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-lg break-all">${list.title}</h4>
+                        <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold ml-2 flex-shrink-0">✖</button>
+                    </div>
+                    <div class="space-y-1">${contentHtml}</div>
+                </div>
+            `;
         }).join('');
     };
 
     // --- ЛОГИКА МОДАЛЬНОГО ОКНА ---
-    const openModal = () => createModal.classList.remove('hidden');
-    const closeModal = () => createModal.classList.add('hidden');
-
-    showCreateModalBtn.addEventListener('click', openModal);
-    closeModalBtn.addEventListener('click', closeModal);
-    createModal.addEventListener('click', (e) => {
-        // Закрываем модальное окно при клике на фон (за его пределами)
-        if (e.target === createModal) {
-            closeModal();
+    const openModal = (type) => {
+        modalInputTitle.value = '';
+        modalTextareaContent.value = '';
+        if (type === 'task') {
+            modalTitle.textContent = 'Новый список задач';
+            modalTextareaContent.placeholder = 'Введите задачи, каждая с новой строки...';
+        } else {
+            modalTitle.textContent = 'Новая заметка';
+            modalTextareaContent.placeholder = 'Введите текст заметки...';
         }
-    });
+        modalSaveBtn.onclick = () => saveNewList(type);
+        editorModal.classList.remove('hidden');
+        modalInputTitle.focus();
+    };
 
-    // --- ЛОГИКА СОЗДАНИЯ ЭЛЕМЕНТОВ ---
-    const addItem = (type) => {
-        const text = prompt(`Введите текст для новой ${type === 'task' ? 'задачи' : 'заметки'}:`);
-        if (!text || !text.trim()) return;
+    const closeModal = () => editorModal.classList.add('hidden');
 
-        const newItem = type === 'task'
-            ? { type: 'task', text: text.trim(), completed: false }
-            : { type: 'note', text: text.trim() };
-        
-        items.unshift(newItem);
-        saveItems();
-        renderItems();
+    const saveNewList = (type) => {
+        const title = modalInputTitle.value.trim();
+        if (!title) {
+            alert('Название не может быть пустым!');
+            return;
+        }
+
+        const newList = { id: Date.now(), title, type };
+        if (type === 'task') {
+            newList.items = modalTextareaContent.value.split('\n')
+                .map(text => text.trim())
+                .filter(text => text)
+                .map(text => ({ text, completed: false }));
+        } else {
+            newList.content = modalTextareaContent.value.trim();
+        }
+
+        lists.unshift(newList);
+        saveLists();
+        renderLists();
         closeModal();
     };
 
-    createTaskBtn.addEventListener('click', () => addItem('task'));
-    createNoteBtn.addEventListener('click', () => addItem('note'));
+    // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+    createBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        createChoiceBox.classList.toggle('hidden');
+    });
 
-    // --- ЛОГИКА ФИЛЬТРОВ И ВЗАИМОДЕЙСТВИЯ ---
+    document.addEventListener('click', () => createChoiceBox.classList.add('hidden'));
+
+    createChoiceBox.addEventListener('click', (e) => {
+        const btn = e.target.closest('.create-type-btn');
+        if (btn) {
+            e.stopPropagation();
+            createChoiceBox.classList.add('hidden');
+            openModal(btn.dataset.type);
+        }
+    });
+    
+    closeModalBtn.addEventListener('click', closeModal);
+    editorModal.addEventListener('click', e => { if (e.target === editorModal) closeModal(); });
+
     filterButtonsContainer.addEventListener('click', e => {
         const filterBtn = e.target.closest('.filter-btn');
         if (filterBtn) {
             filterButtonsContainer.querySelector('.active').classList.remove('active');
             filterBtn.classList.add('active');
             currentFilter = filterBtn.dataset.filter;
-            renderItems();
+            renderLists();
         }
     });
 
-    itemsList.addEventListener('click', e => {
+    listsContainer.addEventListener('click', e => {
         const target = e.target;
-        const deleteBtn = target.closest('.item-delete-btn');
+        // Удаление всего списка
+        const deleteBtn = target.closest('.list-delete-btn');
         if (deleteBtn) {
-            items.splice(deleteBtn.dataset.index, 1);
-            saveItems();
-            renderItems();
+            if (confirm(`Вы уверены, что хотите удалить список "${lists[deleteBtn.dataset.listIndex].title}"?`)) {
+                lists.splice(deleteBtn.dataset.listIndex, 1);
+                saveLists();
+                renderLists();
+            }
             return;
         }
-        if (target.classList.contains('item-checkbox')) {
-            items[target.dataset.index].completed = target.checked;
-            saveItems();
-            renderItems();
-        }
-    });
-
-    renderItems();
-}
-
-export function cleanup() {}
+        // Отметка о выполнении 
