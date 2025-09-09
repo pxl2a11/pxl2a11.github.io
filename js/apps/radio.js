@@ -1,4 +1,4 @@
-//07 js/apps/radio.js
+//12 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 
 // --- Глобальные переменные модуля для управления состоянием и очистки ---
@@ -27,14 +27,13 @@ export function getHtml() {
                 padding: 0.5rem; /* 8px */
                 border-radius: 0.75rem; /* 12px */
                 cursor: pointer;
-                /* Плавный переход для всех свойств */
                 transition: all 0.2s ease-in-out;
-                /* Прозрачная рамка, чтобы избежать сдвига макета при выборе */
                 border: 2px solid transparent;
+                width: 100%; /* Убедимся, что кнопка занимает всю ширину */
+                text-align: left; /* Выравнивание текста по левому краю */
             }
             .station-card:hover {
                 background-color: #f3f4f6; /* gray-100 */
-                /* Эффект "приподнятия" при наведении */
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             }
@@ -44,12 +43,11 @@ export function getHtml() {
             .station-card.playing {
                 background-color: #dbeafe; /* blue-100 */
                 border-color: #3b82f6; /* blue-500 */
-                /* Сохраняем "приподнятое" состояние и добавляем цветную тень */
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             }
             .dark .station-card.playing {
-                background-color: #1e3a8a; /* blue-900/50 */
+                background-color: #1e3a8a;
                 border-color: #60a5fa; /* blue-400 */
                 box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
             }
@@ -60,16 +58,25 @@ export function getHtml() {
                 object-fit: cover;
                 flex-shrink: 0;
             }
+            /* Заставляем текст занимать всё оставшееся место */
+            .station-card span {
+                flex-grow: 1;
+            }
         </style>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-2 md:p-4">
             
             <!-- Левая колонка: Плеер -->
             <div class="md:col-span-1 flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
-                <img id="player-artwork" src="img/radio.svg" alt="Обложка станции" class="w-40 h-40 rounded-full shadow-xl object-cover border-4 border-white dark:border-gray-700 mb-4">
-                <h3 id="player-station-name" class="text-xl font-bold text-center h-14">Выберите станцию</h3>
                 
-                <!-- Аудио элемент теперь является частью этого компонента -->
+                <!-- ИЗМЕНЕНИЕ: Контейнер для обложки/текста -->
+                <div id="player-artwork-container" class="w-40 h-40 rounded-full shadow-xl border-4 border-white dark:border-gray-700 mb-4 flex justify-center items-center text-center bg-gray-200 dark:bg-gray-700">
+                    <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full rounded-full object-cover hidden">
+                    <span id="player-placeholder" class="font-semibold text-gray-500 dark:text-gray-400 p-4">Выберите станцию</span>
+                </div>
+                
+                <h3 id="player-station-name" class="text-xl font-bold text-center h-14"></h3>
+                
                 <audio id="radio-audio-element" class="hidden"></audio>
 
                 <div id="player-controls" class="flex items-center gap-4 mt-4">
@@ -103,6 +110,7 @@ export function init() {
     
     // Элементы плеера
     const playerArtwork = document.getElementById('player-artwork');
+    const playerPlaceholder = document.getElementById('player-placeholder');
     const playerStationName = document.getElementById('player-station-name');
     const playPauseBtn = document.getElementById('play-pause-btn');
     const playIcon = document.getElementById('play-icon');
@@ -135,17 +143,27 @@ export function init() {
     function updatePlayerUI() {
         const isPlaying = !audioElement.paused && currentStation !== null;
 
-        // Обновление плеера
-        playerArtwork.src = currentStation?.logoUrl || 'img/radio.svg';
-        playerStationName.textContent = currentStation?.name || 'Выберите станцию';
+        // Обновление иконок Play/Pause
         playIcon.classList.toggle('hidden', isPlaying);
         pauseIcon.classList.toggle('hidden', !isPlaying);
         playPauseBtn.disabled = !currentStation;
 
-        // Обновление подсветки в списке
+        // ИЗМЕНЕНИЕ: Управление видимостью обложки и текста-заглушки
+        if (currentStation) {
+            playerArtwork.src = currentStation.logoUrl || 'img/radio.svg';
+            playerArtwork.classList.remove('hidden');
+            playerPlaceholder.classList.add('hidden');
+            playerStationName.textContent = currentStation.name;
+        } else {
+            playerArtwork.classList.add('hidden');
+            playerPlaceholder.classList.remove('hidden');
+            playerStationName.textContent = '';
+        }
+
+        // Обновление подсветки в списке станций
         stationCards.forEach(card => {
             const isCurrent = card.dataset.name === currentStation?.name;
-            card.classList.toggle('playing', isCurrent && isPlaying);
+            card.classList.toggle('playing', isCurrent);
         });
     }
 
@@ -161,9 +179,10 @@ export function init() {
             card.className = 'station-card';
             card.dataset.name = station.name;
 
+            // ИЗМЕНЕНИЕ: Текстовый span теперь растягивается
             card.innerHTML = `
                 <img src="${station.logoUrl || 'img/radio.svg'}" alt="${station.name}" onerror="this.onerror=null;this.src='img/radio.svg';">
-                <span class="font-semibold truncate">${station.name}</span>
+                <span class="font-semibold truncate flex-grow">${station.name}</span>
             `;
             
             addListener(card, 'click', () => playStation(station));
@@ -207,6 +226,7 @@ export function init() {
 
     // --- Первоначальный запуск ---
     createStationCards();
+    updatePlayerUI(); // Вызываем для установки начального состояния плеера
 }
 
 // --- Очистка ресурсов при выходе из приложения ---
