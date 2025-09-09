@@ -1,4 +1,4 @@
-// 35js/apps/radio.js
+// js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 
 // --- Глобальные переменные модуля для управления состоянием и очистки ---
@@ -103,41 +103,59 @@ export function getHtml() {
             #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
             .dark #radio-stations-grid::-webkit-scrollbar-thumb { background-color: #4b5563; }
             .dark #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
+            
+            /* --- НОВЫЕ СТИЛИ ДЛЯ ПЛЕЕРА --- */
+            .player-control-btn {
+                background-color: transparent;
+                color: #4b5563; /* gray-600 */
+                border-radius: 9999px;
+                transition: background-color 0.2s, color 0.2s;
+            }
+            .dark .player-control-btn { color: #d1d5db; /* gray-300 */ }
+            .player-control-btn:hover { background-color: #e5e7eb; /* gray-200 */ }
+            .dark .player-control-btn:hover { background-color: #4b5563; /* gray-600 */ }
+            
+            #volume-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: #e5e7eb; border-radius: 5px; outline: none; transition: opacity .2s; }
+            .dark #volume-slider { background: #4b5563; }
+            #volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
+            .dark #volume-slider::-webkit-slider-thumb { background: #60a5fa; }
         </style>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-2 md:p-4">
+            
             <div class="md:col-span-1 flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
-                <div id="player-artwork-container" class="w-40 h-40 rounded-full shadow-xl border-4 border-white dark:border-gray-700 mb-4 flex justify-center items-center text-center bg-gray-200 dark:bg-gray-700">
-                    <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full rounded-full object-cover hidden">
-                    <span id="player-placeholder" class="font-semibold text-gray-500 dark:text-gray-400 p-4">Выберите станцию</span>
+                <div id="player-artwork-container" class="w-full aspect-square rounded-2xl shadow-lg mb-6 flex justify-center items-center bg-gray-200 dark:bg-gray-900/50 overflow-hidden">
+                    <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full object-cover hidden transition-opacity duration-300">
+                    <svg id="player-placeholder" class="w-24 h-24 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-13c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
                 </div>
-                <h3 id="player-station-name" class="text-xl font-bold text-center h-14"></h3>
+                
+                <div class="text-center mb-6">
+                    <h3 id="player-station-name" class="text-xl font-bold text-gray-800 dark:text-gray-200">Выберите станцию</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Прямой эфир</p>
+                </div>
+
                 <audio id="radio-audio-element" class="hidden"></audio>
-                <div class="flex items-center gap-4 mt-4">
-                    <button id="prev-station-btn" title="Предыдущая" class="p-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM13.7071 8.29289C14.0976 8.68342 14.0976 9.31658 13.7071 9.70711L11.4142 12L13.7071 14.2929C14.0976 14.6834 14.0976 15.3166 13.7071 15.7071C13.3166 16.0976 12.6834 16.0976 12.2929 15.7071L9.5554 12.9696C9.0199 12.4341 9.0199 11.5659 9.55541 11.0304L12.2929 8.29289C12.6834 7.90237 13.3166 7.90237 13.7071 8.29289Z"/></svg>
-                    </button>
-                    <button id="play-pause-btn" class="p-4 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                        <svg id="play-icon" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM15.5963 10.3318C16.8872 11.0694 16.8872 12.9307 15.5963 13.6683L11.154 16.2068C9.9715 16.8825 8.5002 16.0287 8.5002 14.6667L8.5002 9.33339C8.5002 7.97146 9.9715 7.11762 11.154 7.79333L15.5963 10.3318Z"/></svg>
-                        <svg id="pause-icon" class="w-8 h-8 hidden" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM14 8C14.5523 8 15 8.44772 15 9L15 15C15 15.5523 14.5523 16 14 16C13.4477 16 13 15.5523 13 15L13 9C13 8.44772 13.4477 8 14 8ZM10 8C10.5523 8 11 8.44772 11 9L11 15C11 15.5523 10.5523 16 10 16C9.44771 16 9 15.5523 9 15L9 9C9 8.44772 9.44772 8 10 8Z"/></svg>
-                    </button>
-                    <button id="next-station-btn" title="Следующая" class="p-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM10.2929 15.7071C9.90237 15.3166 9.90237 14.6834 10.2929 14.2929L12.5858 12L10.2929 9.70711C9.90237 9.31658 9.90237 8.68342 10.2929 8.29289C10.6834 7.90237 11.3166 7.90237 11.7071 8.29289L14.4229 11.0087C14.9704 11.5562 14.9704 12.4438 14.4229 12.9913L11.7071 15.7071C11.3166 16.0976 10.6834 16.0976 10.2929 15.7071Z"/></svg>
-                    </button>
-                </div>
-                <div class="flex items-center gap-2 mt-6 w-full max-w-xs">
-                    <button id="mute-btn" title="Выключить звук" class="p-2 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
-                        <svg id="volume-on-icon" class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 16V8H6L11 4V20L6 16H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M13 9C13 9 15 9.5 15 12C15 14.5 13 15 13 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M15 7C15 7 18 7.83333 18 12C18 16.1667 15 17 15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <svg id="volume-off-icon" class="w-6 h-6 hidden" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 16V8H6L11 4V20L6 16H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M14.5 15L20.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M14.5 9L20.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="Громкость" class="w-full">
+
+                <div class="w-full max-w-xs space-y-4">
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="prev-station-btn" title="Предыдущая" class="player-control-btn p-3">
+                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM13.7071 8.29289C14.0976 8.68342 14.0976 9.31658 13.7071 9.70711L11.4142 12L13.7071 14.2929C14.0976 14.6834 14.0976 15.3166 13.7071 15.7071C13.3166 16.0976 12.6834 16.0976 12.2929 15.7071L9.5554 12.9696C9.0199 12.4341 9.0199 11.5659 9.55541 11.0304L12.2929 8.29289C12.6834 7.90237 13.3166 7.90237 13.7071 8.29289Z"/></svg>
+                        </button>
+                        <button id="play-pause-btn" class="p-4 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg id="play-icon" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM15.5963 10.3318C16.8872 11.0694 16.8872 12.9307 15.5963 13.6683L11.154 16.2068C9.9715 16.8825 8.5002 16.0287 8.5002 14.6667L8.5002 9.33339C8.5002 7.97146 9.9715 7.11762 11.154 7.79333L15.5963 10.3318Z"/></svg>
+                            <svg id="pause-icon" class="w-8 h-8 hidden" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM14 8C14.5523 8 15 8.44772 15 9L15 15C15 15.5523 14.5523 16 14 16C13.4477 16 13 15.5523 13 15L13 9C13 8.44772 13.4477 8 14 8ZM10 8C10.5523 8 11 8.44772 11 9L11 15C11 15.5523 10.5523 16 10 16C9.44771 16 9 15.5523 9 15L9 9C9 8.44772 9.44772 8 10 8Z"/></svg>
+                        </button>
+                        <button id="next-station-btn" title="Следующая" class="player-control-btn p-3">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM10.2929 15.7071C9.90237 15.3166 9.90237 14.6834 10.2929 14.2929L12.5858 12L10.2929 9.70711C9.90237 9.31658 9.90237 8.68342 10.2929 8.29289C10.6834 7.90237 11.3166 7.90237 11.7071 8.29289L14.4229 11.0087C14.9704 11.5562 14.9704 12.4438 14.4229 12.9913L11.7071 15.7071C11.3166 16.0976 10.6834 16.0976 10.2929 15.7071Z"/></svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="mute-btn" title="Выключить звук" class="player-control-btn p-2">
+                            <svg id="volume-on-icon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 16V8H6L11 4V20L6 16H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 9C13 9 15 9.5 15 12C15 14.5 13 15 13 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7C15 7 18 7.83333 18 12C18 16.1667 15 17 15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <svg id="volume-off-icon" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 16V8H6L11 4V20L6 16H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 15L20.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 9L20.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="Громкость" class="w-full">
+                    </div>
                 </div>
             </div>
             <div class="md:col-span-2 p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
@@ -187,7 +205,7 @@ export function init() {
         } else {
             playerArtwork.classList.add('hidden');
             playerPlaceholder.classList.remove('hidden');
-            playerStationName.textContent = '';
+            playerStationName.textContent = 'Выберите станцию';
             clearMediaSession();
         }
         stationCards.forEach(card => {
