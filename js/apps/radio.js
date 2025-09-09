@@ -1,4 +1,4 @@
-//25 js/apps/radio.js
+//28 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 
 // --- Глобальные переменные модуля для управления состоянием и очистки ---
@@ -95,7 +95,7 @@ export function getHtml() {
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
                 <!-- ИСПРАВЛЕНИЕ: Добавлен класс mt-2 для верхнего отступа -->
-                <div id="radio-stations-grid" class="mt-4 space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                <div id="radio-stations-grid" class="mt-40 space-y-2 max-h-[400px] overflow-y-auto pr-2">
                     <!-- Карточки станций будут сгенерированы здесь -->
                 </div>
             </div>
