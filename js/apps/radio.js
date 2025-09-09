@@ -1,4 +1,4 @@
-//12 js/apps/radio.js
+// js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 
 // --- Глобальные переменные модуля для управления состоянием и очистки ---
@@ -19,7 +19,7 @@ function addListener(element, event, handler) {
 export function getHtml() {
     return `
         <style>
-            /* --- ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ КАРТОЧЕК --- */
+            /* --- Стили для карточек станций --- */
             .station-card {
                 display: flex;
                 align-items: center;
@@ -69,7 +69,6 @@ export function getHtml() {
             <!-- Левая колонка: Плеер -->
             <div class="md:col-span-1 flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
                 
-                <!-- ИЗМЕНЕНИЕ: Контейнер для обложки/текста -->
                 <div id="player-artwork-container" class="w-40 h-40 rounded-full shadow-xl border-4 border-white dark:border-gray-700 mb-4 flex justify-center items-center text-center bg-gray-200 dark:bg-gray-700">
                     <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full rounded-full object-cover hidden">
                     <span id="player-placeholder" class="font-semibold text-gray-500 dark:text-gray-400 p-4">Выберите станцию</span>
@@ -95,7 +94,8 @@ export function getHtml() {
                     <input id="radio-search-input" type="search" placeholder="Введите название..." class="w-full p-3 pl-10 rounded-full border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"/>
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-                <div id="radio-stations-grid" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                <!-- ИСПРАВЛЕНИЕ: Добавлен класс mt-2 для верхнего отступа -->
+                <div id="radio-stations-grid" class="mt-2 space-y-2 max-h-[400px] overflow-y-auto pr-2">
                     <!-- Карточки станций будут сгенерированы здесь -->
                 </div>
             </div>
@@ -148,7 +148,7 @@ export function init() {
         pauseIcon.classList.toggle('hidden', !isPlaying);
         playPauseBtn.disabled = !currentStation;
 
-        // ИЗМЕНЕНИЕ: Управление видимостью обложки и текста-заглушки
+        // Управление видимостью обложки и текста-заглушки
         if (currentStation) {
             playerArtwork.src = currentStation.logoUrl || 'img/radio.svg';
             playerArtwork.classList.remove('hidden');
@@ -179,7 +179,6 @@ export function init() {
             card.className = 'station-card';
             card.dataset.name = station.name;
 
-            // ИЗМЕНЕНИЕ: Текстовый span теперь растягивается
             card.innerHTML = `
                 <img src="${station.logoUrl || 'img/radio.svg'}" alt="${station.name}" onerror="this.onerror=null;this.src='img/radio.svg';">
                 <span class="font-semibold truncate flex-grow">${station.name}</span>
