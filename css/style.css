@@ -270,3 +270,44 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     transform: scale(1.03);
 }
+
+/* --- ГЛОБАЛЬНЫЕ СТИЛИ ДЛЯ ПОЛОСЫ ПРОКРУТКИ --- */
+
+/* Стили для Firefox */
+html {
+  scrollbar-width: thin; /* 'auto', 'thin', 'none' */
+  scrollbar-color: #d1d5db transparent; /* thumb track */
+}
+
+.dark html {
+  scrollbar-color: #4b5563 transparent;
+}
+
+/* Стили для Chrome, Edge, Safari и др. WebKit-браузеров */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #d1d5db; /* gray-300 */
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af; /* gray-400 */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background-color: #4b5563; /* gray-600 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280; /* gray-500 */
+}
