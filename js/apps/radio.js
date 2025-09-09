@@ -1,4 +1,4 @@
-//53 js/apps/radio.js
+// js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 
 // --- Глобальные переменные модуля для управления состоянием и очистки ---
@@ -19,7 +19,7 @@ function addListener(element, event, handler) {
 export function getHtml() {
     return `
         <style>
-            /* --- Стили для карточек станций --- */
+            /* --- ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ КАРТОЧЕК --- */
             .station-card {
                 display: flex;
                 align-items: center;
@@ -27,11 +27,16 @@ export function getHtml() {
                 padding: 0.5rem; /* 8px */
                 border-radius: 0.75rem; /* 12px */
                 cursor: pointer;
-                transition: background-color 0.2s ease, box-shadow 0.2s ease;
+                /* Плавный переход для всех свойств */
+                transition: all 0.2s ease-in-out;
+                /* Прозрачная рамка, чтобы избежать сдвига макета при выборе */
                 border: 2px solid transparent;
             }
             .station-card:hover {
                 background-color: #f3f4f6; /* gray-100 */
+                /* Эффект "приподнятия" при наведении */
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             }
             .dark .station-card:hover {
                 background-color: #374151; /* gray-700 */
@@ -39,10 +44,14 @@ export function getHtml() {
             .station-card.playing {
                 background-color: #dbeafe; /* blue-100 */
                 border-color: #3b82f6; /* blue-500 */
+                /* Сохраняем "приподнятое" состояние и добавляем цветную тень */
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             }
             .dark .station-card.playing {
                 background-color: #1e3a8a; /* blue-900/50 */
                 border-color: #60a5fa; /* blue-400 */
+                box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
             }
             .station-card img {
                 width: 50px;
