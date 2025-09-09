@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v40'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v41'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
