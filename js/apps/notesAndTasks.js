@@ -183,4 +183,18 @@ export async function init() {
             }
             return;
         }
-        // Отметка о выполнении 
+        // Отметка о выполнении задачи
+        if (target.classList.contains('task-checkbox')) {
+            const listIndex = target.dataset.listIndex;
+            const taskIndex = target.dataset.taskIndex;
+            lists[listIndex].items[taskIndex].completed = target.checked;
+            saveLists();
+            renderLists();
+        }
+    });
+
+    // --- ПЕРВАЯ ОТРИСОВКА ---
+    renderLists();
+}
+
+export function cleanup() {}
