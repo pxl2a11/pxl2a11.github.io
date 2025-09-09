@@ -29,8 +29,8 @@ export function getHtml() {
                 cursor: pointer;
                 transition: all 0.2s ease-in-out;
                 border: 2px solid transparent;
-                width: 100%; /* Убедимся, что кнопка занимает всю ширину */
-                text-align: left; /* Выравнивание текста по левому краю */
+                width: 100%;
+                text-align: left;
             }
             .station-card:hover {
                 background-color: #f3f4f6; /* gray-100 */
@@ -58,9 +58,31 @@ export function getHtml() {
                 object-fit: cover;
                 flex-shrink: 0;
             }
-            /* Заставляем текст занимать всё оставшееся место */
             .station-card span {
                 flex-grow: 1;
+            }
+
+            /* --- НОВЫЕ СТИЛИ ДЛЯ ПОЛОСЫ ПРОКРУТКИ --- */
+            #radio-stations-grid::-webkit-scrollbar {
+                width: 8px;
+            }
+            #radio-stations-grid::-webkit-scrollbar-track {
+                background: transparent; /* Фон трека */
+            }
+            #radio-stations-grid::-webkit-scrollbar-thumb {
+                background-color: #d1d5db; /* gray-300 */
+                border-radius: 4px;
+                border: 2px solid transparent;
+                background-clip: content-box;
+            }
+            #radio-stations-grid::-webkit-scrollbar-thumb:hover {
+                background-color: #9ca3af; /* gray-400 */
+            }
+            .dark #radio-stations-grid::-webkit-scrollbar-thumb {
+                background-color: #4b5563; /* gray-600 */
+            }
+            .dark #radio-stations-grid::-webkit-scrollbar-thumb:hover {
+                background-color: #6b7280; /* gray-500 */
             }
         </style>
 
@@ -94,7 +116,6 @@ export function getHtml() {
                     <input id="radio-search-input" type="search" placeholder="Введите название..." class="w-full p-3 pl-10 rounded-full border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"/>
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-                <!-- ИСПРАВЛЕНИЕ: Добавлен внутренний отступ pt-2 -->
                 <div id="radio-stations-grid" class="mt-2 space-y-2 max-h-[400px] overflow-y-auto pr-2 pt-2">
                     <!-- Карточки станций будут сгенерированы здесь -->
                 </div>
