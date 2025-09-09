@@ -1,4 +1,4 @@
-// 43js/apps/radio.js
+// js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 
 // --- Глобальные переменные модуля для управления состоянием и очистки ---
@@ -26,7 +26,7 @@ function playStation(station) {
         setupMediaSession(station);
     }).catch(error => {
         console.error("Ошибка воспроизведения:", error);
-        playerStationName.textContent = "Ошибка потока";
+        playerStationName.textContent = 'Выберите станцию'; // ИЗМЕНЕНИЕ: Убрана ошибка потока
         currentStation = null;
         updatePlayerUI();
     });
@@ -104,38 +104,26 @@ export function getHtml() {
             .dark #radio-stations-grid::-webkit-scrollbar-thumb { background-color: #4b5563; }
             .dark #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
             
-            /* --- НОВЫЕ СТИЛИ ДЛЯ ПЛЕЕРА --- */
-            .player-control-btn {
-                background-color: transparent;
-                color: #4b5563; /* gray-600 */
-                border-radius: 9999px;
-                transition: background-color 0.2s, color 0.2s;
-            }
-            .dark .player-control-btn { color: #d1d5db; /* gray-300 */ }
-            .player-control-btn:hover { background-color: #e5e7eb; /* gray-200 */ }
-            .dark .player-control-btn:hover { background-color: #4b5563; /* gray-600 */ }
-            
+            .player-control-btn { background-color: transparent; color: #4b5563; border-radius: 9999px; transition: background-color 0.2s, color 0.2s; }
+            .dark .player-control-btn { color: #d1d5db; }
+            .player-control-btn:hover { background-color: #e5e7eb; }
+            .dark .player-control-btn:hover { background-color: #4b5563; }
             #volume-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: #e5e7eb; border-radius: 5px; outline: none; transition: opacity .2s; }
             .dark #volume-slider { background: #4b5563; }
             #volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
             .dark #volume-slider::-webkit-slider-thumb { background: #60a5fa; }
         </style>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-2 md:p-4">
-            
             <div class="md:col-span-1 flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
-                <div id="player-artwork-container" class="w-full aspect-square rounded-2xl shadow-lg mb-6 flex justify-center items-center bg-gray-200 dark:bg-gray-900/50 overflow-hidden">
+                <div id="player-artwork-container" class="w-32 h-32 rounded-2xl shadow-lg mb-6 flex justify-center items-center bg-gray-200 dark:bg-gray-900/50 overflow-hidden">
                     <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full object-cover hidden transition-opacity duration-300">
-                    <svg id="player-placeholder" class="w-24 h-24 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-13c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                    <svg id="player-placeholder" class="w-16 h-16 text-gray-400 dark:text-gray-600" fill="currentColor" viewBox="-8 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg"><title>music</title><path d="M16.080 4.72c-0.24-0.16-0.56-0.16-0.8-0.040l-10.080 4.68c-0.28 0.12-0.48 0.44-0.48 0.76v11.28c-0.44-0.24-0.96-0.4-1.52-0.4-1.76 0-3.2 1.44-3.2 3.2s1.44 3.2 3.2 3.2 3.2-1.44 3.2-3.2v-9.52l8.4-3.92v5.96c-0.44-0.24-0.96-0.4-1.52-0.4-1.76 0-3.2 1.44-3.2 3.2s1.44 3.2 3.2 3.2 3.2-1.44 3.2-3.2v-14.080c-0.040-0.28-0.16-0.56-0.4-0.72zM3.2 25.72c-0.84 0-1.52-0.68-1.52-1.52s0.68-1.52 1.52-1.52 1.52 0.68 1.52 1.52-0.72 1.52-1.52 1.52zM6.36 12.84v-2.16l8.4-3.92v2.16l-8.4 3.92zM13.28 21.040c-0.84 0-1.52-0.68-1.52-1.52s0.68-1.52 1.52-1.52 1.52 0.68 1.52 1.52c-0.040 0.84-0.72 1.52-1.52 1.52z"></path></svg>
                 </div>
-                
                 <div class="text-center mb-6">
                     <h3 id="player-station-name" class="text-xl font-bold text-gray-800 dark:text-gray-200">Выберите станцию</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Прямой эфир</p>
                 </div>
-
                 <audio id="radio-audio-element" class="hidden"></audio>
-
                 <div class="w-full max-w-xs space-y-4">
                     <div class="flex items-center justify-center gap-4">
                         <button id="prev-station-btn" title="Предыдущая" class="player-control-btn p-3">
@@ -252,7 +240,7 @@ export function init() {
     addListener(audioElement, 'pause', updatePlayerUI);
     addListener(audioElement, 'ended', updatePlayerUI);
     addListener(audioElement, 'error', () => {
-        playerStationName.textContent = "Ошибка потока";
+        playerStationName.textContent = "Выберите станцию"; // ИЗМЕНЕНИЕ: Убрана ошибка потока
         currentStation = null;
         updatePlayerUI();
     });
