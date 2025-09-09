@@ -125,20 +125,10 @@ export async function init() {
             return;
         }
 
-        listsContainer.innerHTML = filteredLists.map((list, index) => {
+        listsContainer.innerHTML = filteredLists.map((list) => {
             const originalIndex = lists.indexOf(list);
             let contentHtml = '';
-
-            // Генерация кнопок перемещения
-            let moveButtonsHtml = '<div class="flex gap-2">';
-            if (index > 0) { // Если это не первый элемент в отфильтрованном списке
-                moveButtonsHtml += `<button data-list-index="${originalIndex}" class="list-move-up-btn text-gray-400 hover:text-blue-500" title="Переместить вверх">↑</button>`;
-            }
-            if (index < filteredLists.length - 1) { // Если это не последний элемент
-                moveButtonsHtml += `<button data-list-index="${originalIndex}" class="list-move-down-btn text-gray-400 hover:text-blue-500" title="Переместить вниз">↓</button>`;
-            }
-            moveButtonsHtml += '</div>';
-
+            
             // Генерация контента карточки
             if (list.type === 'task') {
                 contentHtml = list.items.length > 0 ? list.items.map((task, taskIndex) => `
@@ -155,10 +145,7 @@ export async function init() {
                 <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
                     <div class="flex justify-between items-start mb-2">
                         <h4 class="font-bold text-lg break-all mr-4">${list.title}</h4>
-                        <div class="flex items-center gap-3 flex-shrink-0">
-                            ${moveButtonsHtml}
-                            <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold">✖</button>
-                        </div>
+                        <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold flex-shrink-0">✖</button>
                     </div>
                     <div class="space-y-1">${contentHtml}</div>
                 </div>
@@ -239,32 +226,11 @@ export async function init() {
 
     listsContainer.addEventListener('click', e => {
         const target = e.target;
-        const index = parseInt(target.closest('[data-list-index]')?.dataset.listIndex, 10);
-
-        if (isNaN(index)) return;
-
-        // Перемещение вверх
-        if (target.closest('.list-move-up-btn')) {
-            if (index > 0) {
-                [lists[index], lists[index - 1]] = [lists[index - 1], lists[index]];
-                saveLists();
-                renderLists();
-            }
-            return;
-        }
         
-        // Перемещение вниз
-        if (target.closest('.list-move-down-btn')) {
-            if (index < lists.length - 1) {
-                [lists[index], lists[index + 1]] = [lists[index + 1], lists[index]];
-                saveLists();
-                renderLists();
-            }
-            return;
-        }
-
         // Удаление списка
-        if (target.closest('.list-delete-btn')) {
+        const deleteBtn = target.closest('.list-delete-btn');
+        if (deleteBtn) {
+            const index = parseInt(deleteBtn.dataset.listIndex, 10);
             if (confirm(`Вы уверены, что хотите удалить список "${lists[index].title}"?`)) {
                 lists.splice(index, 1);
                 saveLists();
@@ -275,8 +241,9 @@ export async function init() {
         
         // Отметка о выполнении задачи
         if (target.classList.contains('task-checkbox')) {
+            const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
-            lists[index].items[taskIndex].completed = target.checked;
+            lists[listIndex].items[taskIndex].completed = target.checked;
             saveLists();
             renderLists();
         }
