@@ -46,6 +46,58 @@ export function getHtml() {
 }
 
 export async function init() {
+    // --- Логика миграции старых данных ---
+    const migrateOldData = () => {
+        const oldTasks = getUserData('tasks');
+        const oldNotes = getUserData('notes');
+        const oldItems = getUserData('items');
+        
+        let didMigrate = false;
+        let migratedLists = [];
+
+        // 1. Миграция из промежуточной версии ('items')
+        if (oldItems && oldItems.length > 0) {
+            const tasks = oldItems.filter(i => i.type === 'task').map(t => ({ text: t.text, completed: t.completed }));
+            const notes = oldItems.filter(i => i.type === 'note').map(n => n.text);
+
+            if (tasks.length > 0) {
+                migratedLists.push({ id: Date.now(), title: 'Мои старые задачи', type: 'task', items: tasks });
+            }
+            if (notes.length > 0) {
+                notes.forEach((noteText, index) => {
+                     migratedLists.push({ id: Date.now() + index + 1, title: `Старая заметка #${index + 1}`, type: 'note', content: noteText });
+                });
+            }
+            didMigrate = true;
+            localStorage.removeItem('items');
+        }
+        // 2. Миграция из самой старой версии ('tasks' / 'notes')
+        else if ((oldTasks && oldTasks.length > 0) || (oldNotes && oldNotes.length > 0)) {
+            if (oldTasks && oldTasks.length > 0) {
+                 migratedLists.push({ id: Date.now(), title: 'Мои старые задачи', type: 'task', items: oldTasks });
+            }
+            if (oldNotes && oldNotes.length > 0) {
+                 migratedLists.push({ id: Date.now() + 1, title: 'Мои старые заметки', type: 'note', content: oldNotes.join('\n\n---\n\n') });
+            }
+            didMigrate = true;
+            localStorage.removeItem('tasks');
+            localStorage.removeItem('notes');
+        }
+
+        if (didMigrate) {
+            const existingLists = getUserData('lists', []);
+            const finalLists = [...migratedLists, ...existingLists];
+            saveUserData('lists', finalLists);
+            return finalLists;
+        }
+        
+        return null; // Миграция не потребовалась
+    };
+    
+    // Вызываем миграцию ПЕРЕД первой загрузкой данных
+    const migratedData = migrateOldData();
+    // --- Конец логики миграции ---
+
     // --- Получение элементов DOM ---
     const listsContainer = document.getElementById('lists-container');
     const createBtn = document.getElementById('create-btn');
@@ -59,7 +111,7 @@ export async function init() {
     const modalSaveBtn = document.getElementById('modal-save-btn');
 
     // --- Состояние приложения ---
-    let lists = getUserData('lists', []);
+    let lists = migratedData || getUserData('lists', []);
     let currentFilter = 'all';
 
     const saveLists = () => saveUserData('lists', lists);
@@ -77,6 +129,17 @@ export async function init() {
             const originalIndex = lists.indexOf(list);
             let contentHtml = '';
 
+            // Генерация кнопок перемещения
+            let moveButtonsHtml = '<div class="flex gap-2">';
+            if (index > 0) { // Если это не первый элемент в отфильтрованном списке
+                moveButtonsHtml += `<button data-list-index="${originalIndex}" class="list-move-up-btn text-gray-400 hover:text-blue-500" title="Переместить вверх">↑</button>`;
+            }
+            if (index < filteredLists.length - 1) { // Если это не последний элемент
+                moveButtonsHtml += `<button data-list-index="${originalIndex}" class="list-move-down-btn text-gray-400 hover:text-blue-500" title="Переместить вниз">↓</button>`;
+            }
+            moveButtonsHtml += '</div>';
+
+            // Генерация контента карточки
             if (list.type === 'task') {
                 contentHtml = list.items.length > 0 ? list.items.map((task, taskIndex) => `
                     <div class="flex items-center p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
@@ -90,9 +153,12 @@ export async function init() {
 
             return `
                 <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-lg break-all">${list.title}</h4>
-                        <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold ml-2 flex-shrink-0">✖</button>
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg break-all mr-4">${list.title}</h4>
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            ${moveButtonsHtml}
+                            <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold">✖</button>
+                        </div>
                     </div>
                     <div class="space-y-1">${contentHtml}</div>
                 </div>
@@ -173,21 +239,44 @@ export async function init() {
 
     listsContainer.addEventListener('click', e => {
         const target = e.target;
-        // Удаление всего списка
-        const deleteBtn = target.closest('.list-delete-btn');
-        if (deleteBtn) {
-            if (confirm(`Вы уверены, что хотите удалить список "${lists[deleteBtn.dataset.listIndex].title}"?`)) {
-                lists.splice(deleteBtn.dataset.listIndex, 1);
+        const index = parseInt(target.closest('[data-list-index]')?.dataset.listIndex, 10);
+
+        if (isNaN(index)) return;
+
+        // Перемещение вверх
+        if (target.closest('.list-move-up-btn')) {
+            if (index > 0) {
+                [lists[index], lists[index - 1]] = [lists[index - 1], lists[index]];
                 saveLists();
                 renderLists();
             }
             return;
         }
+        
+        // Перемещение вниз
+        if (target.closest('.list-move-down-btn')) {
+            if (index < lists.length - 1) {
+                [lists[index], lists[index + 1]] = [lists[index + 1], lists[index]];
+                saveLists();
+                renderLists();
+            }
+            return;
+        }
+
+        // Удаление списка
+        if (target.closest('.list-delete-btn')) {
+            if (confirm(`Вы уверены, что хотите удалить список "${lists[index].title}"?`)) {
+                lists.splice(index, 1);
+                saveLists();
+                renderLists();
+            }
+            return;
+        }
+        
         // Отметка о выполнении задачи
         if (target.classList.contains('task-checkbox')) {
-            const listIndex = target.dataset.listIndex;
-            const taskIndex = target.dataset.taskIndex;
-            lists[listIndex].items[taskIndex].completed = target.checked;
+            const taskIndex = parseInt(target.dataset.taskIndex, 10);
+            lists[index].items[taskIndex].completed = target.checked;
             saveLists();
             renderLists();
         }
