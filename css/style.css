@@ -1,4 +1,4 @@
-/*38 Убираем полосу прокрутки во время загрузки */
+/*39 Убираем полосу прокрутки во время загрузки */
 body:has(#initial-loading-overlay:not([style*="display: none"])) {
     overflow: hidden;
 }
@@ -253,17 +253,6 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
 
 
 /* --- Стили для сортировки приложений --- */
-#sort-my-apps-btn.active {
-    background-color: #f0f9ff; 
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.dark #sort-my-apps-btn.active {
-    background-color: #1e293b; 
-    color: #1f2937;
-}
-
 #apps-container.sortable-active .app-item {
     cursor: grab;
 }
