@@ -1,4 +1,4 @@
-// 16js/apps/numberGenerator.js
+// 10js/apps/numberGenerator.js
 
 export function getHtml() {
     return `
@@ -64,7 +64,8 @@ export function init() {
     const errorEl = document.getElementById('rng-error');
     let currentNumbers = [];
 
-    generateBtn.addEventListener('click', () => {
+    // --- ИЗМЕНЕНИЕ: Функция generate была вынесена для повторного использования ---
+    const generate = () => {
         const min = parseInt(minInput.value, 10);
         const max = parseInt(maxInput.value, 10);
         const count = parseInt(countInput.value, 10);
@@ -116,7 +117,9 @@ export function init() {
             resultEl.style.transform = 'scale(1)';
             resultEl.style.opacity = '1';
         }, 150);
-    });
+    };
+
+    generateBtn.addEventListener('click', generate);
 
     copyBtn.addEventListener('click', () => {
         if (currentNumbers.length > 0) {
@@ -127,6 +130,9 @@ export function init() {
             });
         }
     });
+    
+    // --- ИЗМЕНЕНИЕ: Вызов функции генерации при инициализации ---
+    generate();
 }
 
 export function cleanup() {}
