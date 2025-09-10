@@ -46,58 +46,6 @@ export function getHtml() {
 }
 
 export async function init() {
-    // --- Логика миграции старых данных ---
-    const migrateOldData = () => {
-        const oldTasks = getUserData('tasks');
-        const oldNotes = getUserData('notes');
-        const oldItems = getUserData('items');
-        
-        let didMigrate = false;
-        let migratedLists = [];
-
-        // 1. Миграция из промежуточной версии ('items')
-        if (oldItems && oldItems.length > 0) {
-            const tasks = oldItems.filter(i => i.type === 'task').map(t => ({ text: t.text, completed: t.completed }));
-            const notes = oldItems.filter(i => i.type === 'note').map(n => n.text);
-
-            if (tasks.length > 0) {
-                migratedLists.push({ id: Date.now(), title: 'Мои старые задачи', type: 'task', items: tasks });
-            }
-            if (notes.length > 0) {
-                notes.forEach((noteText, index) => {
-                     migratedLists.push({ id: Date.now() + index + 1, title: `Старая заметка #${index + 1}`, type: 'note', content: noteText });
-                });
-            }
-            didMigrate = true;
-            localStorage.removeItem('items');
-        }
-        // 2. Миграция из самой старой версии ('tasks' / 'notes')
-        else if ((oldTasks && oldTasks.length > 0) || (oldNotes && oldNotes.length > 0)) {
-            if (oldTasks && oldTasks.length > 0) {
-                 migratedLists.push({ id: Date.now(), title: 'Мои старые задачи', type: 'task', items: oldTasks });
-            }
-            if (oldNotes && oldNotes.length > 0) {
-                 migratedLists.push({ id: Date.now() + 1, title: 'Мои старые заметки', type: 'note', content: oldNotes.join('\n\n---\n\n') });
-            }
-            didMigrate = true;
-            localStorage.removeItem('tasks');
-            localStorage.removeItem('notes');
-        }
-
-        if (didMigrate) {
-            const existingLists = getUserData('lists', []);
-            const finalLists = [...migratedLists, ...existingLists];
-            saveUserData('lists', finalLists);
-            return finalLists;
-        }
-        
-        return null; // Миграция не потребовалась
-    };
-    
-    // Вызываем миграцию ПЕРЕД первой загрузкой данных
-    const migratedData = migrateOldData();
-    // --- Конец логики миграции ---
-
     // --- Получение элементов DOM ---
     const listsContainer = document.getElementById('lists-container');
     const createBtn = document.getElementById('create-btn');
@@ -111,7 +59,8 @@ export async function init() {
     const modalSaveBtn = document.getElementById('modal-save-btn');
 
     // --- Состояние приложения ---
-    let lists = migratedData || getUserData('lists', []);
+    // Теперь данные загружаются напрямую, без миграции
+    let lists = getUserData('lists', []);
     let currentFilter = 'all';
 
     const saveLists = () => saveUserData('lists', lists);
