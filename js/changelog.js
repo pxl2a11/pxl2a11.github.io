@@ -26,11 +26,9 @@ export const appNameToModuleFile = {
     'Пианино': 'piano',
     'История изменений': 'changelogPage',
     'Конвертер регистра': 'caseConverter',
-    'Конвертер форматов изображений': 'imageConverter',
     'Конвертер цветов': 'colorConverter',
     'Игра на память': 'memoryGame',
     'Транслитерация текста': 'textTranslit',
-    'Изменение размера изображений': 'imageResizer',
     'Калькулятор валют': 'currencyCalculator',
     'Змейка': 'snakeGame',
     'Конвертер часовых поясов': 'timezoneConverter',
@@ -55,6 +53,7 @@ export const appNameToModuleFile = {
     'Виртуальный кубик': 'virtualDice',
     'Калькулятор калорий': 'calorieCalculator',
     'Калькулятор': 'calculator',
+    'Редактор изображений': 'imageEditor',
     'Общее': null,
 };
 
