@@ -50,7 +50,7 @@ export function getHtml() {
 
                 <!-- Настройки формата -->
                 <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
-                    <h3 class="font-semibold mb-3 text-lg">Конвертировать формат</h3>
+                    <h3 class="font-semibold mb-3 text-lg">Сохранить как...</h3>
                      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <select id="format-select" class="p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
                             <option value="jpeg">JPEG</option>
@@ -88,7 +88,7 @@ export function init() {
     const qualityValue = document.getElementById('quality-value');
     const processBtn = document.getElementById('process-btn');
 
-    let originalImage = new Image();
+    let originalImage = null;
     let originalFileName = '';
     let originalWidth, originalHeight;
 
@@ -96,6 +96,7 @@ export function init() {
         const file = e.target.files[0];
         if (!file) return;
 
+        originalImage = new Image();
         originalFileName = file.name.split('.').slice(0, -1).join('.');
         const reader = new FileReader();
 
