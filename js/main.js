@@ -1,4 +1,4 @@
-// 22js/main.js
+// 32js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -76,7 +76,12 @@ let activeAppModule = null;
 const appCardElements = new Map();
 let allAppCards = [];
 
-const homeScreenHtml = `<div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
+const homeScreenHtml = `
+    <div class="relative">
+        <button id="sort-my-apps-btn" class="filter-btn hidden absolute -top-14 right-0 z-10">Переместить</button>
+        <div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+    </div>
+`;
 const appScreenHtml = `
     <div id="app-screen" class="hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
         <div class="flex items-center justify-between mb-6">
@@ -235,12 +240,10 @@ async function updateAppViewButton(moduleName, myAppsList) {
     plusIcon.classList.toggle('hidden', isAdded);
     crossIcon.classList.toggle('hidden', !isAdded);
     if (isAdded) {
-        // ИЗМЕНЕНИЕ: Текст кнопки
         textSpan.textContent = 'Удалить';
         button.classList.add('remove-style');
         button.classList.remove('add-style');
     } else {
-        // ИЗМЕНЕНИЕ: Текст кнопки
         textSpan.textContent = 'Добавить';
         button.classList.add('add-style');
         button.classList.remove('remove-style');
@@ -316,7 +319,6 @@ async function router() {
             activeAppModule = module;
             const appContentContainer = document.getElementById('app-content-container');
             if (typeof module.getHtml === 'function') appContentContainer.innerHTML = module.getHtml();
-            // --- ИСПРАВЛЕНИЕ: Передаем контейнер в функцию init ---
             if (typeof module.init === 'function') await module.init(appContentContainer);
             await updateAppViewButton(moduleName);
             const appChangelogContainer = document.getElementById('app-changelog-container');
@@ -419,9 +421,11 @@ function setupSearch() {
 async function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer) return;
-
+    
+    // Всегда отключаем режим сортировки при смене фильтра
     destroyDragAndDrop();
-
+    isSortingMode = false;
+    
     const sortBtn = document.getElementById('sort-my-apps-btn');
     const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
@@ -446,13 +450,13 @@ async function applyAppListFilterAndRender() {
     let appsToRender = [];
     if (activeFilter === 'my-apps') {
         appsToRender = myApps.map(moduleName => appCardElements.get(moduleName)).filter(Boolean);
-        sortBtn.classList.remove('hidden');
-        isSortingMode = false;
-        sortBtn.classList.remove('active');
-        sortBtn.textContent = 'Сортировать';
+        if (sortBtn) {
+            sortBtn.classList.remove('hidden');
+            sortBtn.classList.remove('active');
+            sortBtn.textContent = 'Переместить';
+        }
     } else {
-        sortBtn.classList.add('hidden');
-        isSortingMode = false;
+        if (sortBtn) sortBtn.classList.add('hidden');
         let sortedApps = [...allAppCards];
         if (activeFilter === 'popular') {
             sortedApps.sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
@@ -474,7 +478,7 @@ function setupFilters() {
     if (!filterContainer) return;
     filterContainer.addEventListener('click', (e) => {
         const button = e.target.closest('.filter-btn');
-        if (!button || button.classList.contains('active') || button.id === 'sort-my-apps-btn') return;
+        if (!button || button.classList.contains('active')) return;
         filterContainer.querySelector('.active')?.classList.remove('active');
         button.classList.add('active');
         applyAppListFilterAndRender();
@@ -487,22 +491,6 @@ document.addEventListener('DOMContentLoaded', () => {
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
     window.addEventListener('popstate', router);
-
-    const sortBtn = document.getElementById('sort-my-apps-btn');
-    if (sortBtn) {
-        sortBtn.addEventListener('click', () => {
-            isSortingMode = !isSortingMode;
-            sortBtn.classList.toggle('active', isSortingMode);
-
-            if (isSortingMode) {
-                sortBtn.textContent = 'Готово';
-                initializeDragAndDrop();
-            } else {
-                sortBtn.textContent = 'Сортировать';
-                destroyDragAndDrop();
-            }
-        });
-    }
 
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
@@ -563,6 +551,18 @@ document.addEventListener('DOMContentLoaded', () => {
             await toggleMyAppStatus(moduleName);
             await updateAppViewButton(moduleName);
         }
+        const sortBtn = e.target.closest('#sort-my-apps-btn');
+        if (sortBtn) {
+            isSortingMode = !isSortingMode;
+            sortBtn.classList.toggle('active', isSortingMode);
+            if (isSortingMode) {
+                sortBtn.textContent = 'Готово';
+                initializeDragAndDrop();
+            } else {
+                sortBtn.textContent = 'Переместить';
+                destroyDragAndDrop();
+            }
+        }
     });
 
     setOnDataLoaded(async () => {
@@ -588,10 +588,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
             
-            // ИЗМЕНЕНИЕ: Открывать "Мои приложения" по умолчанию для залогиненных
             const params = new URLSearchParams(window.location.search);
             const appModule = params.get('app');
-            if (user && !appModule) { // Только на главной странице
+            if (user && !appModule) {
                 document.querySelector('[data-sort="default"]')?.classList.remove('active');
                 document.querySelector('[data-sort="my-apps"]')?.classList.add('active');
             }
