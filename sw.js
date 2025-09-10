@@ -9,8 +9,8 @@ const appModules = [
     'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator',
     'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch',
     'randomColor', 'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 'dateCalculator',
-    'bmiCalculator', 'qrScanner', 'piano', 'caseConverter', 'imageConverter',
-    'colorConverter', 'memoryGame', 'textTranslit', 'imageResizer', 'currencyCalculator', 'snakeGame',
+    'bmiCalculator', 'qrScanner', 'piano', 'caseConverter',
+    'colorConverter', 'memoryGame', 'textTranslit', 'currencyCalculator', 'snakeGame',
     'timezoneConverter', 'textToSpeech', 'rockPaperScissors', 'sudoku', 'zipArchiver', 'game2048',
     'barcodeGenerator', 'voiceRecorder', 'siteSkeletonGenerator', 'mouseTester', 'keyboardTester', 'drawingPad',
     'textDiffTool', 'faviconGenerator', 'loanCalculator', 'typingTest',
@@ -20,7 +20,8 @@ const appModules = [
     'textAnalyzer',
     'virtualDice',
     'calorieCalculator',
-    'calculator'
+    'calculator',
+    'imageEditor'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
