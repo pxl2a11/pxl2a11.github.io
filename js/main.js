@@ -1,4 +1,4 @@
-// 26js/main.js
+// 22js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -96,6 +96,7 @@ const appScreenHtml = `
     </div>`;
 
 let sortableInstance = null;
+let isSortingMode = false;
 
 function initializeDragAndDrop() {
     const appsContainer = document.getElementById('apps-container');
@@ -421,6 +422,7 @@ async function applyAppListFilterAndRender() {
 
     destroyDragAndDrop();
 
+    const sortBtn = document.getElementById('sort-my-apps-btn');
     const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
     const myApps = await getMyApps();
@@ -444,7 +446,13 @@ async function applyAppListFilterAndRender() {
     let appsToRender = [];
     if (activeFilter === 'my-apps') {
         appsToRender = myApps.map(moduleName => appCardElements.get(moduleName)).filter(Boolean);
+        sortBtn.classList.remove('hidden');
+        isSortingMode = false;
+        sortBtn.classList.remove('active');
+        sortBtn.textContent = 'Сортировать';
     } else {
+        sortBtn.classList.add('hidden');
+        isSortingMode = false;
         let sortedApps = [...allAppCards];
         if (activeFilter === 'popular') {
             sortedApps.sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
@@ -454,10 +462,6 @@ async function applyAppListFilterAndRender() {
         appsToRender = sortedApps;
     }
     renderApps(appsToRender);
-    
-    if (activeFilter === 'my-apps') {
-        initializeDragAndDrop();
-    }
     
     if (searchInput.value) {
         searchInput.value = '';
@@ -470,7 +474,7 @@ function setupFilters() {
     if (!filterContainer) return;
     filterContainer.addEventListener('click', (e) => {
         const button = e.target.closest('.filter-btn');
-        if (!button || button.classList.contains('active')) return;
+        if (!button || button.classList.contains('active') || button.id === 'sort-my-apps-btn') return;
         filterContainer.querySelector('.active')?.classList.remove('active');
         button.classList.add('active');
         applyAppListFilterAndRender();
@@ -483,6 +487,22 @@ document.addEventListener('DOMContentLoaded', () => {
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
     window.addEventListener('popstate', router);
+
+    const sortBtn = document.getElementById('sort-my-apps-btn');
+    if (sortBtn) {
+        sortBtn.addEventListener('click', () => {
+            isSortingMode = !isSortingMode;
+            sortBtn.classList.toggle('active', isSortingMode);
+
+            if (isSortingMode) {
+                sortBtn.textContent = 'Готово';
+                initializeDragAndDrop();
+            } else {
+                sortBtn.textContent = 'Сортировать';
+                destroyDragAndDrop();
+            }
+        });
+    }
 
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
