@@ -78,14 +78,11 @@ export async function init() {
             const originalIndex = lists.indexOf(list);
             let contentHtml = '';
             
-            // Генерация контента карточки
             if (list.type === 'task') {
-                // Сортировка: сначала невыполненные, потом выполненные
-                const sortedItems = list.items.sort((a, b) => a.completed - b.completed);
-
+                const sortedItems = [...list.items].sort((a, b) => a.completed - b.completed);
                 contentHtml = sortedItems.length > 0 ? sortedItems.map((task, taskIndex) => `
                     <div class="flex items-center p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
-                        <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
+                        <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${list.items.indexOf(task)}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
                         <span class="ml-3 break-all ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
                     </div>
                 `).join('') : '<p class="text-sm text-gray-400 px-1">Задач нет</p>';
@@ -94,10 +91,17 @@ export async function init() {
             }
 
             return `
-                <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow cursor-pointer" data-list-index="${originalIndex}">
+                <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
                     <div class="flex justify-between items-start mb-2">
                         <h4 class="font-bold text-lg break-all mr-4">${list.title}</h4>
-                        <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold flex-shrink-0">✖</button>
+                        <div class="flex items-center flex-shrink-0">
+                             <button data-list-index="${originalIndex}" class="list-edit-btn p-1 text-gray-500 hover:text-blue-500">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M20.8477 1.87868C19.6761 0.707109 17.7766 0.707105 16.605 1.87868L2.44744 16.0363C2.02864 16.4551 1.74317 16.9885 1.62702 17.5692L1.03995 20.5046C0.760062 21.904 1.9939 23.1379 3.39334 22.858L6.32868 22.2709C6.90945 22.1548 7.44285 21.8693 7.86165 21.4505L22.0192 7.29289C23.1908 6.12132 23.1908 4.22183 22.0192 3.05025L20.8477 1.87868ZM18.0192 3.29289C18.4098 2.90237 19.0429 2.90237 19.4335 3.29289L20.605 4.46447C20.9956 4.85499 20.9956 5.48815 20.605 5.87868L17.9334 8.55027L15.3477 5.96448L18.0192 3.29289ZM13.9334 7.3787L3.86165 17.4505C3.72205 17.5901 3.6269 17.7679 3.58818 17.9615L3.00111 20.8968L5.93645 20.3097C6.13004 20.271 6.30784 20.1759 6.44744 20.0363L16.5192 9.96448L13.9334 7.3787Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold ml-2">✖</button>
+                        </div>
                     </div>
                     <div class="space-y-1">${contentHtml}</div>
                 </div>
@@ -148,28 +152,24 @@ export async function init() {
             return;
         }
 
+        const content = modalTextareaContent.value.trim();
+        const items = content.split('\n').map(text => text.trim()).filter(text => text);
+
         if (editingListIndex !== null) {
-            // Редактирование существующего списка
             const list = lists[editingListIndex];
             list.title = title;
             if (list.type === 'task') {
-                list.items = modalTextareaContent.value.split('\n')
-                    .map(text => text.trim())
-                    .filter(text => text)
-                    .map(text => ({ text, completed: false }));
+                const oldItems = new Map(list.items.map(item => [item.text, item.completed]));
+                list.items = items.map(text => ({ text, completed: oldItems.get(text) || false }));
             } else {
-                list.content = modalTextareaContent.value.trim();
+                list.content = content;
             }
         } else {
-            // Создание нового списка
             const newList = { id: Date.now(), title, type };
             if (type === 'task') {
-                newList.items = modalTextareaContent.value.split('\n')
-                    .map(text => text.trim())
-                    .filter(text => text)
-                    .map(text => ({ text, completed: false }));
+                newList.items = items.map(text => ({ text, completed: false }));
             } else {
-                newList.content = modalTextareaContent.value.trim();
+                newList.content = content;
             }
             lists.unshift(newList);
         }
@@ -212,7 +212,6 @@ export async function init() {
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
-        // Удаление списка
         const deleteBtn = target.closest('.list-delete-btn');
         if (deleteBtn) {
             e.stopPropagation();
@@ -225,16 +224,15 @@ export async function init() {
             return;
         }
 
-        // Редактирование списка
-        const listCard = target.closest('.bg-gray-100');
-        if (listCard && !target.closest('.task-checkbox')) {
-            const index = parseInt(listCard.dataset.listIndex, 10);
+        const editBtn = target.closest('.list-edit-btn');
+        if (editBtn) {
+            e.stopPropagation();
+            const index = parseInt(editBtn.dataset.listIndex, 10);
             const list = lists[index];
             openModal(list.type, index);
             return;
         }
         
-        // Отметка о выполнении задачи
         if (target.classList.contains('task-checkbox')) {
             const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
