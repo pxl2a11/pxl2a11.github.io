@@ -1,11 +1,20 @@
-//34 js/apps/radio.js
+// js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
+import { getUserData, saveUserData } from '../dataManager.js';
 
-// --- Глобальные переменные модуля для управления состоянием и очистки ---
+// --- Глобальные переменные модуля ---
 let audioElement;
 let currentStation = null;
 let stationCards = [];
 let eventListeners = [];
+let favorites = [];
+let isFavoritesFilterActive = false;
+const FAVORITES_KEY = 'favoriteRadioStations';
+
+// --- Переменные для элементов DOM ---
+let stationsGrid, searchInput, playerArtwork, playerPlaceholder, playerStationName;
+let playPauseBtn, playIcon, pauseIcon, volumeSlider, prevStationBtn, nextStationBtn;
+let muteBtn, unmutedIcon, mutedIcon, streamQualityControls, favoritesFilterBtn;
 
 /**
  * Вспомогательная функция для безопасного добавления и отслеживания обработчиков событий.
@@ -26,7 +35,6 @@ export function getHtml() {
                 gap: 0.75rem; /* 12px */
                 padding: 0.5rem; /* 8px */
                 border-radius: 0.75rem; /* 12px */
-                cursor: pointer;
                 transition: all 0.2s ease-in-out;
                 border: 2px solid transparent;
                 width: 100%;
@@ -52,84 +60,66 @@ export function getHtml() {
                 box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
             }
             .station-card img {
-                width: 50px;
-                height: 50px;
-                border-radius: 0.5rem; /* 8px */
-                object-fit: cover;
-                flex-shrink: 0;
+                width: 50px; height: 50px; border-radius: 0.5rem; object-fit: cover; flex-shrink: 0;
             }
-            .station-card span {
-                flex-grow: 1;
-            }
-
-            /* --- СТИЛИ ДЛЯ ПОЛОСЫ ПРОКРУТКИ --- */
-            #radio-stations-grid::-webkit-scrollbar {
-                width: 8px;
-            }
-            #radio-stations-grid::-webkit-scrollbar-track {
-                background: transparent; /* Фон трека */
-            }
-            #radio-stations-grid::-webkit-scrollbar-thumb {
-                background-color: #d1d5db; /* gray-300 */
-                border-radius: 4px;
-                border: 2px solid transparent;
-                background-clip: content-box;
-            }
-            #radio-stations-grid::-webkit-scrollbar-thumb:hover {
-                background-color: #9ca3af; /* gray-400 */
-            }
-            .dark #radio-stations-grid::-webkit-scrollbar-thumb {
-                background-color: #4b5563; /* gray-600 */
-            }
-            .dark #radio-stations-grid::-webkit-scrollbar-thumb:hover {
-                background-color: #6b7280; /* gray-500 */
+            .station-card .play-area {
+                cursor: pointer;
             }
             
-            /* --- НОВЫЕ СТИЛИ ДЛЯ ПОЛЗУНКА ГРОМКОСТИ --- */
-            #volume-slider {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 100%;
-                height: 6px;
-                background: #e5e7eb; /* gray-200 */
-                border-radius: 3px;
-                outline: none;
-                transition: all 0.2s;
+            /* --- СТИЛИ ДЛЯ ПОЛОСЫ ПРОКРУТКИ --- */
+            #radio-stations-grid::-webkit-scrollbar { width: 8px; }
+            #radio-stations-grid::-webkit-scrollbar-track { background: transparent; }
+            #radio-stations-grid::-webkit-scrollbar-thumb {
+                background-color: #d1d5db; border-radius: 4px; border: 2px solid transparent; background-clip: content-box;
             }
+            #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
+            .dark #radio-stations-grid::-webkit-scrollbar-thumb { background-color: #4b5563; }
+            .dark #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
+            
+            /* --- СТИЛИ ДЛЯ ПОЛЗУНКА ГРОМКОСТИ --- */
+            #volume-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; outline: none; transition: all 0.2s; }
             #volume-slider::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 16px;
-                height: 16px;
-                background: #3b82f6; /* blue-500 */
-                cursor: pointer;
-                border-radius: 50%;
-                border: 2px solid white;
-                box-shadow: 0 0 4px rgba(0,0,0,0.2);
+                -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #3b82f6; cursor: pointer; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.2);
             }
-            .dark #volume-slider {
-                background: #4b5563; /* gray-600 */
+            .dark #volume-slider { background: #4b5563; }
+            .dark #volume-slider::-webkit-slider-thumb { background: #60a5fa; border-color: #374151; }
+
+            /* --- НОВЫЕ СТИЛИ --- */
+            .stream-quality-btn {
+                padding: 0.25rem 0.75rem; font-size: 0.8rem; font-weight: 500; border-radius: 9999px;
+                background-color: #e5e7eb; color: #4b5563; transition: all 0.2s; border: none; cursor: pointer;
             }
-            .dark #volume-slider::-webkit-slider-thumb {
-                background: #60a5fa; /* blue-400 */
-                border-color: #374151; /* gray-700 */
+            .dark .stream-quality-btn { background-color: #4b5563; color: #d1d5db; }
+            .stream-quality-btn.active { background-color: #3b82f6; color: white; font-weight: bold; }
+            .dark .stream-quality-btn.active { background-color: #60a5fa; color: #1f2937; }
+
+            .favorite-btn {
+                padding: 0.25rem; border-radius: 9999px; margin-left: auto; flex-shrink: 0;
+                background: none; border: none; cursor: pointer;
             }
+            .favorite-btn:hover { background-color: rgba(0,0,0,0.1); }
+            .dark .favorite-btn:hover { background-color: rgba(255,255,255,0.1); }
+            .favorite-btn .star-icon { width: 24px; height: 24px; color: #9ca3af; transition: all 0.2s; }
+            .favorite-btn.is-favorite .star-icon { color: #f59e0b; fill: currentColor; }
+
+            #favorites-filter-btn.active { background-color: #f59e0b; }
+            #favorites-filter-btn.active svg { color: white; fill: white; }
         </style>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-2 md:p-4">
             
-            <!-- Левая колонка: Плеер -->
             <div class="md:col-span-1 flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
-                
                 <div id="player-artwork-container" class="w-40 h-40 rounded-full shadow-xl border-4 border-white dark:border-gray-700 mb-4 flex justify-center items-center text-center bg-gray-200 dark:bg-gray-700">
                     <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full rounded-full object-cover hidden">
-                    <span id="player-placeholder" class="font-semibold text-gray-500 dark:text-gray-400 p-4">Выберите станцию</span>
+                    <span id="player-placeholder" class="font-semibold text-gray-500 dark:text-gray-400 p-4\">Выберите станцию</span>
                 </div>
-                
-                <h3 id="player-station-name" class="text-xl font-bold text-center h-14"></h3>
-                
+                <h3 id="player-station-name" class="text-xl font-bold text-center h-14\"></h3>
+                <div id="stream-quality-controls" class="flex items-center gap-2 mt-2 hidden">
+                    <button data-quality="low" class="stream-quality-btn">Low</button>
+                    <button data-quality="med" class="stream-quality-btn">Med</button>
+                    <button data-quality="hi" class="stream-quality-btn">High</button>
+                </div>
                 <audio id="radio-audio-element" class="hidden"></audio>
-
                 <div id="player-controls" class="flex items-center gap-2 mt-4">
                     <button id="prev-station-btn" title="Предыдущая станция" class="p-3 flex justify-center items-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M16.1795 3.26875C15.7889 2.87823 15.1558 2.87823 14.7652 3.26875L8.12078 9.91322C6.94952 11.0845 6.94916 12.9833 8.11996 14.155L14.6903 20.7304C15.0808 21.121 15.714 21.121 16.1045 20.7304C16.495 20.3399 16.495 19.7067 16.1045 19.3162L9.53246 12.7442C9.14194 12.3536 9.14194 11.7205 9.53246 11.33L16.1795 4.68297C16.57 4.29244 16.57 3.65928 16.1795 3.26875Z"/></svg>
@@ -151,12 +141,15 @@ export function getHtml() {
                 </div>
             </div>
 
-            <!-- Правая колонка: Список станций -->
             <div class="md:col-span-2 p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
-                <h3 class="text-xl font-bold mb-4">Поиск станций</h3>
-                <div class="relative mb-4">
-                    <input id="radio-search-input" type="search" placeholder="Введите название..." class="w-full p-3 pl-10 rounded-full border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"/>
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="relative flex-grow">
+                        <input id="radio-search-input" type="search" placeholder="Введите название..." class="w-full p-3 pl-10 rounded-full border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"/>
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <button id="favorites-filter-btn" title="Показать избранное" class="p-3 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex-shrink-0">
+                        <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                    </button>
                 </div>
                 <div id="radio-stations-grid" class="mt-2 space-y-2 max-h-[400px] overflow-y-auto pr-2 pt-2">
                     <!-- Карточки станций будут сгенерированы здесь -->
@@ -166,168 +159,196 @@ export function getHtml() {
     `;
 }
 
-// --- Функции инициализации и управления ---
-export function init() {
-    const stationsGrid = document.getElementById('radio-stations-grid');
-    const searchInput = document.getElementById('radio-search-input');
-    
-    // Элементы плеера
-    const playerArtwork = document.getElementById('player-artwork');
-    const playerPlaceholder = document.getElementById('player-placeholder');
-    const playerStationName = document.getElementById('player-station-name');
-    const playPauseBtn = document.getElementById('play-pause-btn');
-    const playIcon = document.getElementById('play-icon');
-    const pauseIcon = document.getElementById('pause-icon');
-    const volumeSlider = document.getElementById('volume-slider');
-    const prevStationBtn = document.getElementById('prev-station-btn');
-    const nextStationBtn = document.getElementById('next-station-btn');
-    const muteBtn = document.getElementById('mute-btn');
-    const unmutedIcon = document.getElementById('unmuted-icon');
-    const mutedIcon = document.getElementById('muted-icon');
-    audioElement = document.getElementById('radio-audio-element');
+// --- Основные функции ---
+function playStation(station) {
+    if (!station) return;
+    currentStation = station;
+    playerStationName.textContent = 'Загрузка...';
+    streamQualityControls.classList.remove('hidden');
+    changeStreamQuality('hi'); // По умолчанию высокое качество
+}
 
-    /**
-     * Воспроизводит выбранную радиостанцию.
-     * @param {object} station - Объект станции для воспроизведения.
-     */
-    function playStation(station) {
-        if (!station) return;
-        currentStation = station;
-        playerStationName.textContent = 'Загрузка...';
-        audioElement.src = station.streams.hi; // По умолчанию высокое качество
-        
-        audioElement.play().then(() => {
-            updatePlayerUI();
-            updateMediaSessionMetadata();
-        }).catch(error => {
-            console.error("Ошибка воспроизведения:", error);
-            playerStationName.textContent = "Ошибка потока";
-            currentStation = null;
-            updatePlayerUI();
-            updateMediaSessionMetadata();
-        });
-    }
+function changeStreamQuality(quality) {
+    if (!currentStation || !currentStation.streams[quality]) return;
 
-    /**
-     * Переключает на следующую станцию в списке.
-     */
-    function playNextStation() {
-        if (!currentStation) return;
-        const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
-        const nextIndex = (currentIndex + 1) % radioStations.length;
-        playStation(radioStations[nextIndex]);
-    }
-
-    /**
-     * Переключает на предыдущую станцию в списке.
-     */
-    function playPreviousStation() {
-        if (!currentStation) return;
-        const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
-        const prevIndex = (currentIndex - 1 + radioStations.length) % radioStations.length;
-        playStation(radioStations[prevIndex]);
-    }
-
-    /**
-     * Включает или выключает звук.
-     */
-    function toggleMute() {
-        audioElement.muted = !audioElement.muted;
+    audioElement.src = currentStation.streams[quality];
+    audioElement.play().catch(error => {
+        console.error("Ошибка воспроизведения:", error);
+        playerStationName.textContent = "Ошибка потока";
+        currentStation = null;
         updatePlayerUI();
+        updateMediaSessionMetadata();
+    });
+
+    streamQualityControls.querySelectorAll('.stream-quality-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.quality === quality);
+    });
+}
+
+function playNextStation() {
+    if (!currentStation) return;
+    const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
+    const nextIndex = (currentIndex + 1) % radioStations.length;
+    playStation(radioStations[nextIndex]);
+}
+
+function playPreviousStation() {
+    if (!currentStation) return;
+    const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
+    const prevIndex = (currentIndex - 1 + radioStations.length) % radioStations.length;
+    playStation(radioStations[prevIndex]);
+}
+
+function toggleMute() {
+    audioElement.muted = !audioElement.muted;
+    updatePlayerUI();
+}
+
+// --- Функции обновления UI ---
+function updatePlayerUI() {
+    const isPlaying = !audioElement.paused && currentStation !== null;
+    playIcon.classList.toggle('hidden', isPlaying);
+    pauseIcon.classList.toggle('hidden', !isPlaying);
+    playPauseBtn.disabled = !currentStation;
+    nextStationBtn.disabled = !currentStation;
+    prevStationBtn.disabled = !currentStation;
+    mutedIcon.classList.toggle('hidden', !audioElement.muted);
+    unmutedIcon.classList.toggle('hidden', audioElement.muted);
+
+    if (currentStation) {
+        playerArtwork.src = currentStation.logoUrl || 'img/radio.svg';
+        playerArtwork.classList.remove('hidden');
+        playerPlaceholder.classList.add('hidden');
+        playerStationName.textContent = currentStation.name;
+    } else {
+        playerArtwork.classList.add('hidden');
+        playerPlaceholder.classList.remove('hidden');
+        playerStationName.textContent = '';
+        streamQualityControls.classList.add('hidden');
     }
-    
-    /**
-     * Обновляет интерфейс плеера и список станций в соответствии с текущим состоянием.
-     */
-    function updatePlayerUI() {
-        const isPlaying = !audioElement.paused && currentStation !== null;
 
-        playIcon.classList.toggle('hidden', isPlaying);
-        pauseIcon.classList.toggle('hidden', !isPlaying);
-        playPauseBtn.disabled = !currentStation;
-        nextStationBtn.disabled = !currentStation;
-        prevStationBtn.disabled = !currentStation;
-        
-        mutedIcon.classList.toggle('hidden', !audioElement.muted);
-        unmutedIcon.classList.toggle('hidden', audioElement.muted);
+    stationCards.forEach(card => {
+        const isCurrent = card.dataset.name === currentStation?.name;
+        card.classList.toggle('playing', isCurrent);
+    });
+}
 
-        if (currentStation) {
-            playerArtwork.src = currentStation.logoUrl || 'img/radio.svg';
-            playerArtwork.classList.remove('hidden');
-            playerPlaceholder.classList.add('hidden');
-            playerStationName.textContent = currentStation.name;
-        } else {
-            playerArtwork.classList.add('hidden');
-            playerPlaceholder.classList.remove('hidden');
-            playerStationName.textContent = '';
+function updateMediaSessionMetadata() {
+    if ('mediaSession' in navigator) {
+        if (!currentStation) {
+            navigator.mediaSession.metadata = null;
+            navigator.mediaSession.playbackState = "none";
+            return;
         }
-
-        stationCards.forEach(card => {
-            const isCurrent = card.dataset.name === currentStation?.name;
-            card.classList.toggle('playing', isCurrent);
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: currentStation.name,
+            artist: 'Интернет-радио',
+            artwork: [{ src: currentStation.logoUrl || 'img/radio.svg', sizes: '512x512', type: 'image/png' }]
         });
+        navigator.mediaSession.playbackState = audioElement.paused ? "paused" : "playing";
     }
+}
 
-    /**
-     * Обновляет метаданные для Media Session API.
-     */
-    function updateMediaSessionMetadata() {
-        if ('mediaSession' in navigator) {
-            if (!currentStation) {
-                navigator.mediaSession.metadata = null;
-                navigator.mediaSession.playbackState = "none";
-                return;
-            }
-
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: currentStation.name,
-                artist: 'Интернет-радио',
-                artwork: [
-                    { src: currentStation.logoUrl || 'img/radio.svg', sizes: '512x512', type: 'image/png' },
-                ]
-            });
-            navigator.mediaSession.playbackState = audioElement.paused ? "paused" : "playing";
-        }
-    }
-
-    /**
-     * Устанавливает обработчики действий для Media Session API.
-     */
-    function setupMediaSessionHandlers() {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.setActionHandler('play', () => audioElement.play());
-            navigator.mediaSession.setActionHandler('pause', () => audioElement.pause());
-            navigator.mediaSession.setActionHandler('previoustrack', playPreviousStation);
-            navigator.mediaSession.setActionHandler('nexttrack', playNextStation);
-        }
-    }
-
-    /**
-     * Создает и отображает карточки всех радиостанций.
-     */
-    function createStationCards() {
-        stationsGrid.innerHTML = '';
-        stationCards.length = 0;
+function createStationCards() {
+    stationsGrid.innerHTML = '';
+    stationCards.length = 0;
+    
+    radioStations.forEach((station) => {
+        const card = document.createElement('div');
+        card.className = 'station-card';
+        card.dataset.name = station.name;
+        const isFavorite = favorites.includes(station.name);
         
-        radioStations.forEach((station) => {
-            const card = document.createElement('button');
-            card.className = 'station-card';
-            card.dataset.name = station.name;
-
-            card.innerHTML = `
+        card.innerHTML = `
+            <div class="flex items-center gap-3 flex-grow play-area">
                 <img src="${station.logoUrl || 'img/radio.svg'}" alt="${station.name}" onerror="this.onerror=null;this.src='img/radio.svg';">
-                <span class="font-semibold truncate flex-grow">${station.name}</span>
-            `;
-            
-            addListener(card, 'click', () => playStation(station));
+                <span class="font-semibold truncate">${station.name}</span>
+            </div>
+            <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" title="Добавить в избранное">
+                <svg class="star-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+            </button>
+        `;
+        
+        addListener(card.querySelector('.play-area'), 'click', () => playStation(station));
+        addListener(card.querySelector('.favorite-btn'), 'click', () => toggleFavorite(station.name));
 
-            stationsGrid.appendChild(card);
-            stationCards.push(card);
-        });
+        stationsGrid.appendChild(card);
+        stationCards.push(card);
+    });
+}
+
+function filterStations() {
+    const searchTerm = searchInput.value.toLowerCase();
+    stationCards.forEach(card => {
+        const stationName = card.dataset.name;
+        const isFavorite = favorites.includes(stationName);
+        
+        const matchesSearch = stationName.toLowerCase().includes(searchTerm);
+        const matchesFilter = !isFavoritesFilterActive || isFavorite;
+        
+        card.style.display = (matchesSearch && matchesFilter) ? 'flex' : 'none';
+    });
+}
+
+// --- Функции для данных и событий ---
+async function loadFavorites() {
+    favorites = await getUserData(FAVORITES_KEY, []);
+}
+
+async function saveFavorites() {
+    await saveUserData(FAVORITES_KEY, favorites);
+}
+
+async function toggleFavorite(stationName) {
+    const index = favorites.indexOf(stationName);
+    if (index > -1) {
+        favorites.splice(index, 1);
+    } else {
+        favorites.push(stationName);
     }
+    await saveFavorites();
+    const cardToUpdate = stationCards.find(card => card.dataset.name === stationName);
+    if (cardToUpdate) {
+        cardToUpdate.querySelector('.favorite-btn').classList.toggle('is-favorite', index === -1);
+    }
+    if (isFavoritesFilterActive && index > -1) {
+        filterStations();
+    }
+}
 
-    // --- Назначение обработчиков событий ---
-    
+function setupMediaSessionHandlers() {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => audioElement.play());
+        navigator.mediaSession.setActionHandler('pause', () => audioElement.pause());
+        navigator.mediaSession.setActionHandler('previoustrack', playPreviousStation);
+        navigator.mediaSession.setActionHandler('nexttrack', playNextStation);
+    }
+}
+
+// --- Основная инициализация и очистка ---
+export async function init() {
+    // Присвоение элементов DOM
+    stationsGrid = document.getElementById('radio-stations-grid');
+    searchInput = document.getElementById('radio-search-input');
+    playerArtwork = document.getElementById('player-artwork');
+    playerPlaceholder = document.getElementById('player-placeholder');
+    playerStationName = document.getElementById('player-station-name');
+    playPauseBtn = document.getElementById('play-pause-btn');
+    playIcon = document.getElementById('play-icon');
+    pauseIcon = document.getElementById('pause-icon');
+    volumeSlider = document.getElementById('volume-slider');
+    prevStationBtn = document.getElementById('prev-station-btn');
+    nextStationBtn = document.getElementById('next-station-btn');
+    muteBtn = document.getElementById('mute-btn');
+    unmutedIcon = document.getElementById('unmuted-icon');
+    mutedIcon = document.getElementById('muted-icon');
+    audioElement = document.getElementById('radio-audio-element');
+    streamQualityControls = document.getElementById('stream-quality-controls');
+    favoritesFilterBtn = document.getElementById('favorites-filter-btn');
+
+    await loadFavorites();
+
+    // Настройка обработчиков событий
     addListener(playPauseBtn, 'click', () => {
         if (audioElement.paused) {
             audioElement.play().catch(e => console.error("Ошибка при возобновлении:", e));
@@ -335,11 +356,9 @@ export function init() {
             audioElement.pause();
         }
     });
-
     addListener(nextStationBtn, 'click', playNextStation);
     addListener(prevStationBtn, 'click', playPreviousStation);
     addListener(muteBtn, 'click', toggleMute);
-
     addListener(volumeSlider, 'input', () => {
         audioElement.volume = volumeSlider.value;
         if (audioElement.muted && volumeSlider.value > 0) {
@@ -347,20 +366,22 @@ export function init() {
         }
         updatePlayerUI();
     });
-
-    addListener(searchInput, 'input', () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        stationCards.forEach(card => {
-            const isVisible = card.dataset.name.toLowerCase().includes(searchTerm);
-            card.style.display = isVisible ? 'flex' : 'none';
-        });
+    addListener(searchInput, 'input', filterStations);
+    addListener(streamQualityControls, 'click', (e) => {
+        const btn = e.target.closest('.stream-quality-btn');
+        if (btn && btn.dataset.quality) {
+            changeStreamQuality(btn.dataset.quality);
+        }
     });
-
-    // Слушатели на самом аудио-элементе для синхронизации UI
-    addListener(audioElement, 'play', updatePlayerUI);
-    addListener(audioElement, 'pause', updatePlayerUI);
+    addListener(favoritesFilterBtn, 'click', () => {
+        isFavoritesFilterActive = !isFavoritesFilterActive;
+        favoritesFilterBtn.classList.toggle('active', isFavoritesFilterActive);
+        filterStations();
+    });
+    addListener(audioElement, 'play', () => { updatePlayerUI(); updateMediaSessionMetadata(); });
+    addListener(audioElement, 'pause', () => { updatePlayerUI(); updateMediaSessionMetadata(); });
     addListener(audioElement, 'ended', updatePlayerUI);
-    addListener(audioElement, 'volumechange', updatePlayerUI); // Для синхронизации иконки звука
+    addListener(audioElement, 'volumechange', updatePlayerUI);
     addListener(audioElement, 'error', () => {
         playerStationName.textContent = "Ошибка потока";
         currentStation = null;
@@ -368,31 +389,26 @@ export function init() {
         updateMediaSessionMetadata();
     });
 
-    // --- Первоначальный запуск ---
+    // Первоначальная отрисовка
     createStationCards();
     setupMediaSessionHandlers();
     updatePlayerUI();
 }
 
-// --- Очистка ресурсов при выходе из приложения ---
 export function cleanup() {
     if (audioElement) {
         audioElement.pause();
-        audioElement.src = ''; // Прерываем загрузку
+        audioElement.src = '';
     }
-
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = null;
         navigator.mediaSession.playbackState = "none";
-        navigator.mediaSession.setActionHandler('play', null);
-        navigator.mediaSession.setActionHandler('pause', null);
-        navigator.mediaSession.setActionHandler('previoustrack', null);
-        navigator.mediaSession.setActionHandler('nexttrack', null);
+        ['play', 'pause', 'previoustrack', 'nexttrack'].forEach(handler => navigator.mediaSession.setActionHandler(handler, null));
     }
-    
     eventListeners.forEach(({ element, event, handler }) => {
         element.removeEventListener(event, handler);
     });
-    eventListeners = []; // Очищаем массив
+    eventListeners = [];
     currentStation = null;
+    isFavoritesFilterActive = false;
 }
