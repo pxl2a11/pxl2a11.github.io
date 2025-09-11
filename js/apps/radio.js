@@ -129,7 +129,7 @@ export function getHtml() {
             <p>Не удалось загрузить информацию.</p>
         </div>
     </div>
-<script>
+
         const artistNameEl = document.getElementById('artist-name');
         const songTitleEl = document.getElementById('song-title');
         const loadingIndicator = document.getElementById('loading-indicator');
@@ -194,7 +194,7 @@ export function getHtml() {
         // Обновлять информацию каждые 10 секунд
         setInterval(fetchAndDisplayTrack, 10000);
 
-    </script>
+    
     
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-2 md:p-4">
             
