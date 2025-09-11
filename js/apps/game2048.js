@@ -11,7 +11,6 @@ let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
 
-
 // Цвета для плиток
 const tileColors = {
     2: 'bg-gray-200 text-gray-800', 4: 'bg-yellow-200 text-gray-800',
@@ -22,6 +21,10 @@ const tileColors = {
     2048: 'bg-indigo-600 text-white', 4096: 'bg-purple-700 text-white'
 };
 
+/**
+ * ИСПРАВЛЕНО: Оверлей "Конец игры" вынесен за пределы игрового поля,
+ * чтобы он не удалялся при перерисовке.
+ */
 export function getHtml() {
     return `
         <div class="flex flex-col items-center">
@@ -32,9 +35,12 @@ export function getHtml() {
                 </div>
                 <button id="new-game-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
-            <div id="game-board" class="grid grid-cols-4 grid-rows-4 gap-3 p-3 bg-gray-400 dark:bg-gray-600 rounded-md relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
-                <!-- Ячейки и плитки будут добавлены динамически -->
-                 <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md z-20">
+            <!-- Новый относительный контейнер для доски и оверлея -->
+            <div class="relative" style="width: 100%; max-width: 420px; aspect-ratio: 1 / 1;">
+                <div id="game-board" class="grid grid-cols-4 grid-rows-4 gap-3 p-3 bg-gray-400 dark:bg-gray-600 rounded-md w-full h-full">
+                    <!-- Ячейки и плитки будут добавлены динамически -->
+                </div>
+                <div id="game-over-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex-col justify-center items-center text-white text-4xl font-bold hidden rounded-md z-20">
                     <span>Конец игры!</span>
                     <button id="retry-btn" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded text-xl">Попробовать снова</button>
                 </div>
@@ -78,18 +84,21 @@ function startGame() {
     score = 0;
     isGameOver = false;
     document.getElementById('game-over-overlay').classList.add('hidden');
+    document.getElementById('game-over-overlay').classList.remove('flex'); // Убедимся, что flex тоже убран
     updateScore();
     addRandomTile();
     addRandomTile();
     renderBoard();
 }
 
+/**
+ * ИСПРАВЛЕНО: Удалены строки, сохраняющие и восстанавливающие оверлей.
+ * Теперь функция очищает и отрисовывает только игровое поле.
+ */
 function renderBoard() {
     const gameBoard = document.getElementById('game-board');
-    // Сохраняем оверлей и очищаем доску от старых плиток
-    const overlay = document.getElementById('game-over-overlay');
+    // Очищаем доску от старых плиток и фоновых ячеек
     gameBoard.innerHTML = '';
-    gameBoard.appendChild(overlay);
 
     // Пересоздаем сетку с нуля на основе массива 'grid'
     for (let r = 0; r < gridSize; r++) {
@@ -97,7 +106,6 @@ function renderBoard() {
             // 1. Создаем фоновую ячейку для каждой позиции
             const backgroundCell = document.createElement('div');
             backgroundCell.className = 'w-full h-full bg-gray-300 dark:bg-gray-500 rounded-md';
-            // Позиционируем в сетке (CSS grid строки/колонки начинаются с 1)
             backgroundCell.style.gridRow = `${r + 1}`;
             backgroundCell.style.gridColumn = `${c + 1}`;
             gameBoard.appendChild(backgroundCell);
@@ -105,14 +113,9 @@ function renderBoard() {
             // 2. Если в этой позиции есть плитка, создаем и размещаем ее поверх
             if (grid[r][c] !== 0) {
                 const tile = document.createElement('div');
-                // Плитка также является элементом сетки, без абсолютного позиционирования
-                // z-10 гарантирует, что плитка будет поверх фоновой ячейки
                 tile.className = `tile z-10 flex items-center justify-center font-bold text-2xl md:text-4xl rounded-md transition-all duration-200 ${tileColors[grid[r][c]] || 'bg-black text-white'}`;
-                
-                // Помещаем плитку в ту же ячейку сетки, что и фон
                 tile.style.gridRow = `${r + 1}`;
                 tile.style.gridColumn = `${c + 1}`;
-
                 tile.textContent = grid[r][c];
                 gameBoard.appendChild(tile);
             }
@@ -149,7 +152,7 @@ function handleKeydown(e) {
     }
 }
 
-// --- НОВЫЕ ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ СВАЙПОМ ---
+// --- ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ СВАЙПОМ ---
 
 function handleTouchStart(e) {
     e.preventDefault();
@@ -176,24 +179,15 @@ function handleSwipe() {
     const minSwipeDistance = 30; // Минимальная дистанция свайпа в пикселях
     let moved = false;
 
-    // Определяем, был ли свайп больше горизонтальным или вертикальным
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
         // Горизонтальный свайп
         if (Math.abs(deltaX) > minSwipeDistance) {
-            if (deltaX > 0) {
-                moved = moveRight();
-            } else {
-                moved = moveLeft();
-            }
+            moved = (deltaX > 0) ? moveRight() : moveLeft();
         }
     } else {
         // Вертикальный свайп
         if (Math.abs(deltaY) > minSwipeDistance) {
-            if (deltaY > 0) {
-                moved = moveDown();
-            } else {
-                moved = moveUp();
-            }
+            moved = (deltaY > 0) ? moveDown() : moveUp();
         }
     }
 
@@ -313,7 +307,8 @@ function canMove() {
 function checkGameOver() {
     if (!canMove()) {
         isGameOver = true;
-        document.getElementById('game-over-overlay').classList.remove('hidden');
-        document.getElementById('game-over-overlay').classList.add('flex');
+        const overlay = document.getElementById('game-over-overlay');
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
     }
 }
