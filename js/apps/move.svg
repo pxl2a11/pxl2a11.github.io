@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Радио Плеер</title>
+    <!-- Подключаем Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div id="player-container" class="bg-[#1f2030] text-white p-8 rounded-2xl shadow-lg w-full max-w-sm text-center transform transition-transform duration-300 hover:scale-105">
+        <h1 class="text-3xl font-bold mb-4 text-[#e94560]">Сейчас в эфире:</h1>
+        <div id="loading-indicator" class="flex justify-center items-center space-x-2">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+            <span>Загрузка...</span>
+        </div>
+        <div id="artist-info" class="hidden">
+            <p id="artist-name" class="text-2xl font-bold mb-2"></p>
+            <p id="song-title" class="text-lg text-gray-400"></p>
+        </div>
+        <div id="error-message" class="hidden text-red-400">
+            <p>Не удалось загрузить информацию.</p>
+        </div>
+    </div>
+
+    <script>
+        const artistNameEl = document.getElementById('artist-name');
+        const songTitleEl = document.getElementById('song-title');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const artistInfo = document.getElementById('artist-info');
+        const errorMessage = document.getElementById('error-message');
+
+        // Оригинальный URL к данным о треке
+        const trackDataUrl = 'https://www.radiogrom.com/js/a/tntmusic123.js';
+        
+        // Используем публичный CORS прокси, чтобы обойти ошибку "Failed to fetch",
+        // вызванную ограничениями безопасности браузера (CORS).
+        const corsProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(trackDataUrl)}`;
+
+        async function fetchAndDisplayTrack() {
+            // Показать состояние загрузки
+            loadingIndicator.classList.remove('hidden');
+            artistInfo.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            try {
+                // Загрузить содержимое JavaScript файла через прокси
+                const response = await fetch(corsProxyUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const scriptText = await response.text();
+
+                // Извлечь строку JSON-объекта из текста скрипта
+                const jsonStringMatch = scriptText.match(/let trackInfo = (\{.*\});/s);
+                if (!jsonStringMatch || !jsonStringMatch[1]) {
+                    throw new Error('Could not find trackInfo object in the script.');
+                }
+                
+                // Распарсить строку JSON
+                const trackInfo = JSON.parse(jsonStringMatch[1]);
+
+                // Разделить заголовок на исполнителя и песню
+                const fullTitle = trackInfo.title || 'Неизвестный исполнитель';
+                const parts = fullTitle.split(' - ');
+                const artist = parts[0] || 'Неизвестный исполнитель';
+                const title = parts.slice(1).join(' - ') || 'Неизвестная песня';
+
+                // Обновить DOM с информацией
+                artistNameEl.textContent = artist;
+                songTitleEl.textContent = title;
+                
+                // Показать информацию об исполнителе
+                loadingIndicator.classList.add('hidden');
+                artistInfo.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Failed to fetch or parse track information:", error);
+                // Показать сообщение об ошибке
+                loadingIndicator.classList.add('hidden');
+                errorMessage.classList.remove('hidden');
+            }
+        }
+
+        // Загрузить информацию о треке при загрузке страницы
+        fetchAndDisplayTrack();
+
+        // Обновлять информацию каждые 10 секунд
+        setInterval(fetchAndDisplayTrack, 10000);
+
+    </script>
+</body>
+</html>
