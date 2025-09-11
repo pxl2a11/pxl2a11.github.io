@@ -424,14 +424,15 @@ export async function init() {
     addListener(audioElement, 'ended', updatePlayerUI);
     addListener(audioElement, 'volumechange', updatePlayerUI);
     addListener(audioElement, 'error', () => {
-        // Проверяем, не вызвана ли ошибка прерыванием
-        if (currentStation) { // Если currentStation не null, значит это реальная ошибка, а не прерывание
-            playerStationName.textContent = "Ошибка потока";
-            currentStation = null;
-            updatePlayerUI();
-            updateMediaSessionMetadata();
-        }
-    });
+    // Проверяем, не вызвана ли ошибка прерыванием
+    if (currentStation) { // <-- ДОБАВЛЕНА ОТКРЫВАЮЩАЯ СКОБКА
+        // Если currentStation не null, значит это реальная ошибка, а не прерывание
+        playerStationName.textContent = "Ошибка потока";
+        currentStation = null;
+        updatePlayerUI();
+        updateMediaSessionMetadata();
+    }
+});
 
     // Первоначальная отрисовка
     createStationCards();
