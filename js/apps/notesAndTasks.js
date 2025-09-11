@@ -80,9 +80,9 @@ export async function init() {
             
             if (list.type === 'task') {
                 const sortedItems = [...list.items].sort((a, b) => a.completed - b.completed);
-                contentHtml = sortedItems.length > 0 ? sortedItems.map((task, taskIndex) => `
+                contentHtml = sortedItems.length > 0 ? sortedItems.map((task) => `
                     <div class="flex items-center p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
-                        <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${list.items.indexOf(task)}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
+                        <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${lists[originalIndex].items.indexOf(task)}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
                         <span class="ml-3 break-all ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
                     </div>
                 `).join('') : '<p class="text-sm text-gray-400 px-1">Задач нет</p>';
@@ -96,11 +96,15 @@ export async function init() {
                         <h4 class="font-bold text-lg break-all mr-4">${list.title}</h4>
                         <div class="flex items-center flex-shrink-0">
                              <button data-list-index="${originalIndex}" class="list-edit-btn p-1 text-gray-500 hover:text-blue-500">
-                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M20.8477 1.87868C19.6761 0.707109 17.7766 0.707105 16.605 1.87868L2.44744 16.0363C2.02864 16.4551 1.74317 16.9885 1.62702 17.5692L1.03995 20.5046C0.760062 21.904 1.9939 23.1379 3.39334 22.858L6.32868 22.2709C6.90945 22.1548 7.44285 21.8693 7.86165 21.4505L22.0192 7.29289C23.1908 6.12132 23.1908 4.22183 22.0192 3.05025L20.8477 1.87868ZM18.0192 3.29289C18.4098 2.90237 19.0429 2.90237 19.4335 3.29289L20.605 4.46447C20.9956 4.85499 20.9956 5.48815 20.605 5.87868L17.9334 8.55027L15.3477 5.96448L18.0192 3.29289ZM13.9334 7.3787L3.86165 17.4505C3.72205 17.5901 3.6269 17.7679 3.58818 17.9615L3.00111 20.8968L5.93645 20.3097C6.13004 20.271 6.30784 20.1759 6.44744 20.0363L16.5192 9.96448L13.9334 7.3787Z" fill="currentColor"/>
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="-4 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17.438 22.469v-4.031l2.5-2.5v7.344c0 1.469-1.219 2.688-2.656 2.688h-14.625c-1.469 0-2.656-1.219-2.656-2.688v-14.594c0-1.469 1.188-2.688 2.656-2.688h14.844v0.031l-2.5 2.469h-11.5c-0.531 0-1 0.469-1 1.031v12.938c0 0.563 0.469 1 1 1h12.938c0.531 0 1-0.438 1-1zM19.813 7.219l2.656 2.656 1.219-1.219-2.656-2.656zM10.469 16.594l2.625 2.656 8.469-8.469-2.625-2.656zM8.594 21.094l3.625-0.969-2.656-2.656z"></path>
                                 </svg>
                             </button>
-                            <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold ml-2">✖</button>
+                            <button data-list-index="${originalIndex}" class="list-delete-btn p-1 text-red-500 hover:text-red-700 ml-1">
+                               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M697.4 759.2l61.8-61.8L573.8 512l185.4-185.4-61.8-61.8L512 450.2 326.6 264.8l-61.8 61.8L450.2 512 264.8 697.4l61.8 61.8L512 573.8z"></path>
+                               </svg>
+                            </button>
                         </div>
                     </div>
                     <div class="space-y-1">${contentHtml}</div>
@@ -236,9 +240,12 @@ export async function init() {
         if (target.classList.contains('task-checkbox')) {
             const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
-            lists[listIndex].items[taskIndex].completed = target.checked;
-            saveLists();
-            renderLists();
+            // Проверка на случай если taskIndex невалидный
+            if (taskIndex >= 0 && taskIndex < lists[listIndex].items.length) {
+                 lists[listIndex].items[taskIndex].completed = target.checked;
+                 saveLists();
+                 renderLists();
+            }
         }
     });
 
