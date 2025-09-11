@@ -1,9 +1,10 @@
-//17 js/apps/radio.js
+//13 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
 // --- Глобальные переменные модуля ---
 let audioElement;
+let hls = null; // Для поддержки HLS (.m3u8)
 let currentStation = null;
 let stationCards = [];
 let eventListeners = [];
@@ -29,116 +30,55 @@ export function getHtml() {
     return `
         <style>
             /* --- Стили для карточек станций --- */
-            .station-card {
-                display: flex;
-                align-items: center;
-                gap: 0.75rem; /* 12px */
-                padding: 0.5rem; /* 8px */
-                border-radius: 0.75rem; /* 12px */
-                transition: all 0.2s ease-in-out;
-                border: 2px solid transparent;
-                width: 100%;
-                text-align: left;
-            }
-            .station-card:hover {
-                background-color: #f3f4f6; /* gray-100 */
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            }
-            .dark .station-card:hover {
-                background-color: #374151; /* gray-700 */
-            }
-            .station-card.playing {
-                background-color: #dbeafe; /* blue-100 */
-                border-color: #3b82f6; /* blue-500 */
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-            }
-            .dark .station-card.playing {
-                background-color: #1e3a8a;
-                border-color: #60a5fa; /* blue-400 */
-                box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
-            }
-            .station-card img {
-                width: 50px; height: 50px; border-radius: 0.5rem; object-fit: cover; flex-shrink: 0;
-            }
-            .station-card .play-area {
-                cursor: pointer;
-                flex-grow: 1;
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-            }
-            
-            /* --- СТИЛИ ДЛЯ ПОЛОСЫ ПРОКРУТКИ --- */
+            .station-card { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.75rem; transition: all 0.2s ease-in-out; border: 2px solid transparent; width: 100%; text-align: left; }
+            .station-card:hover { background-color: #f3f4f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+            .dark .station-card:hover { background-color: #374151; }
+            .station-card.playing { background-color: #dbeafe; border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+            .dark .station-card.playing { background-color: #1e3a8a; border-color: #60a5fa; box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3); }
+            .station-card img { width: 50px; height: 50px; border-radius: 0.5rem; object-fit: cover; flex-shrink: 0; }
+            .station-card .play-area { cursor: pointer; flex-grow: 1; display: flex; align-items: center; gap: 0.75rem; }
             #radio-stations-grid::-webkit-scrollbar { width: 8px; }
             #radio-stations-grid::-webkit-scrollbar-track { background: transparent; }
-            #radio-stations-grid::-webkit-scrollbar-thumb {
-                background-color: #d1d5db; border-radius: 4px; border: 2px solid transparent; background-clip: content-box;
-            }
+            #radio-stations-grid::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
             #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
             .dark #radio-stations-grid::-webkit-scrollbar-thumb { background-color: #4b5563; }
             .dark #radio-stations-grid::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
-            
-            /* --- СТИЛИ ДЛЯ ПОЛЗУНКА ГРОМКОСТИ --- */
             #volume-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; outline: none; transition: all 0.2s; }
-            #volume-slider::-webkit-slider-thumb {
-                -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #3b82f6; cursor: pointer; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.2);
-            }
+            #volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #3b82f6; cursor: pointer; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.2); }
             .dark #volume-slider { background: #4b5563; }
             .dark #volume-slider::-webkit-slider-thumb { background: #60a5fa; border-color: #374151; }
-
-            /* --- НОВЫЕ СТИЛИ --- */
-            .stream-quality-btn {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.875rem;
-                font-weight: 500;
-                border-radius: 0.5rem;
-                background-color: #e5e7eb; color: #4b5563;
-                transition: all 0.2s; border: none; cursor: pointer;
-                width: 100%;
-                text-align: center;
-            }
+            .stream-quality-btn { padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.5rem; background-color: #e5e7eb; color: #4b5563; transition: all 0.2s; border: none; cursor: pointer; width: 100%; text-align: center; }
             .dark .stream-quality-btn { background-color: #4b5563; color: #d1d5db; }
             .stream-quality-btn.active { background-color: #3b82f6; color: white; font-weight: bold; }
             .dark .stream-quality-btn.active { background-color: #60a5fa; color: #1f2937; }
-
-            .favorite-btn {
-                padding: 0.25rem; border-radius: 9999px; margin-left: auto; flex-shrink: 0;
-                background: none; border: none; cursor: pointer;
-            }
+            .favorite-btn { padding: 0.25rem; border-radius: 9999px; margin-left: auto; flex-shrink: 0; background: none; border: none; cursor: pointer; }
             .favorite-btn:hover { background-color: rgba(0,0,0,0.1); }
             .dark .favorite-btn:hover { background-color: rgba(255,255,255,0.1); }
             .favorite-btn .star-icon { width: 24px; height: 24px; color: #9ca3af; transition: all 0.2s; }
             .favorite-btn.is-favorite .star-icon { color: #f59e0b; fill: currentColor; }
-
             #favorites-filter-btn.active { background-color: #f59e0b; }
             #favorites-filter-btn.active svg { color: white; fill: white; }
         </style>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-2 md:p-4">
-            
             <div class="md:col-span-1 flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
                 <div id="player-artwork-container" class="w-40 h-40 rounded-full shadow-xl border-4 border-white dark:border-gray-700 mb-4 flex justify-center items-center text-center bg-gray-200 dark:bg-gray-700">
                     <img id="player-artwork" src="" alt="Обложка станции" class="w-full h-full rounded-full object-cover hidden">
                     <span id="player-placeholder" class="font-semibold text-gray-500 dark:text-gray-400 p-4">Выберите станцию</span>
                 </div>
                 <h3 id="player-station-name" class="text-xl font-bold text-center h-7 mb-2"></h3>
-                
                 <audio id="radio-audio-element" class="hidden"></audio>
-                
                 <div id="player-controls" class="flex items-center gap-2">
                     <button id="prev-station-btn" title="Предыдущая станция" class="p-3 flex justify-center items-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M16.1795 3.26875C15.7889 2.87823 15.1558 2.87823 14.7652 3.26875L8.12078 9.91322C6.94952 11.0845 6.94916 12.9833 8.11996 14.155L14.6903 20.7304C15.0808 21.121 15.714 21.121 16.1045 20.7304C16.495 20.3399 16.495 19.7067 16.1045 19.3162L9.53246 12.7442C9.14194 12.3536 9.14194 11.7205 9.53246 11.33L16.1795 4.68297C16.57 4.29244 16.57 3.65928 16.1795 3.26875Z"/></svg>
                     </button>
                     <button id="play-pause-btn" class="p-4 flex justify-center items-center bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        <svg id="play-icon" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.46484 3.92349C4.79896 3.5739 4 4.05683 4 4.80888V19.1911C4 19.9432 4.79896 20.4261 5.46483 20.0765L19.1622 12.8854C19.8758 12.5108 19.8758 11.4892 19.1622 11.1146L5.46484 3.92349ZM2 4.80888C2 2.55271 4.3969 1.10395 6.39451 2.15269L20.0919 9.34382C22.2326 10.4677 22.2325 13.5324 20.0919 14.6562L6.3945 21.8473C4.39689 22.8961 2 21.4473 2 19.1911V4.80888Z"/></svg>
+                        <svg id="play-icon" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.46484 3.92349C4.79896 3.5739 4 4.05683 4 4.80888V19.1911C4 19.9432 4.79896 20.4261 5.46483 20.0765L19.1622 12.8854C19.8758 12.5108 19.8758 11.4892 19.1622 11.1146L5.46484 3.92349ZM2 4.80888C2 2.55271 4.3969 1.10395 6.39451 2.15269L20.0919 9.34382C22.2326 10.4677 22.2325 13.5324 20.0919 14.6562L6.3945 21.8473C4.39689 22.8961 2 21.4473 2 19.1911V4.80888Z"></svg>
                         <svg id="pause-icon" class="w-8 h-8 hidden" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 5C10 3.34315 8.65686 2 7 2H5C3.34315 2 2 3.34315 2 5V19C2 20.6569 3.34315 22 5 22H7C8.65686 22 10 20.6569 10 19V5ZM8 5C8 4.44772 7.55229 4 7 4H5C4.44772 4 4 4.44772 4 5V19C4 19.5523 4.44772 20 5 20H7C7.55229 20 8 19.5523 8 19V5Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M22 5C22 3.34315 20.6569 2 19 2H17C15.3431 2 14 3.34315 14 5V19C14 20.6569 15.3431 22 17 22H19C20.6569 22 22 20.6569 22 19V5ZM20 5C20 4.44772 19.5523 4 19 4H17C16.4477 4 16 4.44772 16 5V19C16 19.5523 16.4477 20 17 20H19C19.5523 20 20 19.5523 20 19V5Z"/></svg>
                     </button>
                     <button id="next-station-btn" title="Следующая станция" class="p-3 flex justify-center items-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M7.82054 20.7313C8.21107 21.1218 8.84423 21.1218 9.23476 20.7313L15.8792 14.0868C17.0505 12.9155 17.0508 11.0167 15.88 9.84497L9.3097 3.26958C8.91918 2.87905 8.28601 2.87905 7.89549 3.26958C7.50497 3.6601 7.50497 4.29327 7.89549 4.68379L14.4675 11.2558C14.8581 11.6464 14.8581 12.2795 14.4675 12.67L7.82054 19.317C7.43002 19.7076 7.43002 20.3407 7.82054 20.7313Z"/></svg>
                     </button>
                 </div>
-
                 <div class="w-full max-w-xs space-y-3 mt-4">
                     <div class="flex items-center gap-2">
                         <button id="mute-btn" title="Выключить звук" class="p-2 flex justify-center items-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-full hover:bg-gray-300 dark:hover:bg-gray-600">
@@ -147,13 +87,9 @@ export function getHtml() {
                         </button>
                         <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="Громкость" class="w-full">
                     </div>
-                    <div id="stream-quality-controls" class="space-y-2 hidden w-full">
-                        <!-- Кнопки качества будут вставлены сюда динамически -->
-                    </div>
+                    <div id="stream-quality-controls" class="space-y-2 hidden w-full"></div>
                 </div>
-
             </div>
-
             <div class="md:col-span-2 p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="relative flex-grow">
@@ -164,9 +100,7 @@ export function getHtml() {
                         <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                     </button>
                 </div>
-                <div id="radio-stations-grid" class="mt-2 space-y-2 max-h-[400px] overflow-y-auto pr-2 pt-2">
-                    <!-- Карточки станций будут сгенерированы здесь -->
-                </div>
+                <div id="radio-stations-grid" class="mt-2 space-y-2 max-h-[400px] overflow-y-auto pr-2 pt-2"></div>
             </div>
         </div>
     `;
@@ -179,7 +113,6 @@ function playStation(station) {
     playerStationName.textContent = 'Загрузка...';
     renderStreamQualityButtons(station);
     
-    // По умолчанию включаем первый (обычно лучший) поток
     const defaultStreamUrl = station.streams[0]?.url;
     if (defaultStreamUrl) {
         changeStream(defaultStreamUrl);
@@ -191,23 +124,58 @@ function playStation(station) {
 
 function changeStream(url) {
     if (!url) return;
-    audioElement.src = url;
-    audioElement.play().catch(error => {
-        // --- ИСПРАВЛЕНИЕ ---
-        // Игнорируем ошибку, если она вызвана прерыванием старого запроса новым
-        if (error.name === 'AbortError') {
-            console.log('Воспроизведение прервано новым запросом. Это нормально.');
-            return; 
+
+    // 1. Очищаем предыдущий экземпляр hls.js, если он был
+    if (hls) {
+        hls.destroy();
+        hls = null;
+    }
+
+    // 2. Проверяем, является ли поток HLS (.m3u8)
+    if (url.includes('.m3u8')) {
+        // Используем hls.js, если браузер его поддерживает
+        if (Hls.isSupported()) {
+            console.log("Воспроизведение HLS через hls.js");
+            hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(audioElement);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                audioElement.play().catch(error => console.error("Ошибка воспроизведения HLS:", error));
+            });
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) {
+                     console.error('Критическая ошибка HLS:', data);
+                     playerStationName.textContent = "Ошибка HLS";
+                }
+            });
+        } else if (audioElement.canPlayType('application/vnd.apple.mpegurl')) {
+            // Для Safari, который поддерживает HLS нативно
+            console.log("Воспроизведение HLS нативно (Safari)");
+            audioElement.src = url;
+            audioElement.play().catch(error => console.error("Ошибка нативного воспроизведения HLS:", error));
+        } else {
+            console.error("HLS не поддерживается в этом браузере");
+            playerStationName.textContent = "Формат не поддерживается";
+            return;
         }
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+    } else {
+        // 3. Для обычных потоков (MP3, AAC) используем стандартный метод
+        console.log("Воспроизведение стандартного потока");
+        audioElement.src = url;
+        audioElement.play().catch(error => {
+            if (error.name === 'AbortError') {
+                console.log('Воспроизведение прервано новым запросом. Это нормально.');
+                return; 
+            }
+            console.error("Ошибка воспроизведения:", error);
+            playerStationName.textContent = "Ошибка потока";
+            currentStation = null;
+            updatePlayerUI();
+            updateMediaSessionMetadata();
+        });
+    }
 
-        console.error("Ошибка воспроизведения:", error);
-        playerStationName.textContent = "Ошибка потока";
-        currentStation = null;
-        updatePlayerUI();
-        updateMediaSessionMetadata();
-    });
-
+    // Обновляем UI кнопок качества
     streamQualityControls.querySelectorAll('.stream-quality-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.url === url);
     });
@@ -424,15 +392,13 @@ export async function init() {
     addListener(audioElement, 'ended', updatePlayerUI);
     addListener(audioElement, 'volumechange', updatePlayerUI);
     addListener(audioElement, 'error', () => {
-    // Проверяем, не вызвана ли ошибка прерыванием
-    if (currentStation) { // <-- ДОБАВЛЕНА ОТКРЫВАЮЩАЯ СКОБКА
-        // Если currentStation не null, значит это реальная ошибка, а не прерывание
-        playerStationName.textContent = "Ошибка потока";
-        currentStation = null;
-        updatePlayerUI();
-        updateMediaSessionMetadata();
-    }
-});
+        if (currentStation && !hls) { // Ошибку HLS обрабатываем отдельно
+            playerStationName.textContent = "Ошибка потока";
+            currentStation = null;
+            updatePlayerUI();
+            updateMediaSessionMetadata();
+        }
+    });
 
     // Первоначальная отрисовка
     createStationCards();
@@ -444,6 +410,11 @@ export function cleanup() {
     if (audioElement) {
         audioElement.pause();
         audioElement.src = '';
+    }
+    // Очистка hls.js
+    if (hls) {
+        hls.destroy();
+        hls = null;
     }
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = null;
