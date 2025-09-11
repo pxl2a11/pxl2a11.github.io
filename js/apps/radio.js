@@ -1,4 +1,4 @@
-// 28js/apps/radio.js
+//28 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -148,10 +148,8 @@ export function getHtml() {
                         </button>
                         <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="Громкость" class="w-full">
                     </div>
-                    <div id="stream-quality-controls" class="flex flex-col items-center gap-2 hidden w-full">
-                        <button data-quality="low" class="stream-quality-btn">Low</button>
-                        <button data-quality="med" class="stream-quality-btn">Med</button>
-                        <button data-quality="hi" class="stream-quality-btn">High</button>
+                    <div id="stream-quality-controls" class="space-y-2 hidden w-full">
+                        <!-- Кнопки качества будут вставлены сюда динамически -->
                     </div>
                 </div>
 
@@ -180,14 +178,21 @@ function playStation(station) {
     if (!station) return;
     currentStation = station;
     playerStationName.textContent = 'Загрузка...';
-    streamQualityControls.classList.remove('hidden');
-    changeStreamQuality('hi'); // По умолчанию высокое качество
+    renderStreamQualityButtons(station);
+    
+    // По умолчанию включаем первый (обычно лучший) поток
+    const defaultStreamUrl = station.streams[0]?.url;
+    if (defaultStreamUrl) {
+        changeStream(defaultStreamUrl);
+    } else {
+        console.error("У станции нет доступных потоков:", station.name);
+        playerStationName.textContent = "Нет потоков";
+    }
 }
 
-function changeStreamQuality(quality) {
-    if (!currentStation || !currentStation.streams[quality]) return;
-
-    audioElement.src = currentStation.streams[quality];
+function changeStream(url) {
+    if (!url) return;
+    audioElement.src = url;
     audioElement.play().catch(error => {
         console.error("Ошибка воспроизведения:", error);
         playerStationName.textContent = "Ошибка потока";
@@ -197,7 +202,7 @@ function changeStreamQuality(quality) {
     });
 
     streamQualityControls.querySelectorAll('.stream-quality-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.quality === quality);
+        btn.classList.toggle('active', btn.dataset.url === url);
     });
 }
 
@@ -221,6 +226,23 @@ function toggleMute() {
 }
 
 // --- Функции обновления UI ---
+function renderStreamQualityButtons(station) {
+    streamQualityControls.innerHTML = '';
+    if (station && station.streams && station.streams.length > 1) {
+        station.streams.forEach(stream => {
+            const button = document.createElement('button');
+            button.className = 'stream-quality-btn';
+            button.dataset.url = stream.url;
+            button.textContent = stream.name;
+            addListener(button, 'click', () => changeStream(stream.url));
+            streamQualityControls.appendChild(button);
+        });
+        streamQualityControls.classList.remove('hidden');
+    } else {
+        streamQualityControls.classList.add('hidden');
+    }
+}
+
 function updatePlayerUI() {
     const isPlaying = !audioElement.paused && currentStation !== null;
     playIcon.classList.toggle('hidden', isPlaying);
@@ -240,6 +262,7 @@ function updatePlayerUI() {
         playerArtwork.classList.add('hidden');
         playerPlaceholder.classList.remove('hidden');
         playerStationName.textContent = '';
+        streamQualityControls.innerHTML = '';
         streamQualityControls.classList.add('hidden');
     }
 
@@ -383,12 +406,7 @@ export async function init() {
         updatePlayerUI();
     });
     addListener(searchInput, 'input', filterStations);
-    addListener(streamQualityControls, 'click', (e) => {
-        const btn = e.target.closest('.stream-quality-btn');
-        if (btn && btn.dataset.quality) {
-            changeStreamQuality(btn.dataset.quality);
-        }
-    });
+    
     addListener(favoritesFilterBtn, 'click', () => {
         isFavoritesFilterActive = !isFavoritesFilterActive;
         favoritesFilterBtn.classList.toggle('active', isFavoritesFilterActive);
