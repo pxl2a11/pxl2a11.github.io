@@ -25,7 +25,7 @@ export const radioStations = [
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/novoe_radio98_4-hi" }] },
-    { name: "Дорожное Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3ec011dd9.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/rus_rodnye00-hi" }] },
+    { name: "Дорожное Радио", logoUrl: "https://radiopotok.ru/f/station_webp/512/83.webp", streams: [{ name: "Основной поток", url: "https://hls-01-dorognoe.emgsound.ru/15/112/playlist.m3u8" }] },
     { name: "Relax FM (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ebda8c01.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/relax_fm_ru-hi" }] },
     { name: "DFM 101.2 (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ec00ae9b.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/dfm_moscow-hi" }] },
     { name: "Соль FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf2dc6d7.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/sol_fm-hi" }] },
