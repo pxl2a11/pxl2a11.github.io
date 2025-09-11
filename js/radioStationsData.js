@@ -28,8 +28,6 @@ export const radioStations = [
     { name: "Дорожное Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3ec011dd9.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/rus_rodnye00-hi" }] },
     { name: "Relax FM (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ebda8c01.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/relax_fm_ru-hi" }] },
     { name: "DFM 101.2 (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ec00ae9b.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/dfm_moscow-hi" }] },
-    { name: "ТНТ Music Radio", logoUrl: "https://pcradio.ru/images/stations/61b09c403d308.jpg", streams: [
-        { name: "128 kbps", url: "https://tntradio.hostingradio.ru:8027/tntradio128.mp3" }] },
     { name: "Соль FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf2dc6d7.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/sol_fm-hi" }] },
     { name: "Maximum", logoUrl: "https://pcradio.ru/images/stations/62ea3ebe46311.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/fm_maximum-hi" }] },
     { name: "РУССКАЯ ВОЛНА", logoUrl: "https://amgradio.ru/img/RuWavebg.svg", streams: [{ name: "Поток 48kbps", url: "https://ru1.amgradio.ru/RuWave48" }] },
@@ -62,4 +60,6 @@ export const radioStations = [
     { name: "CLASSIC FM", logoUrl: "https://amgradio.ru/img/classicfm.svg", streams: [{ name: "Основной поток", url: "https://classic.amgradio.ru/ClassicFM" }] },
     { name: "РАДИО ЗВУКИ ПРИРОДЫ", logoUrl: "https://amgradio.ru/img/zvuki.svg", streams: [{ name: "Основной поток", url: "https://zvuki.amgradio.ru/Zvuki" }] },
     { name: "Спутник Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3ebe43be0.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/sputnik_ria_ru-med" }] },
+    { name: "ТНТ Music Radio", logoUrl: "https://pcradio.ru/images/stations/61b09c403d308.jpg", streams: [
+        { name: "128 kbps", url: "https://tntradio.hostingradio.ru:8027/tntradio128.mp3" }] },
 ];
