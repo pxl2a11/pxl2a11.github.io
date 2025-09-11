@@ -59,9 +59,9 @@ export async function init() {
     const modalSaveBtn = document.getElementById('modal-save-btn');
 
     // --- Состояние приложения ---
-    // Теперь данные загружаются напрямую, без миграции
     let lists = getUserData('lists', []);
     let currentFilter = 'all';
+    let editingListIndex = null; // Индекс редактируемого списка
 
     const saveLists = () => saveUserData('lists', lists);
 
@@ -80,7 +80,10 @@ export async function init() {
             
             // Генерация контента карточки
             if (list.type === 'task') {
-                contentHtml = list.items.length > 0 ? list.items.map((task, taskIndex) => `
+                // Сортировка: сначала невыполненные, потом выполненные
+                const sortedItems = list.items.sort((a, b) => a.completed - b.completed);
+
+                contentHtml = sortedItems.length > 0 ? sortedItems.map((task, taskIndex) => `
                     <div class="flex items-center p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
                         <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
                         <span class="ml-3 break-all ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
@@ -91,7 +94,7 @@ export async function init() {
             }
 
             return `
-                <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
+                <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow cursor-pointer" data-list-index="${originalIndex}">
                     <div class="flex justify-between items-start mb-2">
                         <h4 class="font-bold text-lg break-all mr-4">${list.title}</h4>
                         <button data-list-index="${originalIndex}" class="list-delete-btn text-red-500 hover:text-red-700 font-bold flex-shrink-0">✖</button>
@@ -103,41 +106,74 @@ export async function init() {
     };
 
     // --- ЛОГИКА МОДАЛЬНОГО ОКНА ---
-    const openModal = (type) => {
-        modalInputTitle.value = '';
-        modalTextareaContent.value = '';
-        if (type === 'task') {
-            modalTitle.textContent = 'Новый список задач';
-            modalTextareaContent.placeholder = 'Введите задачи, каждая с новой строки...';
+    const openModal = (type, listIndex = null) => {
+        editingListIndex = listIndex;
+
+        if (editingListIndex !== null) {
+            const list = lists[editingListIndex];
+            modalTitle.textContent = `Редактировать ${list.type === 'task' ? 'список задач' : 'заметку'}`;
+            modalInputTitle.value = list.title;
+            if (list.type === 'task') {
+                modalTextareaContent.value = list.items.map(item => item.text).join('\n');
+                modalTextareaContent.placeholder = 'Введите задачи, каждая с новой строки...';
+            } else {
+                modalTextareaContent.value = list.content;
+                modalTextareaContent.placeholder = 'Введите текст заметки...';
+            }
         } else {
-            modalTitle.textContent = 'Новая заметка';
-            modalTextareaContent.placeholder = 'Введите текст заметки...';
+            modalInputTitle.value = '';
+            modalTextareaContent.value = '';
+            if (type === 'task') {
+                modalTitle.textContent = 'Новый список задач';
+                modalTextareaContent.placeholder = 'Введите задачи, каждая с новой строки...';
+            } else {
+                modalTitle.textContent = 'Новая заметка';
+                modalTextareaContent.placeholder = 'Введите текст заметки...';
+            }
         }
-        modalSaveBtn.onclick = () => saveNewList(type);
+        modalSaveBtn.onclick = () => saveList(type);
         editorModal.classList.remove('hidden');
         modalInputTitle.focus();
     };
 
-    const closeModal = () => editorModal.classList.add('hidden');
+    const closeModal = () => {
+        editingListIndex = null;
+        editorModal.classList.add('hidden');
+    };
 
-    const saveNewList = (type) => {
+    const saveList = (type) => {
         const title = modalInputTitle.value.trim();
         if (!title) {
             alert('Название не может быть пустым!');
             return;
         }
 
-        const newList = { id: Date.now(), title, type };
-        if (type === 'task') {
-            newList.items = modalTextareaContent.value.split('\n')
-                .map(text => text.trim())
-                .filter(text => text)
-                .map(text => ({ text, completed: false }));
+        if (editingListIndex !== null) {
+            // Редактирование существующего списка
+            const list = lists[editingListIndex];
+            list.title = title;
+            if (list.type === 'task') {
+                list.items = modalTextareaContent.value.split('\n')
+                    .map(text => text.trim())
+                    .filter(text => text)
+                    .map(text => ({ text, completed: false }));
+            } else {
+                list.content = modalTextareaContent.value.trim();
+            }
         } else {
-            newList.content = modalTextareaContent.value.trim();
+            // Создание нового списка
+            const newList = { id: Date.now(), title, type };
+            if (type === 'task') {
+                newList.items = modalTextareaContent.value.split('\n')
+                    .map(text => text.trim())
+                    .filter(text => text)
+                    .map(text => ({ text, completed: false }));
+            } else {
+                newList.content = modalTextareaContent.value.trim();
+            }
+            lists.unshift(newList);
         }
 
-        lists.unshift(newList);
         saveLists();
         renderLists();
         closeModal();
@@ -179,12 +215,22 @@ export async function init() {
         // Удаление списка
         const deleteBtn = target.closest('.list-delete-btn');
         if (deleteBtn) {
+            e.stopPropagation();
             const index = parseInt(deleteBtn.dataset.listIndex, 10);
             if (confirm(`Вы уверены, что хотите удалить список "${lists[index].title}"?`)) {
                 lists.splice(index, 1);
                 saveLists();
                 renderLists();
             }
+            return;
+        }
+
+        // Редактирование списка
+        const listCard = target.closest('.bg-gray-100');
+        if (listCard && !target.closest('.task-checkbox')) {
+            const index = parseInt(listCard.dataset.listIndex, 10);
+            const list = lists[index];
+            openModal(list.type, index);
             return;
         }
         
