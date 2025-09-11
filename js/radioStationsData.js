@@ -20,7 +20,7 @@ export const radioStations = [
         { name: "96 kbps", url: "https://rusradio.hostingradio.ru/rusradio96.aacp" }, 
         { name: "128 kbps", url: "https://rusradio.hostingradio.ru/rusradio128.mp3" }] },
     { name: "Бизнес FM", logoUrl: "https://izmashin.ru/plugins/p595_otziv/images/5.webp", streams: [
-        { name: "128 kbps", url: "https://bfmreg.hostingradio.ru/spb.bfm128.mp3" }] },
+        { name: "128 kbps", url: "https://bfmreg.hostingradio.ru/spb.bfm128.mp3" },
         { name: "256 kbps", url: "https://bfm.hostingradio.ru/bfm256.mp3" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
