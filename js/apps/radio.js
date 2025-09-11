@@ -1,4 +1,4 @@
-//28 js/apps/radio.js
+// js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -194,6 +194,14 @@ function changeStream(url) {
     if (!url) return;
     audioElement.src = url;
     audioElement.play().catch(error => {
+        // --- ИСПРАВЛЕНИЕ ---
+        // Игнорируем ошибку, если она вызвана прерыванием старого запроса новым
+        if (error.name === 'AbortError') {
+            console.log('Воспроизведение прервано новым запросом. Это нормально.');
+            return; 
+        }
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
         console.error("Ошибка воспроизведения:", error);
         playerStationName.textContent = "Ошибка потока";
         currentStation = null;
@@ -417,10 +425,13 @@ export async function init() {
     addListener(audioElement, 'ended', updatePlayerUI);
     addListener(audioElement, 'volumechange', updatePlayerUI);
     addListener(audioElement, 'error', () => {
-        playerStationName.textContent = "Ошибка потока";
-        currentStation = null;
-        updatePlayerUI();
-        updateMediaSessionMetadata();
+        // Проверяем, не вызвана ли ошибка прерыванием
+        if (currentStation) { // Если currentStation не null, значит это реальная ошибка, а не прерывание
+            playerStationName.textContent = "Ошибка потока";
+            currentStation = null;
+            updatePlayerUI();
+            updateMediaSessionMetadata();
+        }
     });
 
     // Первоначальная отрисовка
