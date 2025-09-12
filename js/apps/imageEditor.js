@@ -59,8 +59,8 @@ export function getHtml() {
                         </select>
                         <div id="quality-control" class="flex items-center gap-2">
                             <label for="quality-slider">Качество:</label>
-                            <input type="range" id="quality-slider" min="10" max="100" value="80" class="w-32">
-                            <span id="quality-value">80%</span>
+                            <input type="range" id="quality-slider" min="10" max="100" value="100" class="w-32">
+                            <span id="quality-value">100%</span>
                         </div>
                     </div>
                 </div>
