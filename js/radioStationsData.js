@@ -41,7 +41,9 @@ export const radioStations = [
         { name: "32 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15/64/playlist.m3u8" },
         { name: "112 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15/112/playlist.m3u8" }] },
-    { name: "Relax FM (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ebda8c01.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/relax_fm_ru-hi" }] },
+    { name: "Relax FM", logoUrl: "https://pcradio.ru/images/stations/62ea3ebda8c01.jpg", streams: [
+        { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/200" },
+        { name: "128 kbps", url: "https://hls-01-gpm.hostingradio.ru/relaxfm495/128/playlist.m3u8" }] },
     { name: "DFM 101.2 (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ec00ae9b.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/dfm_moscow-hi" }] },
     { name: "Соль FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf2dc6d7.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/sol_fm-hi" }] },
     { name: "Maximum", logoUrl: "https://pcradio.ru/images/stations/62ea3ebe46311.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/fm_maximum-hi" }] },
