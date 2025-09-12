@@ -1,4 +1,3 @@
-// 50js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 export function getHtml() {
@@ -8,8 +7,19 @@ export function getHtml() {
             [contenteditable][data-placeholder]:empty::before {
                 content: attr(data-placeholder);
                 color: #9ca3af; /* gray-400 */
-                pointer-events: none; /* Чтобы можно было кликнуть "сквозь" плейсхолдер */
-                display: block; /* Важно для корректного отображения */
+                pointer-events: none;
+                display: block;
+            }
+            /* Скрываем кнопку удаления задачи по умолчанию */
+            .task-item-container .delete-task-btn {
+                visibility: hidden;
+                opacity: 0;
+                transition: opacity 0.2s ease-in-out;
+            }
+            /* Показываем кнопку при наведении на контейнер задачи */
+            .task-item-container:hover .delete-task-btn {
+                visibility: visible;
+                opacity: 1;
             }
         </style>
         <div class="p-4">
@@ -21,7 +31,6 @@ export function getHtml() {
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"></path></svg>
                         Создать
                     </button>
-                    <!-- Выбор типа для создания -->
                     <div id="create-choice-box" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-48">
                         <button data-type="task" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Список задач</button>
                         <button data-type="note" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Заметку</button>
@@ -89,12 +98,21 @@ export async function init() {
 
             if (list.type === 'task') {
                 const sortedItems = [...list.items].sort((a, b) => a.completed - b.completed);
-                const tasksHtml = sortedItems.map((task, taskIndex) => `
-                    <div class="flex items-center p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
-                        <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${lists[originalIndex].items.indexOf(task)}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
-                        <span contenteditable="true" data-list-index="${originalIndex}" data-task-index="${lists[originalIndex].items.indexOf(task)}" class="task-text ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
+                const tasksHtml = sortedItems.map((task) => {
+                    const taskIndex = lists[originalIndex].items.indexOf(task);
+                    return `
+                    <div class="task-item-container flex items-center justify-between p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md">
+                        <div class="flex items-center flex-grow mr-2">
+                            <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
+                            <span contenteditable="true" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-text ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
+                        </div>
+                        <button data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="delete-task-btn p-1 text-gray-400 hover:text-red-500 flex-shrink-0">
+                            <svg class="w-5 h-5" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                                <path fill="currentColor" d="M160 256H96a32 32 0 0 1 0-64h256V95.936a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V192h256a32 32 0 1 1 0 64h-64v672a32 32 0 0 1-32 32H192a32 32 0 0 1-32-32V256zm448-64v-64H416v64h192zM224 896h576V256H224v640zm192-128a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32zm192 0a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32z"/>
+                            </svg>
+                        </button>
                     </div>
-                `).join('');
+                `}).join('');
                 
                 contentHtml = `${tasksHtml}
                     <div class="mt-2">
@@ -196,16 +214,15 @@ export async function init() {
         }
     });
 
-    // --- ОБРАБОТЧИКИ ДЛЯ СПИСКОВ (УДАЛЕНИЕ, РЕДАКТИРОВАНИЕ, ЧЕКБОКСЫ) ---
-    
-    // Удаление и управление чекбоксами
+    // --- ОБРАБОТЧИКИ ДЛЯ СПИСКОВ ---
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
-        const deleteBtn = target.closest('.list-delete-btn');
-        if (deleteBtn) {
+        // Удаление всего списка
+        const deleteListBtn = target.closest('.list-delete-btn');
+        if (deleteListBtn) {
             e.stopPropagation();
-            const index = parseInt(deleteBtn.dataset.listIndex, 10);
+            const index = parseInt(deleteListBtn.dataset.listIndex, 10);
             if (confirm(`Вы уверены, что хотите удалить список "${lists[index].title}"?`)) {
                 lists.splice(index, 1);
                 saveLists();
@@ -213,14 +230,27 @@ export async function init() {
             }
             return;
         }
+
+        // Удаление отдельной задачи
+        const deleteTaskBtn = target.closest('.delete-task-btn');
+        if (deleteTaskBtn) {
+            e.stopPropagation();
+            const listIndex = parseInt(deleteTaskBtn.dataset.listIndex, 10);
+            const taskIndex = parseInt(deleteTaskBtn.dataset.taskIndex, 10);
+            lists[listIndex].items.splice(taskIndex, 1);
+            saveLists();
+            renderLists();
+            return;
+        }
         
+        // Управление чекбоксами
         if (target.classList.contains('task-checkbox')) {
             const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
             if (taskIndex >= 0 && taskIndex < lists[listIndex].items.length) {
                  lists[listIndex].items[taskIndex].completed = target.checked;
                  saveLists();
-                 renderLists();
+                 renderLists(); // Перерисовка для сортировки и зачеркивания
             }
         }
     });
@@ -235,6 +265,8 @@ export async function init() {
             const list = lists[listIndex];
             const newText = target.innerText;
 
+            let shouldReRender = false;
+            
             const field = target.dataset.field;
             if (field === 'title') {
                 list.title = newText.trim() || "Без названия";
@@ -249,16 +281,18 @@ export async function init() {
                     list.items[taskIndex].text = newText.trim();
                 } else {
                     list.items.splice(taskIndex, 1); // Удаляем задачу, если текст пуст
+                    shouldReRender = true; // Нужно перерисовать, т.к. элемент удален
                 }
             }
 
             saveLists();
-            // Перерисовываем, чтобы применить изменения (например, удаление пустой задачи)
-            setTimeout(() => renderLists(), 0);
+            if (shouldReRender) {
+                renderLists();
+            }
         }
     });
     
-    // Обработка нажатия Enter для добавления новых задач
+    // Обработка нажатия Enter
     listsContainer.addEventListener('keydown', e => {
         const target = e.target;
         if (e.key === 'Enter' && target.getAttribute('contenteditable') === 'true') {
