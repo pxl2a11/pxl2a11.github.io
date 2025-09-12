@@ -10,16 +10,9 @@ export function getHtml() {
                 pointer-events: none;
                 display: block;
             }
-            /* Скрываем кнопку удаления задачи по умолчанию */
-            .task-item-container .delete-task-btn {
-                visibility: hidden;
-                opacity: 0;
-                transition: opacity 0.2s ease-in-out;
-            }
-            /* Показываем кнопку при наведении на контейнер задачи */
-            .task-item-container:hover .delete-task-btn {
-                visibility: visible;
-                opacity: 1;
+            /* Добавляем курсор-указатель для элементов, которые можно редактировать по двойному клику */
+            .editable-on-dblclick {
+                cursor: pointer;
             }
         </style>
         <div class="p-4">
@@ -101,10 +94,10 @@ export async function init() {
                 const tasksHtml = sortedItems.map((task) => {
                     const taskIndex = lists[originalIndex].items.indexOf(task);
                     return `
-                    <div class="task-item-container flex items-center justify-between p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md">
+                    <div class="task-item-container flex items-center justify-between p-1 rounded-md">
                         <div class="flex items-center flex-grow mr-2">
                             <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
-                            <span contenteditable="true" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-text ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
+                            <span data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="editable-on-dblclick task-text ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
                         </div>
                         <button data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="delete-task-btn p-1 text-gray-400 hover:text-red-500 flex-shrink-0">
                             <svg class="w-5 h-5" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -120,13 +113,13 @@ export async function init() {
                     </div>`;
 
             } else { // note
-                contentHtml = `<div contenteditable="true" data-list-index="${originalIndex}" data-field="content" class="whitespace-pre-wrap break-words p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded">${list.content}</div>`;
+                contentHtml = `<div data-list-index="${originalIndex}" data-field="content" class="editable-on-dblclick whitespace-pre-wrap break-words p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded">${list.content}</div>`;
             }
 
             return `
                 <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
                     <div class="flex justify-between items-start mb-2">
-                        <h4 contenteditable="true" data-list-index="${originalIndex}" data-field="title" class="font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
+                        <h4 data-list-index="${originalIndex}" data-field="title" class="editable-on-dblclick font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
                         <div class="flex items-center flex-shrink-0">
                             <button data-list-index="${originalIndex}" class="list-delete-btn p-1 text-red-500 hover:text-red-700 ml-1">
                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -215,10 +208,26 @@ export async function init() {
     });
 
     // --- ОБРАБОТЧИКИ ДЛЯ СПИСКОВ ---
+
+    // Активация редактирования по двойному клику
+    listsContainer.addEventListener('dblclick', e => {
+        const target = e.target.closest('.editable-on-dblclick');
+        if (target) {
+            target.setAttribute('contenteditable', 'true');
+            target.focus();
+            // Помещаем курсор в конец текста
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(target);
+            range.collapse(false); // false означает в конец
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    });
+
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
-        // Удаление всего списка
         const deleteListBtn = target.closest('.list-delete-btn');
         if (deleteListBtn) {
             e.stopPropagation();
@@ -231,7 +240,6 @@ export async function init() {
             return;
         }
 
-        // Удаление отдельной задачи
         const deleteTaskBtn = target.closest('.delete-task-btn');
         if (deleteTaskBtn) {
             e.stopPropagation();
@@ -243,14 +251,13 @@ export async function init() {
             return;
         }
         
-        // Управление чекбоксами
         if (target.classList.contains('task-checkbox')) {
             const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
             if (taskIndex >= 0 && taskIndex < lists[listIndex].items.length) {
                  lists[listIndex].items[taskIndex].completed = target.checked;
                  saveLists();
-                 renderLists(); // Перерисовка для сортировки и зачеркивания
+                 renderLists();
             }
         }
     });
@@ -258,13 +265,16 @@ export async function init() {
     // Сохранение при потере фокуса (blur)
     listsContainer.addEventListener('focusout', e => {
         const target = e.target;
-        if (target.getAttribute('contenteditable') === 'true' && !target.classList.contains('new-task-input')) {
+        // Проверяем, был ли элемент в режиме редактирования
+        if (target.getAttribute('contenteditable') === 'true') {
+            // Отключаем редактирование
+            target.setAttribute('contenteditable', 'false');
+
             const listIndex = parseInt(target.dataset.listIndex, 10);
             if (isNaN(listIndex) || listIndex >= lists.length) return;
 
             const list = lists[listIndex];
             const newText = target.innerText;
-
             let shouldReRender = false;
             
             const field = target.dataset.field;
@@ -277,11 +287,13 @@ export async function init() {
             const taskIndexStr = target.dataset.taskIndex;
             if (taskIndexStr !== undefined) {
                 const taskIndex = parseInt(taskIndexStr, 10);
-                if (newText.trim()) {
-                    list.items[taskIndex].text = newText.trim();
-                } else {
-                    list.items.splice(taskIndex, 1); // Удаляем задачу, если текст пуст
-                    shouldReRender = true; // Нужно перерисовать, т.к. элемент удален
+                if (list.items[taskIndex]) {
+                    if (newText.trim()) {
+                        list.items[taskIndex].text = newText.trim();
+                    } else {
+                        list.items.splice(taskIndex, 1);
+                        shouldReRender = true;
+                    }
                 }
             }
 
@@ -314,7 +326,7 @@ export async function init() {
                     }, 0);
                 }
             } else {
-                 target.blur(); // Убираем фокус, чтобы сработал 'focusout' и сохранил данные
+                 target.blur();
             }
         }
     });
