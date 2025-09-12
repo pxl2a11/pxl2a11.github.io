@@ -19,7 +19,7 @@ export const radioStations = [
     { name: "Русское радио", logoUrl: "https://radiopotok.ru/f/station/512/85.png", streams: [
         { name: "96 kbps", url: "https://rusradio.hostingradio.ru/rusradio96.aacp" }, 
         { name: "128 kbps", url: "https://rusradio.hostingradio.ru/rusradio128.mp3" }] },
-    { name: "Бизнес FM", logoUrl: "https://izmashin.ru/plugins/p595_otziv/images/5.webp", streams: [
+    { name: "Бизнес FM", logoUrl: "https://top-radio.ru/assets/image/radio/180/bfm-russia.png", streams: [
         { name: "128 kbps", url: "https://bfmreg.hostingradio.ru/spb.bfm128.mp3" },
         { name: "256 kbps", url: "https://bfm.hostingradio.ru/bfm256.mp3" }] },
     { name: "Радио Маяк", logoUrl: "https://radiopotok.ru/f/station/512/89.png", streams: [
