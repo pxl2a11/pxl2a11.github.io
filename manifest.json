@@ -4,7 +4,7 @@
   "description": "Коллекция полезных мини-приложений и инструментов прямо в вашем браузере.",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "##1A335B",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "icons": [
