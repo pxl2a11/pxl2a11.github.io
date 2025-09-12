@@ -1,4 +1,4 @@
-/*42 Убираем полосу прокрутки во время загрузки */
+/*28 Убираем полосу прокрутки во время загрузки */
 body:has(#initial-loading-overlay:not([style*="display: none"])) {
     overflow: hidden;
 }
@@ -42,6 +42,52 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     background-color: #60a5fa;
     color: #1f2937;
 }
+
+/* --- НОВЫЕ СТИЛИ: для кнопки "Переместить" --- */
+#sort-my-apps-btn {
+    /* Убираем стили обычной кнопки */
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+
+    /* Добавляем стили для текстовой ссылки */
+    text-decoration: underline;
+    font-weight: 500;
+    color: #4B5563; /* gray-600 */
+}
+
+/* Стиль для темной темы */
+.dark #sort-my-apps-btn {
+    color: #9CA3AF; /* gray-400 */
+}
+
+/* Убираем изменение фона при наведении, но меняем цвет текста */
+#sort-my-apps-btn:hover {
+    background-color: transparent;
+    border-color: transparent;
+    color: #3b82f6; /* Делаем текст синим при наведении */
+}
+
+.dark #sort-my-apps-btn:hover {
+    background-color: transparent;
+    color: #60a5fa;
+}
+
+/* Стиль для активного режима сортировки (когда кнопка нажата) */
+#sort-my-apps-btn.active {
+    background-color: transparent;
+    box-shadow: none;
+    color: #1d4ed8; /* Более темный синий */
+    font-weight: 700; /* Делаем текст жирнее */
+}
+
+.dark #sort-my-apps-btn.active {
+    background-color: transparent;
+    color: #93c5fd; /* Более светлый синий для темной темы */
+}
+/* --- КОНЕЦ НОВЫХ СТИЛЕЙ --- */
+
 
 /* --- ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ КАРТОЧЕК ПРИЛОЖЕНИЙ --- */
 .app-item {
