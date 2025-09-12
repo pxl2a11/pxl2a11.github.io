@@ -1,19 +1,5 @@
 // js/radioStationsData.js
-/**
- * @typedef {Object} Stream
- * @property {string} name - Пользовательское название качества потока (например, "Высокое 128kbps").
- * @property {string} url - URL аудиопотока.
- *
- * @typedef {Object} RadioStation
- * @property {string} name - Название радиостанции.
- * @property {string} logoUrl - URL логотипа радиостанции.
- * @property {Stream[]} streams - Массив доступных потоков.
- */
 
-/**
- * Массив объектов, представляющих радиостанции.
- * @type {RadioStation[]}
- */
 export const radioStations = [
     // --- ПРИМЕР НОВОГО ФОРМАТА ---
     { name: "Русское радио", logoUrl: "https://radiopotok.ru/f/station/512/85.png", streams: [
@@ -30,6 +16,9 @@ export const radioStations = [
         { name: "96 kbps", url: "https://radiorecord.hostingradio.ru/rr_main96.aacp" },
         { name: "112 kbps", url: "https://hls-01-radiorecord.hostingradio.ru/record/playlist.m3u8" },
         { name: "192 kbps", url: "https://radio-srv1.11one.ru/record192k.mp3" }] },
+    { name: "Радио Монте-Карло", logoUrl: "https://montecarlo.ru/uploads/logo_for_og.png", streams: [
+        { name: "96 kbps", url: "https://montecarlo.hostingradio.ru/montecarlo96.aacp" },
+        { name: "128 kbps", url: "https://montecarlo.hostingradio.ru/montecarlo128.mp3" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
