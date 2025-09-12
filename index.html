@@ -49,6 +49,14 @@
     <script>
         tailwind.config = { darkMode: 'class' };
     </script>
+    <script>
+        // Add inline in `head` to avoid FOUC (Flash of Unstyled Content)
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+    </script>
     <style>
         .filter-blue {
             filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
