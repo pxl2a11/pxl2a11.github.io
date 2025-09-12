@@ -10,9 +10,13 @@ export function getHtml() {
                 pointer-events: none;
                 display: block;
             }
-            /* Добавляем курсор-указатель для элементов, которые можно редактировать по двойному клику */
-            .editable-on-dblclick {
+            /* Делаем редактируемые элементы строчно-блочными, чтобы они не занимали всю ширину,
+               и добавляем курсор для визуальной подсказки. */
+            .editable-element {
                 cursor: pointer;
+                display: inline-block; /* Это ключевое изменение */
+                /* Для заголовка и заметки нужна вся ширина, но кликабельная область будет только у текста */
+                width: 100%; 
             }
         </style>
         <div class="p-4">
@@ -97,7 +101,7 @@ export async function init() {
                     <div class="task-item-container flex items-center justify-between p-1 rounded-md">
                         <div class="flex items-center flex-grow mr-2">
                             <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
-                            <span data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="editable-on-dblclick task-text ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
+                            <span data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-text editable-element ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
                         </div>
                         <button data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="delete-task-btn p-1 text-gray-400 hover:text-red-500 flex-shrink-0">
                             <svg class="w-5 h-5" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -113,13 +117,13 @@ export async function init() {
                     </div>`;
 
             } else { // note
-                contentHtml = `<div data-list-index="${originalIndex}" data-field="content" class="editable-on-dblclick whitespace-pre-wrap break-words p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded">${list.content}</div>`;
+                contentHtml = `<div data-list-index="${originalIndex}" data-field="content" class="editable-element whitespace-pre-wrap break-words p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded">${list.content}</div>`;
             }
 
             return `
                 <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
                     <div class="flex justify-between items-start mb-2">
-                        <h4 data-list-index="${originalIndex}" data-field="title" class="editable-on-dblclick font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
+                        <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
                         <div class="flex items-center flex-shrink-0">
                             <button data-list-index="${originalIndex}" class="list-delete-btn p-1 text-red-500 hover:text-red-700 ml-1">
                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -160,10 +164,8 @@ export async function init() {
             alert('Название не может быть пустым!');
             return;
         }
-
         const content = modalTextareaContent.value.trim();
         const items = content.split('\n').map(text => text.trim()).filter(text => text);
-
         const newList = { id: Date.now(), title, type };
         if (type === 'task') {
             newList.items = items.map(text => ({ text, completed: false }));
@@ -171,7 +173,6 @@ export async function init() {
             newList.content = content;
         }
         lists.unshift(newList);
-
         saveLists();
         renderLists();
         closeModal();
@@ -208,26 +209,24 @@ export async function init() {
     });
 
     // --- ОБРАБОТЧИКИ ДЛЯ СПИСКОВ ---
-
-    // Активация редактирования по двойному клику
-    listsContainer.addEventListener('dblclick', e => {
-        const target = e.target.closest('.editable-on-dblclick');
-        if (target) {
-            target.setAttribute('contenteditable', 'true');
-            target.focus();
-            // Помещаем курсор в конец текста
-            const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(target);
-            range.collapse(false); // false означает в конец
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-    });
-
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
+        // Активация редактирования по клику
+        const editableTarget = target.closest('.editable-element');
+        if (editableTarget && editableTarget.getAttribute('contenteditable') !== 'true') {
+            editableTarget.setAttribute('contenteditable', 'true');
+            editableTarget.focus();
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(editableTarget);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            return; // Прекращаем выполнение, чтобы не сработали другие клики
+        }
+
+        // Удаление всего списка
         const deleteListBtn = target.closest('.list-delete-btn');
         if (deleteListBtn) {
             e.stopPropagation();
@@ -240,6 +239,7 @@ export async function init() {
             return;
         }
 
+        // Удаление отдельной задачи
         const deleteTaskBtn = target.closest('.delete-task-btn');
         if (deleteTaskBtn) {
             e.stopPropagation();
@@ -251,6 +251,7 @@ export async function init() {
             return;
         }
         
+        // Управление чекбоксами
         if (target.classList.contains('task-checkbox')) {
             const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
@@ -265,9 +266,7 @@ export async function init() {
     // Сохранение при потере фокуса (blur)
     listsContainer.addEventListener('focusout', e => {
         const target = e.target;
-        // Проверяем, был ли элемент в режиме редактирования
-        if (target.getAttribute('contenteditable') === 'true') {
-            // Отключаем редактирование
+        if (target.getAttribute('contenteditable') === 'true' && !target.classList.contains('new-task-input')) {
             target.setAttribute('contenteditable', 'false');
 
             const listIndex = parseInt(target.dataset.listIndex, 10);
@@ -296,7 +295,6 @@ export async function init() {
                     }
                 }
             }
-
             saveLists();
             if (shouldReRender) {
                 renderLists();
@@ -320,9 +318,7 @@ export async function init() {
                     
                     setTimeout(() => {
                         const newInput = document.querySelector(`[data-list-index="${listIndex}"].new-task-input`);
-                        if (newInput) {
-                           newInput.focus();
-                        }
+                        if (newInput) newInput.focus();
                     }, 0);
                 }
             } else {
