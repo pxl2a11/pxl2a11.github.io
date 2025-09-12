@@ -46,6 +46,10 @@ export const radioStations = [
     { name: "DFM 101.2 (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ec00ae9b.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/dfm_moscow-hi" }] },
     { name: "Соль FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf2dc6d7.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/sol_fm-hi" }] },
     { name: "Maximum", logoUrl: "https://pcradio.ru/images/stations/62ea3ebe46311.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/fm_maximum-hi" }] },
+        { name: "Эльдорадио", logoUrl: "https://top-radio.ru/assets/image/radio/180/eldo-radio.jpg", streams: [
+        { name: "64 kbps", url: "https://emgspb.hostingradio.ru/eldoradio64.mp3" },
+        { name: "96 kbps", url: "https://hls-01-eldoradio.emgsound.ru/4/96/playlist.m3u8" },
+        { name: "128 kbps", url: "https://emgspb.hostingradio.ru/eldoradio128.mp3" }] },
     { name: "РУССКАЯ ВОЛНА", logoUrl: "https://amgradio.ru/img/RuWavebg.svg", streams: [{ name: "Поток 48kbps", url: "https://ru1.amgradio.ru/RuWave48" }] },
     { name: "РЕТРО ХИТ", logoUrl: "https://amgradio.ru/img/retrohit.svg", streams: [{ name: "Основной поток", url: "https://retro.amgradio.ru/Retro" }] },
     { name: "РУССКИЙ РОК", logoUrl: "https://amgradio.ru/img/rusrock.svg", streams: [{ name: "Основной поток", url: "https://rock.amgradio.ru/RusRock" }] },
