@@ -2,6 +2,15 @@ import { getUserData, saveUserData } from '/js/dataManager.js';
 
 export function getHtml() {
     return `
+        <style>
+            /* CSS для отображения плейсхолдера в contenteditable элементах */
+            [contenteditable][data-placeholder]:empty::before {
+                content: attr(data-placeholder);
+                color: #9ca3af; /* gray-400 */
+                pointer-events: none; /* Чтобы можно было кликнуть "сквозь" плейсхолдер */
+                display: block; /* Важно для корректного отображения */
+            }
+        </style>
         <div class="p-4">
             <!-- Верхняя панель управления -->
             <div class="flex justify-between items-center mb-4 relative">
@@ -29,7 +38,7 @@ export function getHtml() {
             <!-- Контейнер для списков -->
             <div id="lists-container" class="space-y-4"></div>
 
-            <!-- Модальное окно для СОЗДАНИЯ (редактирование теперь inline) -->
+            <!-- Модальное окно для СОЗДАНИЯ -->
             <div id="creator-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-5 w-full max-w-lg relative">
                     <button id="close-modal-btn" class="absolute top-3 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold">&times;</button>
@@ -79,16 +88,16 @@ export async function init() {
 
             if (list.type === 'task') {
                 const sortedItems = [...list.items].sort((a, b) => a.completed - b.completed);
-                const tasksHtml = sortedItems.length > 0 ? sortedItems.map((task, taskIndex) => `
+                const tasksHtml = sortedItems.map((task, taskIndex) => `
                     <div class="flex items-center p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
                         <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${lists[originalIndex].items.indexOf(task)}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
                         <span contenteditable="true" data-list-index="${originalIndex}" data-task-index="${lists[originalIndex].items.indexOf(task)}" class="task-text ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
                     </div>
-                `).join('') : '';
+                `).join('');
                 
                 contentHtml = `${tasksHtml}
                     <div class="mt-2">
-                        <div contenteditable="true" data-list-index="${originalIndex}" class="new-task-input p-1 text-gray-500 dark:text-gray-400 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded" data-placeholder="Новая задача..."></div>
+                        <div contenteditable="true" data-list-index="${originalIndex}" class="new-task-input p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded" data-placeholder="Новая задача..."></div>
                     </div>`;
 
             } else { // note
@@ -188,7 +197,7 @@ export async function init() {
 
     // --- ОБРАБОТЧИКИ ДЛЯ СПИСКОВ (УДАЛЕНИЕ, РЕДАКТИРОВАНИЕ, ЧЕКБОКСЫ) ---
     
-    // Удаление
+    // Удаление и управление чекбоксами
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
@@ -215,7 +224,7 @@ export async function init() {
         }
     });
 
-    // Сохранение при потере фокуса
+    // Сохранение при потере фокуса (blur)
     listsContainer.addEventListener('focusout', e => {
         const target = e.target;
         if (target.getAttribute('contenteditable') === 'true' && !target.classList.contains('new-task-input')) {
@@ -223,7 +232,7 @@ export async function init() {
             if (isNaN(listIndex) || listIndex >= lists.length) return;
 
             const list = lists[listIndex];
-            const newText = target.innerText; // Не тримим, чтобы сохранить форматирование в заметках
+            const newText = target.innerText;
 
             const field = target.dataset.field;
             if (field === 'title') {
@@ -244,15 +253,15 @@ export async function init() {
 
             saveLists();
             // Перерисовываем, чтобы применить изменения (например, удаление пустой задачи)
-            renderLists();
+            setTimeout(() => renderLists(), 0);
         }
     });
     
-    // Обработка нажатия Enter
+    // Обработка нажатия Enter для добавления новых задач
     listsContainer.addEventListener('keydown', e => {
         const target = e.target;
-        if (target.getAttribute('contenteditable') === 'true' && e.key === 'Enter') {
-            e.preventDefault(); // Предотвращаем создание новой строки по умолчанию
+        if (e.key === 'Enter' && target.getAttribute('contenteditable') === 'true') {
+            e.preventDefault(); 
 
             if (target.classList.contains('new-task-input')) {
                 const text = target.innerText.trim();
@@ -261,16 +270,16 @@ export async function init() {
                     lists[listIndex].items.push({ text, completed: false });
                     saveLists();
                     renderLists();
-                    // Фокусируемся на новом поле ввода после перерисовки
+                    
                     setTimeout(() => {
-                        const newInputs = document.querySelectorAll(`[data-list-index="${listIndex}"].new-task-input`);
-                        if (newInputs.length > 0) {
-                           newInputs[newInputs.length - 1].focus();
+                        const newInput = document.querySelector(`[data-list-index="${listIndex}"].new-task-input`);
+                        if (newInput) {
+                           newInput.focus();
                         }
                     }, 0);
                 }
             } else {
-                 target.blur(); // Просто убираем фокус, чтобы сработал 'focusout' и сохранил данные
+                 target.blur(); // Убираем фокус, чтобы сработал 'focusout' и сохранил данные
             }
         }
     });
