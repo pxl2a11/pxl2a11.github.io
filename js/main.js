@@ -22,6 +22,7 @@ const appNameToModuleFile = {
     'Виртуальный кубик': 'virtualDice',
     'Калькулятор калорий': 'calorieCalculator',
     'Калькулятор': 'calculator',
+    'ТВ онлайн': 'onlineTv',
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageEditor': 93, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74, 'timezoneConverter': 84, 'textToSpeech': 73, 'rockPaperScissors': 67, 'sudoku': 80, 'zipArchiver': 88, 'game2048': 79, 'barcodeGenerator': 84, 'voiceRecorder': 82, 'siteSkeletonGenerator': 78,
@@ -38,6 +39,7 @@ const appPopularity = {
     'virtualDice': 70,
     'calorieCalculator': 80,
     'calculator': 98,
+    'onlineTv': 90,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -92,6 +94,7 @@ const appSearchMetadata = {
     'calorieCalculator': { keywords: ['калории', 'бжу', 'диета', 'похудение', 'питание', 'норма', 'расчет'], hashtags: ['#health', '#calculator'] },
     'calculator': { keywords: ['калькулятор', 'вычисления', 'математика', 'сложение', 'умножение', 'calc'], hashtags: ['#math', '#tools', '#calculator'] },
     'imageEditor': { keywords: ['редактор', 'изображение', 'картинка', 'фото', 'изменить', 'размер', 'конвертер', 'формат', 'png', 'jpg', 'webp', 'ресайз', 'resize', 'обработка'], hashtags: ['#image', '#tools'] },
+    'onlineTv': { keywords: ['тв', 'телевизор', 'каналы', 'смотреть', 'онлайн', 'трансляция', 'tv', 'online'], hashtags: ['#entertainment', '#video'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
