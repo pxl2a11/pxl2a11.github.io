@@ -67,6 +67,71 @@ export const tvChannels = [
                 allowFullScreen
             ></iframe>`
     },
+    { 
+        name: "Че!", 
+        logoUrl: "https://smotret.tv/images/che.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-19555151&id=456245834&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+        { 
+        name: "Домашний", 
+        logoUrl: "https://smotret.tv/images/domashniy.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-30584503&id=456259900&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "СТС Love", 
+        logoUrl: "https://smotret.tv/images/sts-love.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-68488417&id=456242742&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+        { 
+        name: "ТВ Центр", 
+        logoUrl: "https://smotret.tv/images/tvc.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-98976670&id=456248870&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "Звезда", 
+        logoUrl: "https://smotret.tv/images/zvezda.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-220155889&id=456254118&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
     // Вы можете добавлять новые каналы сюда, копируя и изменяя этот объект
     // { 
     //     name: "Название канала", 
