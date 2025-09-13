@@ -1,3 +1,5 @@
+--- START OF FILE imageEditor.js ---
+
 //9 js/apps/imageEditor.js
 
 export function getHtml() {
@@ -15,7 +17,7 @@ export function getHtml() {
             
             <!-- 1. Область загрузки файла -->
             <div class="w-full text-center">
-                <input type="file" id="image-editor-input" class="hidden" accept="image/png, image/jpeg, image/webp">
+                <input type="file" id="image-editor-input" class="hidden" accept="image/png, image/jpeg, image/webp, image/svg+xml">
                 <label for="image-editor-input" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg cursor-pointer transition-colors">
                     Выберите изображение
                 </label>
