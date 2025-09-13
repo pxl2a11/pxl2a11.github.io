@@ -1,4 +1,4 @@
-// 28js/apps/onlineTv.js
+// 36js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -18,15 +18,24 @@ function addListener(element, event, handler) {
     eventListeners.push({ element, event, handler });
 }
 
+/**
+ * Синхронизирует высоту списка каналов с высотой плеера.
+ */
+function syncChannelListHeight() {
+    if (playerContainer && channelListContainer) {
+        const playerHeight = playerContainer.offsetHeight;
+        channelListContainer.style.height = `${playerHeight}px`;
+    }
+}
+
 function getHtml() {
     return `
         <style>
             .channel-list {
-                /* max-height: 500px;  Убрали фиксированную высоту */
+                /* Высота будет установлена через JS, это значение - запасной вариант */
+                max-height: 500px; 
                 overflow-y: auto;
                 padding-right: 8px;
-                flex-grow: 1; /* Добавили, чтобы список занимал всё доступное пространство */
-                min-height: 0; /* Для корректной работы flex-контейнера */
             }
             .channel-card {
                 display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.75rem;
@@ -53,10 +62,8 @@ function getHtml() {
                     <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
                 </div>
             </div>
-            <!-- Правая колонка теперь является flex-контейнером -->
-            <div class="lg:col-span-1 flex flex-col">
-                <!-- Панель поиска и фильтра не будет сжиматься -->
-                <div class="flex items-center gap-3 mb-4 flex-shrink-0">
+            <div class="lg:col-span-1">
+                <div class="flex items-center gap-3 mb-4">
                     <div class="relative flex-grow">
                         <input id="channel-search-input" type="search" placeholder="Поиск канала..." class="w-full p-3 pl-10 rounded-full border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"/>
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -65,7 +72,6 @@ function getHtml() {
                         <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                     </button>
                 </div>
-                <!-- Этот контейнер теперь будет растягиваться по высоте -->
                 <div id="channel-list-container" class="channel-list space-y-2">
                     <!-- Каналы будут добавлены здесь -->
                 </div>
@@ -153,6 +159,10 @@ async function init() {
 
     await loadFavorites();
     createChannelCards();
+    
+    // Устанавливаем начальную высоту и следим за изменением размера окна
+    syncChannelListHeight();
+    addListener(window, 'resize', syncChannelListHeight);
 
     addListener(searchInput, 'input', filterChannels);
     addListener(favoritesFilterBtn, 'click', () => {
