@@ -26,6 +26,10 @@ export const radioStations = [
     { name: "Детское Радио", logoUrl: "https://pic.rutubelist.ru/user/5a/0a/5a0a80014f20a20ef9868fa3ab9eb751.jpg", streams: [
         { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/199" },
         { name: "64 kbps (резерв)", url: "https://srv21.gpmradio.ru:8443/stream/air/aac/64/199" }] },
+    { name: "Радио DFM", logoUrl: "https://top-radio.ru/assets/image/radio/180/radio-dfm.webp", streams: [
+        { name: "32 kbps", url: "https://hls-01-dfm.hostingradio.ru/dfm/32/playlist.m3u8" },
+        { name: "96 kbps", url: "https://hls-01-dfm.hostingradio.ru/dfm/96/playlist.m3u8" },
+        { name: "128 kbps", url: "https://dfm.hostingradio.ru/dfm128.mp3" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
@@ -39,7 +43,6 @@ export const radioStations = [
     { name: "Relax FM", logoUrl: "https://pcradio.ru/images/stations/62ea3ebda8c01.jpg", streams: [
         { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/200" },
         { name: "128 kbps", url: "https://hls-01-gpm.hostingradio.ru/relaxfm495/128/playlist.m3u8" }] },
-    { name: "DFM 101.2 (Москва)", logoUrl: "https://pcradio.ru/images/stations/62ea3ec00ae9b.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/dfm_moscow-hi" }] },
     { name: "Соль FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf2dc6d7.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/sol_fm-hi" }] },
     { name: "Maximum", logoUrl: "https://pcradio.ru/images/stations/62ea3ebe46311.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/fm_maximum-hi" }] },
         { name: "Эльдорадио", logoUrl: "https://top-radio.ru/assets/image/radio/180/eldo-radio.jpg", streams: [
