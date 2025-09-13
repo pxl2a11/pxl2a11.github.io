@@ -54,26 +54,26 @@ export const tvChannels = [
             ></iframe>`
     },
         { 
-        name: "ТВ3", 
-        logoUrl: "https://federal.tv/i/tv3.png",
+        name: "Пятый канал", 
+        logoUrl: "https://smotret.tv/images/5-kanal.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://rutube.ru/pl/?pl_id&pl_type&pl_video=7bf12d9c050f9a7ef3728db5730432ae"
+                src="https://kinodrom.tv/tv/peterburg-5-kanal/player"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
             ></iframe>`
     },
     { 
-        name: "ТНТ4", 
-        logoUrl: "https://smotret.tv/images/tnt4.webp",
+        name: "Россия К", 
+        logoUrl: "https://smotret.tv/images/kultura.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://ok.ru/videoembed/979125083771?nochat=1&autoplay=1"
+                src="https://kinodrom.tv/tv/rossiya-k/player"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
