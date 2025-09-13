@@ -1,4 +1,4 @@
-// 44js/apps/onlineTv.js
+// 49js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -25,7 +25,7 @@ function getHtml() {
                 overflow-y: auto;
                 padding-right: 8px;
                 flex-grow: 1; /* Растягивается на всё доступное место в flex-контейнере */
-                min-height: 0; /* Важно для корректной работы flex-grow в некоторых браузерах */
+                min-height: 0; 
             }
             .channel-card {
                 display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.75rem;
@@ -48,13 +48,13 @@ function getHtml() {
         </style>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2">
-                 <!-- Задаем плееру фиксированную ширину и высоту. max-width: 100% для адаптивности на малых экранах -->
-                 <div id="tv-player-container" style="width: 640px; height: 360px; max-width: 100%;" class="bg-black rounded-lg shadow-lg flex justify-center items-center">
+                 <!-- Плеер с соотношением сторон 16:9. Занимает всю ширину колонки -->
+                 <div id="tv-player-container" class="w-full aspect-video bg-black rounded-lg shadow-lg flex justify-center items-center">
                     <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
                 </div>
             </div>
-            <!-- Правая колонка: задаем такую же высоту (360px) и делаем ее flex-контейнером -->
-            <div class="lg:col-span-1 flex flex-col" style="height: 360px;">
+            <!-- Правая колонка. На мобильных высота 50vh, на десктопе высота авто (по гриду) -->
+            <div class="lg:col-span-1 flex flex-col h-[50vh] lg:h-auto">
                 <!-- Панель поиска не будет сжиматься -->
                 <div class="flex items-center gap-3 mb-4 flex-shrink-0">
                     <div class="relative flex-grow">
@@ -65,7 +65,7 @@ function getHtml() {
                         <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                     </button>
                 </div>
-                <!-- Этот контейнер теперь будет растягиваться, заполняя оставшееся место -->
+                <!-- Этот контейнер растягивается, заполняя оставшееся место -->
                 <div id="channel-list-container" class="channel-list space-y-2">
                     <!-- Каналы будут добавлены здесь -->
                 </div>
