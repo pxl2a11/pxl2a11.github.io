@@ -1,5 +1,3 @@
---- START OF FILE imageEditor.js ---
-
 //9 js/apps/imageEditor.js
 
 export function getHtml() {
