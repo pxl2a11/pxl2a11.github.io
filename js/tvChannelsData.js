@@ -29,13 +29,13 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
-        name: "НТВ", 
+        name: "Солнце", 
         logoUrl: "https://smotret.tv/images/ntv.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://kinodrom.tv/tv/telekompaniya-ntv/player"
+                src="https://vkvideo.ru/video_ext.php?oid=-217596589&id=456240257&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
@@ -43,7 +43,7 @@ export const tvChannels = [
     },
         { 
         name: "Пятый канал", 
-        logoUrl: "https://smotret.tv/images/5-kanal.webp",
+        logoUrl: "https://vkvideo.ru/video_ext.php?oid=-18496184&id=456260645&hd=2&autoplay=1",
         embedHtml: `
             <iframe
                 width="100%"
@@ -61,7 +61,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://kinodrom.tv/tv/rossiya-k/player"
+                src="https://vkvideo.ru/video_ext.php?oid=-18496184&id=456260645&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
