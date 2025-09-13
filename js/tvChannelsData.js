@@ -42,13 +42,13 @@ export const tvChannels = [
             ></iframe>`
     },
         { 
-        name: "Пятый канал", 
-        logoUrl: "https://vkvideo.ru/video_ext.php?oid=-18496184&id=456260645&hd=2&autoplay=1",
+        name: "Суббота!", 
+        logoUrl: "https://smotret.tv/images/subbota.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://kinodrom.tv/tv/peterburg-5-kanal/player"
+                src="https://vkvideo.ru/video_ext.php?oid=-155566339&id=456243314&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
