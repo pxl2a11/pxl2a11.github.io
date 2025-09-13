@@ -21,7 +21,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://ok.ru/videoembed/1115050286838?nochat=1&autoplay=1"
+                src="https://ok.ru/live/1115050286838"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
