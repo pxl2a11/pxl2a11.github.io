@@ -16,7 +16,7 @@ export const tvChannels = [
     },
         { 
         name: "ТВ3", 
-        logoUrl: "https://1tv.live/images/logo1.png",
+        logoUrl: "https://federal.tv/i/tv3.png",
         embedHtml: `
             <iframe
                 width="100%"
