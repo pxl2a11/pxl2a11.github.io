@@ -8,7 +8,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://rutube.ru/live/video/c58f502c7bb34a8fcdd976b221fca292/"
+                src="https://rutube.ru/live/video/c58f502c7bb34a8fcdd976b221fca292"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
@@ -21,7 +21,20 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://rutube.ru/live/video/c58f502c7bb34a8fcdd976b221fca292/"
+                src="https://rutube.ru/live/video/c58f502c7bb34a8fcdd976b221fca292"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+            { 
+        name: "МАТЧ ТВ", 
+        logoUrl: "https://federal.tv/i/match-tv.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/play/embed/11bbbec75a2ceb8cf446ad16813c6eec"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
