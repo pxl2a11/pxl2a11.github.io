@@ -1,19 +1,7 @@
 // 27js/tvChannelsData.js
 
 export const tvChannels = [
-    { 
-        name: "Первый канал", 
-        logoUrl: "https://smotret.tv/images/1-kanal.webp",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-25380626&id=456283287&hd=2&autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
+
         { 
         name: "Россия 1", 
         logoUrl: "https://smotret.tv/images/rossiya-1.webp",
@@ -28,13 +16,13 @@ export const tvChannels = [
             ></iframe>`
     },
         { 
-        name: "Матч!", 
-        logoUrl: "https://smotret.tv/images/ntv.webp",
+        name: "СТС", 
+        logoUrl: "https://smotret.tv/images/sts.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://kinodrom.tv/tv/match-tv/player"
+                src="https://vkvideo.ru/video_ext.php?oid=-18496184&id=456260645&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
