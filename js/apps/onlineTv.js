@@ -1,4 +1,4 @@
-// js/apps/onlineTv.js
+// 38js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
