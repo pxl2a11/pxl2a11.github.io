@@ -3,7 +3,7 @@
 export const tvChannels = [
     { 
         name: "Первый канал", 
-        logoUrl: "https://smotret.tv/1a/1-kanal.html",
+        logoUrl: "https://smotret.tv/images/1-kanal.webp",
         embedHtml: `
             <iframe
                 width="100%"
@@ -29,7 +29,7 @@ export const tvChannels = [
     },
     { 
         name: "НТВ", 
-        logoUrl: "https://federal.tv/i/ntv.png",
+        logoUrl: "https://smotret.tv/images/ntv.webp",
         embedHtml: `
             <iframe
                 width="100%"
