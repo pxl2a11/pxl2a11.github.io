@@ -11,13 +11,13 @@ export const tvChannels = [
         name: "Первый канал FHD",
         logoUrl: "https://smotret.tv/images/1-kanal-hd.webp",
         type: "hls", // Указываем тип потока
-        streamUrl: "http://edge4.1internet.tv/dash-live2/streams/1tv-dvr/1tvdash.mpd"
+        streamUrl: "https://edge4.1internet.tv/dash-live2/streams/1tv-dvr/1tvdash.mpd"
     },
        {
         name: "Россия 1",
         logoUrl: "https://smotret.tv/images/1-kanal.webp",
         type: "hls", // Указываем тип потока
-        streamUrl: "http://zabava-htlive.cdn.ngenix.net/hls/CH_RUSSIA1/variant.m3u8"
+        streamUrl: "https://zabava-htlive.cdn.ngenix.net/hls/CH_RUSSIA1/variant.m3u8"
     },
     {
         name: "Россия 1 HD",
