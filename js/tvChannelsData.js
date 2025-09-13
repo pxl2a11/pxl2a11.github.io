@@ -8,7 +8,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://vkvideo.ru/video-25380626_456283287"
+                src="rutube.ru/pl/?pl_id&pl_type&pl_video=7bf12d9c050f9a7ef3728db5730432ae"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
