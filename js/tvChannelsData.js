@@ -13,6 +13,12 @@ export const tvChannels = [
         type: "hls", // Указываем тип потока
         streamUrl: "https://edge4.1internet.tv/dash-live2/streams/1tv-dvr/1tvdash.mpd"
     },
+        {
+        name: "Первый канал (DASH)",
+        logoUrl: "https://smotret.tv/images/1-kanal.webp",
+        type: "dash", // Указываем новый тип потока
+        streamUrl: "https://edge4.1internet.tv/dash-live2/streams/1tv-dvr/1tvdash.mpd"
+    },
        {
         name: "Россия 1",
         logoUrl: "https://smotret.tv/images/1-kanal.webp",
