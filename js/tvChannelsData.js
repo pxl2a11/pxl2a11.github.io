@@ -132,6 +132,84 @@ export const tvChannels = [
                 allowFullScreen
             ></iframe>`
     },
+    { 
+        name: "Ю", 
+        logoUrl: "https://smotret.tv/images/yu.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-41903770&id=456248205&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "МУЗ-ТВ", 
+        logoUrl: "https://federal.tv/i/muztv.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-6246566&id=456246663&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+        { 
+        name: "ТНТ Music", 
+        logoUrl: "https://federal.tv/i/tntmusic.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-339767&id=456244698&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "МИР 24", 
+        logoUrl: "https://www.sostav.ru/images/busmap/company/1/1991.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-23712441&id=456270471&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+        { 
+        name: "World Fashion Channel", 
+        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-world-fashion-channel_0.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-41395497&id=456240883&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "Известия", 
+        logoUrl: "https://federal.tv/i/izru.png?v=01112021111",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-27532693&id=456306734&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
     // Вы можете добавлять новые каналы сюда, копируя и изменяя этот объект
     // { 
     //     name: "Название канала", 
