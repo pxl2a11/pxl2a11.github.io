@@ -8,7 +8,20 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://hd.kinopoisk.ru/channels?openedChannelId=4aecd6b37658480180d30b43d03ce502"
+                src="https://rutube.ru/live/video/c58f502c7bb34a8fcdd976b221fca292/"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+        { 
+        name: "Россия 1", 
+        logoUrl: "https://pic.rutubelist.ru/user/2025-02-24/59/f2/59f297ee687a9efe83c248bb2cf17911.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/live/video/c58f502c7bb34a8fcdd976b221fca292/"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
