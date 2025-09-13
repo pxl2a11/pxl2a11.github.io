@@ -1,4 +1,4 @@
-// 04js/apps/onlineTv.js
+// 11js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -50,8 +50,8 @@ function getHtml() {
         <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2">
-                     <!-- Плеер с фиксированной высотой 480px -->
-                     <div id="tv-player-container" class="w-full h-[480px] bg-black rounded-lg shadow-lg flex justify-center items-center">
+                     <!-- Плеер с адаптивным соотношением сторон 16:9 -->
+                     <div id="tv-player-container" class="w-full aspect-video bg-black rounded-lg shadow-lg flex justify-center items-center">
                         <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
                     </div>
                 </div>
