@@ -8,7 +8,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://stream.1tv.ru/embed"
+                src="https://vkvideo.ru/video-25380626_456283287"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
