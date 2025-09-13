@@ -3,7 +3,7 @@
 export const tvChannels = [
     { 
         name: "Первый канал", 
-        logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Channel_One_Russia_logo.svg/512px-Channel_One_Russia_logo.svg.png",
+        logoUrl: "https://1tv.live/images/logo1.png",
         embedHtml: `
             <iframe
                 width="100%"
