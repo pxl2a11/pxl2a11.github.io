@@ -3,12 +3,12 @@
 export const tvChannels = [
     { 
         name: "Первый канал", 
-        logoUrl: "https://vkvideo.ru/video_ext.php?oid=-25380626&id=456283287&hd=2&autoplay=1",
+        logoUrl: "https://smotret.tv/images/1-kanal.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://kinodrom.tv/tv/pervyy-kanal/player"
+                src="https://vkvideo.ru/video_ext.php?oid=-25380626&id=456283287&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
