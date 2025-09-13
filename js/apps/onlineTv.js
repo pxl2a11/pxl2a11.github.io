@@ -1,4 +1,4 @@
-// 40js/apps/onlineTv.js
+// 44js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -48,13 +48,13 @@ function getHtml() {
         </style>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2">
-                 <!-- Задаем явную высоту плееру -->
-                 <div id="tv-player-container" style="height: 65vh;" class="w-full bg-black rounded-lg shadow-lg flex justify-center items-center">
+                 <!-- Задаем плееру фиксированную ширину и высоту. max-width: 100% для адаптивности на малых экранах -->
+                 <div id="tv-player-container" style="width: 640px; height: 360px; max-width: 100%;" class="bg-black rounded-lg shadow-lg flex justify-center items-center">
                     <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
                 </div>
             </div>
-            <!-- Правая колонка: задаем такую же высоту и делаем ее flex-контейнером -->
-            <div class="lg:col-span-1 flex flex-col" style="height: 65vh;">
+            <!-- Правая колонка: задаем такую же высоту (360px) и делаем ее flex-контейнером -->
+            <div class="lg:col-span-1 flex flex-col" style="height: 360px;">
                 <!-- Панель поиска не будет сжиматься -->
                 <div class="flex items-center gap-3 mb-4 flex-shrink-0">
                     <div class="relative flex-grow">
