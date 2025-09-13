@@ -13,19 +13,17 @@ export const tvChannels = [
         type: "hls", // Указываем тип потока
         streamUrl: "https://live-mirror-01.ott.tricolor.tv/live/live/1TV_hd/hls_enc/1TV_hd.m3u8?drmreq=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfdHlwZSI6ImFwdHBfb3R0IiwiY2xhc3MiOiJCUk9XU0VSIiwiZHJlaWQiOiI0NTAyNTUwMDM1ODM5NSIsImV4cCI6MTc1ODA3NDQyNywiaHdpZCI6IjhkMjA0NWE1N2E3NjVkYzUyMjVmYzJkZmRlNWY0NzViMDA0NzU0MmFlZDhjMWEyNGNlY2YzODNkY2ZjYmY2MjYiLCJsYXN0X3JlcV9kYXRlIjoxNzU3NDY5NjI3LCJzZXNzaW9uX2lkIjoiZDlmZTgxOTFmYTFjMjQ4ZjUzN2ViNjVlOWE0M2ZjOGQiLCJ0b2tlbl90eXBlIjoiQ29udGVudEFjY2Vzc1Rva2VuIiwidHlwZSI6Ik1PWklMTEEifQ.g1L-cwTkjltXHyAVVKPyFgLG7fmTOOKtj33WrsSL8hE"
     },
-    {
+       {
         name: "Россия 1",
-        logoUrl: "https://smotret.tv/images/rossiya-1.webp",
-        type: "iframe", // Это iframe
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-47443314&id=456248162&hd=2&autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
+        logoUrl: "https://smotret.tv/images/1-kanal.webp",
+        type: "hls", // Указываем тип потока
+        streamUrl: "http://zabava-htlive.cdn.ngenix.net/hls/CH_RUSSIA1/variant.m3u8"
+    },
+    {
+        name: "Россия 1 HD",
+        logoUrl: "https://smotret.tv/images/1-kanal-hd.webp",
+        type: "hls", // Указываем тип потока
+        streamUrl: "https://live-mirror-01.ott.tricolor.tv/live/live/Rossia_1_0_hd/hls_enc/Rossia_1_0_hd.m3u8?drmreq=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfdHlwZSI6ImFwdHBfb3R0IiwiY2xhc3MiOiJCUk9XU0VSIiwiZHJlaWQiOiI0NTAyNTUwMDM1ODM5NSIsImV4cCI6MTc1ODA3NDQyNywiaHdpZCI6IjhkMjA0NWE1N2E3NjVkYzUyMjVmYzJkZmRlNWY0NzViMDA0NzU0MmFlZDhjMWEyNGNlY2YzODNkY2ZjYmY2MjYiLCJsYXN0X3JlcV9kYXRlIjoxNzU3NDY5NjI3LCJzZXNzaW9uX2lkIjoiZDlmZTgxOTFmYTFjMjQ4ZjUzN2ViNjVlOWE0M2ZjOGQiLCJ0b2tlbl90eXBlIjoiQ29udGVudEFjY2Vzc1Rva2VuIiwidHlwZSI6Ik1PWklMTEEifQ.g1L-cwTkjltXHyAVVKPyFgLG7fmTOOKtj33WrsSL8hE"
     },
     {
         name: "МАТЧ ТВ",
