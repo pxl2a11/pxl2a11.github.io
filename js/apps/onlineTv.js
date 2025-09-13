@@ -1,4 +1,4 @@
-// 57js/apps/onlineTv.js
+// 04js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -50,13 +50,13 @@ function getHtml() {
         <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2">
-                     <!-- Плеер с соотношением сторон 16:9. Занимает всю ширину колонки -->
-                     <div id="tv-player-container" class="w-full aspect-video bg-black rounded-lg shadow-lg flex justify-center items-center">
+                     <!-- Плеер с фиксированной высотой 480px -->
+                     <div id="tv-player-container" class="w-full h-[480px] bg-black rounded-lg shadow-lg flex justify-center items-center">
                         <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
                     </div>
                 </div>
-                <!-- Правая колонка. На мобильных h-40vh, на десктопе h-full (высота по гриду) -->
-                <div class="lg:col-span-1 flex flex-col h-[40vh] lg:h-full">
+                <!-- Правая колонка с фиксированной высотой 480px -->
+                <div class="lg:col-span-1 flex flex-col h-[480px]">
                     <!-- Панель поиска не будет сжиматься -->
                     <div class="flex items-center gap-3 mb-4 flex-shrink-0">
                         <div class="relative flex-grow">
