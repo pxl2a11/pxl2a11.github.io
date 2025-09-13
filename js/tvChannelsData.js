@@ -14,6 +14,19 @@ export const tvChannels = [
                 allowFullScreen
             ></iframe>`
     },
+        { 
+        name: "ТВ3", 
+        logoUrl: "https://1tv.live/images/logo1.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://ok.ru/video/1115050286838"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
     // Вы можете добавлять новые каналы сюда, копируя и изменяя этот объект
     // { 
     //     name: "Название канала", 
