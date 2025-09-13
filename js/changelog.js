@@ -69,6 +69,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-09-13T09:00:00Z'), appName: 'Редактор изображений', description: 'добавлена поддержка загрузки изображений в формате SVG.' },
     { date: getRussianDate('2025-09-12T10:00:00Z'), appName: 'Радио', description: 'реализована функция "Избранное" для сохранения любимых станций.' },
     { date: getRussianDate('2025-09-12T15:00:00Z'), appName: 'Заметки и задачи', description: 'улучшен интерфейс редактирования: теперь для изменения достаточно кликнуть на текст.' },
     { date: getRussianDate('2025-09-12T15:00:00Z'), appName: 'Заметки и задачи', description: 'добавлена возможность удаления отдельных задач, иконки удаления отображаются постоянно.' },
