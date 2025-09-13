@@ -23,6 +23,9 @@ export const radioStations = [
         { name: "64 kbps", url: "https://nashe1.hostingradio.ru/nashe-64.mp3" },
         { name: "128 kbps", url: "https://nashe1.hostingradio.ru/nashe-128.mp3" },
         { name: "256 kbps", url: "https://nashe1.hostingradio.ru/nashe-256" }] },
+    { name: "Детское Радио", logoUrl: "https://pic.rutubelist.ru/user/5a/0a/5a0a80014f20a20ef9868fa3ab9eb751.jpg", streams: [
+        { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/199" },
+        { name: "64 kbps (резерв)", url: "https://srv21.gpmradio.ru:8443/stream/air/aac/64/199" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
