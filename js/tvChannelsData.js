@@ -3,7 +3,7 @@
 export const tvChannels = [
     { 
         name: "Первый канал", 
-        logoUrl: "https://smotret.tv/images/1-kanal.webp",
+        logoUrl: "https://vkvideo.ru/video_ext.php?oid=-25380626&id=456283287&hd=2&autoplay=1",
         embedHtml: `
             <iframe
                 width="100%"
