@@ -1,4 +1,4 @@
-//13 js/apps/radio.js
+//27 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -110,6 +110,9 @@ export function getHtml() {
 function playStation(station) {
     if (!station) return;
     currentStation = station;
+
+    // Сразу обновляем UI, чтобы пользователь видел выбранную станцию
+    updatePlayerUI(); 
     playerStationName.textContent = 'Загрузка...';
     renderStreamQualityButtons(station);
     
@@ -125,22 +128,22 @@ function playStation(station) {
 function changeStream(url) {
     if (!url) return;
 
-    // 1. Очищаем предыдущий экземпляр hls.js, если он был
     if (hls) {
         hls.destroy();
         hls = null;
     }
 
-    // 2. Проверяем, является ли поток HLS (.m3u8)
     if (url.includes('.m3u8')) {
-        // Используем hls.js, если браузер его поддерживает
         if (Hls.isSupported()) {
             console.log("Воспроизведение HLS через hls.js");
             hls = new Hls();
             hls.loadSource(url);
             hls.attachMedia(audioElement);
             hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                audioElement.play().catch(error => console.error("Ошибка воспроизведения HLS:", error));
+                audioElement.play().catch(error => {
+                    console.error("Ошибка воспроизведения HLS:", error);
+                    playerStationName.textContent = "Ошибка HLS";
+                });
             });
             hls.on(Hls.Events.ERROR, function (event, data) {
                 if (data.fatal) {
@@ -149,48 +152,48 @@ function changeStream(url) {
                 }
             });
         } else if (audioElement.canPlayType('application/vnd.apple.mpegurl')) {
-            // Для Safari, который поддерживает HLS нативно
             console.log("Воспроизведение HLS нативно (Safari)");
             audioElement.src = url;
-            audioElement.play().catch(error => console.error("Ошибка нативного воспроизведения HLS:", error));
+            audioElement.play().catch(error => {
+                console.error("Ошибка нативного воспроизведения HLS:", error);
+                playerStationName.textContent = "Ошибка HLS";
+            });
         } else {
             console.error("HLS не поддерживается в этом браузере");
             playerStationName.textContent = "Формат не поддерживается";
             return;
         }
     } else {
-        // 3. Для обычных потоков (MP3, AAC) используем стандартный метод
         console.log("Воспроизведение стандартного потока");
         audioElement.src = url;
         audioElement.play().catch(error => {
+            // Игнорируем ошибку AbortError, которая возникает при быстрой смене станций
             if (error.name === 'AbortError') {
                 console.log('Воспроизведение прервано новым запросом. Это нормально.');
                 return; 
             }
             console.error("Ошибка воспроизведения:", error);
+            // ***ИЗМЕНЕНИЕ***: Показываем ошибку, но не сбрасываем currentStation
             playerStationName.textContent = "Ошибка потока";
-            currentStation = null;
-            updatePlayerUI();
-            updateMediaSessionMetadata();
         });
     }
 
-    // Обновляем UI кнопок качества
     streamQualityControls.querySelectorAll('.stream-quality-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.url === url);
     });
 }
 
 function playNextStation() {
-    if (!currentStation) return;
-    const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
+    // ***ИЗМЕНЕНИЕ***: Логика теперь работает, даже если currentStation не был установлен
+    const currentIndex = currentStation ? radioStations.findIndex(s => s.name === currentStation.name) : -1;
     const nextIndex = (currentIndex + 1) % radioStations.length;
     playStation(radioStations[nextIndex]);
 }
 
 function playPreviousStation() {
-    if (!currentStation) return;
-    const currentIndex = radioStations.findIndex(s => s.name === currentStation.name);
+    // ***ИЗМЕНЕНИЕ***: Логика теперь работает, даже если currentStation не был установлен
+    const currentIndex = currentStation ? radioStations.findIndex(s => s.name === currentStation.name) : -1;
+    // Корректный расчет предыдущего индекса с зацикливанием
     const prevIndex = (currentIndex - 1 + radioStations.length) % radioStations.length;
     playStation(radioStations[prevIndex]);
 }
@@ -219,12 +222,12 @@ function renderStreamQualityButtons(station) {
 }
 
 function updatePlayerUI() {
-    const isPlaying = !audioElement.paused && currentStation !== null;
+    const isPlaying = !audioElement.paused && !audioElement.error && currentStation !== null;
     playIcon.classList.toggle('hidden', isPlaying);
     pauseIcon.classList.toggle('hidden', !isPlaying);
     playPauseBtn.disabled = !currentStation;
-    nextStationBtn.disabled = !currentStation;
-    prevStationBtn.disabled = !currentStation;
+    nextStationBtn.disabled = false; // Кнопки вперед/назад всегда активны
+    prevStationBtn.disabled = false; // Кнопки вперед/назад всегда активны
     mutedIcon.classList.toggle('hidden', !audioElement.muted);
     unmutedIcon.classList.toggle('hidden', audioElement.muted);
 
@@ -232,7 +235,10 @@ function updatePlayerUI() {
         playerArtwork.src = currentStation.logoUrl || 'img/radio.svg';
         playerArtwork.classList.remove('hidden');
         playerPlaceholder.classList.add('hidden');
-        playerStationName.textContent = currentStation.name;
+        // Не меняем playerStationName здесь, чтобы не затереть сообщение об ошибке
+        if (playerStationName.textContent === 'Загрузка...' || playerStationName.textContent === '') {
+            playerStationName.textContent = currentStation.name;
+        }
     } else {
         playerArtwork.classList.add('hidden');
         playerPlaceholder.classList.remove('hidden');
@@ -364,8 +370,14 @@ export async function init() {
 
     // Настройка обработчиков событий
     addListener(playPauseBtn, 'click', () => {
+        if (!currentStation) return;
         if (audioElement.paused) {
-            audioElement.play().catch(e => console.error("Ошибка при возобновлении:", e));
+            // Если была ошибка, пробуем перезапустить тот же поток
+            if (playerStationName.textContent.includes('Ошибка')) {
+                playStation(currentStation);
+            } else {
+                 audioElement.play().catch(e => console.error("Ошибка при возобновлении:", e));
+            }
         } else {
             audioElement.pause();
         }
@@ -387,22 +399,26 @@ export async function init() {
         favoritesFilterBtn.classList.toggle('active', isFavoritesFilterActive);
         filterStations();
     });
-    addListener(audioElement, 'play', () => { updatePlayerUI(); updateMediaSessionMetadata(); });
-    addListener(audioElement, 'pause', () => { updatePlayerUI(); updateMediaSessionMetadata(); });
+    addListener(audioElement, 'play', () => { 
+        if(currentStation) playerStationName.textContent = currentStation.name;
+        updatePlayerUI(); 
+        updateMediaSessionMetadata(); 
+    });
+    addListener(audioElement, 'pause', () => { 
+        updatePlayerUI(); 
+        updateMediaSessionMetadata(); 
+    });
     addListener(audioElement, 'ended', updatePlayerUI);
     addListener(audioElement, 'volumechange', updatePlayerUI);
-    addListener(audioElement, 'error', () => {
-        if (currentStation && !hls) { // Ошибку HLS обрабатываем отдельно
-            playerStationName.textContent = "Ошибка потока";
-            currentStation = null;
-            updatePlayerUI();
-            updateMediaSessionMetadata();
-        }
-    });
+    // ***ИЗМЕНЕНИЕ***: Глобальный обработчик ошибок audioElement удален,
+    // так как ошибки теперь обрабатываются более точно в функции changeStream.
 
     // Первоначальная отрисовка
     createStationCards();
     setupMediaSessionHandlers();
+    // Разблокируем кнопки навигации сразу
+    nextStationBtn.disabled = false;
+    prevStationBtn.disabled = false;
     updatePlayerUI();
 }
 
@@ -411,7 +427,6 @@ export function cleanup() {
         audioElement.pause();
         audioElement.src = '';
     }
-    // Очистка hls.js
     if (hls) {
         hls.destroy();
         hls = null;
