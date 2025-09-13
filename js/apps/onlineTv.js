@@ -173,4 +173,4 @@ function cleanup() {
     isFavoritesFilterActive = false;
 }
 
-export { getHtml, init, cleanup };```
+export { getHtml, init, cleanup };
