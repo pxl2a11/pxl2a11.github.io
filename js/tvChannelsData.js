@@ -3,7 +3,7 @@
 export const tvChannels = [
     { 
         name: "Первый канал", 
-        logoUrl: "https://1tv.live/images/logo1.png",
+        logoUrl: "https://smotret.tv/images/1-kanal.webp",
         embedHtml: `
             <iframe
                 width="100%"
@@ -16,12 +16,12 @@ export const tvChannels = [
     },
         { 
         name: "Россия 1", 
-        logoUrl: "https://pic.rutubelist.ru/user/2025-02-24/59/f2/59f297ee687a9efe83c248bb2cf17911.jpg",
+        logoUrl: "https://smotret.tv/images/rossiya-1.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://rutube.ru/pl/?pl_id&pl_type&pl_video=c58f502c7bb34a8fcdd976b221fca292"
+                src="https://smotret.tv/live/rossiya_1.html"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
@@ -29,7 +29,7 @@ export const tvChannels = [
     },
     { 
         name: "МАТЧ ТВ", 
-        logoUrl: "https://federal.tv/i/match-tv.png",
+        logoUrl: "https://smotret.tv/images/matchtv.webp",
         embedHtml: `
             <iframe
                 width="100%"
