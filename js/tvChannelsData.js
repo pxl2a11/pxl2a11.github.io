@@ -3,12 +3,12 @@
 export const tvChannels = [
     { 
         name: "Первый канал", 
-        logoUrl: "https://smotret.tv/images/1-kanal.webp",
+        logoUrl: "https://smotret.tv/1a/1-kanal.html",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://ok.ru/videoembed/1115050286838?nochat=1&autoplay=1"
+                src="https://kinodrom.tv/tv/pervyy-kanal/player"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
@@ -28,26 +28,13 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
-        name: "МАТЧ ТВ", 
-        logoUrl: "https://smotret.tv/images/matchtv.webp",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://rutube.ru/pl/?pl_id&pl_type&pl_video=11bbbec75a2ceb8cf446ad16813c6eec"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-    { 
         name: "НТВ", 
         logoUrl: "https://federal.tv/i/ntv.png",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://rutube.ru/pl/?pl_id&pl_type&pl_video=c37cd74192c6bc3d6cd6077c0c4fd686"
+                src="https://kinodrom.tv/tv/telekompaniya-ntv/player"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
