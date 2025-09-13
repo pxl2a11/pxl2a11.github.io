@@ -19,6 +19,10 @@ export const radioStations = [
     { name: "Радио Монте-Карло", logoUrl: "https://montecarlo.ru/uploads/logo_for_og.png", streams: [
         { name: "96 kbps", url: "https://montecarlo.hostingradio.ru/montecarlo96.aacp" },
         { name: "128 kbps", url: "https://montecarlo.hostingradio.ru/montecarlo128.mp3" }] },
+    { name: "НАШЕ Радио", logoUrl: "https://top-radio.ru/assets/image/radio/180/nase-radio.png", streams: [
+        { name: "64 kbps", url: "https://nashe1.hostingradio.ru/nashe-64.mp3" },
+        { name: "128 kbps", url: "https://nashe1.hostingradio.ru/nashe-128.mp3" },
+        { name: "256 kbps", url: "https://nashe1.hostingradio.ru/nashe-256" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
