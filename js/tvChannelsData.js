@@ -27,14 +27,27 @@ export const tvChannels = [
                 allowFullScreen
             ></iframe>`
     },
-            { 
+    { 
         name: "МАТЧ ТВ", 
         logoUrl: "https://federal.tv/i/match-tv.png",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://rutube.ru/play/embed/11bbbec75a2ceb8cf446ad16813c6eec"
+                src="https://rutube.ru/pl/?pl_id&pl_type&pl_video=11bbbec75a2ceb8cf446ad16813c6eec"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "НТВ", 
+        logoUrl: "https://federal.tv/i/ntv.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/pl/?pl_id&pl_type&pl_video=c37cd74192c6bc3d6cd6077c0c4fd686"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
