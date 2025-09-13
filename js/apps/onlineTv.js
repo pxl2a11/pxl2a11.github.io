@@ -1,4 +1,4 @@
-// 20js/apps/onlineTv.js
+// 22js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -55,8 +55,8 @@ function getHtml() {
                         <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
                     </div>
                 </div>
-                <!-- Правая колонка с фиксированной высотой 480px -->
-                <div class="lg:col-span-1 flex flex-col h-[460px]">
+                <!-- Правая колонка с фиксированной высотой 450px -->
+                <div class="lg:col-span-1 flex flex-col h-[450px]">
                     <!-- Панель поиска не будет сжиматься -->
                     <div class="flex items-center gap-3 mb-4 flex-shrink-0">
                         <div class="relative flex-grow">
