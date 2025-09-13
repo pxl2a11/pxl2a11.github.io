@@ -21,7 +21,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://smotret.tv/live/rossiya_1.html"
+                src="https://vkvideo.ru/video_ext.php?oid=-47443314&id=456248162&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
