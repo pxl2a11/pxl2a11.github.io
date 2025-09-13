@@ -61,7 +61,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-48864id=456249172&hd=2&autoplay=1"
+                src="https://vkvideo.ru/video_ext.php?oid=-48864&id=456249172&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
