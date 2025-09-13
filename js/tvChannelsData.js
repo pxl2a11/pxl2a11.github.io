@@ -30,7 +30,7 @@ export const tvChannels = [
     },
     { 
         name: "Солнце", 
-        logoUrl: "https://smotret.tv/images/ntv.webp",
+        logoUrl: "https://sun-tv.ru/static/images/img/about/logo.png",
         embedHtml: `
             <iframe
                 width="100%"
