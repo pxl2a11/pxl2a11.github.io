@@ -16,12 +16,25 @@ export const tvChannels = [
     },
         { 
         name: "Россия 1", 
-        logoUrl: "https://kinodrom.tv/tv/rossiya-1/player",
+        logoUrl: "https://smotret.tv/images/rossiya-1.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-47443314&id=456248162&hd=2&autoplay=1"
+                src="https://kinodrom.tv/tv/rossiya-1/player"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+        { 
+        name: "Матч!", 
+        logoUrl: "https://smotret.tv/images/ntv.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://kinodrom.tv/tv/match-tv/player"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
