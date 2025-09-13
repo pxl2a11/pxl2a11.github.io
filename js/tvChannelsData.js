@@ -8,7 +8,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://rutube.ru/pl/?pl_id&pl_type&pl_video=c58f502c7bb34a8fcdd976b221fca292"
+                src="https://smotret.tv/1a/1-kanal.html"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
