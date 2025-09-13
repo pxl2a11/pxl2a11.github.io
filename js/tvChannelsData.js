@@ -66,6 +66,19 @@ export const tvChannels = [
                 allowFullScreen
             ></iframe>`
     },
+    { 
+        name: "ТНТ4", 
+        logoUrl: "https://smotret.tv/images/tnt4.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://ok.ru/videoembed/979125083771?nochat=1&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
     // Вы можете добавлять новые каналы сюда, копируя и изменяя этот объект
     // { 
     //     name: "Название канала", 
