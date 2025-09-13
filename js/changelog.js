@@ -54,6 +54,7 @@ export const appNameToModuleFile = {
     'Калькулятор калорий': 'calorieCalculator',
     'Калькулятор': 'calculator',
     'Редактор изображений': 'imageEditor',
+    'ТВ онлайн': 'onlineTv',
     'Общее': null,
 };
 
@@ -69,6 +70,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-09-13T12:00:00Z'), appName: 'ТВ онлайн', description: 'добавлено новое приложение для просмотра онлайн-телеканалов.' },
     { date: getRussianDate('2025-09-13T09:00:00Z'), appName: 'Редактор изображений', description: 'добавлена поддержка загрузки изображений в формате SVG.' },
     { date: getRussianDate('2025-09-12T10:00:00Z'), appName: 'Радио', description: 'реализована функция "Избранное" для сохранения любимых станций.' },
     { date: getRussianDate('2025-09-12T15:00:00Z'), appName: 'Заметки и задачи', description: 'улучшен интерфейс редактирования: теперь для изменения достаточно кликнуть на текст.' },
