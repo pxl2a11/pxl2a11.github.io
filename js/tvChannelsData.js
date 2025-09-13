@@ -16,7 +16,7 @@ export const tvChannels = [
     },
         { 
         name: "Россия 1", 
-        logoUrl: "https://smotret.tv/images/rossiya-1.webp",
+        logoUrl: "https://kinodrom.tv/tv/rossiya-1/player",
         embedHtml: `
             <iframe
                 width="100%"
