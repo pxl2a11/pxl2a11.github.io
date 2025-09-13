@@ -1,4 +1,4 @@
-// 07js/tvChannelsData.js
+// 27js/tvChannelsData.js
 
 export const tvChannels = [
     { 
