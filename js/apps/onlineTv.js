@@ -1,4 +1,4 @@
-//29 js/apps/onlineTv.js
+// js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -9,6 +9,7 @@ let eventListeners = [];
 let favorites = [];
 let isFavoritesFilterActive = false;
 let hls = null; // Экземпляр Hls.js
+let dashPlayer = null; // Экземпляр Dash.js
 const FAVORITES_KEY = 'favoriteTvChannels';
 
 /**
@@ -72,10 +73,14 @@ function getHtml() {
 }
 
 function selectChannel(channel) {
-    // 1. Очистка предыдущего состояния
+    // 1. Очистка предыдущего состояния плеера
     if (hls) {
         hls.destroy();
         hls = null;
+    }
+    if (dashPlayer) {
+        dashPlayer.reset();
+        dashPlayer = null;
     }
     videoPlayer.classList.add('hidden');
     videoPlayer.src = ''; // Останавливаем предыдущее видео
@@ -83,30 +88,43 @@ function selectChannel(channel) {
     if (oldIframe) {
         oldIframe.remove();
     }
-    playerPlaceholder.classList.add('hidden');
+    playerPlaceholder.classList.remove('hidden');
+    playerPlaceholder.textContent = 'Загрузка...';
 
     // 2. Настройка нового состояния в зависимости от типа канала
     if (channel.type === 'hls' && Hls.isSupported()) {
         videoPlayer.classList.remove('hidden');
+        playerPlaceholder.classList.add('hidden');
         hls = new Hls();
         hls.loadSource(channel.streamUrl);
         hls.attachMedia(videoPlayer);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
             videoPlayer.play().catch(e => console.error("Ошибка автовоспроизведения HLS", e));
         });
-        hls.on(Hls.Events.ERROR, function(event, data) {
+        hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
                 console.error('Критическая ошибка HLS:', data.details);
-                playerPlaceholder.textContent = "Ошибка: не удалось загрузить поток.";
+                playerPlaceholder.textContent = "Ошибка: не удалось загрузить поток HLS.";
                 playerPlaceholder.classList.remove('hidden');
                 videoPlayer.classList.add('hidden');
             }
         });
+    } else if (channel.type === 'dash' && typeof dashjs !== 'undefined') {
+        videoPlayer.classList.remove('hidden');
+        playerPlaceholder.classList.add('hidden');
+        dashPlayer = dashjs.MediaPlayer().create();
+        dashPlayer.initialize(videoPlayer, channel.streamUrl, true);
+        dashPlayer.on(dashjs.MediaPlayer.events.ERROR, (e) => {
+             console.error('Критическая ошибка DASH:', e);
+             playerPlaceholder.textContent = "Ошибка: не удалось загрузить поток DASH.";
+             playerPlaceholder.classList.remove('hidden');
+             videoPlayer.classList.add('hidden');
+        });
     } else if (channel.type === 'iframe') {
+        playerPlaceholder.classList.add('hidden');
         playerContainer.insertAdjacentHTML('beforeend', channel.embedHtml);
     } else {
         playerPlaceholder.textContent = "Формат не поддерживается.";
-        playerPlaceholder.classList.remove('hidden');
     }
 
     // 3. Обновление UI списка каналов
@@ -114,6 +132,7 @@ function selectChannel(channel) {
         card.classList.toggle('active', card.dataset.channelName === channel.name);
     });
 }
+
 
 async function loadFavorites() {
     favorites = await getUserData(FAVORITES_KEY, []);
@@ -201,8 +220,15 @@ function cleanup() {
         hls.destroy();
         hls = null;
     }
+     if (dashPlayer) {
+        dashPlayer.reset();
+        dashPlayer = null;
+    }
     if (playerContainer) {
-        playerContainer.innerHTML = `<p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>`;
+        playerContainer.innerHTML = `
+            <video id="hls-video-player" class="hidden w-full h-full" controls autoplay></video>
+            <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
+        `;
     }
     eventListeners.forEach(({ element, event, handler }) => {
         element.removeEventListener(event, handler);
