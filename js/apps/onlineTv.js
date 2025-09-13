@@ -1,15 +1,13 @@
-//49 js/apps/onlineTv.js
+// js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
 // --- Глобальные переменные модуля ---
-let channelListContainer, playerContainer, playerPlaceholder, searchInput, favoritesFilterBtn, videoPlayer;
+let channelListContainer, playerContainer, playerPlaceholder, searchInput, favoritesFilterBtn;
 let channelCards = [];
 let eventListeners = [];
 let favorites = [];
 let isFavoritesFilterActive = false;
-let hls = null; // Экземпляр Hls.js
-let dashPlayer = null; // Экземпляр Dash.js
 const FAVORITES_KEY = 'favoriteTvChannels';
 
 /**
@@ -49,8 +47,7 @@ function getHtml() {
         </style>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2">
-                 <div id="tv-player-container" class="w-full aspect-video bg-black rounded-lg shadow-lg flex justify-center items-center overflow-hidden">
-                    <video id="hls-video-player" class="hidden w-full h-full" controls autoplay></video>
+                 <div id="tv-player-container" class="w-full aspect-video bg-black rounded-lg shadow-lg flex justify-center items-center">
                     <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
                 </div>
             </div>
@@ -73,66 +70,12 @@ function getHtml() {
 }
 
 function selectChannel(channel) {
-    // 1. Очистка предыдущего состояния плеера
-    if (hls) {
-        hls.destroy();
-        hls = null;
-    }
-    if (dashPlayer) {
-        dashPlayer.reset();
-        dashPlayer = null;
-    }
-    videoPlayer.classList.add('hidden');
-    videoPlayer.src = ''; // Останавливаем предыдущее видео
-    const oldIframe = playerContainer.querySelector('iframe');
-    if (oldIframe) {
-        oldIframe.remove();
-    }
-    playerPlaceholder.classList.remove('hidden');
-    playerPlaceholder.textContent = 'Загрузка...';
-
-    // 2. Настройка нового состояния в зависимости от типа канала
-    if (channel.type === 'hls' && Hls.isSupported()) {
-        videoPlayer.classList.remove('hidden');
-        playerPlaceholder.classList.add('hidden');
-        hls = new Hls();
-        hls.loadSource(channel.streamUrl);
-        hls.attachMedia(videoPlayer);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            videoPlayer.play().catch(e => console.error("Ошибка автовоспроизведения HLS", e));
-        });
-        hls.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) {
-                console.error('Критическая ошибка HLS:', data.details);
-                playerPlaceholder.textContent = "Ошибка: не удалось загрузить поток HLS.";
-                playerPlaceholder.classList.remove('hidden');
-                videoPlayer.classList.add('hidden');
-            }
-        });
-    } else if (channel.type === 'dash' && typeof dashjs !== 'undefined') {
-        videoPlayer.classList.remove('hidden');
-        playerPlaceholder.classList.add('hidden');
-        dashPlayer = dashjs.MediaPlayer().create();
-        dashPlayer.initialize(videoPlayer, channel.streamUrl, true);
-        dashPlayer.on(dashjs.MediaPlayer.events.ERROR, (e) => {
-             console.error('Критическая ошибка DASH:', e);
-             playerPlaceholder.textContent = "Ошибка: не удалось загрузить поток DASH.";
-             playerPlaceholder.classList.remove('hidden');
-             videoPlayer.classList.add('hidden');
-        });
-    } else if (channel.type === 'iframe') {
-        playerPlaceholder.classList.add('hidden');
-        playerContainer.insertAdjacentHTML('beforeend', channel.embedHtml);
-    } else {
-        playerPlaceholder.textContent = "Формат не поддерживается.";
-    }
-
-    // 3. Обновление UI списка каналов
+    playerContainer.innerHTML = channel.embedHtml;
+    playerPlaceholder.classList.add('hidden');
     channelCards.forEach(card => {
         card.classList.toggle('active', card.dataset.channelName === channel.name);
     });
 }
-
 
 async function loadFavorites() {
     favorites = await getUserData(FAVORITES_KEY, []);
@@ -202,7 +145,6 @@ async function init() {
     playerPlaceholder = document.getElementById('tv-player-placeholder');
     searchInput = document.getElementById('channel-search-input');
     favoritesFilterBtn = document.getElementById('favorites-filter-btn');
-    videoPlayer = document.getElementById('hls-video-player');
 
     await loadFavorites();
     createChannelCards();
@@ -216,19 +158,8 @@ async function init() {
 }
 
 function cleanup() {
-    if (hls) {
-        hls.destroy();
-        hls = null;
-    }
-     if (dashPlayer) {
-        dashPlayer.reset();
-        dashPlayer = null;
-    }
     if (playerContainer) {
-        playerContainer.innerHTML = `
-            <video id="hls-video-player" class="hidden w-full h-full" controls autoplay></video>
-            <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
-        `;
+        playerContainer.innerHTML = '';
     }
     eventListeners.forEach(({ element, event, handler }) => {
         element.removeEventListener(event, handler);
