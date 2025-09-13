@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v53'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v54'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -21,7 +21,8 @@ const appModules = [
     'virtualDice',
     'calorieCalculator',
     'calculator',
-    'imageEditor'
+    'imageEditor',
+    'onlineTv'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
@@ -43,6 +44,7 @@ const urlsToCache = [
   '/js/dataManager.js',
   '/js/firebaseConfig.js',
   '/js/radioStationsData.js',
+  '/js/tvChannelsData.js',
   
   // Библиотеки из папки /js/utils/
   '/js/utils/lame.min.js',
