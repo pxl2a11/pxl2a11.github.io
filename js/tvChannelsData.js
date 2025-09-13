@@ -15,6 +15,19 @@ export const tvChannels = [
             ></iframe>`
     },
         { 
+        name: "Первый канал (2)", 
+        logoUrl: "https://smotret.tv/images/1-kanal.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://ok.ru/videoembed/1115050286838?nochat=1&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+        { 
         name: "Россия 1", 
         logoUrl: "https://smotret.tv/images/rossiya-1.webp",
         embedHtml: `
