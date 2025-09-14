@@ -33,7 +33,7 @@ export const radioStations = [
     { name: "Радио Maximum", logoUrl: "https://radiopotok.ru/f/station/512/87.png", streams: [
         { name: "32 kbps", url: "https://hls-01-maximum.hostingradio.ru/maximum/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-maximum.hostingradio.ru/maximum/64/playlist.m3u8" },
-        { name: "96 kbps", url: "https://maximum.hostingradio.ru/maximum96.aacp" }] },
+        { name: "96 kbps", url: "https://hls-01-maximum.hostingradio.ru/maximum/playlist.m3u8" }] },
     { name: "Радио МЕТРО", logoUrl: "https://top-radio.ru/assets/image/radio/180/metro-fm-spb.jpg", streams: [
         { name: "128 kbps", url: "https://stream.radiometro.ru:8443/metro.mp3" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
