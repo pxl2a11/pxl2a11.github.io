@@ -67,6 +67,19 @@ export const tvChannels = [
                 allowFullScreen
             ></iframe>`
     },
+    { 
+        name: "Че!2", 
+        logoUrl: "https://smotret.tv/images/che.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://smotret.tv/live/che.html"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
         { 
         name: "Домашний", 
         logoUrl: "https://smotret.tv/images/domashniy.webp",
