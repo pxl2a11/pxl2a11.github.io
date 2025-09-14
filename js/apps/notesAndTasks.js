@@ -98,12 +98,12 @@ export async function init() {
                 const tasksHtml = sortedItems.map((task) => {
                     const taskIndex = lists[originalIndex].items.indexOf(task);
                     return `
-                    <div class="task-item-container group flex items-center justify-between p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700/50">
+                    <div class="task-item-container flex items-center justify-between p-1 rounded-md">
                         <div class="flex items-center flex-grow mr-2">
                             <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
                             <span data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-text editable-element ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
                         </div>
-                        <button data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="delete-task-btn p-1 text-gray-400 hover:text-red-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="delete-task-btn p-1 text-gray-400 hover:text-red-500 flex-shrink-0">
                             <svg class="w-5 h-5" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                                 <path fill="currentColor" d="M160 256H96a32 32 0 0 1 0-64h256V95.936a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V192h256a32 32 0 1 1 0 64h-64v672a32 32 0 0 1-32-32H192a32 32 0 0 1-32-32V256zm448-64v-64H416v64h192zM224 896h576V256H224v640zm192-128a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32zm192 0a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32z"/>
                             </svg>
@@ -266,7 +266,21 @@ export async function init() {
     // Сохранение при потере фокуса (blur)
     listsContainer.addEventListener('focusout', e => {
         const target = e.target;
-        if (target.getAttribute('contenteditable') === 'true' && !target.classList.contains('new-task-input')) {
+
+        // --- НОВОЕ: Создание задачи при потере фокуса с поля "Новая задача" ---
+        if (target.classList.contains('new-task-input')) {
+            const text = target.innerText.trim();
+            if (text) {
+                const listIndex = parseInt(target.dataset.listIndex, 10);
+                lists[listIndex].items.push({ text, completed: false });
+                saveLists();
+                renderLists(); // Перерисовываем, чтобы задача появилась, а поле ввода очистилось
+            }
+            return; // Завершаем, чтобы не сработал код ниже
+        }
+
+        // --- Старая логика для редактирования существующих элементов ---
+        if (target.getAttribute('contenteditable') === 'true') {
             target.setAttribute('contenteditable', 'false');
 
             const listIndex = parseInt(target.dataset.listIndex, 10);
@@ -290,7 +304,6 @@ export async function init() {
                     if (newText.trim()) {
                         list.items[taskIndex].text = newText.trim();
                     } else {
-                        // Если текст существующей задачи полностью стерли, удаляем ее
                         list.items.splice(taskIndex, 1);
                         shouldReRender = true;
                     }
