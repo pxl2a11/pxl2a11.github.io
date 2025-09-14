@@ -105,15 +105,16 @@ export async function init() {
                         </div>
                         <button data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="delete-task-btn p-1 text-gray-400 hover:text-red-500 flex-shrink-0">
                             <svg class="w-5 h-5" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                                <path fill="currentColor" d="M160 256H96a32 32 0 0 1 0-64h256V95.936a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V192h256a32 32 0 1 1 0 64h-64v672a32 32 0 0 1-32 32H192a32 32 0 0 1-32-32V256zm448-64v-64H416v64h192zM224 896h576V256H224v640zm192-128a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32zm192 0a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32z"/>
+                                <path fill="currentColor" d="M160 256H96a32 32 0 0 1 0-64h256V95.936a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V192h256a32 32 0 1 1 0 64h-64v672a32 32 0 0 1-32-32H192a32 32 0 0 1-32-32V256zm448-64v-64H416v64h192zM224 896h576V256H224v640zm192-128a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32zm192 0a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32 32z"/>
                             </svg>
                         </button>
                     </div>
                 `}).join('');
                 
                 contentHtml = `${tasksHtml}
-                    <div class="mt-2">
-                        <div contenteditable="true" data-list-index="${originalIndex}" class="new-task-input p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded" data-placeholder="Новая задача..."></div>
+                    <div class="new-task-container mt-2 flex items-center p-1">
+                        <input type="checkbox" class="new-task-checkbox h-5 w-5 rounded-full flex-shrink-0 invisible">
+                        <div contenteditable="true" data-list-index="${originalIndex}" class="new-task-input editable-element ml-3 w-full p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded" data-placeholder="Новая задача..."></div>
                     </div>`;
 
             } else { // note
@@ -298,6 +299,20 @@ export async function init() {
             saveLists();
             if (shouldReRender) {
                 renderLists();
+            }
+        }
+    });
+
+    // Обработка ввода в поле новой задачи
+    listsContainer.addEventListener('input', e => {
+        const target = e.target;
+        if (target.classList.contains('new-task-input')) {
+            const container = target.closest('.new-task-container');
+            const checkbox = container.querySelector('.new-task-checkbox');
+            if (target.innerText.trim()) {
+                checkbox.classList.remove('invisible');
+            } else {
+                checkbox.classList.add('invisible');
             }
         }
     });
