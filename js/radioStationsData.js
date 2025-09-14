@@ -35,6 +35,8 @@ export const radioStations = [
         { name: "128 kbps", url: "https://maximum.hostingradio.ru/maximum128.mp3" }] },
     { name: "Радио МЕТРО", logoUrl: "https://top-radio.ru/assets/image/radio/180/metro-fm-spb.jpg", streams: [
         { name: "128 kbps", url: "https://stream.radiometro.ru:8443/metro.mp3" }] },
+    { name: "Радио ТВОЯ ВОЛНА", logoUrl: "https://top-radio.pro/assets/image/radio/180/radio-tvoya-volna.jpg", streams: [
+        { name: "256 kbps", url: "https://icecast-tvoyavolna.cdnvideo.ru/tvoyavolna" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
