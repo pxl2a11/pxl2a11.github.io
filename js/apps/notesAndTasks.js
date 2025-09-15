@@ -1,4 +1,4 @@
-// 15js/apps/notesAndTasks.js
+// 45js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 export function getHtml() {
@@ -268,7 +268,7 @@ export async function init() {
     listsContainer.addEventListener('focusout', e => {
         const target = e.target;
 
-        // --- НОВОЕ: Создание задачи при потере фокуса с поля "Новая задача" ---
+        // Создание задачи при потере фокуса с поля "Новая задача"
         if (target.classList.contains('new-task-input')) {
             const text = target.innerText.trim();
             if (text) {
@@ -280,7 +280,7 @@ export async function init() {
             return; // Завершаем, чтобы не сработал код ниже
         }
 
-        // --- Старая логика для редактирования существующих элементов ---
+        // Редактирование существующих элементов
         if (target.getAttribute('contenteditable') === 'true') {
             target.setAttribute('contenteditable', 'false');
 
@@ -327,34 +327,39 @@ export async function init() {
                 const text = target.innerText.trim();
                 if (text) {
                     const listIndex = parseInt(target.dataset.listIndex, 10);
+                    // Сначала добавляем задачу в массив
                     lists[listIndex].items.push({ text, completed: false });
+                    // *** ИСПРАВЛЕНИЕ ***
+                    // Очищаем поле ввода ДО перерисовки. Теперь, когда `focusout` сработает 
+                    // из-за `renderLists()`, он увидит пустое поле и не создаст дубликат.
+                    target.innerText = ''; 
+                    
                     saveLists();
                     renderLists();
                     
+                    // Возвращаем фокус на новое, уже пустое поле ввода в этом списке
                     setTimeout(() => {
                         const newInput = document.querySelector(`[data-list-index="${listIndex}"].new-task-input`);
                         if (newInput) newInput.focus();
                     }, 0);
                 }
             } else {
+                 // Для всех остальных полей Enter просто снимает фокус,
+                 // а логика сохранения сработает в 'focusout'
                  target.blur();
             }
         }
     });
-
-    // --- ИСПРАВЛЕНИЕ: Обработка вставки текста без стилей ---
+    
+    // Обработка вставки текста без стилей
     listsContainer.addEventListener('paste', e => {
         const target = e.target.closest('[contenteditable="true"]');
         if (target) {
-            // Отменяем стандартное событие вставки
             e.preventDefault();
-            // Получаем текст из буфера обмена
             const text = e.clipboardData.getData('text/plain');
-            // Вставляем чистый текст
             document.execCommand('insertText', false, text);
         }
     });
-
 
     // --- ПЕРВАЯ ОТРИСОВКА ---
     renderLists();
