@@ -3,19 +3,6 @@
 export const tvChannels = [
 
     { 
-        name: "ОТР", 
-        logoUrl: "https://миок.рф/players/icons/logo_otr.png",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-45049727&id=456250146&hd=2&autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-    { 
         name: "ТВ Центр", 
         logoUrl: "https://smotret.tv/images/tvc.webp",
         embedHtml: `
@@ -23,19 +10,6 @@ export const tvChannels = [
                 width="100%"
                 height="100%"
                 src="https://vkvideo.ru/video_ext.php?oid=-98976670&id=456248870&hd=2&autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-    { 
-        name: "Спас ТВ", 
-        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-spas.jpg",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-55490878&id=456482997&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
@@ -55,58 +29,19 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
-        name: "Солнце", 
-        logoUrl: "https://sun-tv.ru/static/img/tw_cover.webp",
+        name: "ОТР", 
+        logoUrl: "https://миок.рф/players/icons/logo_otr.png",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-217596589&id=456240257&hd=2&autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-        { 
-        name: "Суббота!", 
-        logoUrl: "https://smotret.tv/images/subbota.webp",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-155566339&id=456243314&hd=2&autoplay=1"
+                src="https://vkvideo.ru/video_ext.php?oid=-45049727&id=456250146&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
             ></iframe>`
     },
     { 
-        name: "2х2", 
-        logoUrl: "https://smotret.tv/images/2x2.webp",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-48864&id=456249172&hd=2&autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-    { 
-        name: "Че!", 
-        logoUrl: "https://smotret.tv/images/che.webp",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-19555151&id=456245834&hd=2&autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-        { 
         name: "Домашний", 
         logoUrl: "https://smotret.tv/images/domashniy.webp",
         embedHtml: `
@@ -120,13 +55,13 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
-        name: "СТС Love", 
-        logoUrl: "https://smotret.tv/images/sts-love.webp",
+        name: "МУЗ-ТВ", 
+        logoUrl: "https://federal.tv/i/muztv.png",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-68488417&id=456242742&hd=2&autoplay=1"
+                src="https://vkvideo.ru/video_ext.php?oid=-6246566&id=456246663&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
@@ -146,6 +81,19 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "Че!", 
+        logoUrl: "https://smotret.tv/images/che.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-19555151&id=456245834&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "Ю", 
         logoUrl: "https://smotret.tv/images/yu.webp",
         embedHtml: `
@@ -159,26 +107,65 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
-        name: "МУЗ-ТВ", 
-        logoUrl: "https://federal.tv/i/muztv.png",
+        name: "2х2", 
+        logoUrl: "https://smotret.tv/images/2x2.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-6246566&id=456246663&hd=2&autoplay=1"
+                src="https://vkvideo.ru/video_ext.php?oid=-48864&id=456249172&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
             ></iframe>`
     },
-        { 
-        name: "ТНТ Music", 
-        logoUrl: "https://federal.tv/i/tntmusic.png",
+    { 
+        name: "СТС Love", 
+        logoUrl: "https://smotret.tv/images/sts-love.webp",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-339767&id=456244698&hd=2&autoplay=1"
+                src="https://vkvideo.ru/video_ext.php?oid=-68488417&id=456242742&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "Суббота!", 
+        logoUrl: "https://smotret.tv/images/subbota.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-155566339&id=456243314&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "Солнце", 
+        logoUrl: "https://sun-tv.ru/static/img/tw_cover.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-217596589&id=456240257&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "Спас ТВ", 
+        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-spas.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-55490878&id=456482997&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
@@ -197,7 +184,20 @@ export const tvChannels = [
                 allowFullScreen
             ></iframe>`
     },
-        { 
+    { 
+        name: "Известия", 
+        logoUrl: "https://federal.tv/i/izru.png?v=01112021111",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-27532693&id=456306734&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "World Fashion Channel", 
         logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-world-fashion-channel_0.jpg",
         embedHtml: `
@@ -211,13 +211,26 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
-        name: "Известия", 
-        logoUrl: "https://federal.tv/i/izru.png?v=01112021111",
+        name: "ТНТ Music", 
+        logoUrl: "https://federal.tv/i/tntmusic.png",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-27532693&id=456306734&hd=2&autoplay=1"
+                src="https://vkvideo.ru/video_ext.php?oid=-339767&id=456244698&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+        { 
+        name: "78", 
+        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-78_0.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-148235461&id=456239063&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
