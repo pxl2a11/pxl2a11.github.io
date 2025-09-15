@@ -16,6 +16,32 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "ТВ Центр", 
+        logoUrl: "https://smotret.tv/images/tvc.webp",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-98976670&id=456248870&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "Спас ТВ", 
+        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-spas.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-55490878&id=456482997&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "СТС", 
         logoUrl: "https://smotret.tv/images/sts.webp",
         embedHtml: `
@@ -101,19 +127,6 @@ export const tvChannels = [
                 width="100%"
                 height="100%"
                 src="https://vkvideo.ru/video_ext.php?oid=-68488417&id=456242742&hd=2&autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-        { 
-        name: "ТВ Центр", 
-        logoUrl: "https://smotret.tv/images/tvc.webp",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://vkvideo.ru/video_ext.php?oid=-98976670&id=456248870&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
