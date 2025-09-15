@@ -2,7 +2,20 @@
 
 export const tvChannels = [
 
-        { 
+    { 
+        name: "ОТР", 
+        logoUrl: "https://миок.рф/players/icons/logo_otr.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-45049727&id=456250146&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "СТС", 
         logoUrl: "https://smotret.tv/images/sts.webp",
         embedHtml: `
