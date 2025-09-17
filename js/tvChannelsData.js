@@ -4,7 +4,7 @@ export const tvChannels = [
 
     { 
         name: "ТВ Центр", 
-        logoUrl: "https://smotret.tv/images/tvc.webp",
+        logoUrl: "https://filearchive.cnews.ru/img/book/2022/01/19/tvcentr.jpg",
         embedHtml: `
             <iframe
                 width="100%"
@@ -17,7 +17,7 @@ export const tvChannels = [
     },
     { 
         name: "СТС", 
-        logoUrl: "https://smotret.tv/images/sts.webp",
+        logoUrl: "https://typetype.ru/wp-content/uploads/font-in-use_sts_1.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -30,7 +30,7 @@ export const tvChannels = [
     },
     { 
         name: "ОТР", 
-        logoUrl: "https://миок.рф/players/icons/logo_otr.png",
+        logoUrl: "https://onlitvtime.ru/media/AEbLJVF7qXeWEKpEf7pQyWKjdI4jbcfPiaAxmoVm.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -43,7 +43,7 @@ export const tvChannels = [
     },
     { 
         name: "Домашний", 
-        logoUrl: "https://smotret.tv/images/domashniy.webp",
+        logoUrl: "https://www.oreol.tv/img/014_domash_1.jpg",
         embedHtml: `
             <iframe
                 width="100%"
@@ -56,7 +56,7 @@ export const tvChannels = [
     },
     { 
         name: "МУЗ-ТВ", 
-        logoUrl: "https://federal.tv/i/muztv.png",
+        logoUrl: "https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-thumbnail/s3/022023/muz_tv_0.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -69,7 +69,7 @@ export const tvChannels = [
     },
     { 
         name: "Звезда", 
-        logoUrl: "https://smotret.tv/images/zvezda.webp",
+        logoUrl: "https://ministar.ru/upload/iblock/dd9/t9388lfeudisqk09hzyonadct1hinn1t.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -82,7 +82,7 @@ export const tvChannels = [
     },
     { 
         name: "Че!", 
-        logoUrl: "https://smotret.tv/images/che.webp",
+        logoUrl: "https://www.tvreclama.ru/upload/iblock/c57/c574253a41104fe044dbd4ee8bb0b34d.jpg",
         embedHtml: `
             <iframe
                 width="100%"
@@ -95,7 +95,7 @@ export const tvChannels = [
     },
     { 
         name: "Ю", 
-        logoUrl: "https://smotret.tv/images/yu.webp",
+        logoUrl: "https://рекламанащитах.рф/wp-content/uploads/2021/01/%D1%8E-1024x1024.jpg",
         embedHtml: `
             <iframe
                 width="100%"
@@ -108,7 +108,7 @@ export const tvChannels = [
     },
     { 
         name: "2х2", 
-        logoUrl: "https://smotret.tv/images/2x2.webp",
+        logoUrl: "https://papik.pro/grafic/uploads/posts/2023-04/thumbs/1681574310_papik-pro-p-2kh2-logotip-vektor-14.jpg",
         embedHtml: `
             <iframe
                 width="100%"
@@ -121,7 +121,7 @@ export const tvChannels = [
     },
     { 
         name: "СТС Love", 
-        logoUrl: "https://smotret.tv/images/sts-love.webp",
+        logoUrl: "https://papik.pro/grafic/uploads/posts/2023-04/1681574795_papik-pro-p-sts-lav-logotip-vektor-2.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -134,7 +134,7 @@ export const tvChannels = [
     },
     { 
         name: "Суббота!", 
-        logoUrl: "https://smotret.tv/images/subbota.webp",
+        logoUrl: "https://vits.tv/images/tvstation/russia/subbota.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -147,7 +147,7 @@ export const tvChannels = [
     },
     { 
         name: "Солнце", 
-        logoUrl: "https://sun-tv.ru/static/img/tw_cover.webp",
+        logoUrl: "https://sun-tv.ru/static/images/img/about/logo.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -160,7 +160,7 @@ export const tvChannels = [
     },
     { 
         name: "Спас ТВ", 
-        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-spas.jpg",
+        logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Spas_logo.jpg/250px-Spas_logo.jpg",
         embedHtml: `
             <iframe
                 width="100%"
@@ -173,7 +173,7 @@ export const tvChannels = [
     },
     { 
         name: "МИР 24", 
-        logoUrl: "https://www.sostav.ru/images/busmap/company/1/1991.jpg",
+        logoUrl: "https://paralymp.ru/upload/iblock/c39/c39da8b1ed6a31be20a2ca151b0219c0.jpg",
         embedHtml: `
             <iframe
                 width="100%"
@@ -186,7 +186,7 @@ export const tvChannels = [
     },
     { 
         name: "Известия", 
-        logoUrl: "https://federal.tv/i/izru.png?v=01112021111",
+        logoUrl: "https://toplogos.ru/images/logo-iz.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -199,7 +199,7 @@ export const tvChannels = [
     },
     { 
         name: "World Fashion Channel", 
-        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-world-fashion-channel_0.jpg",
+        logoUrl: "https://i.pinimg.com/280x280_RS/6a/17/84/6a1784fcb7ddbb39bdc8ef9577c95d88.jpg",
         embedHtml: `
             <iframe
                 width="100%"
@@ -212,7 +212,7 @@ export const tvChannels = [
     },
     { 
         name: "ТНТ Music", 
-        logoUrl: "https://federal.tv/i/tntmusic.png",
+        logoUrl: "https://ntvplus.tv/files/image/88/39/71/tw5.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -225,7 +225,7 @@ export const tvChannels = [
     },
         { 
         name: "78", 
-        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-78_0.jpg",
+        logoUrl: "https://www.sostav.ru/app/public/images/news/2017/08/03/compressed/78%20(3).jpg",
         embedHtml: `
             <iframe
                 width="100%"
