@@ -44,9 +44,9 @@ export const radioStations = [
         { name: "96 kbps", url: "https://stream.newradio.ru/novoe96.aacp" },
         { name: "128 kbps", url: "https://emgspb.hostingradio.ru/novoespb128.mp3" }] },
     { name: "Дорожное Радио", logoUrl: "https://top-radio.ru/assets/image/radio/180/dorojnoe.png", streams: [
-        { name: "32 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15/32/playlist.m3u8" },
-        { name: "64 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15/64/playlist.m3u8" },
-        { name: "112 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15/112/playlist.m3u8" }] },
+        { name: "32 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15_spb/32/playlist.m3u8" },
+        { name: "64 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15_spb/64/playlist.m3u8" },
+        { name: "112 kbps", url: "https://hls-01-regions.emgsound.ru/15_spb/112/playlist.m3u8" }] },
     { name: "Relax FM", logoUrl: "https://pcradio.ru/images/stations/62ea3ebda8c01.jpg", streams: [
         { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/200" },
         { name: "128 kbps", url: "https://hls-01-gpm.hostingradio.ru/relaxfm495/128/playlist.m3u8" }] },
