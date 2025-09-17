@@ -41,7 +41,12 @@ export const radioStations = [
         { name: "64 kbps", url: "https://emgspb.hostingradio.ru/eldoradio64.mp3" },
         { name: "96 kbps", url: "https://hls-01-eldoradio.emgsound.ru/4/96/playlist.m3u8" },
         { name: "128 kbps", url: "https://emgspb.hostingradio.ru/eldoradio128.mp3" }] },
-    { name: "Питер FM", logoUrl: "https://radiopiterfm.ru/assets/images/undef.jpg", streams: [{ name: "Основной поток", url: "https://piterfm-hls.cdnvideo.ru/piterfm-live/piterfm.stream/tracks-a1/mono.ts.m3u8" }] },
+    { name: "Питер FM", logoUrl: "https://radiopiterfm.ru/assets/images/undef.jpg", streams: [
+        { name: "Основной поток", url: "https://piterfm-hls.cdnvideo.ru/piterfm-live/piterfm.stream/tracks-a1/mono.ts.m3u8" }] },
+    { name: "Европа Плюс", logoUrl: "https://www.radiobells.com/stations/europaplus.webp", streams: [
+        { name: "32 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/32/playlist.m3u8" },
+        { name: "64 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/64/playlist.m3u8" },
+        { name: "112 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/112/playlist.m3u8" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
