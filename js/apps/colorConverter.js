@@ -21,47 +21,62 @@ export function getHtml() {
                     <label for="hsl-input" class="block text-sm font-medium">HSL</label>
                     <input type="text" id="hsl-input" class="w-full p-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
                 </div>
+                 <div>
+                    <label for="hsv-input" class="block text-sm font-medium">HSV</label>
+                    <input type="text" id="hsv-input" class="w-full p-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="cmyk-input" class="block text-sm font-medium">CMYK</label>
+                    <input type="text" id="cmyk-input" class="w-full p-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                </div>
             </div>
         </div>
     `;
 }
 
 export function init() {
+    // Получаем все элементы DOM
     const preview = document.getElementById('color-preview');
     const picker = document.getElementById('color-picker');
     const hexInput = document.getElementById('hex-input');
     const rgbInput = document.getElementById('rgb-input');
     const hslInput = document.getElementById('hsl-input');
+    const hsvInput = document.getElementById('hsv-input');
+    const cmykInput = document.getElementById('cmyk-input');
 
     let isUpdating = false;
 
-    function updateAll(color) {
-        if (isUpdating) return;
+    // Главная функция обновления всех полей
+    function updateAll(colorData) {
+        if (isUpdating || !colorData) return;
         isUpdating = true;
 
-        const hex = color.hex;
-        const rgb = color.rgb;
-        const hsl = color.hsl;
+        const { hex, rgb, hsl, hsv, cmyk } = colorData;
 
         preview.style.backgroundColor = hex;
         picker.value = hex;
         hexInput.value = hex.toUpperCase();
         rgbInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
         hslInput.value = `hsl(${hsl.h}, ${Math.round(hsl.s * 100)}%, ${Math.round(hsl.l * 100)}%)`;
+        hsvInput.value = `hsv(${hsv.h}, ${Math.round(hsv.s * 100)}%, ${Math.round(hsv.v * 100)}%)`;
+        cmykInput.value = `cmyk(${Math.round(cmyk.c * 100)}%, ${Math.round(cmyk.m * 100)}%, ${Math.round(cmyk.y * 100)}%, ${Math.round(cmyk.k * 100)}%)`;
         
         isUpdating = false;
     }
 
-    picker.addEventListener('input', () => updateAll(hexToRgb(picker.value)));
-    hexInput.addEventListener('input', () => updateAll(hexToRgb(hexInput.value)));
+    // Добавляем слушатели событий
+    picker.addEventListener('input', () => updateAll(hexToAll(picker.value)));
+    hexInput.addEventListener('input', () => updateAll(hexToAll(hexInput.value)));
     rgbInput.addEventListener('input', () => updateAll(parseRgb(rgbInput.value)));
     hslInput.addEventListener('input', () => updateAll(parseHsl(hslInput.value)));
+    hsvInput.addEventListener('input', () => updateAll(parseHsv(hsvInput.value)));
+    cmykInput.addEventListener('input', () => updateAll(parseCmyk(cmykInput.value)));
     
-    // Initial color
-    updateAll(hexToRgb('#3B82F6'));
+    // Начальный цвет
+    updateAll(hexToAll('#3B82F6'));
 
-    // --- Conversion Functions ---
-    function hexToRgb(hex) {
+    // --- Функции парсинга входных данных ---
+    function hexToAll(hex) {
         let r = 0, g = 0, b = 0;
         if (hex.length === 4) {
             r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3];
@@ -82,30 +97,102 @@ export function init() {
         return hslToAll({h, s: s/100, l: l/100});
     }
 
+    function parseHsv(hsvStr) {
+        const [h, s, v] = (hsvStr.match(/\d+(\.\d+)?/g) || [0,0,0]).map(Number);
+        return hsvToAll({h, s: s/100, v: v/100});
+    }
+
+    function parseCmyk(cmykStr) {
+        const [c, m, y, k] = (cmykStr.match(/\d+(\.\d+)?/g) || [0,0,0,0]).map(Number);
+        return cmykToAll({c: c/100, m: m/100, y: y/100, k: k/100});
+    }
+
+    // --- Функции конвертации ---
+
     function rgbToAll({r, g, b}) {
-        r /= 255; g /= 255; b /= 255;
-        let cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin, h = 0, s = 0, l = 0;
-        if (delta === 0) h = 0;
-        else if (cmax === r) h = ((g - b) / delta) % 6;
-        else if (cmax === g) h = (b - r) / delta + 2;
-        else h = (r - g) / delta + 4;
-        h = Math.round(h * 60);
-        if (h < 0) h += 360;
-        l = (cmax + cmin) / 2;
-        s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-        const hex = "#" + ((1 << 24) + ((r*255)<<16) + ((g*255)<<8) + (b*255)).toString(16).slice(1);
-        return { hex, rgb: {r:r*255,g:g*255,b:b*255}, hsl: {h,s,l} };
+        // Нормализация RGB
+        let r_norm = r / 255, g_norm = g / 255, b_norm = b / 255;
+        let cmin = Math.min(r_norm,g_norm,b_norm), cmax = Math.max(r_norm,g_norm,b_norm), delta = cmax - cmin;
+        
+        // HEX
+        const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+
+        // HSL
+        let h_hsl = 0, s_hsl = 0, l_hsl = 0;
+        if (delta === 0) h_hsl = 0;
+        else if (cmax === r_norm) h_hsl = ((g_norm - b_norm) / delta) % 6;
+        else if (cmax === g_norm) h_hsl = (b_norm - r_norm) / delta + 2;
+        else h_hsl = (r_norm - g_norm) / delta + 4;
+        h_hsl = Math.round(h_hsl * 60);
+        if (h_hsl < 0) h_hsl += 360;
+        l_hsl = (cmax + cmin) / 2;
+        s_hsl = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l_hsl - 1));
+
+        // HSV
+        let h_hsv = h_hsl, s_hsv = 0, v_hsv = cmax;
+        s_hsv = cmax === 0 ? 0 : delta / cmax;
+
+        // CMYK
+        let c = 0, m = 0, y = 0, k = 1 - cmax;
+        if (k < 1) {
+            c = (1 - r_norm - k) / (1 - k);
+            m = (1 - g_norm - k) / (1 - k);
+            y = (1 - b_norm - k) / (1 - k);
+        }
+
+        return { 
+            hex, 
+            rgb: { r, g, b }, 
+            hsl: { h: h_hsl, s: s_hsl, l: l_hsl },
+            hsv: { h: h_hsv, s: s_hsv, v: v_hsv },
+            cmyk: { c, m, y, k }
+        };
     }
 
     function hslToAll({h, s, l}) {
-        let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c/2, r=0, g=0, b=0;
+        let c = (1 - Math.abs(2 * l - 1)) * s,
+            x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+            m = l - c/2,
+            r = 0, g = 0, b = 0;
+
         if (0 <= h && h < 60) { r = c; g = x; b = 0; } 
         else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
         else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
         else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
         else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
         else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
-        r = Math.round((r + m) * 255); g = Math.round((g + m) * 255); b = Math.round((b + m) * 255);
+        
+        r = Math.round((r + m) * 255);
+        g = Math.round((g + m) * 255);
+        b = Math.round((b + m) * 255);
+
         return rgbToAll({r,g,b});
+    }
+
+    function hsvToAll({h, s, v}) {
+        let c = v * s,
+            x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+            m = v - c,
+            r = 0, g = 0, b = 0;
+        
+        if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+        else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+        else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+        else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+        else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+        else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+
+        r = Math.round((r + m) * 255);
+        g = Math.round((g + m) * 255);
+        b = Math.round((b + m) * 255);
+
+        return rgbToAll({r, g, b});
+    }
+
+    function cmykToAll({c, m, y, k}) {
+        let r = 255 * (1 - c) * (1 - k);
+        let g = 255 * (1 - m) * (1 - k);
+        let b = 255 * (1 - y) * (1 - k);
+        return rgbToAll({r: Math.round(r), g: Math.round(g), b: Math.round(b)});
     }
 }
