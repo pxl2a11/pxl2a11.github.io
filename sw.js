@@ -22,7 +22,8 @@ const appModules = [
     'calorieCalculator',
     'calculator',
     'imageEditor',
-    'onlineTv'
+    'onlineTv',
+    'markdownEditor'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
