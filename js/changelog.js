@@ -70,6 +70,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-09-17T10:00:00Z'), appName: 'Конвертер цветов', description: 'добавлена поддержка цветовых моделей CMYK и HSV.' },
     { date: getRussianDate('2025-09-13T12:00:00Z'), appName: 'ТВ онлайн', description: 'добавлено новое приложение для просмотра онлайн-телеканалов.' },
     { date: getRussianDate('2025-09-13T09:00:00Z'), appName: 'Редактор изображений', description: 'добавлена поддержка загрузки изображений в формате SVG.' },
     { date: getRussianDate('2025-09-12T10:00:00Z'), appName: 'Радио', description: 'реализована функция "Избранное" для сохранения любимых станций.' },
