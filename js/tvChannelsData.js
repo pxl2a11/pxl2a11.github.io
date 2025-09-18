@@ -94,6 +94,32 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "Санкт-Петербург", 
+        logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Logo_SPBTV-01.svg/1200px-Logo_SPBTV-01.svg.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-23702661&id=456274417&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "ЛенТВ 24", 
+        logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/LenTV24_Logo.svg/1024px-LenTV24_Logo.svg.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-184397039&id=456255957&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "78", 
         logoUrl: "https://www.sostav.ru/app/public/images/news/2017/08/03/compressed/78%20(3).jpg",
         embedHtml: `
@@ -140,6 +166,19 @@ export const tvChannels = [
                 width="100%"
                 height="100%"
                 src="https://vkvideo.ru/video_ext.php?oid=-68488417&id=456242742&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "Красная линия", 
+        logoUrl: "https://ramnet.ru/tv/logo/000001468.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-26183809&id=456242167&hd=2&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
