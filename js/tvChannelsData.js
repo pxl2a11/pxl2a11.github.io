@@ -211,6 +211,32 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "Вместе-РФ", 
+        logoUrl: "https://tv2free.ru/sites/default/files/styles/medium/public/tv-logo/tv-vmeste-rf.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-49303888&id=456250868&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "Дума ТВ", 
+        logoUrl: "https://pic.rutubelist.ru/user/2025-05-13/be/dd/beddbc7d06b1ae4adab4afb9b1b90233.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://vkvideo.ru/video_ext.php?oid=-160662967&id=456253518&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "World Fashion Channel", 
         logoUrl: "https://i.pinimg.com/280x280_RS/6a/17/84/6a1784fcb7ddbb39bdc8ef9577c95d88.jpg",
         embedHtml: `
