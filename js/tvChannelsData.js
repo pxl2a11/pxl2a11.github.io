@@ -3,7 +3,7 @@
 export const tvChannels = [
 
     { 
-        name: "Общественное телевидение России", 
+        name: "ОТР", 
         logoUrl: "https://onlitvtime.ru/media/AEbLJVF7qXeWEKpEf7pQyWKjdI4jbcfPiaAxmoVm.png",
         embedHtml: `
             <iframe
