@@ -133,6 +133,19 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "РБК", 
+        logoUrl: "https://tv2free.ru/sites/default/files/styles/large/public/tv-logo/tv-rbk.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="src="//ok.ru/videoembed/301694721777?nochat=1&autoplay=1""
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "Че!", 
         logoUrl: "https://www.tvreclama.ru/upload/iblock/c57/c574253a41104fe044dbd4ee8bb0b34d.jpg",
         embedHtml: `
