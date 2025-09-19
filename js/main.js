@@ -24,6 +24,7 @@ const appNameToModuleFile = {
     'Калькулятор': 'calculator',
     'ТВ онлайн': 'onlineTv',
     'Markdown Редактор': 'markdownEditor',
+    'Тетрис': 'tetris',
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageEditor': 93, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74, 'timezoneConverter': 84, 'textToSpeech': 73, 'rockPaperScissors': 67, 'sudoku': 80, 'zipArchiver': 88, 'game2048': 79, 'barcodeGenerator': 84, 'voiceRecorder': 82, 'siteSkeletonGenerator': 78,
@@ -42,6 +43,7 @@ const appPopularity = {
     'calculator': 98,
     'onlineTv': 90,
     'markdownEditor': 85,
+    'tetris': 96,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -98,6 +100,7 @@ const appSearchMetadata = {
     'imageEditor': { keywords: ['редактор', 'изображение', 'картинка', 'фото', 'изменить', 'размер', 'конвертер', 'формат', 'png', 'jpg', 'webp', 'ресайз', 'resize', 'обработка'], hashtags: ['#image', '#tools'] },
     'onlineTv': { keywords: ['тв', 'телевизор', 'каналы', 'смотреть', 'онлайн', 'трансляция', 'tv', 'online'], hashtags: ['#entertainment', '#video'] },
     'markdownEditor': { keywords: ['markdown', 'редактор', 'md', 'текст', 'разметка', 'html', 'форматирование'], hashtags: ['#text', '#tools', '#webdev'] },
+    'tetris': { keywords: ['тетрис', 'игра', 'блоки', 'головоломка', 'классика', 'tetris'], hashtags: ['#game', '#fun', '#logic'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
