@@ -139,7 +139,7 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="src="//ok.ru/videoembed/301694721777?nochat=1&autoplay=1""
+                src="//ok.ru/videoembed/301694721777?nochat=1&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
