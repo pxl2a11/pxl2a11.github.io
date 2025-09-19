@@ -263,6 +263,19 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "http://ru.tv/", 
+        logoUrl: "https://ramnet.ru/tv/logo/000000101.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="//ok.ru/videoembed/230273326594?nochat=1" frameborder="0" allow="autoplay"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "Дума ТВ", 
         logoUrl: "https://pic.rutubelist.ru/user/2025-05-13/be/dd/beddbc7d06b1ae4adab4afb9b1b90233.jpg",
         embedHtml: `
