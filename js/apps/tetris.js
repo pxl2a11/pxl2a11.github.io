@@ -1,4 +1,4 @@
-// 20js/apps/tetris.js
+// 23js/apps/tetris.js
 
 let canvas, ctx, nextCanvas, nextCtx;
 let board;
@@ -35,7 +35,6 @@ const SHAPES = [
 ];
 
 class Piece {
-    // ИЗМЕНЕНИЕ: Добавлен shapeIndex для отслеживания типа фигуры после поворотов
     constructor(shape, ctx, shapeIndex) {
         this.shape = shape;
         this.ctx = ctx;
@@ -50,7 +49,6 @@ class Piece {
         this.shape.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value > 0) {
-                    // ИЗМЕНЕНИЕ: Убран "- 1", чтобы не было пробелов между блоками
                     this.ctx.fillRect((this.x + x) * BLOCK_SIZE, (this.y + y) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
                 }
             });
@@ -60,7 +58,6 @@ class Piece {
 
 function getNewPiece() {
     const rand = Math.floor(Math.random() * (SHAPES.length - 1)) + 1;
-    // ИЗМЕНЕНИЕ: Передаем индекс фигуры в конструктор
     return new Piece(SHAPES[rand], ctx, rand);
 }
 
@@ -69,7 +66,6 @@ function drawBoard() {
         row.forEach((value, x) => {
             if (value > 0) {
                 ctx.fillStyle = COLORS[value];
-                // ИЗМЕНЕНИЕ: Убран "- 1", чтобы не было пробелов между блоками
                 ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
             }
         });
@@ -83,7 +79,6 @@ function drawNextPiece() {
     nextPiece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value > 0) {
-                 // ИЗМЕНЕНИЕ: Убран "- 1", чтобы не было пробелов между блоками
                  nextCtx.fillRect(x * smallBlockSize, y * smallBlockSize, smallBlockSize, smallBlockSize);
             }
         });
@@ -126,7 +121,6 @@ function freezePiece() {
         row.forEach((value, x) => {
             if (value > 0) {
                 if (currentPiece.y + y >= 0 && currentPiece.y + y < ROWS) {
-                    // ИЗМЕНЕНИЕ: Используем сохраненный shapeIndex вместо indexOf, чтобы избежать ошибки с повернутыми фигурами
                     board[currentPiece.y + y][currentPiece.x + x] = currentPiece.shapeIndex;
                 }
             }
@@ -281,7 +275,8 @@ export function getHtml() {
 
 export function init() {
     canvas = document.getElementById('tetris-board');
-    ctx = canvas.getContext('d');
+    // ИСПРАВЛЕНИЕ: Опечатка 'd' заменена на '2d'
+    ctx = canvas.getContext('2d');
     nextCanvas = document.getElementById('tetris-next-piece-canvas');
     nextCtx = nextCanvas.getContext('2d');
     const overlay = document.getElementById('tetris-overlay');
@@ -297,7 +292,6 @@ export function init() {
     });
 
     keydownHandler = (e) => {
-        // ИЗМЕНЕНИЕ: Предотвращаем скроллинг страницы при нажатии на стрелки
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             e.preventDefault();
         }
@@ -319,7 +313,6 @@ export function init() {
                 if (isValidMove(p)) currentPiece.y++;
                 break;
             case 'ArrowUp':
-                // ИЗМЕНЕНИЕ: Улучшенная логика поворота с "подталкиванием" от стен (wall kick)
                 const rotatedShape = rotatePiece(currentPiece);
                 let testPiece = { ...currentPiece, shape: rotatedShape };
 
@@ -337,7 +330,7 @@ export function init() {
                     if (isValidMove(p)) {
                         currentPiece.shape = rotatedShape;
                         currentPiece.x = tempX;
-                        break; // Выходим из цикла, как только нашли валидную позицию
+                        break;
                     }
                 }
                 break;
@@ -353,7 +346,6 @@ export function init() {
     document.getElementById('tetris-btn-left').addEventListener('click', () => dispatchKeyEvent('ArrowLeft'));
     document.getElementById('tetris-btn-right').addEventListener('click', () => dispatchKeyEvent('ArrowRight'));
     document.getElementById('tetris-btn-down').addEventListener('click', () => dispatchKeyEvent('ArrowDown'));
-    // ИЗМЕНЕНИЕ: Добавлена кнопка "вверх" для поворота
     document.getElementById('tetris-btn-up').addEventListener('click', () => dispatchKeyEvent('ArrowUp'));
     
     function dispatchKeyEvent(key) {
