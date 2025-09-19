@@ -1,4 +1,4 @@
-// 37js/apps/notesAndTasks.js
+// 46js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 // ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
@@ -94,19 +94,17 @@ export async function init() {
 
     const saveLists = () => saveUserData('lists', lists);
     
-    // --- ИЗМЕНЕНИЕ: Функция для инициализации перетаскивания ТОЛЬКО для блоков ---
     const initSortable = () => {
         new Sortable(listsContainer, {
             animation: 150,
-            handle: '.drag-handle', // Элемент для захвата
-            draggable: '.list-card',     // Перетаскиваемые элементы
+            handle: '.drag-handle',
+            draggable: '.list-card',
             ghostClass: 'sortable-ghost',
             onEnd: (evt) => {
-                // Обновляем порядок в массиве данных
                 const [movedItem] = lists.splice(evt.oldIndex, 1);
                 lists.splice(evt.newIndex, 0, movedItem);
                 saveLists();
-                renderLists(); // Перерисовываем для обновления индексов
+                renderLists();
             },
         });
     };
@@ -125,7 +123,6 @@ export async function init() {
             let contentHtml = '';
 
             if (list.type === 'task') {
-                // --- ИЗМЕНЕНИЕ: Восстановлена автоматическая сортировка задач ---
                 const sortedItems = [...list.items].sort((a, b) => a.completed - b.completed);
                 const tasksHtml = sortedItems.map((task) => {
                     const taskIndex = lists[originalIndex].items.indexOf(task);
@@ -155,14 +152,19 @@ export async function init() {
             return `
                 <div class="list-card bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
                     <div class="flex justify-between items-start mb-2">
-                        <div class="flex items-center flex-grow">
-                             <!-- ИЗМЕНЕНИЕ: Иконка заменена на img, добавлен класс 'drag-handle' -->
-                            <div class="drag-handle text-gray-400 p-1 mr-2 flex-shrink-0">
-                                <img src="/img/move.svg" alt="Переместить" class="w-5 h-5">
-                            </div>
-                            <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
-                        </div>
+                        <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
+                        
+                        <!-- --- ИЗМЕНЕНИЕ: Контейнер с кнопками управления --- -->
                         <div class="flex items-center flex-shrink-0">
+                            <!-- --- ИЗМЕНЕНИЕ: Новая иконка и расположение кнопки перемещения --- -->
+                            <div class="drag-handle text-gray-400 p-1 hover:text-gray-600 dark:hover:text-gray-200">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22 6C22.5523 6 23 6.44772 23 7C23 7.55229 22.5523 8 22 8H2C1.44772 8 1 7.55228 1 7C1 6.44772 1.44772 6 2 6L22 6Z" fill="currentColor"/>
+                                    <path d="M22 11C22.5523 11 23 11.4477 23 12C23 12.5523 22.5523 13 22 13H2C1.44772 13 1 12.5523 1 12C1 11.4477 1.44772 11 2 11H22Z" fill="currentColor"/>
+                                    <path d="M23 17C23 16.4477 22.5523 16 22 16H2C1.44772 16 1 16.4477 1 17C1 17.5523 1.44772 18 2 18H22C22.5523 18 23 17.5523 23 17Z" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <!-- Кнопка удаления -->
                             <button data-list-index="${originalIndex}" class="list-delete-btn p-1 text-red-500 hover:text-red-700 ml-1">
                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M697.4 759.2l61.8-61.8L573.8 512l185.4-185.4-61.8-61.8L512 450.2 326.6 264.8l-61.8 61.8L450.2 512 264.8 697.4l61.8 61.8L512 573.8z"></path>
@@ -252,10 +254,9 @@ export async function init() {
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
-        // Активация редактирования по клику
         const editableTarget = target.closest('.editable-element');
         if (editableTarget && editableTarget.getAttribute('contenteditable') !== 'true') {
-            if(e.target.closest('.drag-handle')) return; // Не активировать редактирование при клике на "ручку"
+            if(e.target.closest('.drag-handle')) return;
             
             editableTarget.setAttribute('contenteditable', 'true');
             editableTarget.focus();
@@ -268,7 +269,6 @@ export async function init() {
             return;
         }
 
-        // Удаление всего списка
         const deleteListBtn = target.closest('.list-delete-btn');
         if (deleteListBtn) {
             e.stopPropagation();
@@ -281,7 +281,6 @@ export async function init() {
             return;
         }
 
-        // Удаление отдельной задачи
         const deleteTaskBtn = target.closest('.delete-task-btn');
         if (deleteTaskBtn) {
             e.stopPropagation();
@@ -293,7 +292,6 @@ export async function init() {
             return;
         }
         
-        // Управление чекбоксами
         if (target.classList.contains('task-checkbox')) {
             const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
@@ -309,7 +307,6 @@ export async function init() {
     listsContainer.addEventListener('focusout', e => {
         const target = e.target;
 
-        // Создание задачи при потере фокуса с поля "Новая задача"
         if (target.classList.contains('new-task-input')) {
             const text = target.innerText.trim();
             if (text) {
@@ -321,24 +318,19 @@ export async function init() {
             return;
         }
 
-        // Редактирование существующих элементов
         if (target.getAttribute('contenteditable') === 'true') {
             target.setAttribute('contenteditable', 'false');
-
             const listIndex = parseInt(target.dataset.listIndex, 10);
             if (isNaN(listIndex) || listIndex >= lists.length) return;
-
             const list = lists[listIndex];
             const newText = target.innerText;
             let shouldReRender = false;
-            
             const field = target.dataset.field;
             if (field === 'title') {
                 list.title = newText.trim() || "Без названия";
             } else if (field === 'content') {
                 list.content = newText;
             }
-
             const taskIndexStr = target.dataset.taskIndex;
             if (taskIndexStr !== undefined) {
                 const taskIndex = parseInt(taskIndexStr, 10);
@@ -363,7 +355,6 @@ export async function init() {
         const target = e.target;
         if (e.key === 'Enter' && target.getAttribute('contenteditable') === 'true') {
             e.preventDefault(); 
-
             if (target.classList.contains('new-task-input')) {
                 const text = target.innerText.trim();
                 if (text) {
@@ -372,7 +363,6 @@ export async function init() {
                     target.innerText = ''; 
                     saveLists();
                     renderLists();
-                    
                     setTimeout(() => {
                         const newInput = document.querySelector(`[data-list-index="${listIndex}"].new-task-input`);
                         if (newInput) newInput.focus();
