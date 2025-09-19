@@ -31,6 +31,21 @@ export function getHtml() {
                 </div>
             </div>
         </div>
+        <!-- Разделитель -->
+        <div class="border-t border-gray-200 dark:border-gray-700 my-8"></div>
+        <!-- Новая секция для извлечения палитры -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-semibold text-center">Извлечь палитру из изображения</h3>
+            <div>
+                <input type="file" id="image-palette-input" class="hidden" accept="image/png, image/jpeg">
+                <label for="image-palette-input" class="inline-block w-full text-center bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3 px-6 rounded-lg cursor-pointer transition-colors">
+                    Выберите изображение
+                </label>
+            </div>
+            <div id="palette-container" class="flex flex-wrap justify-center gap-3 min-h-[50px]">
+                 <p id="palette-placeholder" class="text-gray-500 dark:text-gray-400">Палитра появится здесь...</p>
+            </div>
+        </div>
     `;
 }
 
@@ -43,6 +58,10 @@ export function init() {
     const hslInput = document.getElementById('hsl-input');
     const hsvInput = document.getElementById('hsv-input');
     const cmykInput = document.getElementById('cmyk-input');
+    // Новые элементы для палитры
+    const imagePaletteInput = document.getElementById('image-palette-input');
+    const paletteContainer = document.getElementById('palette-container');
+    const palettePlaceholder = document.getElementById('palette-placeholder');
 
     let isUpdating = false;
 
@@ -115,7 +134,7 @@ export function init() {
         let cmin = Math.min(r_norm,g_norm,b_norm), cmax = Math.max(r_norm,g_norm,b_norm), delta = cmax - cmin;
         
         // HEX
-        const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
 
         // HSL
         let h_hsl = 0, s_hsl = 0, l_hsl = 0;
@@ -194,5 +213,93 @@ export function init() {
         let g = 255 * (1 - m) * (1 - k);
         let b = 255 * (1 - y) * (1 - k);
         return rgbToAll({r: Math.round(r), g: Math.round(g), b: Math.round(b)});
+    }
+    
+    // --- НОВЫЙ КОД: Логика для извлечения палитры ---
+    
+    imagePaletteInput.addEventListener('change', handleImageUpload);
+
+    function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                palettePlaceholder.textContent = 'Анализ цветов...';
+                setTimeout(() => {
+                    const palette = extractPalette(img);
+                    renderPalette(palette);
+                }, 50);
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function extractPalette(img, colorCount = 6) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width = img.width;
+        const height = canvas.height = img.height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const imageData = ctx.getImageData(0, 0, width, height).data;
+        const colorMap = {};
+        const colorStep = 40; 
+
+        for (let i = 0; i < imageData.length; i += 4) {
+            if (imageData[i + 3] < 128) continue; 
+            
+            const r = imageData[i];
+            const g = imageData[i + 1];
+            const b = imageData[i + 2];
+
+            const rKey = Math.round(r / colorStep) * colorStep;
+            const gKey = Math.round(g / colorStep) * colorStep;
+            const bKey = Math.round(b / colorStep) * colorStep;
+            const key = `${rKey},${gKey},${bKey}`;
+
+            if (!colorMap[key]) {
+                colorMap[key] = { count: 0, r: 0, g: 0, b: 0 };
+            }
+            colorMap[key].count++;
+            colorMap[key].r += r;
+            colorMap[key].g += g;
+            colorMap[key].b += b;
+        }
+
+        const sortedColors = Object.values(colorMap).sort((a, b) => b.count - a.count);
+
+        const palette = sortedColors.slice(0, colorCount).map(colorData => {
+            const r = Math.round(colorData.r / colorData.count);
+            const g = Math.round(colorData.g / colorData.count);
+            const b = Math.round(colorData.b / colorData.count);
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        });
+
+        return palette;
+    }
+
+    function renderPalette(palette) {
+        paletteContainer.innerHTML = '';
+        if (palette.length === 0) {
+            paletteContainer.appendChild(palettePlaceholder);
+            palettePlaceholder.textContent = 'Не удалось извлечь цвета.';
+            return;
+        }
+
+        palette.forEach(colorHex => {
+            const swatch = document.createElement('div');
+            swatch.className = 'w-12 h-12 rounded-lg shadow-inner cursor-pointer border-2 border-white dark:border-gray-500';
+            swatch.style.backgroundColor = colorHex;
+            swatch.title = `Нажмите, чтобы выбрать ${colorHex}`;
+            swatch.addEventListener('click', () => {
+                updateAll(hexToAll(colorHex));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            paletteContainer.appendChild(swatch);
+        });
     }
 }
