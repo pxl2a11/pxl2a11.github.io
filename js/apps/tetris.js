@@ -1,4 +1,4 @@
-// 20js/apps/tetris.js
+// 23js/apps/tetris.js
 
 let canvas, ctx, nextCanvas, nextCtx;
 let board;
@@ -131,7 +131,8 @@ function isValidMove(piece) {
             let y = piece.y + dy;
             return (
                 value === 0 ||
-                (x >= 0 && x < COLS && y < ROWS && (!board[y] || board[y][x] === 0))
+                // ИЗМЕНЕНИЕ: Добавлена проверка y >= 0
+                (x >= 0 && x < COLS && y >= 0 && y < ROWS && board[y][x] === 0)
             );
         });
     });
@@ -273,7 +274,7 @@ export function getHtml() {
         <style>
             /* ИЗМЕНЕНИЕ: Стили для светлой и темной темы */
             #tetris-board {
-                background-color: #e2e8f0; /* slate-200 */
+                background-color: #ffffff; /* ИЗМЕНЕНИЕ: Белый фон для светлой темы */
                 border: 4px solid #94a3b8; /* slate-400 */
             }
             .dark #tetris-board {
@@ -410,26 +411,28 @@ export function init() {
                 let testPiece = { ...currentPiece, shape: rotatedShape };
 
                 // ИЗМЕНЕНИЕ: Исправлена логика вращения с "подталкиванием" от стены
-                const kickOffsets = [
-                    [0, 0],   // Без смещения
-                    [-1, 0],  // Сдвиг влево
-                    [1, 0],   // Сдвиг вправо
-                    [0, -1],  // Сдвиг вверх (для вращения у пола)
-                    [-2, 0],  // Сдвиг влево на 2 (для фигуры I)
-                    [2, 0]    // Сдвиг вправо на 2 (для фигуры I)
-                ];
+                let kickX = 0;
+                let isValid = false;
 
-                for (const offset of kickOffsets) {
-                    const tempX = testPiece.x + offset[0];
-                    const tempY = testPiece.y + offset[1]; // Важно: применяем смещение и по Y
-                    let p = { ...testPiece, x: tempX, y: tempY };
-
-                    if (isValidMove(p)) {
-                        currentPiece.shape = rotatedShape;
-                        currentPiece.x = tempX;
-                        currentPiece.y = tempY; // Важно: обновляем и Y координату
-                        break;
+                // Проверяем, не выходит ли фигура за границы после поворота
+                let tempX = testPiece.x;
+                for (let y = 0; y < testPiece.shape.length; y++) {
+                    for (let x = 0; x < testPiece.shape[y].length; x++) {
+                        if (testPiece.shape[y][x] > 0) {
+                            if (testPiece.x + x < 0) {
+                                tempX = Math.max(tempX, -x);
+                            } else if (testPiece.x + x >= COLS) {
+                                tempX = Math.min(tempX, COLS - x - 1);
+                            }
+                        }
                     }
+                }
+                
+                testPiece.x = tempX;
+                
+                if (isValidMove(testPiece)) {
+                    currentPiece.shape = rotatedShape;
+                    currentPiece.x = testPiece.x;
                 }
                 break;
         }
