@@ -1,4 +1,4 @@
-// 45js/apps/tetris.js
+// 50js/apps/tetris.js
 
 let canvas, ctx, nextCanvas, nextCtx;
 let board;
@@ -7,6 +7,7 @@ let currentPiece, nextPiece;
 let gameLoopId;
 let isGameOver, isPaused;
 let keydownHandler;
+// ИЗМЕНЕНИЕ: Добавлена переменная для скорости игры
 let gameSpeed;
 
 const COLS = 10;
@@ -47,11 +48,17 @@ class Piece {
 
     draw() {
         this.ctx.fillStyle = this.color;
+        // ИЗМЕНЕНИЕ: Добавлена обводка для блоков
+        this.ctx.strokeStyle = '#000'; // Черная обводка
+        this.ctx.lineWidth = 2;
+
         this.shape.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value > 0) {
-                    // ИЗМЕНЕНИЕ: Рисуем блок на 1px меньше для создания эффекта сетки
-                    this.ctx.fillRect((this.x + x) * BLOCK_SIZE, (this.y + y) * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                    const currentX = (this.x + x) * BLOCK_SIZE;
+                    const currentY = (this.y + y) * BLOCK_SIZE;
+                    this.ctx.fillRect(currentX, currentY, BLOCK_SIZE, BLOCK_SIZE);
+                    this.ctx.strokeRect(currentX, currentY, BLOCK_SIZE, BLOCK_SIZE);
                 }
             });
         });
@@ -68,8 +75,13 @@ function drawBoard() {
         row.forEach((value, x) => {
             if (value > 0) {
                 ctx.fillStyle = COLORS[value];
-                // ИЗМЕНЕНИЕ: Рисуем блок на 1px меньше для создания эффекта сетки
-                ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                // ИЗМЕНЕНИЕ: Добавлена обводка для блоков
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                const currentX = x * BLOCK_SIZE;
+                const currentY = y * BLOCK_SIZE;
+                ctx.fillRect(currentX, currentY, BLOCK_SIZE, BLOCK_SIZE);
+                ctx.strokeRect(currentX, currentY, BLOCK_SIZE, BLOCK_SIZE);
             }
         });
     });
@@ -78,12 +90,17 @@ function drawBoard() {
 function drawNextPiece() {
     nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
     nextCtx.fillStyle = nextPiece.color;
+    // ИЗМЕНЕНИЕ: Добавлена обводка для блоков
+    nextCtx.strokeStyle = '#000';
+    nextCtx.lineWidth = 1;
     const smallBlockSize = BLOCK_SIZE / 1.5;
     nextPiece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value > 0) {
-                 // ИЗМЕНЕНИЕ: Рисуем блок на 1px меньше для создания эффекта сетки
-                 nextCtx.fillRect(x * smallBlockSize, y * smallBlockSize, smallBlockSize - 1, smallBlockSize - 1);
+                const currentX = x * smallBlockSize;
+                const currentY = y * smallBlockSize;
+                nextCtx.fillRect(currentX, currentY, smallBlockSize, smallBlockSize);
+                nextCtx.strokeRect(currentX, currentY, smallBlockSize, smallBlockSize);
             }
         });
     });
@@ -146,10 +163,13 @@ function clearLines() {
         lines += linesCleared;
         score += 10 * Math.pow(2, linesCleared-1);
         
+        // ИЗМЕНЕНИЕ: Логика увеличения скорости при повышении уровня
         const newLevel = Math.floor(lines / 10);
         if (newLevel > level) {
             level = newLevel;
+            // Ускоряем игру
             clearInterval(gameLoopId);
+            // Формула скорости: начальная 1000мс, -75мс за каждый уровень. Минимальная скорость 100мс.
             gameSpeed = Math.max(100, 1000 - level * 75); 
             gameLoopId = setInterval(gameStep, gameSpeed);
         }
@@ -191,6 +211,7 @@ function gameOver() {
     document.getElementById('tetris-overlay-text').textContent = `Ваш счет: ${score}`;
 }
 
+// ИЗМЕНЕНИЕ: Новая функция для паузы
 function togglePause() {
     if (isGameOver) return;
     
@@ -217,7 +238,7 @@ function startGame() {
     score = 0;
     level = 0;
     lines = 0;
-    gameSpeed = 1000;
+    gameSpeed = 1000; // Начальная скорость
     currentPiece = getNewPiece();
     nextPiece = getNewPiece();
     isGameOver = false;
@@ -230,7 +251,7 @@ function startGame() {
     document.getElementById('tetris-btn-pause').textContent = 'Пауза';
 
     drawNextPiece();
-    clearInterval(gameLoopId);
+    clearInterval(gameLoopId); // Очищаем старый таймер на всякий случай
     gameLoopId = setInterval(gameStep, gameSpeed);
 }
 
@@ -269,6 +290,7 @@ export function getHtml() {
                 background-color: #334155; /* slate-700 */
                 color: #f1f5f9;
             }
+             /* Стили для кнопки Пауза */
             #tetris-btn-pause {
                 width: 100%;
                 padding: 8px 16px;
@@ -280,8 +302,7 @@ export function getHtml() {
                  background-color: #475569; /* slate-600 */
             }
         </style>
-        <!-- ИЗМЕНЕНИЕ: Убрано центрирование для фиксированного положения -->
-        <div class="flex flex-col lg:flex-row items-start justify-start gap-8">
+        <div class="flex flex-col lg:flex-row items-center justify-center gap-8">
             <!-- Game Board -->
             <div class="relative">
                 <canvas id="tetris-board" width="${COLS * BLOCK_SIZE}" height="${ROWS * BLOCK_SIZE}"></canvas>
@@ -305,6 +326,7 @@ export function getHtml() {
                     <canvas id="tetris-next-piece-canvas" width="${4 * (BLOCK_SIZE/1.5)}" height="${4 * (BLOCK_SIZE/1.5)}"></canvas>
                 </div>
 
+                <!-- ИЗМЕНЕНИЕ: Добавлена кнопка Паузы -->
                 <button id="tetris-btn-pause" class="mt-4">Пауза</button>
 
                  <!-- On-screen controls for mobile -->
@@ -328,6 +350,7 @@ export function init() {
     nextCtx = nextCanvas.getContext('2d');
     const overlay = document.getElementById('tetris-overlay');
 
+    // ИЗМЕНЕНИЕ: Обработчик клика на оверлей теперь также снимает паузу
     overlay.addEventListener('click', () => {
         if (isGameOver) {
             startGame();
@@ -343,6 +366,7 @@ export function init() {
             e.preventDefault();
         }
         
+        // ИЗМЕНЕНИЕ: Пауза по клавише 'p'
         if (e.key === 'p') {
             togglePause();
             return;
@@ -365,11 +389,6 @@ export function init() {
                 if (isValidMove(p)) currentPiece.y++;
                 break;
             case 'ArrowUp':
-                // ИЗМЕНЕНИЕ: Фигура "O" (квадрат) не поворачивается. Ее индекс в массиве SHAPES - 3.
-                if (currentPiece.shapeIndex === 3) {
-                    break;
-                }
-                
                 const rotatedShape = rotatePiece(currentPiece);
                 let testPiece = { ...currentPiece, shape: rotatedShape };
 
@@ -393,10 +412,13 @@ export function init() {
     
     window.addEventListener('keydown', keydownHandler);
 
+    // Mobile controls
     document.getElementById('tetris-btn-left').addEventListener('click', () => dispatchKeyEvent('ArrowLeft'));
     document.getElementById('tetris-btn-right').addEventListener('click', () => dispatchKeyEvent('ArrowRight'));
     document.getElementById('tetris-btn-down').addEventListener('click', () => dispatchKeyEvent('ArrowDown'));
     document.getElementById('tetris-btn-up').addEventListener('click', () => dispatchKeyEvent('ArrowUp'));
+    
+    // ИЗМЕНЕНИЕ: Добавлен обработчик для кнопки паузы
     document.getElementById('tetris-btn-pause').addEventListener('click', togglePause);
 
     function dispatchKeyEvent(key) {
