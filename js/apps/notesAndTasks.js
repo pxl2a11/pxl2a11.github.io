@@ -1,5 +1,7 @@
-// 21js/apps/notesAndTasks.js
+// 32js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
+
+// ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
 
 export function getHtml() {
     return `
@@ -16,8 +18,19 @@ export function getHtml() {
             .editable-element {
                 cursor: pointer;
                 display: inline-block; /* Это ключевое изменение */
-                /* Для заголовка и заметки нужна вся ширина, но кликабельная область будет только у текста */
                 width: 100%; 
+            }
+            /* --- ИЗМЕНЕНИЕ: Стили для перетаскивания --- */
+            .drag-handle {
+                cursor: grab;
+            }
+            .drag-handle:active {
+                cursor: grabbing;
+            }
+            /* Класс для "призрачного" элемента при перетаскивании */
+            .sortable-ghost {
+                opacity: 0.4;
+                background-color: #a0aec0;
             }
         </style>
         <div class="p-4">
@@ -80,6 +93,49 @@ export async function init() {
     let currentFilter = 'all';
 
     const saveLists = () => saveUserData('lists', lists);
+    
+    // --- ИЗМЕНЕНИЕ: Функция для инициализации перетаскивания ---
+    const initSortable = () => {
+        // 1. Делаем перетаскиваемым основной контейнер списков
+        new Sortable(listsContainer, {
+            animation: 150,
+            handle: '.list-drag-handle', // Элемент для захвата
+            draggable: '.list-card',     // Перетаскиваемые элементы
+            ghostClass: 'sortable-ghost',
+            onEnd: (evt) => {
+                // Обновляем порядок в массиве данных
+                const [movedItem] = lists.splice(evt.oldIndex, 1);
+                lists.splice(evt.newIndex, 0, movedItem);
+                saveLists();
+                renderLists(); // Перерисовываем для обновления индексов
+            },
+        });
+
+        // 2. Делаем перетаскиваемыми задачи внутри каждого списка
+        const taskContainers = listsContainer.querySelectorAll('.task-items-container');
+        taskContainers.forEach(container => {
+            const listIndex = parseInt(container.dataset.listIndex, 10);
+            if (isNaN(listIndex)) return;
+
+            new Sortable(container, {
+                animation: 150,
+                handle: '.task-drag-handle',
+                draggable: '.task-item-container',
+                ghostClass: 'sortable-ghost',
+                onEnd: (evt) => {
+                    const list = lists[listIndex];
+                    if (!list || !list.items) return;
+
+                    // Обновляем порядок в массиве задач конкретного списка
+                    const [movedTask] = list.items.splice(evt.oldIndex, 1);
+                    list.items.splice(evt.newIndex, 0, movedTask);
+                    saveLists();
+                    renderLists(); // Перерисовываем для обновления индексов
+                },
+            });
+        });
+    };
+
 
     // --- ЛОГИКА ОТРИСОВКИ ---
     const renderLists = () => {
@@ -95,12 +151,17 @@ export async function init() {
             let contentHtml = '';
 
             if (list.type === 'task') {
-                const sortedItems = [...list.items].sort((a, b) => a.completed - b.completed);
-                const tasksHtml = sortedItems.map((task) => {
+                // --- ИЗМЕНЕНИЕ: Удалена автоматическая сортировка для включения ручного перетаскивания ---
+                // const sortedItems = [...list.items].sort((a, b) => a.completed - b.completed);
+                const tasksHtml = list.items.map((task) => {
                     const taskIndex = lists[originalIndex].items.indexOf(task);
                     return `
                     <div class="task-item-container flex items-center justify-between p-1 rounded-md">
                         <div class="flex items-center flex-grow mr-2">
+                             <!-- ИЗМЕНЕНИЕ: Добавлена "ручка" для перетаскивания задачи -->
+                            <div class="task-drag-handle text-gray-400 p-1 mr-1 flex-shrink-0">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 6L9 4M9 12L9 10M9 18L9 14M15 6L15 4M15 12L15 10M15 18L15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
                             <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
                             <span data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-text editable-element ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
                         </div>
@@ -122,9 +183,16 @@ export async function init() {
             }
 
             return `
-                <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
+                <!-- ИЗМЕНЕНИЕ: Добавлен класс 'list-card' для SortableJS -->
+                <div class="list-card bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
                     <div class="flex justify-between items-start mb-2">
-                        <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
+                        <div class="flex items-center flex-grow">
+                             <!-- ИЗМЕНЕНИЕ: Добавлена "ручка" для перетаскивания списка -->
+                            <div class="list-drag-handle text-gray-400 p-1 mr-2 flex-shrink-0">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 6L9 4M9 12L9 10M9 18L9 14M15 6L15 4M15 12L15 10M15 18L15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
+                            <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
+                        </div>
                         <div class="flex items-center flex-shrink-0">
                             <button data-list-index="${originalIndex}" class="list-delete-btn p-1 text-red-500 hover:text-red-700 ml-1">
                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -133,10 +201,14 @@ export async function init() {
                             </button>
                         </div>
                     </div>
-                    <div class="space-y-1">${contentHtml}</div>
+                    <!-- ИЗМЕНЕНИЕ: Добавлены классы и data-атрибут для контейнера задач -->
+                    <div class="space-y-1 ${list.type === 'task' ? 'task-items-container' : ''}" data-list-index="${originalIndex}">${contentHtml}</div>
                 </div>
             `;
         }).join('');
+        
+        // --- ИЗМЕНЕНИЕ: Вызов функции инициализации перетаскивания после каждой отрисовки ---
+        initSortable();
     };
 
     // --- ЛОГИКА МОДАЛЬНОГО ОКНА (ТОЛЬКО ДЛЯ СОЗДАНИЯ) ---
@@ -216,6 +288,9 @@ export async function init() {
         // Активация редактирования по клику
         const editableTarget = target.closest('.editable-element');
         if (editableTarget && editableTarget.getAttribute('contenteditable') !== 'true') {
+            // --- ИЗМЕНЕНИЕ: Не активировать редактирование при клике на "ручку" ---
+            if(e.target.closest('.drag-handle')) return;
+            
             editableTarget.setAttribute('contenteditable', 'true');
             editableTarget.focus();
             const selection = window.getSelection();
@@ -343,28 +418,18 @@ export async function init() {
         }
     });
     
-    // --- ИСПРАВЛЕНИЕ ---
     // Обработка вставки для исключения стилей (современный метод)
     listsContainer.addEventListener('paste', e => {
         const target = e.target.closest('[contenteditable="true"]');
         if (target) {
-            // 1. Отменяем стандартное событие вставки
             e.preventDefault();
-            
-            // 2. Получаем чистый текст из буфера обмена
             const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-
-            // 3. Используем Selection API для вставки чистого текста
             const selection = window.getSelection();
             if (!selection.rangeCount) return;
-
             const range = selection.getRangeAt(0);
-            range.deleteContents(); // Удаляем выделенный текст (если есть)
-            
+            range.deleteContents();
             const textNode = document.createTextNode(text);
             range.insertNode(textNode);
-
-            // 4. Перемещаем курсор в конец вставленного текста
             selection.collapseToEnd();
         }
     });
