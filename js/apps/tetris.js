@@ -1,4 +1,4 @@
-// 17js/apps/tetris.js
+// 20js/apps/tetris.js
 
 let canvas, ctx, nextCanvas, nextCtx;
 let board;
@@ -48,7 +48,6 @@ class Piece {
 
     draw() {
         this.ctx.fillStyle = this.color;
-        // ИЗМЕНЕНИЕ: Добавлена обводка для блоков
         this.ctx.strokeStyle = '#000'; // Черная обводка
         this.ctx.lineWidth = 2;
 
@@ -75,7 +74,6 @@ function drawBoard() {
         row.forEach((value, x) => {
             if (value > 0) {
                 ctx.fillStyle = COLORS[value];
-                // ИЗМЕНЕНИЕ: Добавлена обводка для блоков
                 ctx.strokeStyle = '#000';
                 ctx.lineWidth = 2;
                 const currentX = x * BLOCK_SIZE;
@@ -97,7 +95,6 @@ function drawNextPiece() {
     const shape = nextPiece.shape;
     let minX = shape[0].length, maxX = -1, minY = shape.length, maxY = -1;
 
-    // Находим границы фигуры, чтобы отбросить пустые строки/столбцы
     shape.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value > 0) {
@@ -111,15 +108,12 @@ function drawNextPiece() {
 
     const pieceWidth = (maxX - minX + 1) * smallBlockSize;
     const pieceHeight = (maxY - minY + 1) * smallBlockSize;
-
-    // Вычисляем смещение для центрирования
     const offsetX = (nextCanvas.width - pieceWidth) / 2;
     const offsetY = (nextCanvas.height - pieceHeight) / 2;
 
     shape.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value > 0) {
-                // Рисуем блок с учетом смещения и границ фигуры
                 const currentX = offsetX + (x - minX) * smallBlockSize;
                 const currentY = offsetY + (y - minY) * smallBlockSize;
                 nextCtx.fillRect(currentX, currentY, smallBlockSize, smallBlockSize);
@@ -129,26 +123,16 @@ function drawNextPiece() {
     });
 }
 
-// ИЗМЕНЕНИЕ: Более надежная функция проверки хода
+
 function isValidMove(piece) {
     return piece.shape.every((row, dy) => {
         return row.every((value, dx) => {
-            if (value === 0) {
-                return true;
-            }
-
             let x = piece.x + dx;
             let y = piece.y + dy;
-
-            if (x < 0 || x >= COLS || y >= ROWS) {
-                return false;
-            }
-
-            if (y < 0) {
-                return true;
-            }
-
-            return board[y][x] === 0;
+            return (
+                value === 0 ||
+                (x >= 0 && x < COLS && y < ROWS && (!board[y] || board[y][x] === 0))
+            );
         });
     });
 }
@@ -287,14 +271,15 @@ function startGame() {
 export function getHtml() {
     return `
         <style>
+            /* ИЗМЕНЕНИЕ: Стили для светлой и темной темы */
             #tetris-board {
-                background-color: #0f172a; /* slate-900 */
-                border: 4px solid #475569; /* slate-600 */
+                background-color: #e2e8f0; /* slate-200 */
+                border: 4px solid #94a3b8; /* slate-400 */
             }
             .dark #tetris-board {
-                 border-color: #94a3b8; /* slate-400 */
+                background-color: #0f172a; /* slate-900 */
+                border-color: #475569; /* slate-600 */
             }
-            /* ИЗМЕНЕНИЕ: Стили для центрирования холста следующей фигуры */
             #tetris-next-piece-canvas {
                 background-color: transparent;
                 border: none;
@@ -399,7 +384,7 @@ export function init() {
             e.preventDefault();
         }
         
-        if (e.key === 'p') {
+        if (e.key === 'p' || e.key === 'P') {
             togglePause();
             return;
         }
@@ -424,20 +409,25 @@ export function init() {
                 const rotatedShape = rotatePiece(currentPiece);
                 let testPiece = { ...currentPiece, shape: rotatedShape };
 
-                // ИЗМЕНЕНИЕ: Улучшенная логика "wall kick" для вращения
-                const kickOffsets = currentPiece.shapeIndex === 2 // Это фигура 'I'?
-                    ? [ [0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2], [-1, 0], [2, 0] ] 
-                    : [ [0, 0], [-1, 0], [1, 0], [0, -1], [-1, -1], [1, -1] ]; 
+                // ИЗМЕНЕНИЕ: Исправлена логика вращения с "подталкиванием" от стены
+                const kickOffsets = [
+                    [0, 0],   // Без смещения
+                    [-1, 0],  // Сдвиг влево
+                    [1, 0],   // Сдвиг вправо
+                    [0, -1],  // Сдвиг вверх (для вращения у пола)
+                    [-2, 0],  // Сдвиг влево на 2 (для фигуры I)
+                    [2, 0]    // Сдвиг вправо на 2 (для фигуры I)
+                ];
 
                 for (const offset of kickOffsets) {
                     const tempX = testPiece.x + offset[0];
-                    const tempY = testPiece.y + offset[1];
-                    const p = { ...testPiece, x: tempX, y: tempY };
+                    const tempY = testPiece.y + offset[1]; // Важно: применяем смещение и по Y
+                    let p = { ...testPiece, x: tempX, y: tempY };
 
                     if (isValidMove(p)) {
                         currentPiece.shape = rotatedShape;
                         currentPiece.x = tempX;
-                        currentPiece.y = tempY;
+                        currentPiece.y = tempY; // Важно: обновляем и Y координату
                         break;
                     }
                 }
