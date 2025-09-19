@@ -263,6 +263,19 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "ТНТ4", 
+        logoUrl: "https://upload.wikimedia.org/wikipedia/ru/6/6c/%D0%A2%D0%9D%D0%A24_%28%D0%BB%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D1%81_2023_%D0%B3%D0%BE%D0%B4%D0%B0%29.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="//ok.ru/videoembed/979125083771?nochat=1&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "RU.TV", 
         logoUrl: "https://ramnet.ru/tv/logo/000000101.png",
         embedHtml: `
