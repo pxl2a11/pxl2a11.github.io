@@ -72,6 +72,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-09-19T09:00:00Z'), appName: 'Конвертер цветов', description: 'добавлена функция извлечения цветовой палитры из изображения.' },
     { date: getRussianDate('2025-09-19T08:00:00Z'), appName: 'Тетрис', description: 'добавлена новая классическая игра-головоломка «Тетрис» с управлением на клавиатуре и сенсорном экране.' },
     { date: getRussianDate('2025-09-17T11:00:00Z'), appName: 'Markdown Редактор', description: 'добавлено новое приложение для редактирования текста с разметкой Markdown и предпросмотром в реальном времени.' },
     { date: getRussianDate('2025-09-17T10:00:00Z'), appName: 'Конвертер цветов', description: 'добавлена поддержка цветовых моделей CMYK и HSV.' },
