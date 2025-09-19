@@ -1,53 +1,74 @@
 export function getHtml() {
     return `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div class="flex justify-center">
-                <div id="color-preview" class="w-48 h-48 rounded-full border-4 border-gray-200 dark:border-gray-600" style="background-color: #3B82F6;"></div>
-            </div>
-            <div class="flex flex-col gap-4">
-                 <div class="relative">
-                    <input type="color" id="color-picker" value="#3B82F6" class="absolute w-full h-full opacity-0 cursor-pointer">
-                    <div class="p-3 text-center border rounded-lg">Выберите цвет</div>
-                 </div>
-                <div>
-                    <label for="hex-input" class="block text-sm font-medium">HEX</label>
-                    <input type="text" id="hex-input" class="w-full p-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+        <div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 font-sans">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                
+                <!-- Левая колонка: Предпросмотр и Палитра -->
+                <div class="lg:col-span-2 flex flex-col items-center space-y-8">
+                    <div id="color-preview" class="w-56 h-56 rounded-full shadow-lg transition-colors duration-300" style="background-color: #3B82F6;"></div>
+                    
+                    <div class="w-full text-center">
+                         <div class="relative inline-block">
+                            <input type="color" id="color-picker" value="#3B82F6" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <button class="bg-blue-600 text-white hover:bg-blue-700 font-bold py-3 px-6 rounded-full transition-transform transform hover:scale-105 shadow-md w-full">
+                                Выбрать цвет
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Разделитель -->
+                    <div class="w-full border-t border-gray-200 dark:border-gray-700 my-4 lg:hidden"></div>
+
+                    <!-- Секция извлечения палитры -->
+                    <div class="w-full bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md space-y-4 text-center">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Извлечь палитру</h3>
+                        <input type="file" id="image-palette-input" class="hidden" accept="image/png, image/jpeg">
+                        <label for="image-palette-input" class="group flex flex-col justify-center items-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <svg class="w-10 h-10 mb-2 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h1.586a1 1 0 01.707.293l1.414 1.414a1 1 0 00.707.293H12a4 4 0 014 4v1m-6 4h6m-3-3v6"></path></svg>
+                            <p id="palette-placeholder" class="text-sm text-gray-500 dark:text-gray-400">Перетащите или <span class="font-semibold text-blue-600">выберите изображение</span></p>
+                        </label>
+                        <div id="palette-container" class="flex flex-wrap justify-center gap-4 pt-4 min-h-[48px]">
+                            <!-- Палитра появится здесь -->
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label for="rgb-input" class="block text-sm font-medium">RGB</label>
-                    <input type="text" id="rgb-input" class="w-full p-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+
+                <!-- Правая колонка: Поля ввода -->
+                <div class="lg:col-span-3 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
+                    <div class="space-y-5">
+                        <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Цветовые модели</h3>
+                        <!-- HEX -->
+                        <div class="relative">
+                            <label for="hex-input" class="absolute -top-2 left-2 inline-block bg-white dark:bg-gray-800 px-1 text-xs font-medium text-gray-900 dark:text-gray-300">HEX</label>
+                            <input type="text" id="hex-input" class="w-full p-3 pl-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition dark:bg-gray-700">
+                        </div>
+                        <!-- RGB -->
+                        <div class="relative">
+                            <label for="rgb-input" class="absolute -top-2 left-2 inline-block bg-white dark:bg-gray-800 px-1 text-xs font-medium text-gray-900 dark:text-gray-300">RGB</label>
+                            <input type="text" id="rgb-input" class="w-full p-3 pl-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition dark:bg-gray-700">
+                        </div>
+                        <!-- HSL -->
+                        <div class="relative">
+                            <label for="hsl-input" class="absolute -top-2 left-2 inline-block bg-white dark:bg-gray-800 px-1 text-xs font-medium text-gray-900 dark:text-gray-300">HSL</label>
+                            <input type="text" id="hsl-input" class="w-full p-3 pl-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition dark:bg-gray-700">
+                        </div>
+                        <!-- HSV -->
+                        <div class="relative">
+                            <label for="hsv-input" class="absolute -top-2 left-2 inline-block bg-white dark:bg-gray-800 px-1 text-xs font-medium text-gray-900 dark:text-gray-300">HSV</label>
+                            <input type="text" id="hsv-input" class="w-full p-3 pl-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition dark:bg-gray-700">
+                        </div>
+                        <!-- CMYK -->
+                        <div class="relative">
+                            <label for="cmyk-input" class="absolute -top-2 left-2 inline-block bg-white dark:bg-gray-800 px-1 text-xs font-medium text-gray-900 dark:text-gray-300">CMYK</label>
+                            <input type="text" id="cmyk-input" class="w-full p-3 pl-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition dark:bg-gray-700">
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label for="hsl-input" class="block text-sm font-medium">HSL</label>
-                    <input type="text" id="hsl-input" class="w-full p-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
-                </div>
-                 <div>
-                    <label for="hsv-input" class="block text-sm font-medium">HSV</label>
-                    <input type="text" id="hsv-input" class="w-full p-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
-                </div>
-                <div>
-                    <label for="cmyk-input" class="block text-sm font-medium">CMYK</label>
-                    <input type="text" id="cmyk-input" class="w-full p-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
-                </div>
-            </div>
-        </div>
-        <!-- Разделитель -->
-        <div class="border-t border-gray-200 dark:border-gray-700 my-8"></div>
-        <!-- Новая секция для извлечения палитры -->
-        <div class="space-y-4">
-            <h3 class="text-xl font-semibold text-center">Извлечь палитру из изображения</h3>
-            <div>
-                <input type="file" id="image-palette-input" class="hidden" accept="image/png, image/jpeg">
-                <label for="image-palette-input" class="inline-block w-full text-center bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3 px-6 rounded-lg cursor-pointer transition-colors">
-                    Выберите изображение
-                </label>
-            </div>
-            <div id="palette-container" class="flex flex-wrap justify-center gap-3 min-h-[50px]">
-                 <p id="palette-placeholder" class="text-gray-500 dark:text-gray-400">Палитра появится здесь...</p>
             </div>
         </div>
     `;
 }
+
 
 export function init() {
     // Получаем все элементы DOM
@@ -96,13 +117,24 @@ export function init() {
 
     // --- Функции парсинга входных данных ---
     function hexToAll(hex) {
-        let r = 0, g = 0, b = 0;
-        if (hex.length === 4) {
-            r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3];
-        } else if (hex.length === 7) {
-            r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6];
+        if (!hex || typeof hex !== 'string') return;
+        hex = hex.trim();
+        if (hex.startsWith('#')) {
+            hex = hex.substring(1);
         }
-        r = +r; g = +g; b = +b;
+        if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(hex)) return;
+
+
+        let r = 0, g = 0, b = 0;
+        if (hex.length === 3) {
+            r = parseInt(hex[0] + hex[0], 16);
+            g = parseInt(hex[1] + hex[1], 16);
+            b = parseInt(hex[2] + hex[2], 16);
+        } else if (hex.length === 6) {
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+        }
         return rgbToAll({r, g, b});
     }
     
@@ -228,6 +260,12 @@ export function init() {
             const img = new Image();
             img.onload = () => {
                 palettePlaceholder.textContent = 'Анализ цветов...';
+                paletteContainer.innerHTML = ''; // Очищаем контейнер перед анализом
+                const placeholderWrapper = document.createElement('div');
+                placeholderWrapper.className = 'flex justify-center items-center w-full';
+                placeholderWrapper.appendChild(palettePlaceholder);
+                paletteContainer.appendChild(placeholderWrapper);
+
                 setTimeout(() => {
                     const palette = extractPalette(img);
                     renderPalette(palette);
@@ -240,14 +278,32 @@ export function init() {
 
     function extractPalette(img, colorCount = 6) {
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width = img.width;
-        const height = canvas.height = img.height;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        // Масштабируем изображение для производительности
+        const MAX_WIDTH = 100;
+        const MAX_HEIGHT = 100;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+            if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+            }
+        } else {
+            if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+            }
+        }
+        canvas.width = width;
+        canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
 
         const imageData = ctx.getImageData(0, 0, width, height).data;
         const colorMap = {};
-        const colorStep = 40; 
+        const colorStep = 32; 
 
         for (let i = 0; i < imageData.length; i += 4) {
             if (imageData[i + 3] < 128) continue; 
@@ -276,7 +332,7 @@ export function init() {
             const r = Math.round(colorData.r / colorData.count);
             const g = Math.round(colorData.g / colorData.count);
             const b = Math.round(colorData.b / colorData.count);
-            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
         });
 
         return palette;
@@ -285,14 +341,14 @@ export function init() {
     function renderPalette(palette) {
         paletteContainer.innerHTML = '';
         if (palette.length === 0) {
-            paletteContainer.appendChild(palettePlaceholder);
             palettePlaceholder.textContent = 'Не удалось извлечь цвета.';
+            paletteContainer.appendChild(palettePlaceholder);
             return;
         }
 
         palette.forEach(colorHex => {
             const swatch = document.createElement('div');
-            swatch.className = 'w-12 h-12 rounded-lg shadow-inner cursor-pointer border-2 border-white dark:border-gray-500';
+            swatch.className = 'w-10 h-10 rounded-full cursor-pointer shadow-md transform hover:scale-110 transition-transform border-2 border-white dark:border-gray-600';
             swatch.style.backgroundColor = colorHex;
             swatch.title = `Нажмите, чтобы выбрать ${colorHex}`;
             swatch.addEventListener('click', () => {
