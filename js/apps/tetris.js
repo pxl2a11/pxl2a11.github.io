@@ -1,4 +1,4 @@
-// 07js/apps/tetris.js
+// 17js/apps/tetris.js
 
 let canvas, ctx, nextCanvas, nextCtx;
 let board;
@@ -129,16 +129,26 @@ function drawNextPiece() {
     });
 }
 
-
+// ИЗМЕНЕНИЕ: Более надежная функция проверки хода
 function isValidMove(piece) {
     return piece.shape.every((row, dy) => {
         return row.every((value, dx) => {
+            if (value === 0) {
+                return true;
+            }
+
             let x = piece.x + dx;
             let y = piece.y + dy;
-            return (
-                value === 0 ||
-                (x >= 0 && x < COLS && y < ROWS && (!board[y] || board[y][x] === 0))
-            );
+
+            if (x < 0 || x >= COLS || y >= ROWS) {
+                return false;
+            }
+
+            if (y < 0) {
+                return true;
+            }
+
+            return board[y][x] === 0;
         });
     });
 }
@@ -277,17 +287,19 @@ function startGame() {
 export function getHtml() {
     return `
         <style>
-            #tetris-board { /* Убрал #tetris-next-piece-canvas из этого правила */
+            #tetris-board {
                 background-color: #0f172a; /* slate-900 */
                 border: 4px solid #475569; /* slate-600 */
             }
-            .dark #tetris-board { /* Убрал #tetris-next-piece-canvas из этого правила */
+            .dark #tetris-board {
                  border-color: #94a3b8; /* slate-400 */
             }
-            /* ИЗМЕНЕНИЕ: Добавил правило, чтобы убрать фон и рамку у холста следующей фигуры */
+            /* ИЗМЕНЕНИЕ: Стили для центрирования холста следующей фигуры */
             #tetris-next-piece-canvas {
                 background-color: transparent;
                 border: none;
+                display: block;
+                margin: 4px auto 0;
             }
              .tetris-game-overlay {
                 position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -412,14 +424,20 @@ export function init() {
                 const rotatedShape = rotatePiece(currentPiece);
                 let testPiece = { ...currentPiece, shape: rotatedShape };
 
-                const kickOffsets = [[0, 0], [-1, 0], [1, 0], [-2, 0], [2, 0]];
+                // ИЗМЕНЕНИЕ: Улучшенная логика "wall kick" для вращения
+                const kickOffsets = currentPiece.shapeIndex === 2 // Это фигура 'I'?
+                    ? [ [0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2], [-1, 0], [2, 0] ] 
+                    : [ [0, 0], [-1, 0], [1, 0], [0, -1], [-1, -1], [1, -1] ]; 
 
                 for (const offset of kickOffsets) {
-                    let tempX = testPiece.x + offset[0];
-                    let p = { ...testPiece, x: tempX };
+                    const tempX = testPiece.x + offset[0];
+                    const tempY = testPiece.y + offset[1];
+                    const p = { ...testPiece, x: tempX, y: tempY };
+
                     if (isValidMove(p)) {
                         currentPiece.shape = rotatedShape;
                         currentPiece.x = tempX;
+                        currentPiece.y = tempY;
                         break;
                     }
                 }
