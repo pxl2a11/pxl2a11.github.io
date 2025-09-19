@@ -1,4 +1,4 @@
-// 16js/apps/tetris.js
+// 20js/apps/tetris.js
 
 let canvas, ctx, nextCanvas, nextCtx;
 let board;
@@ -35,10 +35,12 @@ const SHAPES = [
 ];
 
 class Piece {
-    constructor(shape, ctx) {
+    // ИЗМЕНЕНИЕ: Добавлен shapeIndex для отслеживания типа фигуры после поворотов
+    constructor(shape, ctx, shapeIndex) {
         this.shape = shape;
         this.ctx = ctx;
-        this.color = COLORS[SHAPES.indexOf(shape)];
+        this.shapeIndex = shapeIndex;
+        this.color = COLORS[this.shapeIndex];
         this.x = 3;
         this.y = 0;
     }
@@ -48,8 +50,8 @@ class Piece {
         this.shape.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value > 0) {
-                    // ИЗМЕНЕНИЕ: Рисуем кубик с отступом в 1px, чтобы создать эффект сетки
-                    this.ctx.fillRect((this.x + x) * BLOCK_SIZE, (this.y + y) * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                    // ИЗМЕНЕНИЕ: Убран "- 1", чтобы не было пробелов между блоками
+                    this.ctx.fillRect((this.x + x) * BLOCK_SIZE, (this.y + y) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
                 }
             });
         });
@@ -58,7 +60,8 @@ class Piece {
 
 function getNewPiece() {
     const rand = Math.floor(Math.random() * (SHAPES.length - 1)) + 1;
-    return new Piece(SHAPES[rand], ctx);
+    // ИЗМЕНЕНИЕ: Передаем индекс фигуры в конструктор
+    return new Piece(SHAPES[rand], ctx, rand);
 }
 
 function drawBoard() {
@@ -66,8 +69,8 @@ function drawBoard() {
         row.forEach((value, x) => {
             if (value > 0) {
                 ctx.fillStyle = COLORS[value];
-                // ИЗМЕНЕНИЕ: Рисуем кубик с отступом в 1px
-                ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                // ИЗМЕНЕНИЕ: Убран "- 1", чтобы не было пробелов между блоками
+                ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
             }
         });
     });
@@ -80,8 +83,8 @@ function drawNextPiece() {
     nextPiece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value > 0) {
-                 // ИЗМЕНЕНИЕ: Рисуем кубик с отступом в 1px
-                 nextCtx.fillRect(x * smallBlockSize, y * smallBlockSize, smallBlockSize - 1, smallBlockSize - 1);
+                 // ИЗМЕНЕНИЕ: Убран "- 1", чтобы не было пробелов между блоками
+                 nextCtx.fillRect(x * smallBlockSize, y * smallBlockSize, smallBlockSize, smallBlockSize);
             }
         });
     });
@@ -123,7 +126,8 @@ function freezePiece() {
         row.forEach((value, x) => {
             if (value > 0) {
                 if (currentPiece.y + y >= 0 && currentPiece.y + y < ROWS) {
-                    board[currentPiece.y + y][currentPiece.x + x] = SHAPES.indexOf(currentPiece.shape);
+                    // ИЗМЕНЕНИЕ: Используем сохраненный shapeIndex вместо indexOf, чтобы избежать ошибки с повернутыми фигурами
+                    board[currentPiece.y + y][currentPiece.x + x] = currentPiece.shapeIndex;
                 }
             }
         });
@@ -277,7 +281,7 @@ export function getHtml() {
 
 export function init() {
     canvas = document.getElementById('tetris-board');
-    ctx = canvas.getContext('2d');
+    ctx = canvas.getContext('d');
     nextCanvas = document.getElementById('tetris-next-piece-canvas');
     nextCtx = nextCanvas.getContext('2d');
     const overlay = document.getElementById('tetris-overlay');
@@ -315,9 +319,27 @@ export function init() {
                 if (isValidMove(p)) currentPiece.y++;
                 break;
             case 'ArrowUp':
-                const rotated = rotatePiece(currentPiece);
-                p = { ...currentPiece, shape: rotated };
-                if (isValidMove(p)) currentPiece.shape = rotated;
+                // ИЗМЕНЕНИЕ: Улучшенная логика поворота с "подталкиванием" от стен (wall kick)
+                const rotatedShape = rotatePiece(currentPiece);
+                let testPiece = { ...currentPiece, shape: rotatedShape };
+
+                const kickOffsets = [
+                    [0, 0],  // Без смещения
+                    [-1, 0], // Сдвиг влево
+                    [1, 0],  // Сдвиг вправо
+                    [-2, 0], // Сдвиг влево на 2 (для длинной фигуры I)
+                    [2, 0],  // Сдвиг вправо на 2 (для длинной фигуры I)
+                ];
+
+                for (const offset of kickOffsets) {
+                    let tempX = testPiece.x + offset[0];
+                    let p = { ...testPiece, x: tempX };
+                    if (isValidMove(p)) {
+                        currentPiece.shape = rotatedShape;
+                        currentPiece.x = tempX;
+                        break; // Выходим из цикла, как только нашли валидную позицию
+                    }
+                }
                 break;
         }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
