@@ -23,7 +23,8 @@ const appModules = [
     'calculator',
     'imageEditor',
     'onlineTv',
-    'markdownEditor'
+    'markdownEditor',
+    'tetris'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
