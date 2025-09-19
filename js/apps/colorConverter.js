@@ -8,11 +8,11 @@ export function getHtml() {
                     <div id="color-preview" class="w-56 h-56 rounded-full shadow-lg transition-colors duration-300" style="background-color: #3B82F6;"></div>
                     
                     <div class="w-full text-center">
-                         <div class="relative inline-block">
-                            <input type="color" id="color-picker" value="#3B82F6" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                            <button class="bg-blue-600 text-white hover:bg-blue-700 font-bold py-3 px-6 rounded-full transition-transform transform hover:scale-105 shadow-md w-full">
+                         <div class="relative inline-block w-full group">
+                            <input type="color" id="color-picker" value="#3B82F6" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                            <div class="bg-blue-600 text-white group-hover:bg-blue-700 font-bold py-3 px-6 rounded-full transition-transform transform group-hover:scale-105 shadow-md w-full">
                                 Выбрать цвет
-                            </button>
+                            </div>
                         </div>
                     </div>
 
@@ -247,7 +247,7 @@ export function init() {
         return rgbToAll({r: Math.round(r), g: Math.round(g), b: Math.round(b)});
     }
     
-    // --- НОВЫЙ КОД: Логика для извлечения палитры ---
+    // --- Логика для извлечения палитры ---
     
     imagePaletteInput.addEventListener('change', handleImageUpload);
 
@@ -341,8 +341,11 @@ export function init() {
     function renderPalette(palette) {
         paletteContainer.innerHTML = '';
         if (palette.length === 0) {
-            palettePlaceholder.textContent = 'Не удалось извлечь цвета.';
-            paletteContainer.appendChild(palettePlaceholder);
+            const originalPlaceholder = document.createElement('p');
+            originalPlaceholder.id = 'palette-placeholder';
+            originalPlaceholder.className = 'text-sm text-gray-500 dark:text-gray-400';
+            originalPlaceholder.textContent = 'Не удалось извлечь цвета.';
+            paletteContainer.appendChild(originalPlaceholder);
             return;
         }
 
