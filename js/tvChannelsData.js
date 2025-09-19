@@ -263,13 +263,13 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
-        name: "http://ru.tv/", 
+        name: "RU.TV", 
         logoUrl: "https://ramnet.ru/tv/logo/000000101.png",
         embedHtml: `
             <iframe
                 width="100%"
                 height="100%"
-                src="//ok.ru/videoembed/230273326594?nochat=1" frameborder="0" allow="autoplay"
+                src="//ok.ru/videoembed/230273326594?nochat=1&autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
