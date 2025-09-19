@@ -1,4 +1,4 @@
-// js/apps/tetris.js
+// 16js/apps/tetris.js
 
 let canvas, ctx, nextCanvas, nextCtx;
 let board;
@@ -48,7 +48,8 @@ class Piece {
         this.shape.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value > 0) {
-                    this.ctx.fillRect((this.x + x) * BLOCK_SIZE, (this.y + y) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                    // ИЗМЕНЕНИЕ: Рисуем кубик с отступом в 1px, чтобы создать эффект сетки
+                    this.ctx.fillRect((this.x + x) * BLOCK_SIZE, (this.y + y) * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
                 }
             });
         });
@@ -65,7 +66,8 @@ function drawBoard() {
         row.forEach((value, x) => {
             if (value > 0) {
                 ctx.fillStyle = COLORS[value];
-                ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                // ИЗМЕНЕНИЕ: Рисуем кубик с отступом в 1px
+                ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
             }
         });
     });
@@ -74,10 +76,12 @@ function drawBoard() {
 function drawNextPiece() {
     nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
     nextCtx.fillStyle = nextPiece.color;
+    const smallBlockSize = BLOCK_SIZE / 1.5;
     nextPiece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value > 0) {
-                 nextCtx.fillRect(x * (BLOCK_SIZE/1.5), y * (BLOCK_SIZE/1.5), (BLOCK_SIZE/1.5), (BLOCK_SIZE/1.5));
+                 // ИЗМЕНЕНИЕ: Рисуем кубик с отступом в 1px
+                 nextCtx.fillRect(x * smallBlockSize, y * smallBlockSize, smallBlockSize - 1, smallBlockSize - 1);
             }
         });
     });
@@ -118,7 +122,9 @@ function freezePiece() {
     currentPiece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value > 0) {
-                board[currentPiece.y + y][currentPiece.x + x] = SHAPES.indexOf(currentPiece.shape);
+                if (currentPiece.y + y >= 0 && currentPiece.y + y < ROWS) {
+                    board[currentPiece.y + y][currentPiece.x + x] = SHAPES.indexOf(currentPiece.shape);
+                }
             }
         });
     });
@@ -287,6 +293,11 @@ export function init() {
     });
 
     keydownHandler = (e) => {
+        // ИЗМЕНЕНИЕ: Предотвращаем скроллинг страницы при нажатии на стрелки
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            e.preventDefault();
+        }
+        
         if (isGameOver || isPaused) return;
 
         let p;
@@ -320,6 +331,7 @@ export function init() {
     document.getElementById('tetris-btn-left').addEventListener('click', () => dispatchKeyEvent('ArrowLeft'));
     document.getElementById('tetris-btn-right').addEventListener('click', () => dispatchKeyEvent('ArrowRight'));
     document.getElementById('tetris-btn-down').addEventListener('click', () => dispatchKeyEvent('ArrowDown'));
+    // ИЗМЕНЕНИЕ: Добавлена кнопка "вверх" для поворота
     document.getElementById('tetris-btn-up').addEventListener('click', () => dispatchKeyEvent('ArrowUp'));
     
     function dispatchKeyEvent(key) {
