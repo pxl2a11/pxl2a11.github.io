@@ -1,4 +1,4 @@
-// 32js/main.js
+// 48js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
