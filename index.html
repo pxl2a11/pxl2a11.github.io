@@ -86,7 +86,11 @@
 
     <!-- НОВАЯ СТРУКТУРА: Основной контейнер-обертка -->
     <div id="page-container">
-        <!-- Боковая панель (для вида приложения) или контейнер для хедера (для главной) -->
+        <main id="main-content">
+             <div id="dynamic-content-area" class="min-h-[450px] w-full"></div>
+             <div id="changelog-container"></div>
+        </main>
+
         <aside id="sidebar">
             <div id="sidebar-content-wrapper">
                 <div id="auth-and-theme-container">
@@ -119,13 +123,10 @@
                         <button data-sort="new" class="filter-btn">Новые</button>
                     </div>
                 </div>
+                <!-- НОВЫЙ КОНТЕЙНЕР для списка приложений в боковой панели -->
+                <div id="sidebar-app-list-container"></div>
             </div>
         </aside>
-
-        <main id="main-content">
-             <div id="dynamic-content-area" class="min-h-[450px] w-full"></div>
-             <div id="changelog-container"></div>
-        </main>
     </div>
     
     <!-- НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ -->
