@@ -368,22 +368,24 @@ html.dark {
 }
 
 /* --- НОВЫЕ СТИЛИ МАКЕТА --- */
+
+/* --- Макет для главной страницы --- */
 .page-container-home {
     display: flex;
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    padding-top: 5rem; /* Больше отступ сверху для главной */
-    padding-bottom: 2rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 1rem;
 }
 
+/* На главной странице сайдбар ведет себя как обычный блок в потоке */
 .page-container-home #sidebar {
     width: 100%;
     max-width: 42rem; /* ~max-w-4xl */
+    margin-top: 4rem;
 }
 
+/* На главной странице кнопки авторизации и темы - фиксированные */
 .page-container-home #auth-and-theme-container {
     position: fixed;
     top: 1rem;
@@ -404,17 +406,17 @@ html.dark {
 /* --- Макет для страницы приложения --- */
 .page-container-app {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Мобильный вид по умолчанию */
     gap: 1.5rem;
-    max-width: 80rem; /* ~max-w-7xl */
+    max-width: 90rem; /* ~max-w-screen-xl */
     margin: 0 auto;
     padding: 1rem;
 }
 
-/* На больших экранах - двухколоночный макет */
+/* Двухколоночный макет на больших экранах */
 @media (min-width: 1024px) {
     .page-container-app {
-        flex-direction: row;
+        flex-direction: row-reverse; /* Сайдбар справа */
     }
 }
 
@@ -440,34 +442,75 @@ html.dark {
         position: sticky;
         top: 1rem;
         align-self: flex-start;
-        max-height: calc(100vh - 2rem);
-        overflow-y: auto;
+        max-height: calc(100vh - 2rem); /* Ограничиваем высоту и делаем прокручиваемым */
     }
 }
+/* Обертка для контента сайдбара, чтобы прокручивался только он */
+#sidebar-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 
-/* В режиме приложения кнопки авторизации и темы находятся внутри боковой панели */
+/* На странице приложения кнопки авторизации - часть потока */
 .page-container-app #auth-and-theme-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    flex-shrink: 0;
 }
-/* Скрываем фильтры на странице приложения */
+
+/* Скрываем фильтры, но оставляем поиск */
 .page-container-app #filter-container {
     display: none;
 }
 
 .page-container-app #main-content {
     flex-grow: 1;
-    min-width: 0;
+    min-width: 0; /* Важно для flexbox, чтобы контент мог сжиматься */
 }
 
-/* Скрываем контейнер changelog на главной странице по умолчанию, JS его показывает */
+/* Приложение занимает всю ширину основного контента */
+.page-container-app #app-screen {
+    width: 100%;
+    max-width: none;
+}
+
+/* --- Стили для списка приложений в сайдбаре --- */
+#sidebar-app-list-container {
+    display: none; /* Скрыто по умолчанию */
+    margin-top: 1.5rem;
+    overflow-y: auto; /* Включаем скролл, если не помещается */
+    flex-grow: 1; /* Занимает оставшееся место в сайдбаре */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.page-container-app #sidebar-app-list-container {
+    display: flex; /* Показываем на странице приложения */
+}
+
+/* Компактный вид карточек в сайдбаре */
+.page-container-app #sidebar-app-list-container .app-item {
+    min-height: 72px;
+}
+.page-container-app #sidebar-app-list-container .app-item .app-icon-wrapper {
+    width: 60px;
+}
+.page-container-app #sidebar-app-list-container .app-item .app-icon-wrapper img {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+
+/* --- Управление видимостью контейнера changelog --- */
 #changelog-container {
     display: none;
 }
 .page-container-home #changelog-container {
-    display: block; /* Показываем на главной */
+    display: block; /* Показываем только на главной */
     margin-top: 2rem;
     padding: 1.5rem;
     background-color: rgba(255, 255, 255, 0.6);
