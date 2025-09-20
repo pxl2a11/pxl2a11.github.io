@@ -121,8 +121,8 @@ const homeScreenHtml = `
     </div>
 `;
 const appScreenHtml = `
-    <div id="app-screen" class="hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
-        <div class="flex items-center justify-between mb-6">
+    <div id="app-screen" class="hidden w-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
+        <div class="flex items-center justify-between mb-6 p-6">
             <div class="flex items-center">
                 <a href="/" id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"><svg class="h-6 w-6 text-gray-900 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></a>
                 <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>
@@ -133,9 +133,9 @@ const appScreenHtml = `
                 <span class="btn-text"></span>
             </button>
         </div>
-        <div id="app-content-container" class="mt-4"></div>
-        <div id="similar-apps-container" class="mt-12"></div>
-        <div id="app-changelog-container" class="mt-8"></div>
+        <div id="app-content-container" class="mt-4 px-6"></div>
+        <div id="similar-apps-container" class="mt-12 px-6"></div>
+        <div id="app-changelog-container" class="mt-8 px-6 pb-6"></div>
     </div>`;
 
 let sortableInstance = null;
@@ -190,7 +190,7 @@ function renderGoogleButton() {
 }
 
 function updateAuthStateUI(user) {
-    const myAppsButton = document.querySelector('[data-sort="my-apps"]');
+    const myAppsButton = document.querySelector('[data-sort=\"my-apps\"]');
     if (user) {
         if (userNameElement) userNameElement.textContent = user.displayName;
         if (userAvatarElement) userAvatarElement.src = user.photoURL;
@@ -316,7 +316,7 @@ async function renderSimilarApps(currentModule, container) {
     similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
     const topSimilar = similarModules.slice(0, 4);
     if (topSimilar.length === 0) { container.innerHTML = ''; container.classList.add('hidden'); return; }
-    container.innerHTML = `<h3 class="text-xl font-bold mb-4">Похожие приложения</h3>`;
+    container.innerHTML = `<h3 class=\"text-xl font-bold mb-4\">Похожие приложения</h3>`;
     const grid = document.createElement('div');
     grid.className = 'similar-apps-grid';
     topSimilar.forEach(module => {
@@ -341,16 +341,16 @@ async function router() {
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName];
-    const filterContainer = document.getElementById('filter-container');
+    const pageContainer = document.getElementById('page-container');
     
     if (appName) {
+        pageContainer.className = 'page-container-app';
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
-        filterContainer?.classList.add('hidden');
         dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
         appScreen.classList.remove('hidden');
         document.getElementById('app-title').textContent = appName;
-        changelogContainer.classList.add('hidden');
+        changelogContainer.style.display = 'none';
         document.title = `${appName} | Mini Apps`;
         try {
             const module = await import(`./apps/${moduleName}.js`);
@@ -364,13 +364,13 @@ async function router() {
             await renderSimilarApps(moduleName, similarAppsContainer);
             if (appName !== 'История изменений') renderChangelog(appName, null, appChangelogContainer);
         } catch (error) {
-            console.error(`Ошибка загрузки модуля для "${appName}" (${moduleName}.js):`, error);
-            document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
+            console.error(`Ошибка загрузки модуля для \"${appName}\" (${moduleName}.js):`, error);
+            document.getElementById('app-content-container').innerHTML = `<p class=\"text-center text-red-500\">Не удалось загрузить приложение.</p>`;
         }
     } else {
+        pageContainer.className = 'page-container-home';
         dynamicContentArea.innerHTML = homeScreenHtml;
-        filterContainer?.classList.remove('hidden');
-        changelogContainer.classList.remove('hidden');
+        changelogContainer.style.display = 'block';
         document.title = 'Mini Apps';
         setupFilters();
         renderChangelog(null, 3, changelogContainer);
@@ -429,7 +429,7 @@ function setupSearch() {
             suggestions.slice(0, 7).forEach(suggestion => {
                 const suggestionEl = document.createElement('div');
                 suggestionEl.className = 'suggestion-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
-                suggestionEl.innerHTML = `<span class="suggestion-name">${suggestion.name}</span><span class="suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4">${suggestion.hashtags.join(' ')}</span>`;
+                suggestionEl.innerHTML = `<span class=\"suggestion-name\">${suggestion.name}</span><span class=\"suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4\">${suggestion.hashtags.join(' ')}</span>`;
                 suggestionEl.addEventListener('click', () => {
                     if (suggestion.module) {
                         history.pushState({}, '', `?app=${suggestion.module}`);
@@ -472,7 +472,7 @@ async function applyAppListFilterAndRender() {
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
         if (appElements.length === 0 && activeFilter === 'my-apps') {
-            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400">У вас пока нет добавленных приложений. Нажмите "+" на карточке приложения, чтобы добавить его сюда.</p>`;
+            appsContainer.innerHTML = `<p class=\"col-span-full text-center text-gray-500 dark:text-gray-400\">У вас пока нет добавленных приложений. Нажмите \"+\" на карточке приложения, чтобы добавить его сюда.</p>`;
             return;
         }
         appElements.forEach(app => {
@@ -565,13 +565,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
     });
-    dynamicContentArea.addEventListener('click', async e => {
+    document.body.addEventListener('click', async e => {
         const addBtn = e.target.closest('.add-to-my-apps-btn');
         if (addBtn) {
             e.preventDefault(); 
             e.stopPropagation();
             if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \"Мои приложения\".');
                 return;
             }
             const appCard = addBtn.closest('.app-item');
@@ -582,7 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
         if (addBtnAppView) {
             if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
+                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в \"Мои приложения\".');
                 return;
             }
             const moduleName = addBtnAppView.dataset.module;
@@ -614,10 +614,10 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
-            const myAppsButton = document.querySelector('[data-sort="my-apps"]');
+            const myAppsButton = document.querySelector('[data-sort=\"my-apps\"]');
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
-                document.querySelector('[data-sort="default"]')?.classList.add('active');
+                document.querySelector('[data-sort=\"default\"]')?.classList.add('active');
             }
         }
 
@@ -629,8 +629,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const appModule = params.get('app');
             if (user && !appModule) {
-                document.querySelector('[data-sort="default"]')?.classList.remove('active');
-                document.querySelector('[data-sort="my-apps"]')?.classList.add('active');
+                document.querySelector('[data-sort=\"default\"]')?.classList.remove('active');
+                document.querySelector('[data-sort=\"my-apps\"]')?.classList.add('active');
             }
             
             await router(); 
