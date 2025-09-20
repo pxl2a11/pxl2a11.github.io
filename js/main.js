@@ -1,4 +1,4 @@
-// 48js/main.js
+// 32js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -121,8 +121,8 @@ const homeScreenHtml = `
     </div>
 `;
 const appScreenHtml = `
-    <div id="app-screen" class="hidden w-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
-        <div class="flex items-center justify-between mb-6 p-6">
+    <div id="app-screen" class="w-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors flex flex-col h-full">
+        <div class="flex items-center justify-between mb-6 p-6 flex-shrink-0">
             <div class="flex items-center">
                 <a href="/" id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"><svg class="h-6 w-6 text-gray-900 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></a>
                 <h2 id="app-title" class="text-2xl font-bold ml-4"></h2>
@@ -133,9 +133,9 @@ const appScreenHtml = `
                 <span class="btn-text"></span>
             </button>
         </div>
-        <div id="app-content-container" class="mt-4 px-6"></div>
-        <div id="similar-apps-container" class="mt-12 px-6"></div>
-        <div id="app-changelog-container" class="mt-8 px-6 pb-6"></div>
+        <div id="app-content-container" class="mt-4 px-6 flex-grow overflow-y-auto"></div>
+        <div id="similar-apps-container" class="mt-12 px-6 flex-shrink-0"></div>
+        <div id="app-changelog-container" class="mt-8 px-6 pb-6 flex-shrink-0"></div>
     </div>`;
 
 let sortableInstance = null;
@@ -332,12 +332,31 @@ async function renderSimilarApps(currentModule, container) {
     container.classList.remove('hidden');
 }
 
+async function renderSidebarAppList() {
+    const container = document.getElementById('sidebar-app-list-container');
+    if (!container) return;
+    container.innerHTML = '';
+    const myApps = await getMyApps();
+    allAppCards.forEach(card => {
+        const cardClone = card.cloneNode(true);
+        const moduleName = cardClone.dataset.module;
+        const button = cardClone.querySelector('.add-to-my-apps-btn');
+        if (button) {
+            button.classList.toggle('is-added', myApps.includes(moduleName));
+        }
+        container.appendChild(cardClone);
+    });
+}
+
 async function router() {
     if (activeAppModule && typeof activeAppModule.cleanup === 'function') {
         activeAppModule.cleanup();
     }
     activeAppModule = null;
     dynamicContentArea.innerHTML = '';
+    const sidebarAppListContainer = document.getElementById('sidebar-app-list-container');
+    if (sidebarAppListContainer) sidebarAppListContainer.innerHTML = '';
+
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName];
@@ -353,6 +372,7 @@ async function router() {
         changelogContainer.style.display = 'none';
         document.title = `${appName} | Mini Apps`;
         try {
+            await renderSidebarAppList();
             const module = await import(`./apps/${moduleName}.js`);
             activeAppModule = module;
             const appContentContainer = document.getElementById('app-content-container');
@@ -441,7 +461,11 @@ function setupSearch() {
         } else {
             suggestionsContainer.classList.add('hidden');
         }
-        const appsContainer = document.getElementById('apps-container');
+        
+        const pageContainer = document.getElementById('page-container');
+        const appListContainerSelector = pageContainer.classList.contains('page-container-app') ? '#sidebar-app-list-container' : '#apps-container';
+        const appsContainer = document.querySelector(appListContainerSelector);
+
         if (appsContainer) {
             const visibleAppCards = appsContainer.querySelectorAll('.app-item');
             visibleAppCards.forEach(app => {
@@ -460,7 +484,6 @@ async function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer) return;
     
-    // Всегда отключаем режим сортировки при смене фильтра
     destroyDragAndDrop();
     isSortingMode = false;
     
