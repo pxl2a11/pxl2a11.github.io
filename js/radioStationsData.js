@@ -56,6 +56,9 @@ export const radioStations = [
     { name: "Comedy Radio", logoUrl: "https://top-radio.ru/assets/image/radio/180/comedy-radio.png", streams: [
         { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/200" },
         { name: "64 kbps (резерв)", url: "https://srv21.gpmradio.ru:8443/stream/air/aac/64/202" }] },
+    { name: "STUDIO 21", logoUrl: "https://top-radio.ru/assets/image/radio/180/comedy-radio.png", streams: [
+        { name: "96 kbps", url: "https://stream.studio21.ru/studio2196.aacp" },
+        { name: "96 kbps (резерв)", url: "https://hls.studio21.ru/studio21/playlist.m3u8" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
