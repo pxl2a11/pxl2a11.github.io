@@ -1,4 +1,4 @@
-// 57js/main.js
+// 3js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
