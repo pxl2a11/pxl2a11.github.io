@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <meta charset="UTF-8">
     <title>Mini Apps</title>
 
@@ -88,7 +88,17 @@
     <div class="flex min-h-screen">
 
         <!-- САЙДБАР (по умолчанию скрыт, управляется через CSS) -->
-        <aside id="sidebar" class="hidden fixed top-0 left-0 w-80 h-full bg-white dark:bg-slate-900/70 backdrop-blur-lg border-r border-slate-200/50 dark:border-slate-700/50 z-40 p-4 flex flex-col transition-transform duration-300 ease-in-out">
+        <aside id="sidebar" class="hidden fixed top-0 w-80 h-full bg-white dark:bg-slate-900/70 backdrop-blur-lg border-slate-200/50 dark:border-slate-700/50 z-40 p-4 flex flex-col transition-all duration-300 ease-in-out">
+            <!-- НОВЫЕ КНОПКИ УПРАВЛЕНИЯ -->
+            <div id="sidebar-controls" class="absolute top-3 flex gap-2">
+                <button id="collapse-sidebar-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Скрыть меню">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button id="toggle-sidebar-position-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Переместить меню">
+                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                </button>
+            </div>
+
             <h1 class="text-3xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
                 <a href="/" id="sidebar-home-link">Mini Apps</a>
             </h1>
@@ -121,6 +131,11 @@
                  </div>
             </div>
         </aside>
+        
+        <!-- КНОПКА ДЛЯ ПОКАЗА СКРЫТОГО МЕНЮ -->
+        <button id="show-sidebar-btn" class="hidden fixed top-1/2 -translate-y-1/2 z-30 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-r-lg shadow-lg hover:bg-gray-200 dark:hover:bg-gray-700">
+             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
 
         <!-- ОСНОВНОЙ КОНТЕНТ (главная страница или приложение) -->
         <main id="main-content-wrapper" class="flex-grow transition-all duration-300 ease-in-out p-4 flex flex-col">
