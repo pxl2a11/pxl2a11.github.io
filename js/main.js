@@ -1,21 +1,14 @@
-// 38js/main.js
+// 45js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { fetchUserAccountData, clearUserData, getUserData, saveUserData, setOnDataLoaded } from './dataManager.js';
 
-// --- Сопоставление имен приложений и метаданные ---
-const appNameToModuleFile = {
-    'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Процентный калькулятор': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Редактор изображений': 'imageEditor', 'Транслитерация текста': 'textTranslit', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Конвертер часовых поясов': 'timezoneConverter', 'Текст в речь': 'textToSpeech', 'Камень, ножницы, бумага': 'rockPaperScissors', 'Судоку': 'sudoku', 'Архиватор файлов (ZIP)': 'zipArchiver', '2048': 'game2048', 'Генератор штрих-кодов': 'barcodeGenerator', 'Диктофон': 'voiceRecorder', 
-    'Генератор каркаса сайта': 'siteSkeletonGenerator', 'Тест мыши': 'mouseTester', 'Тест клавиатуры': 'keyboardTester', 'Графический редактор': 'drawingPad', 'Сравнение текста': 'textDiffTool', 'Генератор favicon': 'faviconGenerator', 'Анализатор текста': 'textAnalyzer', 'Калькулятор кредита': 'loanCalculator', 'Тест скорости печати': 'typingTest', 'Запись экрана': 'screenRecorder', 'Flappy Bird': 'flappyBird', 'Виртуальный кубик': 'virtualDice', 'Калькулятор калорий': 'calorieCalculator', 'Калькулятор': 'calculator', 'ТВ онлайн': 'onlineTv', 'Markdown Редактор': 'markdownEditor', 'Тетрис': 'tetris',
-};
-const appPopularity = {
-    'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageEditor': 93, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74, 'timezoneConverter': 84, 'textToSpeech': 73, 'rockPaperScissors': 67, 'sudoku': 80, 'zipArchiver': 88, 'game2048': 79, 'barcodeGenerator': 84, 'voiceRecorder': 82, 'siteSkeletonGenerator': 78, 'mouseTester': 75, 'keyboardTester': 76, 'drawingPad': 80, 'textDiffTool': 70, 'faviconGenerator': 85, 'textAnalyzer': 82, 'loanCalculator': 80, 'typingTest': 88, 'Recorder': 90, 'flappyBird': 78, 'virtualDice': 70, 'calorieCalculator': 80, 'calculator': 98, 'onlineTv': 90, 'markdownEditor': 85, 'tetris': 96,
-};
-const appSearchMetadata = {
-    'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] }, 'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] }, 'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] }, 'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] }, 'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] }, 'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] }, 'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] }, 'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] }, 'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] }, 'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] }, 'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] }, 'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] }, 'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] }, 'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random', '#color'] }, 'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] }, 'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] }, 'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] }, 'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] }, 'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] }, 'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] }, 'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] }, 'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] }, 'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] }, 'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] }, 'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] }, 'textTranslit': { keywords: ['транслит', 'латиница', 'кириллица', 'текст', 'перевод', 'cyrillic', 'latin'], hashtags: ['#text', '#tools'] }, 'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] }, 'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },'timezoneConverter': { keywords: ['время', 'часовой пояс', 'конвертер', 'utc', 'gmt', 'разница во времени', 'timezone'], hashtags: ['#time', '#converter', '#tools'] },'textToSpeech': { keywords: ['голос', 'озвучка', 'читать', 'синтез', 'речи', 'tts'], hashtags: ['#audio', '#tools'] },'rockPaperScissors': { keywords: ['игра', 'камень', 'ножницы', 'бумага', 'цу-е-фа'], hashtags: ['#game', '#fun'] },'sudoku': { keywords: ['игра', 'головоломка', 'цифры', 'логика', 'судоку'], hashtags: ['#game', '#logic'] },'zipArchiver': { keywords: ['zip', 'архив', 'архиватор', 'сжать', 'распаковать', 'файлы', 'папка'], hashtags: ['#tools', '#files'] },'game2048': { keywords: ['игра', 'головоломка', 'цифры', '2048', 'логика'], hashtags: ['#game', '#logic'] },'barcodeGenerator': { keywords: ['штрих-код', 'ean', 'code128', 'создать', 'генератор', 'товар'], hashtags: ['#tools', '#generator'] },'voiceRecorder': { keywords: ['диктофон', 'запись', 'голос', 'аудио', 'микрофон', 'записать', 'record'], hashtags: ['#audio', '#tools'] },'siteSkeletonGenerator': { keywords: ['каркас', 'структура', 'сайт', 'json', 'генератор', 'zip', 'архив'], hashtags: ['#tools', '#generator', '#webdev'] },'mouseTester': { keywords: ['мышь', 'мышка', 'кнопки', 'колесико', 'проверка', 'клик', 'scroll', 'mouse', 'test'], hashtags: ['#tools', '#hardware'] },'keyboardTester': { keywords: ['клавиатура', 'клавиши', 'проверка', 'нажатие', 'печать', 'keyboard', 'test'], hashtags: ['#tools', '#hardware'] },'drawingPad': { keywords: ['рисование', 'редактор', 'холст', 'кисть', 'paint', 'draw', 'графика'], hashtags: ['#fun', '#design', '#tools'] },'textDiffTool': { keywords: ['сравнение', 'текст', 'различия', 'diff', 'код'], hashtags: ['#text', '#tools', '#webdev'] },'faviconGenerator': { keywords: ['favicon', 'иконка', 'сайт', 'генератор', 'png', 'ico'], hashtags: ['#image', '#tools', '#webdev'] },'textAnalyzer': { keywords: ['анализ', 'статистика', 'текст', 'слова', 'ключевые', 'частота', 'счетчик', 'символы', 'подсчет'], hashtags: ['#text', '#tools'] },'loanCalculator': { keywords: ['кредит', 'ипотека', 'калькулятор', 'платеж', 'проценты', 'финансы'], hashtags: ['#finance', '#calculator'] },'typingTest': { keywords: ['печать', 'скорость', 'тест', 'клавиатура', 'wpm', 'набор', 'текста'], hashtags: ['#tools', '#fun'] },'Recorder': { keywords: ['запись', 'экрана', 'видео', 'демонстрация', 'cast', 'record'], hashtags: ['#tools', '#video'] },'flappyBird': { keywords: ['игра', 'птица', 'трубы', 'аркада', 'flappy', 'bird'], hashtags: ['#game', '#fun'] },'virtualDice': { keywords: ['кубик', 'кости', 'dnd', 'dice', 'roll', 'жребий', 'случайность', 'd4', 'd6', 'd20'], hashtags: ['#game', '#fun', '#random'] },'calorieCalculator': { keywords: ['калории', 'бжу', 'диета', 'похудение', 'питание', 'норма', 'расчет'], hashtags: ['#health', '#calculator'] },'calculator': { keywords: ['калькулятор', 'вычисления', 'математика', 'сложение', 'умножение', 'calc'], hashtags: ['#math', '#tools', '#calculator'] },'imageEditor': { keywords: ['редактор', 'изображение', 'картинка', 'фото', 'изменить', 'размер', 'конвертер', 'формат', 'png', 'jpg', 'webp', 'ресайз', 'resize', 'обработка'], hashtags: ['#image', '#tools'] },'onlineTv': { keywords: ['тв', 'телевизор', 'каналы', 'смотреть', 'онлайн', 'трансляция', 'tv', 'online'], hashtags: ['#entertainment', '#video'] },'markdownEditor': { keywords: ['markdown', 'редактор', 'md', 'текст', 'разметка', 'html', 'форматирование'], hashtags: ['#text', '#tools', '#webdev'] },'tetris': { keywords: ['тетрис', 'игра', 'блоки', 'головоломка', 'классика', 'tetris'], hashtags: ['#game', '#fun', '#logic'] },
-};
+// --- Сопоставление имен приложений и метаданные (без изменений) ---
+const appNameToModuleFile = {'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Процентный калькулятор': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Редактор изображений': 'imageEditor', 'Транслитерация текста': 'textTranslit', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Конвертер часовых поясов': 'timezoneConverter', 'Текст в речь': 'textToSpeech', 'Камень, ножницы, бумага': 'rockPaperScissors', 'Судоку': 'sudoku', 'Архиватор файлов (ZIP)': 'zipArchiver', '2048': 'game2048', 'Генератор штрих-кодов': 'barcodeGenerator', 'Диктофон': 'voiceRecorder', 'Генератор каркаса сайта': 'siteSkeletonGenerator', 'Тест мыши': 'mouseTester', 'Тест клавиатуры': 'keyboardTester', 'Графический редактор': 'drawingPad', 'Сравнение текста': 'textDiffTool', 'Генератор favicon': 'faviconGenerator', 'Анализатор текста': 'textAnalyzer', 'Калькулятор кредита': 'loanCalculator', 'Тест скорости печати': 'typingTest', 'Запись экрана': 'screenRecorder', 'Flappy Bird': 'flappyBird', 'Виртуальный кубик': 'virtualDice', 'Калькулятор калорий': 'calorieCalculator', 'Калькулятор': 'calculator', 'ТВ онлайн': 'onlineTv', 'Markdown Редактор': 'markdownEditor', 'Тетрис': 'tetris'};
+const appPopularity = {'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageEditor': 93, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74, 'timezoneConverter': 84, 'textToSpeech': 73, 'rockPaperScissors': 67, 'sudoku': 80, 'zipArchiver': 88, 'game2048': 79, 'barcodeGenerator': 84, 'voiceRecorder': 82, 'siteSkeletonGenerator': 78, 'mouseTester': 75, 'keyboardTester': 76, 'drawingPad': 80, 'textDiffTool': 70, 'faviconGenerator': 85, 'textAnalyzer': 82, 'loanCalculator': 80, 'typingTest': 88, 'Recorder': 90, 'flappyBird': 78, 'virtualDice': 70, 'calorieCalculator': 80, 'calculator': 98, 'onlineTv': 90, 'markdownEditor': 85, 'tetris': 96};
+const appSearchMetadata = {'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] }, 'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] }, 'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] }, 'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] }, 'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] }, 'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] }, 'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] }, 'timer': { keywords: ['countdown', 'отсчет', 'время'], hashtags: ['#time', '#tools'] }, 'fortuneWheel': { keywords: ['рулетка', 'случайный', 'выбор', 'жребий'], hashtags: ['#random', '#game'] }, 'magicBall': { keywords: ['предсказание', 'ответ', 'восьмерка', 'да нет'], hashtags: ['#fun', '#game'] }, 'ticTacToe': { keywords: ['игра', 'крестики', 'нолики', 'вдвоем'], hashtags: ['#game'] }, 'minesweeper': { keywords: ['игра', 'мины', 'головоломка', 'логика'], hashtags: ['#game', '#logic'] }, 'stopwatch': { keywords: ['время', 'хронометр', 'измерить'], hashtags: ['#time', '#tools'] }, 'randomColor': { keywords: ['цвет', 'случайный', 'палитра', 'дизайн', 'hex'], hashtags: ['#design', '#random', '#color'] }, 'numberGenerator': { keywords: ['случайное', 'число', 'рандом', 'выбор'], hashtags: ['#random', '#math'] }, 'qrCodeGenerator': { keywords: ['qr', 'код', 'куар', 'ссылка'], hashtags: ['#tools', '#generator'] }, 'emojiAndSymbols': { keywords: ['эмодзи', 'символы', 'скопировать', 'смайлик'], hashtags: ['#text', '#tools'] }, 'unitConverter': { keywords: ['конвертер', 'единицы', 'измерения', 'перевести'], hashtags: ['#converter', '#math'] }, 'dateCalculator': { keywords: ['дата', 'дни', 'календарь', 'разница'], hashtags: ['#time', '#calculator'] }, 'bmiCalculator': { keywords: ['имт', 'вес', 'рост', 'здоровье', 'индекс массы тела'], hashtags: ['#health', '#calculator'] }, 'qrScanner': { keywords: ['qr', 'код', 'сканер', 'читать', 'камера', 'scan'], hashtags: ['#tools', '#camera'] }, 'piano': { keywords: ['пианино', 'синтезатор', 'музыка', 'играть', 'клавиши'], hashtags: ['#music', '#fun'] }, 'caseConverter': { keywords: ['конвертер', 'регистр', 'текст', 'верхний', 'нижний', 'заглавные', 'буквы', 'case'], hashtags: ['#text', '#tools'] }, 'colorConverter': { keywords: ['конвертер', 'цвет', 'hex', 'rgb', 'hsl', 'палитра', 'код цвета'], hashtags: ['#color', '#design', '#converter'] }, 'memoryGame': { keywords: ['игра', 'память', 'карточки', 'пары', 'тренировка', 'запомнить'], hashtags: ['#game', '#fun', '#logic'] }, 'textTranslit': { keywords: ['транслит', 'латиница', 'кириллица', 'текст', 'перевод', 'cyrillic', 'latin'], hashtags: ['#text', '#tools'] }, 'currencyCalculator': { keywords: ['валюта', 'курс', 'доллар', 'евро', 'рубль', 'конвертер', 'обмен'], hashtags: ['#finance', '#calculator', '#converter'] }, 'snakeGame': { keywords: ['игра', 'змейка', 'классика', 'аркада', 'snake'], hashtags: ['#game', '#fun'] },'timezoneConverter': { keywords: ['время', 'часовой пояс', 'конвертер', 'utc', 'gmt', 'разница во времени', 'timezone'], hashtags: ['#time', '#converter', '#tools'] },'textToSpeech': { keywords: ['голос', 'озвучка', 'читать', 'синтез', 'речи', 'tts'], hashtags: ['#audio', '#tools'] },'rockPaperScissors': { keywords: ['игра', 'камень', 'ножницы', 'бумага', 'цу-е-фа'], hashtags: ['#game', '#fun'] },'sudoku': { keywords: ['игра', 'головоломка', 'цифры', 'логика', 'судоку'], hashtags: ['#game', '#logic'] },'zipArchiver': { keywords: ['zip', 'архив', 'архиватор', 'сжать', 'распаковать', 'файлы', 'папка'], hashtags: ['#tools', '#files'] },'game2048': { keywords: ['игра', 'головоломка', 'цифры', '2048', 'логика'], hashtags: ['#game', '#logic'] },'barcodeGenerator': { keywords: ['штрих-код', 'ean', 'code128', 'создать', 'генератор', 'товар'], hashtags: ['#tools', '#generator'] },'voiceRecorder': { keywords: ['диктофон', 'запись', 'голос', 'аудио', 'микрофон', 'записать', 'record'], hashtags: ['#audio', '#tools'] },'siteSkeletonGenerator': { keywords: ['каркас', 'структура', 'сайт', 'json', 'генератор', 'zip', 'архив'], hashtags: ['#tools', '#generator', '#webdev'] },'mouseTester': { keywords: ['мышь', 'мышка', 'кнопки', 'колесико', 'проверка', 'клик', 'scroll', 'mouse', 'test'], hashtags: ['#tools', '#hardware'] },'keyboardTester': { keywords: ['клавиатура', 'клавиши', 'проверка', 'нажатие', 'печать', 'keyboard', 'test'], hashtags: ['#tools', '#hardware'] },'drawingPad': { keywords: ['рисование', 'редактор', 'холст', 'кисть', 'paint', 'draw', 'графика'], hashtags: ['#fun', '#design', '#tools'] },'textDiffTool': { keywords: ['сравнение', 'текст', 'различия', 'diff', 'код'], hashtags: ['#text', '#tools', '#webdev'] },'faviconGenerator': { keywords: ['favicon', 'иконка', 'сайт', 'генератор', 'png', 'ico'], hashtags: ['#image', '#tools', '#webdev'] },'textAnalyzer': { keywords: ['анализ', 'статистика', 'текст', 'слова', 'ключевые', 'частота', 'счетчик', 'символы', 'подсчет'], hashtags: ['#text', '#tools'] },'loanCalculator': { keywords: ['кредит', 'ипотека', 'калькулятор', 'платеж', 'проценты', 'финансы'], hashtags: ['#finance', '#calculator'] },'typingTest': { keywords: ['печать', 'скорость', 'тест', 'клавиатура', 'wpm', 'набор', 'текста'], hashtags: ['#tools', '#fun'] },'Recorder': { keywords: ['запись', 'экрана', 'видео', 'демонстрация', 'cast', 'record'], hashtags: ['#tools', '#video'] },'flappyBird': { keywords: ['игра', 'птица', 'трубы', 'аркада', 'flappy', 'bird'], hashtags: ['#game', '#fun'] },'virtualDice': { keywords: ['кубик', 'кости', 'dnd', 'dice', 'roll', 'жребий', 'случайность', 'd4', 'd6', 'd20'], hashtags: ['#game', '#fun', '#random'] },'calorieCalculator': { keywords: ['калории', 'бжу', 'диета', 'похудение', 'питание', 'норма', 'расчет'], hashtags: ['#health', '#calculator'] },'calculator': { keywords: ['калькулятор', 'вычисления', 'математика', 'сложение', 'умножение', 'calc'], hashtags: ['#math', '#tools', '#calculator'] },'imageEditor': { keywords: ['редактор', 'изображение', 'картинка', 'фото', 'изменить', 'размер', 'конвертер', 'формат', 'png', 'jpg', 'webp', 'ресайз', 'resize', 'обработка'], hashtags: ['#image', '#tools'] },'onlineTv': { keywords: ['тв', 'телевизор', 'каналы', 'смотреть', 'онлайн', 'трансляция', 'tv', 'online'], hashtags: ['#entertainment', '#video'] },'markdownEditor': { keywords: ['markdown', 'редактор', 'md', 'текст', 'разметка', 'html', 'форматирование'], hashtags: ['#text', '#tools', '#webdev'] },'tetris': { keywords: ['тетрис', 'игра', 'блоки', 'головоломка', 'классика', 'tetris'], hashtags: ['#game', '#fun', '#logic'] }};
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
@@ -184,13 +177,26 @@ async function updateAppViewButton(moduleName, myAppsList) {
     const myApps = myAppsList || await getMyApps();
     const button = document.getElementById('add-to-my-apps-app-view-btn');
     if (!button) return;
+
     const isAdded = myApps.includes(moduleName);
     const textSpan = button.querySelector('.btn-text');
-    button.classList.toggle('remove-style', isAdded);
-    button.classList.toggle('add-style', !isAdded);
-    textSpan.textContent = isAdded ? 'Удалить' : 'Добавить';
-}
+    const plusIcon = button.querySelector('.plus-icon');
+    const crossIcon = button.querySelector('.cross-icon');
 
+    if (isAdded) {
+        textSpan.textContent = 'Удалить';
+        button.classList.add('remove-style');
+        button.classList.remove('add-style');
+        plusIcon.classList.add('hidden');
+        crossIcon.classList.remove('hidden');
+    } else {
+        textSpan.textContent = 'Добавить';
+        button.classList.add('add-style');
+        button.classList.remove('remove-style');
+        plusIcon.classList.remove('hidden');
+        crossIcon.classList.add('hidden');
+    }
+}
 
 function populateAppCardMap() {
     if (appCardElements.size > 0) return;
@@ -201,12 +207,6 @@ function populateAppCardMap() {
         if (moduleName) appCardElements.set(moduleName, card);
     });
     allAppCards = Array.from(appCardElements.values());
-}
-
-async function renderSimilarApps(currentModule, container) {
-    // This function is now removed as per the new design of maximizing app space
-    container.innerHTML = '';
-    container.classList.add('hidden');
 }
 
 // --- РОУТИНГ ---
@@ -220,15 +220,10 @@ async function router() {
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName];
     
-    // Сначала управляем видимостью списка приложений в сайдбаре
-    const appsContainerInSidebar = document.getElementById('apps-container');
-    if (appsContainerInSidebar) {
-        appsContainerInSidebar.style.display = 'block'; // Ensure it's always visible in sidebar
-    }
-
     if (appName) {
         // --- РЕЖИМ ПРОСМОТРА ПРИЛОЖЕНИЯ ---
         pageContainer.classList.add('app-view-active');
+        changelogContainer.classList.add('hidden');
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         
         dynamicContentArea.innerHTML = appScreenHtml;
@@ -258,20 +253,23 @@ async function router() {
     }
 }
 
-
 // --- НАСТРОЙКА СОБЫТИЙ ---
 function setupNavigationEvents() {
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a');
         if (!link || e.target.closest('.add-to-my-apps-btn')) return;
+
         if (link.id === 'back-button' || link.id === 'home-link') { 
             e.preventDefault(); 
-            history.pushState({}, '', '/');
-            router();
+            if (window.location.pathname !== '/' || window.location.search) {
+                history.pushState({}, '', '/');
+                router();
+            }
             return; 
         }
+
         const url = new URL(link.href);
-        if (url.origin === window.location.origin) {
+        if (url.origin === window.location.origin && url.pathname === '/') {
             const isAppNavigation = url.search.startsWith('?app=');
             if (isAppNavigation) {
                 e.preventDefault();
@@ -289,19 +287,16 @@ function setupSearch() {
 
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.toLowerCase().trim();
+        const isAppView = pageContainer.classList.contains('app-view-active');
         
-        // Если мы внутри приложения и начинаем поиск, переходим на главную
-        const isAppView = !!(new URLSearchParams(window.location.search).get('app'));
         if (isAppView && searchTerm.length > 0) {
             history.pushState({}, '', '/');
             router().then(() => {
-                // Убедимся, что apps-container на месте перед фильтрацией
                 filterAppCards(searchTerm);
             });
-            return;
+        } else if (!isAppView) {
+            filterAppCards(searchTerm);
         }
-
-        filterAppCards(searchTerm);
     });
 }
 
@@ -315,12 +310,11 @@ function filterAppCards(searchTerm) {
         const moduleName = app.dataset.module;
         const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
         const searchCorpus = [appName, ...metadata.keywords].join(' ');
-        const isVisible = searchCorpus.includes(searchTerm);
+        const isVisible = searchTerm ? searchCorpus.includes(searchTerm) : true;
         app.style.display = isVisible ? 'flex' : 'none';
         if (isVisible) hasVisibleApps = true;
     });
 
-    // Показываем/скрываем сообщение "ничего не найдено"
     let noResultsEl = appsContainer.querySelector('.no-results');
     if (!hasVisibleApps && searchTerm) {
         if (!noResultsEl) {
@@ -333,7 +327,6 @@ function filterAppCards(searchTerm) {
         noResultsEl?.remove();
     }
 }
-
 
 async function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
@@ -366,22 +359,22 @@ async function applyAppListFilterAndRender() {
     if (activeFilter === 'my-apps') {
         appsToRender = myApps.map(moduleName => appCardElements.get(moduleName)).filter(Boolean);
         sortBtn?.classList.remove('hidden');
-        sortBtn?.classList.remove('active');
-        if (sortBtn) sortBtn.textContent = 'Переместить';
+        if(sortBtn) {
+            sortBtn.classList.remove('active');
+            sortBtn.textContent = 'Переместить';
+        }
     } else {
         sortBtn?.classList.add('hidden');
         let sortedApps = [...allAppCards];
         if (activeFilter === 'popular') {
             sortedApps.sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
         } else if (activeFilter === 'new') {
-            // "Новые" - это просто обратный порядок изначального списка
             sortedApps.reverse();
         }
         appsToRender = sortedApps;
     }
     renderApps(appsToRender);
     
-    // Применяем текущий поисковый запрос, если он есть
     if (searchInput.value) {
         filterAppCards(searchInput.value.toLowerCase().trim());
     }
@@ -419,19 +412,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    if (localStorage.getItem('theme') === 'dark') {
         document.documentElement.classList.add('dark');
         sunIcon.classList.add('hidden');
         moonIcon.classList.remove('hidden');
     } else {
-        document.documentElement.classList.remove('dark');
         sunIcon.classList.remove('hidden');
         moonIcon.classList.add('hidden');
     }
     themeToggleBtn.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
+        const isDark = document.documentElement.classList.toggle('dark');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
         sunIcon.classList.toggle('hidden', isDark);
         moonIcon.classList.toggle('hidden', !isDark);
@@ -448,21 +438,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (addBtn) {
             e.preventDefault(); 
             e.stopPropagation();
-            if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
-                return;
-            }
-            const appCard = addBtn.closest('.app-item');
-            const moduleName = appCard?.dataset.module;
+            if (!auth.currentUser) { return alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".'); }
+            const moduleName = addBtn.closest('.app-item')?.dataset.module;
             await toggleMyAppStatus(moduleName);
             return;
         }
         const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
         if (addBtnAppView) {
-            if (!auth.currentUser) {
-                alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".');
-                return;
-            }
+            if (!auth.currentUser) { return alert('Пожалуйста, войдите в аккаунт, чтобы добавлять приложения в "Мои приложения".'); }
             const moduleName = new URLSearchParams(window.location.search).get('app');
             await toggleMyAppStatus(moduleName);
             await updateAppViewButton(moduleName);
@@ -472,11 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isSortingMode = !isSortingMode;
             sortBtn.classList.toggle('active', isSortingMode);
             sortBtn.textContent = isSortingMode ? 'Готово' : 'Переместить';
-            if (isSortingMode) {
-                initializeDragAndDrop();
-            } else {
-                destroyDragAndDrop();
-            }
+            isSortingMode ? initializeDragAndDrop() : destroyDragAndDrop();
         }
     });
 
@@ -502,9 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
             
-            const params = new URLSearchParams(window.location.search);
-            const appModule = params.get('app');
-            if (!appModule) {
+            if (!new URLSearchParams(window.location.search).get('app')) {
                 filterContainer.querySelector('.active')?.classList.remove('active');
                 if (user) {
                     myAppsButton?.classList.add('active');
@@ -515,15 +492,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             await router(); 
             document.getElementById('initial-loading-overlay')?.style.display = 'none';
-
         } else {
             await router();
         }
 
-        if (isGsiInitialized) {
-            renderGoogleButton();
-        }
-        
+        if (isGsiInitialized) renderGoogleButton();
         hideAuthLoader();
     });
     
