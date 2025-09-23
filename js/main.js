@@ -402,18 +402,19 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNavigationEvents();
     window.addEventListener('popstate', router);
 
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const sunIcon = document.getElementById('sun-icon');
-    const moonIcon = document.getElementById('moon-icon');
-    if (localStorage.getItem('theme') === 'dark') {
+const themeToggleBtn = document.getElementById('theme-toggle');
+const sunIcon = document.getElementById('sun-icon');
+const moonIcon = document.getElementById('moon-icon');
+if (localStorage.getItem('theme') === 'dark') { 
     document.documentElement.classList.add('dark');
     sunIcon.classList.add('hidden');
     moonIcon.classList.remove('hidden');
 } else {
-        sunIcon.classList.remove('hidden');
-        moonIcon.classList.add('hidden');
-    }
-    themeToggleBtn.addEventListener('click', () => {
+    sunIcon.classList.remove('hidden');
+    moonIcon.classList.add('hidden');
+}
+
+themeToggleBtn.addEventListener('click', () => {
         const isDark = document.documentElement.classList.toggle('dark');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
         sunIcon.classList.toggle('hidden', isDark);
