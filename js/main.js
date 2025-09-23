@@ -1,4 +1,4 @@
-// 46js/main.js
+// 10js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -601,7 +601,6 @@ async function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer) return;
     
-    // Всегда отключаем режим сортировки при смене фильтра
     destroyDragAndDrop();
     isSortingMode = false;
     
@@ -668,7 +667,6 @@ document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
     setupSearch(); 
 
-    // Обработчик для всех кнопок выхода
     document.body.addEventListener('click', e => {
         if (e.target.closest('.sign-out-btn') || e.target.closest('#sign-out-btn')) {
             handleSignOut();
@@ -683,12 +681,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('theme-toggle'),
         document.getElementById('sidebar-theme-toggle')
     ];
-
     const updateThemeIcons = (isDark) => {
         document.querySelectorAll('.sun-icon').forEach(icon => icon.classList.toggle('hidden', isDark));
         document.querySelectorAll('.moon-icon').forEach(icon => icon.classList.toggle('hidden', !isDark));
     };
-
     const savedTheme = localStorage.getItem('theme');
     const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     if (savedTheme === 'dark' || (!savedTheme && isSystemDark)) {
@@ -698,7 +694,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.classList.remove('dark');
         updateThemeIcons(false);
     }
-    
     themeToggleBtns.forEach(btn => {
         if(btn) btn.addEventListener('click', () => {
             const isDark = document.documentElement.classList.toggle('dark');
@@ -706,6 +701,43 @@ document.addEventListener('DOMContentLoaded', () => {
             updateThemeIcons(isDark);
         });
     });
+
+    // --- НОВЫЙ БЛОК: Управление состоянием бокового меню ---
+    const collapseBtn = document.getElementById('collapse-sidebar-btn');
+    const showBtn = document.getElementById('show-sidebar-btn');
+    const positionBtn = document.getElementById('toggle-sidebar-position-btn');
+    
+    let isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    let sidebarPosition = localStorage.getItem('sidebarPosition') || 'left';
+
+    const applySidebarState = () => {
+        document.body.classList.toggle('sidebar-collapsed', isSidebarCollapsed);
+        if (sidebarPosition === 'right') {
+            document.body.classList.add('sidebar-on-right');
+        } else {
+            document.body.classList.remove('sidebar-on-right');
+        }
+    };
+
+    collapseBtn.addEventListener('click', () => {
+        isSidebarCollapsed = true;
+        localStorage.setItem('sidebarCollapsed', 'true');
+        applySidebarState();
+    });
+
+    showBtn.addEventListener('click', () => {
+        isSidebarCollapsed = false;
+        localStorage.setItem('sidebarCollapsed', 'false');
+        applySidebarState();
+    });
+
+    positionBtn.addEventListener('click', () => {
+        sidebarPosition = sidebarPosition === 'left' ? 'right' : 'left';
+        localStorage.setItem('sidebarPosition', sidebarPosition);
+        applySidebarState();
+    });
+
+    applySidebarState(); // Применяем сохраненное состояние при загрузке
 
 
     document.addEventListener('click', e => {
