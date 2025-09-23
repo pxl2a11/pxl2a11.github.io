@@ -24,7 +24,8 @@ const appModules = [
     'imageEditor',
     'onlineTv',
     'markdownEditor',
-    'tetris'
+    'tetris',
+    'audiobookPlayer'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
