@@ -1,4 +1,4 @@
-// 10js/main.js
+// 28js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -111,6 +111,7 @@ const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 let allAppCards = [];
+let lastActiveFilter = 'default'; // Глобальная переменная для хранения последнего фильтра
 
 const homeScreenHtml = `
     <div class="relative">
@@ -376,17 +377,18 @@ async function renderSidebar(currentAppModule) {
     const searchInput = document.getElementById('sidebar-search-input');
     if (!sidebarList || !filterContainer || !searchInput) return;
 
-    // Сбрасываем фильтр и поиск
+    // Сбрасываем поиск
     searchInput.value = '';
-    const activeFilterBtn = filterContainer.querySelector('.active');
-    if (activeFilterBtn) activeFilterBtn.classList.remove('active');
     
-    // Устанавливаем фильтр по умолчанию
-    let defaultFilter = 'all';
-    if (auth.currentUser) {
-        defaultFilter = 'my-apps';
+    // Устанавливаем фильтр на основе сохраненного значения
+    let defaultFilter = lastActiveFilter;
+    if (!auth.currentUser && defaultFilter === 'my-apps') {
+        defaultFilter = 'all'; // Защита от показа "Мои приложения" если пользователь вышел
     }
-    filterContainer.querySelector(`[data-sort="${defaultFilter}"]`).classList.add('active');
+
+    filterContainer.querySelector('.active')?.classList.remove('active');
+    filterContainer.querySelector(`[data-sort="${defaultFilter}"]`)?.classList.add('active');
+
 
     const applySidebarFilter = async () => {
         const myApps = await getMyApps();
@@ -442,7 +444,6 @@ async function router() {
     }
     activeAppModule = null;
 
-    // Получаем ссылки на элементы для управления их видимостью
     const homeHeaderContent = document.getElementById('home-header-content');
     const changelogContainer = document.getElementById('changelog-container');
     const dynamicContentArea = document.getElementById('dynamic-content-area');
@@ -456,13 +457,11 @@ async function router() {
         document.body.classList.add('app-view-active');
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         
-        // Скрываем элементы главной страницы
         homeHeaderContent.classList.add('hidden');
         changelogContainer.classList.add('hidden');
         
-        // Настраиваем контейнер для приложения, чтобы он занимал все пространство
         dynamicContentArea.classList.remove('max-w-6xl', 'mx-auto');
-        dynamicContentArea.classList.add('flex-grow'); // Позволяет контейнеру растягиваться
+        dynamicContentArea.classList.add('flex-grow');
         
         dynamicContentArea.innerHTML = appScreenHtml;
         document.getElementById('app-title').textContent = appName;
@@ -489,11 +488,9 @@ async function router() {
         // --- РЕЖИМ ГЛАВНОЙ СТРАНИЦЫ ---
         document.body.classList.remove('app-view-active');
         
-        // Показываем элементы главной страницы
         homeHeaderContent.classList.remove('hidden');
         changelogContainer.classList.remove('hidden');
 
-        // Возвращаем стили контейнера для сетки приложений
         dynamicContentArea.classList.add('max-w-6xl', 'mx-auto');
         dynamicContentArea.classList.remove('flex-grow');
 
@@ -607,6 +604,7 @@ async function applyAppListFilterAndRender() {
     const sortBtn = document.getElementById('sort-my-apps-btn');
     const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
+    lastActiveFilter = activeFilter; // Обновляем глобальную переменную
     const myApps = await getMyApps();
 
     const renderApps = (appElements) => {
@@ -678,8 +676,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Управление темой ---
     const themeToggleBtns = [
-        document.getElementById('theme-toggle'),
-        document.getElementById('sidebar-theme-toggle')
+        document.getElementById('theme-toggle'), // Главная
+        document.getElementById('sidebar-theme-toggle') // Сайдбар
     ];
     const updateThemeIcons = (isDark) => {
         document.querySelectorAll('.sun-icon').forEach(icon => icon.classList.toggle('hidden', isDark));
@@ -702,32 +700,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- НОВЫЙ БЛОК: Управление состоянием бокового меню ---
-    const collapseBtn = document.getElementById('collapse-sidebar-btn');
-    const showBtn = document.getElementById('show-sidebar-btn');
+    // --- НОВЫЙ БЛОК: Управление боковым меню ---
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
     const positionBtn = document.getElementById('toggle-sidebar-position-btn');
-    
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsMenu = document.getElementById('settings-menu');
+    const settingsContainer = document.getElementById('settings-container');
+
     let isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     let sidebarPosition = localStorage.getItem('sidebarPosition') || 'left';
+    
+    const icon_chevron_left = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>`;
+    const icon_chevron_right = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>`;
 
     const applySidebarState = () => {
         document.body.classList.toggle('sidebar-collapsed', isSidebarCollapsed);
-        if (sidebarPosition === 'right') {
-            document.body.classList.add('sidebar-on-right');
-        } else {
-            document.body.classList.remove('sidebar-on-right');
+        document.body.classList.toggle('sidebar-on-right', sidebarPosition === 'right');
+
+        // Обновление иконки и title для кнопки-переключателя
+        if (sidebarPosition === 'left') {
+            sidebarToggleBtn.innerHTML = isSidebarCollapsed ? icon_chevron_right : icon_chevron_left;
+        } else { // right
+            sidebarToggleBtn.innerHTML = isSidebarCollapsed ? icon_chevron_left : icon_chevron_right;
         }
+        sidebarToggleBtn.title = isSidebarCollapsed ? 'Показать меню' : 'Скрыть меню';
     };
 
-    collapseBtn.addEventListener('click', () => {
-        isSidebarCollapsed = true;
-        localStorage.setItem('sidebarCollapsed', 'true');
-        applySidebarState();
-    });
-
-    showBtn.addEventListener('click', () => {
-        isSidebarCollapsed = false;
-        localStorage.setItem('sidebarCollapsed', 'false');
+    sidebarToggleBtn.addEventListener('click', () => {
+        isSidebarCollapsed = !isSidebarCollapsed;
+        localStorage.setItem('sidebarCollapsed', isSidebarCollapsed);
         applySidebarState();
     });
 
@@ -736,15 +737,21 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('sidebarPosition', sidebarPosition);
         applySidebarState();
     });
+    
+    settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Предотвращаем закрытие меню сразу после открытия
+        settingsMenu.classList.toggle('hidden');
+    });
 
-    applySidebarState(); // Применяем сохраненное состояние при загрузке
-
-
-    document.addEventListener('click', e => {
-        if (suggestionsContainer && !suggestionsContainer.contains(e.target) && e.target !== searchInput) {
-            suggestionsContainer.classList.add('hidden');
+    // Закрытие меню настроек при клике вне его
+    document.addEventListener('click', (e) => {
+        if (!settingsContainer.contains(e.target)) {
+            settingsMenu.classList.add('hidden');
         }
     });
+
+    applySidebarState(); // Применяем состояние при первой загрузке
+
 
     document.getElementById('changelog-container').addEventListener('click', (e) => {
         if (e.target.id === 'show-all-changelog-btn') {
@@ -809,6 +816,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
                 document.querySelector('#filter-container [data-sort="default"]')?.classList.add('active');
+                lastActiveFilter = 'default';
             }
         }
 
@@ -825,6 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  if(mainFilterDefault && mainFilterMyApps) {
                     mainFilterDefault.classList.remove('active');
                     mainFilterMyApps.classList.add('active');
+                    lastActiveFilter = 'my-apps';
                  }
             }
             
@@ -834,7 +843,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 loader.style.display = 'none';
             }
         } else {
-            // Если мы не на главной, и состояние авторизации изменилось, перерисовываем сайдбар
             if (new URLSearchParams(window.location.search).has('app')) {
                  await router();
             } else {
