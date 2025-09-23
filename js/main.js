@@ -111,7 +111,6 @@ const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 let allAppCards = [];
-// ИЗМЕНЕНИЕ: Глобальная переменная для хранения последнего активного фильтра
 let lastActiveFilter = 'default';
 
 const homeScreenHtml = `
@@ -378,20 +377,17 @@ async function renderSidebar(currentAppModule) {
     const searchInput = document.getElementById('sidebar-search-input');
     if (!sidebarList || !filterContainer || !searchInput) return;
 
-    // Сбрасываем поиск
     searchInput.value = '';
     
-    // ИЗМЕНЕНИЕ: Определяем, какой фильтр должен быть активен
+    // Определяем, какой фильтр должен быть активен
     let activeFilterValue = 'all';
-    // Если последний выбранный фильтр был 'my-apps' и пользователь авторизован, то оставляем его
+    // Фильтр 'my-apps' активен, только если он был последним выбранным И пользователь авторизован
     if (lastActiveFilter === 'my-apps' && auth.currentUser) {
         activeFilterValue = 'my-apps';
     }
 
-    // Устанавливаем активный класс на нужную кнопку
     filterContainer.querySelector('.active')?.classList.remove('active');
     filterContainer.querySelector(`[data-sort="${activeFilterValue}"]`)?.classList.add('active');
-
 
     const applySidebarFilter = async () => {
         const myApps = await getMyApps();
@@ -409,7 +405,6 @@ async function renderSidebar(currentAppModule) {
         appsToRenderModules.forEach(moduleName => {
             const card = appCardElements.get(moduleName);
             if (card) {
-                // Фильтрация по поиску
                 const appName = card.dataset.name.toLowerCase();
                 const metadata = appSearchMetadata[moduleName] || { keywords: [] };
                 const searchCorpus = [appName, ...metadata.keywords].join(' ');
@@ -431,6 +426,11 @@ async function renderSidebar(currentAppModule) {
             if (!button || button.classList.contains('active')) return;
             filterContainer.querySelector('.active')?.classList.remove('active');
             button.classList.add('active');
+            
+            // ИЗМЕНЕНИЕ: Сохраняем выбор фильтра из бокового меню в глобальную переменную
+            const newFilter = button.dataset.sort;
+            lastActiveFilter = newFilter === 'all' ? 'default' : newFilter;
+            
             applySidebarFilter();
         });
         searchInput.addEventListener('input', applySidebarFilter);
@@ -605,7 +605,6 @@ async function applyAppListFilterAndRender() {
     const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
     
-    // ИЗМЕНЕНИЕ: Обновляем глобальную переменную
     lastActiveFilter = activeFilter;
     
     const myApps = await getMyApps();
@@ -817,7 +816,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
                 document.querySelector('#filter-container [data-sort="default"]')?.classList.add('active');
-                // ИЗМЕНЕНИЕ: Сбрасываем сохраненный фильтр при выходе
                 lastActiveFilter = 'default';
             }
         }
@@ -835,7 +833,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  if(mainFilterDefault && mainFilterMyApps) {
                     mainFilterDefault.classList.remove('active');
                     mainFilterMyApps.classList.add('active');
-                    // ИЗМЕНЕНИЕ: Устанавливаем фильтр по умолчанию при первом входе
                     lastActiveFilter = 'my-apps';
                  }
             }
