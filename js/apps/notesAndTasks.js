@@ -1,4 +1,4 @@
-// 25js/apps/notesAndTasks.js
+// 33js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 // ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
@@ -32,7 +32,7 @@ export function getHtml() {
                 opacity: 0.4;
                 background-color: #a0aec0;
             }
-            /* --- ИЗМЕНЕНИЕ: Стили для сворачивания --- */
+            /* Стили для сворачивания */
             .list-content {
                 transition: all 0.3s ease-in-out;
                 overflow: hidden;
@@ -60,15 +60,10 @@ export function getHtml() {
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"></path></svg>
                         Создать
                     </button>
-                    <!-- --- ИЗМЕНЕНИЕ: Обновленное выпадающее меню --- -->
-                    <div id="create-choice-box" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-56">
-                        <div class="font-bold text-sm text-gray-500 dark:text-gray-400 px-2 pt-1 pb-2">Новую заметку:</div>
-                        <button data-type="note" data-creation-mode="quick" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Быстро</button>
-                        <button data-type="note" data-creation-mode="modal" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Подробно...</button>
-                        <div class="border-t border-gray-200 dark:border-gray-600 my-2"></div>
-                        <div class="font-bold text-sm text-gray-500 dark:text-gray-400 px-2 pt-1 pb-2">Новый список задач:</div>
-                        <button data-type="task" data-creation-mode="quick" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Быстро</button>
-                        <button data-type="task" data-creation-mode="modal" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Подробно...</button>
+                    <!-- --- ИЗМЕНЕНИЕ: Упрощенное выпадающее меню --- -->
+                    <div id="create-choice-box" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-48">
+                        <button data-type="task" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Список задач</button>
+                        <button data-type="note" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Заметку</button>
                     </div>
                 </div>
 
@@ -83,18 +78,7 @@ export function getHtml() {
             <!-- Контейнер для списков -->
             <div id="lists-container" class="space-y-4"></div>
 
-            <!-- Модальное окно для СОЗДАНИЯ -->
-            <div id="creator-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-5 w-full max-w-lg relative">
-                    <button id="close-modal-btn" class="absolute top-3 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold">&times;</button>
-                    <h3 id="modal-title" class="text-xl font-semibold mb-4">Новый список</h3>
-                    <div class="space-y-4">
-                        <input id="modal-input-title" type="text" placeholder="Название..." class="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600">
-                        <textarea id="modal-textarea-content" rows="6" class="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"></textarea>
-                        <button id="modal-save-btn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">Сохранить</button>
-                    </div>
-                </div>
-            </div>
+            <!-- Модальное окно удалено -->
         </div>
     `;
 }
@@ -105,12 +89,6 @@ export async function init() {
     const createBtn = document.getElementById('create-btn');
     const createChoiceBox = document.getElementById('create-choice-box');
     const filterButtonsContainer = document.getElementById('filter-buttons');
-    const creatorModal = document.getElementById('creator-modal');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const modalTitle = document.getElementById('modal-title');
-    const modalInputTitle = document.getElementById('modal-input-title');
-    const modalTextareaContent = document.getElementById('modal-textarea-content');
-    const modalSaveBtn = document.getElementById('modal-save-btn');
 
     // --- Состояние приложения ---
     let lists = getUserData('lists', []);
@@ -175,7 +153,6 @@ export async function init() {
                 contentHtml = `<div data-list-index="${originalIndex}" data-field="content" class="editable-element whitespace-pre-wrap break-words p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded">${list.content}</div>`;
             }
 
-            // --- ИЗМЕНЕНИЕ: Добавлен класс collapsed в зависимости от состояния ---
             const isCollapsed = list.collapsed ?? false;
 
             return `
@@ -184,7 +161,6 @@ export async function init() {
                         <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
                         
                         <div class="flex items-center flex-shrink-0">
-                             <!-- --- ИЗМЕНЕНИЕ: Кнопка для сворачивания --- -->
                             <button data-list-index="${originalIndex}" class="collapse-btn p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ${isCollapsed ? 'collapsed' : ''}">
                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                             </button>
@@ -202,7 +178,6 @@ export async function init() {
                             </button>
                         </div>
                     </div>
-                    <!-- --- ИЗМЕНЕНИЕ: Обертка для контента для управления сворачиванием --- -->
                     <div class="list-content space-y-1 ${isCollapsed ? 'collapsed' : ''}">${contentHtml}</div>
                 </div>
             `;
@@ -211,39 +186,20 @@ export async function init() {
         initSortable();
     };
 
-    // --- ЛОГИКА МОДАЛЬНОГО ОКНА (ТОЛЬКО ДЛЯ СОЗДАНИЯ) ---
-    const openCreatorModal = (type) => {
-        modalInputTitle.value = '';
-        modalTextareaContent.value = '';
-        if (type === 'task') {
-            modalTitle.textContent = 'Новый список задач';
-            modalTextareaContent.placeholder = 'Введите задачи, каждая с новой строки...';
-        } else {
-            modalTitle.textContent = 'Новая заметка';
-            modalTextareaContent.placeholder = 'Введите текст заметки...';
-        }
-        modalSaveBtn.onclick = () => createNewListFromModal(type);
-        creatorModal.classList.remove('hidden');
-        modalInputTitle.focus();
-    };
-
-    const closeModal = () => {
-        creatorModal.classList.add('hidden');
-    };
-    
-    // --- ИЗМЕНЕНИЕ: Функция для быстрого создания без модального окна ---
-    const createNewListQuick = (type) => {
+    // --- ЛОГИКА СОЗДАНИЯ ---
+    const createNewList = (type) => {
         const newList = {
             id: Date.now(),
-            title: type === 'task' ? 'Новый список задач' : 'Новая заметка',
             type,
-            collapsed: false // Новые блоки по умолчанию развёрнуты
+            collapsed: false
         };
 
         if (type === 'task') {
-            newList.items = [];
-        } else {
-            newList.content = '';
+            newList.title = 'Название списка задач';
+            newList.items = [{ text: 'Новая задача', completed: false }]; // Добавляем задачу по умолчанию
+        } else { // 'note'
+            newList.title = 'Название заметки';
+            newList.content = 'Новая заметка'; // Добавляем контент по умолчанию
         }
 
         lists.unshift(newList);
@@ -251,31 +207,6 @@ export async function init() {
         renderLists();
     };
 
-    // --- ИЗМЕНЕНИЕ: Переименована для ясности ---
-    const createNewListFromModal = (type) => {
-        const title = modalInputTitle.value.trim();
-        if (!title) {
-            alert('Название не может быть пустым!');
-            return;
-        }
-        const content = modalTextareaContent.value.trim();
-        const items = content.split('\n').map(text => text.trim()).filter(text => text);
-        const newList = {
-            id: Date.now(),
-            title,
-            type,
-            collapsed: false // Новые блоки по умолчанию развёрнуты
-        };
-        if (type === 'task') {
-            newList.items = items.map(text => ({ text, completed: false }));
-        } else {
-            newList.content = content;
-        }
-        lists.unshift(newList);
-        saveLists();
-        renderLists();
-        closeModal();
-    };
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
     createBtn.addEventListener('click', (e) => {
@@ -290,20 +221,10 @@ export async function init() {
         if (btn) {
             e.stopPropagation();
             createChoiceBox.classList.add('hidden');
-            const type = btn.dataset.type;
-            const mode = btn.dataset.creationMode;
-            
-            if (mode === 'quick') {
-                createNewListQuick(type);
-            } else {
-                openCreatorModal(type);
-            }
+            createNewList(btn.dataset.type);
         }
     });
     
-    closeModalBtn.addEventListener('click', closeModal);
-    creatorModal.addEventListener('click', e => { if (e.target === creatorModal) closeModal(); });
-
     filterButtonsContainer.addEventListener('click', e => {
         const filterBtn = e.target.closest('.filter-btn');
         if (filterBtn) {
@@ -345,7 +266,6 @@ export async function init() {
             return;
         }
         
-        // --- ИЗМЕНЕНИЕ: Обработчик для кнопки сворачивания ---
         const collapseBtn = target.closest('.collapse-btn');
         if (collapseBtn) {
             e.stopPropagation();
