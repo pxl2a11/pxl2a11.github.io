@@ -47,6 +47,10 @@ export const radioStations = [
         { name: "32 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/64/playlist.m3u8" },
         { name: "112 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/112/playlist.m3u8" }] },
+    { name: "Радио России", logoUrl: "https://zastavki.gas-kvas.com/uploads/posts/2024-05/thumbs/zastavki-gas-kvas-com-1wb3-p-zastavki-radio-rossii-32.jpg", streams: [
+        { name: "64 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/rrzonam_aac_64kbps" },
+        { name: "128 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/rrzonam_mp3_128kbps" },
+        { name: "192 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/rrzonam_mp3_192kbps" }] },
     { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
     { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
