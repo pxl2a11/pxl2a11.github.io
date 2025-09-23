@@ -1,4 +1,4 @@
-// 46js/apps/notesAndTasks.js
+// 25js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 // ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
@@ -32,6 +32,24 @@ export function getHtml() {
                 opacity: 0.4;
                 background-color: #a0aec0;
             }
+            /* --- ИЗМЕНЕНИЕ: Стили для сворачивания --- */
+            .list-content {
+                transition: all 0.3s ease-in-out;
+                overflow: hidden;
+            }
+            .list-content.collapsed {
+                max-height: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+                opacity: 0;
+                margin-top: 0;
+            }
+            .collapse-btn svg {
+                transition: transform 0.2s ease-in-out;
+            }
+            .collapse-btn.collapsed svg {
+                transform: rotate(-90deg);
+            }
         </style>
         <div class="p-4">
             <!-- Верхняя панель управления -->
@@ -42,9 +60,15 @@ export function getHtml() {
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"></path></svg>
                         Создать
                     </button>
-                    <div id="create-choice-box" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-48">
-                        <button data-type="task" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Список задач</button>
-                        <button data-type="note" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Заметку</button>
+                    <!-- --- ИЗМЕНЕНИЕ: Обновленное выпадающее меню --- -->
+                    <div id="create-choice-box" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-56">
+                        <div class="font-bold text-sm text-gray-500 dark:text-gray-400 px-2 pt-1 pb-2">Новую заметку:</div>
+                        <button data-type="note" data-creation-mode="quick" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Быстро</button>
+                        <button data-type="note" data-creation-mode="modal" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Подробно...</button>
+                        <div class="border-t border-gray-200 dark:border-gray-600 my-2"></div>
+                        <div class="font-bold text-sm text-gray-500 dark:text-gray-400 px-2 pt-1 pb-2">Новый список задач:</div>
+                        <button data-type="task" data-creation-mode="quick" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Быстро</button>
+                        <button data-type="task" data-creation-mode="modal" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Подробно...</button>
                     </div>
                 </div>
 
@@ -95,18 +119,20 @@ export async function init() {
     const saveLists = () => saveUserData('lists', lists);
     
     const initSortable = () => {
-        new Sortable(listsContainer, {
-            animation: 150,
-            handle: '.drag-handle',
-            draggable: '.list-card',
-            ghostClass: 'sortable-ghost',
-            onEnd: (evt) => {
-                const [movedItem] = lists.splice(evt.oldIndex, 1);
-                lists.splice(evt.newIndex, 0, movedItem);
-                saveLists();
-                renderLists();
-            },
-        });
+        if (window.Sortable) {
+            new Sortable(listsContainer, {
+                animation: 150,
+                handle: '.drag-handle',
+                draggable: '.list-card',
+                ghostClass: 'sortable-ghost',
+                onEnd: (evt) => {
+                    const [movedItem] = lists.splice(evt.oldIndex, 1);
+                    lists.splice(evt.newIndex, 0, movedItem);
+                    saveLists();
+                    renderLists();
+                },
+            });
+        }
     };
 
     // --- ЛОГИКА ОТРИСОВКИ ---
@@ -149,14 +175,19 @@ export async function init() {
                 contentHtml = `<div data-list-index="${originalIndex}" data-field="content" class="editable-element whitespace-pre-wrap break-words p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded">${list.content}</div>`;
             }
 
+            // --- ИЗМЕНЕНИЕ: Добавлен класс collapsed в зависимости от состояния ---
+            const isCollapsed = list.collapsed ?? false;
+
             return `
                 <div class="list-card bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
                     <div class="flex justify-between items-start mb-2">
                         <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
                         
-                        <!-- --- ИЗМЕНЕНИЕ: Контейнер с кнопками управления --- -->
                         <div class="flex items-center flex-shrink-0">
-                            <!-- --- ИЗМЕНЕНИЕ: Новая иконка и расположение кнопки перемещения --- -->
+                             <!-- --- ИЗМЕНЕНИЕ: Кнопка для сворачивания --- -->
+                            <button data-list-index="${originalIndex}" class="collapse-btn p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ${isCollapsed ? 'collapsed' : ''}">
+                               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            </button>
                             <div class="drag-handle text-gray-400 p-1 hover:text-gray-600 dark:hover:text-gray-200">
                                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M22 6C22.5523 6 23 6.44772 23 7C23 7.55229 22.5523 8 22 8H2C1.44772 8 1 7.55228 1 7C1 6.44772 1.44772 6 2 6L22 6Z" fill="currentColor"/>
@@ -164,7 +195,6 @@ export async function init() {
                                     <path d="M23 17C23 16.4477 22.5523 16 22 16H2C1.44772 16 1 16.4477 1 17C1 17.5523 1.44772 18 2 18H22C22.5523 18 23 17.5523 23 17Z" fill="currentColor"/>
                                 </svg>
                             </div>
-                            <!-- Кнопка удаления -->
                             <button data-list-index="${originalIndex}" class="list-delete-btn p-1 text-red-500 hover:text-red-700 ml-1">
                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M697.4 759.2l61.8-61.8L573.8 512l185.4-185.4-61.8-61.8L512 450.2 326.6 264.8l-61.8 61.8L450.2 512 264.8 697.4l61.8 61.8L512 573.8z"></path>
@@ -172,7 +202,8 @@ export async function init() {
                             </button>
                         </div>
                     </div>
-                    <div class="space-y-1">${contentHtml}</div>
+                    <!-- --- ИЗМЕНЕНИЕ: Обертка для контента для управления сворачиванием --- -->
+                    <div class="list-content space-y-1 ${isCollapsed ? 'collapsed' : ''}">${contentHtml}</div>
                 </div>
             `;
         }).join('');
@@ -191,7 +222,7 @@ export async function init() {
             modalTitle.textContent = 'Новая заметка';
             modalTextareaContent.placeholder = 'Введите текст заметки...';
         }
-        modalSaveBtn.onclick = () => createNewList(type);
+        modalSaveBtn.onclick = () => createNewListFromModal(type);
         creatorModal.classList.remove('hidden');
         modalInputTitle.focus();
     };
@@ -199,8 +230,29 @@ export async function init() {
     const closeModal = () => {
         creatorModal.classList.add('hidden');
     };
+    
+    // --- ИЗМЕНЕНИЕ: Функция для быстрого создания без модального окна ---
+    const createNewListQuick = (type) => {
+        const newList = {
+            id: Date.now(),
+            title: type === 'task' ? 'Новый список задач' : 'Новая заметка',
+            type,
+            collapsed: false // Новые блоки по умолчанию развёрнуты
+        };
 
-    const createNewList = (type) => {
+        if (type === 'task') {
+            newList.items = [];
+        } else {
+            newList.content = '';
+        }
+
+        lists.unshift(newList);
+        saveLists();
+        renderLists();
+    };
+
+    // --- ИЗМЕНЕНИЕ: Переименована для ясности ---
+    const createNewListFromModal = (type) => {
         const title = modalInputTitle.value.trim();
         if (!title) {
             alert('Название не может быть пустым!');
@@ -208,7 +260,12 @@ export async function init() {
         }
         const content = modalTextareaContent.value.trim();
         const items = content.split('\n').map(text => text.trim()).filter(text => text);
-        const newList = { id: Date.now(), title, type };
+        const newList = {
+            id: Date.now(),
+            title,
+            type,
+            collapsed: false // Новые блоки по умолчанию развёрнуты
+        };
         if (type === 'task') {
             newList.items = items.map(text => ({ text, completed: false }));
         } else {
@@ -233,7 +290,14 @@ export async function init() {
         if (btn) {
             e.stopPropagation();
             createChoiceBox.classList.add('hidden');
-            openCreatorModal(btn.dataset.type);
+            const type = btn.dataset.type;
+            const mode = btn.dataset.creationMode;
+            
+            if (mode === 'quick') {
+                createNewListQuick(type);
+            } else {
+                openCreatorModal(type);
+            }
         }
     });
     
@@ -275,6 +339,19 @@ export async function init() {
             const index = parseInt(deleteListBtn.dataset.listIndex, 10);
             if (confirm(`Вы уверены, что хотите удалить список "${lists[index].title}"?`)) {
                 lists.splice(index, 1);
+                saveLists();
+                renderLists();
+            }
+            return;
+        }
+        
+        // --- ИЗМЕНЕНИЕ: Обработчик для кнопки сворачивания ---
+        const collapseBtn = target.closest('.collapse-btn');
+        if (collapseBtn) {
+            e.stopPropagation();
+            const index = parseInt(collapseBtn.dataset.listIndex, 10);
+            if (index >= 0 && index < lists.length) {
+                lists[index].collapsed = !(lists[index].collapsed ?? false);
                 saveLists();
                 renderLists();
             }
