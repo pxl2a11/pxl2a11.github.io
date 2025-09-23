@@ -366,3 +366,62 @@ html.dark {
 .dark ::-webkit-scrollbar-thumb:hover {
     background-color: #9ca3af; /* gray-400 */
 }
+
+/* --- Стили для нового макета с боковой панелью --- */
+
+/* Убираем стандартные отступы body, так как главный контейнер теперь flex */
+body {
+    padding: 0;
+    overflow: hidden; /* Запрещаем прокрутку body */
+}
+
+/* Стили для боковой панели */
+#sidebar {
+    width: 24rem; /* 384px */
+    flex-shrink: 0; /* Панель не будет сжиматься */
+}
+
+/* Контейнер списка приложений внутри сайдбара */
+#app-list-container {
+    /* Кастомная полоса прокрутки для этого блока */
+    scrollbar-width: thin;
+    scrollbar-color: #9ca3af #f1f5f9;
+}
+.dark #app-list-container {
+    scrollbar-color: #6b7280 #1f293b;
+}
+#app-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+#app-list-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+#app-list-container::-webkit-scrollbar-thumb {
+    background-color: #9ca3af;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+.dark #app-list-container::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+}
+
+/* Изменяем сетку в сайдбаре на одну колонку */
+#apps-container {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important; /* 12px */
+}
+
+/* Основная область контента */
+#main-content {
+    flex: 1 1 0%; /* Занимает все оставшееся место */
+}
+
+/* На мобильных устройствах можно скрывать сайдбар (как улучшение) */
+@media (max-width: 1024px) {
+    #sidebar {
+        /* Тут можно будет добавить логику для скрытия/показа сайдбара */
+        /* Например, display: none; и кнопка-бургер для его вызова */
+        width: 20rem; /* 320px */
+    }
+}
