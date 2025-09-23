@@ -45,6 +45,7 @@ const appPopularity = {
     'onlineTv': 90,
     'markdownEditor': 85,
     'tetris': 96,
+    'audiobookPlayer': 89,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -102,6 +103,7 @@ const appSearchMetadata = {
     'onlineTv': { keywords: ['тв', 'телевизор', 'каналы', 'смотреть', 'онлайн', 'трансляция', 'tv', 'online'], hashtags: ['#entertainment', '#video'] },
     'markdownEditor': { keywords: ['markdown', 'редактор', 'md', 'текст', 'разметка', 'html', 'форматирование'], hashtags: ['#text', '#tools', '#webdev'] },
     'tetris': { keywords: ['тетрис', 'игра', 'блоки', 'головоломка', 'классика', 'tetris'], hashtags: ['#game', '#fun', '#logic'] },
+    'audiobookPlayer': { keywords: ['аудиокнига', 'книга', 'слушать', 'плеер', 'проигрыватель', 'аудио', 'главы', 'закладки', 'audiobook'], hashtags: ['#audio', '#entertainment', '#tools'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
