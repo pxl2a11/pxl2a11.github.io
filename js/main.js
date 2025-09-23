@@ -1,3 +1,4 @@
+alert("ЭТО НОВАЯ ВЕРСИЯ ФАЙЛА MAIN.JS");
 // 15js/main.js
 
 import { renderChangelog } from './changelog.js';
