@@ -1,4 +1,4 @@
-// 39js/main.js
+// 46js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -106,8 +106,6 @@ const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
-const dynamicContentArea = document.getElementById('dynamic-content-area');
-const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
 const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
@@ -124,7 +122,6 @@ const appScreenHtml = `
     <div id="app-screen" class="w-full h-full p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors flex flex-col">
         <div class="flex items-center justify-between mb-6 flex-shrink-0">
             <div class="flex items-center">
-                <!-- Кнопка назад больше не нужна, т.к. есть навигация в сайдбаре -->
                 <h2 id="app-title" class="text-2xl font-bold"></h2>
             </div>
             <button id="add-to-my-apps-app-view-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg transition-colors">
@@ -444,17 +441,28 @@ async function router() {
         activeAppModule.cleanup();
     }
     activeAppModule = null;
-    dynamicContentArea.innerHTML = '';
+
+    // Получаем ссылки на элементы для управления их видимостью
+    const homeHeaderContent = document.getElementById('home-header-content');
+    const changelogContainer = document.getElementById('changelog-container');
+    const dynamicContentArea = document.getElementById('dynamic-content-area');
+
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName];
-    const homeContentContainer = document.getElementById('home-content-container');
     
     if (appName) {
         // --- РЕЖИМ ПРОСМОТРА ПРИЛОЖЕНИЯ ---
         document.body.classList.add('app-view-active');
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
-        homeContentContainer.style.display = 'none'; // Скрываем контент главной
+        
+        // Скрываем элементы главной страницы
+        homeHeaderContent.classList.add('hidden');
+        changelogContainer.classList.add('hidden');
+        
+        // Настраиваем контейнер для приложения, чтобы он занимал все пространство
+        dynamicContentArea.classList.remove('max-w-6xl', 'mx-auto');
+        dynamicContentArea.classList.add('flex-grow'); // Позволяет контейнеру растягиваться
         
         dynamicContentArea.innerHTML = appScreenHtml;
         document.getElementById('app-title').textContent = appName;
@@ -480,15 +488,18 @@ async function router() {
     } else {
         // --- РЕЖИМ ГЛАВНОЙ СТРАНИЦЫ ---
         document.body.classList.remove('app-view-active');
-        homeContentContainer.style.display = 'flex'; // Показываем контент главной
         
+        // Показываем элементы главной страницы
+        homeHeaderContent.classList.remove('hidden');
+        changelogContainer.classList.remove('hidden');
+
+        // Возвращаем стили контейнера для сетки приложений
+        dynamicContentArea.classList.add('max-w-6xl', 'mx-auto');
+        dynamicContentArea.classList.remove('flex-grow');
+
         dynamicContentArea.innerHTML = homeScreenHtml;
         document.title = 'Mini Apps';
         
-        // Показываем/скрываем нужные элементы
-        document.getElementById('filter-container')?.classList.remove('hidden');
-        changelogContainer.classList.remove('hidden');
-
         setupFilters();
         renderChangelog(null, 3, changelogContainer);
         await applyAppListFilterAndRender();
@@ -500,10 +511,9 @@ function setupNavigationEvents() {
         const link = e.target.closest('a');
         if (!link || e.target.closest('.add-to-my-apps-btn')) return;
         
-        const isBackButton = link.id === 'back-button' || link.id === 'sidebar-home-link' && !link.search;
+        const isBackButton = (link.id === 'home-link' || link.id === 'sidebar-home-link') && new URL(link.href).pathname === '/';
         if (isBackButton) { 
              e.preventDefault(); 
-             // Если мы уже на главной, ничего не делаем. Иначе - history.back() или pushState('/')
              if(new URLSearchParams(window.location.search).has('app')) {
                  history.pushState({}, '', '/');
                  router();
@@ -704,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    changelogContainer.addEventListener('click', (e) => {
+    document.getElementById('changelog-container').addEventListener('click', (e) => {
         if (e.target.id === 'show-all-changelog-btn') {
             e.preventDefault();
             const moduleFile = appNameToModuleFile['История изменений'];
@@ -714,7 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    dynamicContentArea.addEventListener('click', async e => {
+    document.getElementById('dynamic-content-area').addEventListener('click', async e => {
         const addBtn = e.target.closest('.add-to-my-apps-btn');
         if (addBtn) {
             e.preventDefault(); 
