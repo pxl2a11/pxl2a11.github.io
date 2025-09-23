@@ -3,25 +3,20 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     overflow: hidden;
 }
 
-/* --- Стили для кнопок фильтрации (адаптированы для сайдбара) --- */
+/* --- Стили для кнопок фильтрации --- */
 .filter-btn {
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem; /* Менее круглые для списка */
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
     border: 1px solid transparent;
     background-color: #f3f4f6;
     color: #374151;
     font-weight: 500;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
-    width: 100%; /* Занимают всю ширину сайдбара */
-    text-align: left; /* Текст выровнен по левому краю */
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
 }
 .filter-blue {
-    filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
-}
+            filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
+        }
 
 .dark .filter-btn {
     background-color: #374151;
@@ -30,7 +25,7 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
 
 .filter-btn:hover {
     background-color: #e5e7eb;
-    border-color: #d1d5db;
+    border-color: #60a5fa;
 }
 
 .dark .filter-btn:hover {
@@ -48,25 +43,30 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     color: #1f2937;
 }
 
-/* --- Стили для кнопки "Переместить" --- */
+/* --- НОВЫЕ СТИЛИ: для кнопки "Переместить" --- */
 #sort-my-apps-btn {
+    /* Убираем стили обычной кнопки */
     background-color: transparent;
     border: none;
     box-shadow: none;
     border-radius: 0;
+
+    /* Добавляем стили для текстовой ссылки */
     text-decoration: underline;
     font-weight: 500;
     color: #4B5563; /* gray-600 */
 }
 
+/* Стиль для темной темы */
 .dark #sort-my-apps-btn {
     color: #9CA3AF; /* gray-400 */
 }
 
+/* Убираем изменение фона при наведении, но меняем цвет текста */
 #sort-my-apps-btn:hover {
     background-color: transparent;
     border-color: transparent;
-    color: #3b82f6;
+    color: #3b82f6; /* Делаем текст синим при наведении */
 }
 
 .dark #sort-my-apps-btn:hover {
@@ -74,17 +74,20 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     color: #60a5fa;
 }
 
+/* Стиль для активного режима сортировки (когда кнопка нажата) */
 #sort-my-apps-btn.active {
     background-color: transparent;
     box-shadow: none;
-    color: #1d4ed8;
-    font-weight: 700;
+    color: #1d4ed8; /* Более темный синий */
+    font-weight: 700; /* Делаем текст жирнее */
 }
 
 .dark #sort-my-apps-btn.active {
     background-color: transparent;
-    color: #93c5fd;
+    color: #93c5fd; /* Более светлый синий для темной темы */
 }
+/* --- КОНЕЦ НОВЫХ СТИЛЕЙ --- */
+
 
 /* --- ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ КАРТОЧЕК ПРИЛОЖЕНИЙ --- */
 .app-item {
@@ -113,8 +116,12 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     border: 1px solid #334155 !important; /* slate-700 */
 }
 
-.app-item::before { display: none; }
+/* Убираем псевдо-элемент для диагонали */
+.app-item::before {
+    display: none;
+}
 
+/* Контейнер для иконки - теперь это цветной блок */
 .app-item .app-icon-wrapper {
     position: relative;
     z-index: 1;
@@ -122,20 +129,23 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
-    width: 72px;
+    width: 72px; /* Фиксированная ширина для цветного блока */
     padding: 0.75rem;
-    background-color: var(--app-color, #6b7280);
+    background-color: var(--app-color, #6b7280); /* Применяем цвет сюда */
     transition: filter 0.3s ease-in-out;
 }
 
-.app-item:hover .app-icon-wrapper { filter: brightness(1.1); }
-
-.app-item .app-icon-wrapper img {
-    width: 2.25rem;
-    height: 2.25rem;
-    filter: brightness(0) invert(1) !important;
+.app-item:hover .app-icon-wrapper {
+    filter: brightness(1.1);
 }
 
+.app-item .app-icon-wrapper img {
+    width: 2.25rem; /* 36px */
+    height: 2.25rem;
+    filter: brightness(0) invert(1) !important; /* Делаем иконку белой */
+}
+
+/* Контейнер для названия */
 .app-item .app-name-wrapper {
     position: relative;
     z-index: 1;
@@ -146,7 +156,9 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
 }
 
 /* --- Стили для карточек на ГЛАВНОЙ СТРАНИЦЕ --- */
-#apps-container .app-item { min-height: 88px; }
+#apps-container .app-item {
+    min-height: 88px;
+}
 
 /* --- Стили для карточек в ПОХОЖИХ ПРИЛОЖЕНИЯХ --- */
 .similar-apps-grid {
@@ -154,12 +166,20 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 1rem;
 }
-.similar-apps-grid .app-item { min-height: 72px; }
-.similar-apps-grid .app-item .app-icon-wrapper { width: 72px; }
+
+.similar-apps-grid .app-item {
+    min-height: 72px; /* Чуть меньше */
+}
+
+.similar-apps-grid .app-item .app-icon-wrapper {
+    width: 72px;
+}
+
 .similar-apps-grid .app-item .app-icon-wrapper img {
     width: 2rem;
     height: 2rem;
 }
+
 
 /* --- Стили для кнопки добавления/удаления --- */
 .add-to-my-apps-btn {
@@ -179,116 +199,224 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     justify-content: center;
     align-items: center;
 }
+
 .add-to-my-apps-btn:hover {
     background-color: rgba(0, 0, 0, 0.1);
     transform: scale(1.1);
 }
-.add-to-my-apps-btn:hover .plus-icon { filter: brightness(0.8); }
-.add-to-my-apps-btn:hover .cross-icon { filter: brightness(1.1); }
-.dark .add-to-my-apps-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
-.dark .add-to-my-apps-btn:hover .plus-icon { filter: brightness(1.2); }
+
+.add-to-my-apps-btn:hover .plus-icon {
+    filter: brightness(0.8);
+}
+.add-to-my-apps-btn:hover .cross-icon {
+    filter: brightness(1.1);
+}
+
+
+.dark .add-to-my-apps-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .add-to-my-apps-btn:hover .plus-icon {
+    filter: brightness(1.2);
+}
+
 .add-to-my-apps-btn img {
     width: 14px;
     height: 14px;
     transition: filter 0.2s;
 }
-.add-to-my-apps-btn .cross-icon { display: none; }
-.add-to-my-apps-btn.is-added .plus-icon { display: none; }
-.add-to-my-apps-btn.is-added .cross-icon { display: block; }
 
-/* --- Крестик становится красным --- */
+.add-to-my-apps-btn .cross-icon {
+    display: none;
+}
+
+.add-to-my-apps-btn.is-added .plus-icon {
+    display: none;
+}
+
+.add-to-my-apps-btn.is-added .cross-icon {
+    display: block;
+}
+
+/* --- ИЗМЕНЕНИЕ: Крестик становится красным --- */
 .add-to-my-apps-btn.is-added .cross-icon,
 #add-to-my-apps-app-view-btn.remove-style .cross-icon {
+    /* Этот CSS-фильтр преобразует исходное изображение в красный цвет (#ef4444) */
     filter: invert(39%) sepia(86%) saturate(1394%) hue-rotate(331deg) brightness(97%) contrast(92%);
 }
+
+/* ИСПРАВЛЕНИЕ: Добавляем правило для hover-состояния, чтобы красный цвет не пропадал */
 .add-to-my-apps-btn.is-added:hover .cross-icon {
+    /* Применяем тот же красный фильтр + небольшое увеличение яркости */
     filter: invert(39%) sepia(86%) saturate(1394%) hue-rotate(331deg) brightness(97%) contrast(92%) brightness(1.2);
 }
 
+
 /* --- Стили для кнопки внутри приложения --- */
+
+/* Показываем нужную иконку в зависимости от стиля кнопки */
 #add-to-my-apps-app-view-btn.add-style .cross-icon,
-#add-to-my-apps-app-view-btn.remove-style .plus-icon { display: none; }
+#add-to-my-apps-app-view-btn.remove-style .plus-icon {
+    display: none;
+}
 #add-to-my-apps-app-view-btn.add-style .plus-icon,
-#add-to-my-apps-app-view-btn.remove-style .cross-icon { display: inline-block; }
+#add-to-my-apps-app-view-btn.remove-style .cross-icon {
+    display: inline-block;
+}
 
-#add-to-my-apps-app-view-btn.add-style { background-color: #e5e7eb; color: #1f2937; }
-#add-to-my-apps-app-view-btn.add-style:hover { background-color: #d1d5db; }
-.dark #add-to-my-apps-app-view-btn.add-style { background-color: #4b5563; color: #f9fafb; }
-.dark #add-to-my-apps-app-view-btn.add-style:hover { background-color: #6b7280; }
+/* Стили для кнопки "Добавить" */
+#add-to-my-apps-app-view-btn.add-style {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+#add-to-my-apps-app-view-btn.add-style:hover {
+    background-color: #d1d5db;
+}
+.dark #add-to-my-apps-app-view-btn.add-style {
+    background-color: #4b5563;
+    color: #f9fafb;
+}
+.dark #add-to-my-apps-app-view-btn.add-style:hover {
+    background-color: #6b7280;
+}
 
-#add-to-my-apps-app-view-btn.remove-style { background-color: #e5e7eb; color: #1f2937; }
-#add-to-my-apps-app-view-btn.remove-style:hover { background-color: #d1d5db; }
-.dark #add-to-my-apps-app-view-btn.remove-style { background-color: #4b5563; color: #f9fafb; }
-.dark #add-to-my-apps-app-view-btn.remove-style:hover { background-color: #6b7280; }
+/* Стили для кнопки "Удалить" */
+#add-to-my-apps-app-view-btn.remove-style {
+    background-color: #e5e7eb; /* gray-200 */
+    color: #1f2937;      /* gray-800 */
+}
+#add-to-my-apps-app-view-btn.remove-style:hover {
+    background-color: #d1d5db; /* gray-300 */
+}
+.dark #add-to-my-apps-app-view-btn.remove-style {
+    background-color: #4b5563; /* gray-600 */
+    color: #f9fafb;      /* gray-50 */
+}
+.dark #add-to-my-apps-app-view-btn.remove-style:hover {
+    background-color: #6b7280; /* gray-500 */
+}
+
 
 /* --- Стили для сортировки приложений --- */
-#apps-container.sortable-active .app-item { cursor: grab; }
-.sortable-ghost { opacity: 0.4; background: #f0f9ff; }
-.dark .sortable-ghost { background: #1e293b; }
+#apps-container.sortable-active .app-item {
+    cursor: grab;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background: #f0f9ff;
+}
+.dark .sortable-ghost {
+    background: #1e293b;
+}
+
 .sortable-chosen {
     opacity: 0.9;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     transform: scale(1.03);
 }
 
-/* --- НОВЫЕ СТИЛИ ДЛЯ МАКЕТА СТРАНИЦЫ --- */
-/* Скрываем лог изменений, когда открыто конкретное приложение */
-#page-container.app-view-active #changelog-container {
-    display: none;
-}
-
-/* Когда приложение открыто, его контейнер-обертка становится невидимым, занимая все пространство */
-#page-container.app-view-active #app-screen {
-    height: 100%;
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    padding: 0; /* УБИРАЕМ ВНУТРЕННИЙ ОТСТУП */
-    border-radius: 0;
-    box-shadow: none;
-    border: none;
-    background-color: transparent;
-}
-
-/* Адаптивность для мобильных устройств */
-@media (max-width: 1024px) {
-    #page-container {
-        flex-direction: column;
-    }
-    #sidebar {
-        width: 100%;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid #e2e8f0; /* slate-200 */
-    }
-    .dark #sidebar {
-        border-bottom-color: #334155; /* slate-700 */
-    }
-    #main-content {
-        padding: 1rem;
-    }
-}
-
-
 /* --- ОБНОВЛЕННЫЕ ГЛОБАЛЬНЫЕ СТИЛИ ДЛЯ ПОЛОСЫ ПРОКРУТКИ --- */
+
+/* Стили для Firefox */
 html {
   scrollbar-width: thin;
+  /* Цвет ползунка, цвет фона дорожки */
   scrollbar-color: #9ca3af #f1f5f9;
 }
+
 html.dark {
   scrollbar-color: #6b7280 #1f293b;
 }
-::-webkit-scrollbar { width: 12px; height: 12px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-.dark ::-webkit-scrollbar-track { background: #1e293b; }
+
+/* Стили для WebKit-браузеров (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+/* Дорожка, по которой движется ползунок */
+::-webkit-scrollbar-track {
+    background: #f1f5f9; /* slate-100 */
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #1e293b; /* slate-800 */
+}
+
+/* Сам ползунок */
 ::-webkit-scrollbar-thumb {
-    background-color: #9ca3af;
+    background-color: #9ca3af; /* gray-400 */
     border-radius: 6px;
-    border: 3px solid #f1f5f9;
+    /* Создаем отступ вокруг ползунка, чтобы он казался тоньше */
+    border: 3px solid #f1f5f9; /* slate-100 */
 }
+
 .dark ::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
-    border-color: #1e293b;
+    background-color: #4b5563; /* gray-600 */
+    border-color: #1e293b; /* slate-800 */
 }
-::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
-.dark ::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
+
+/* Ползунок при наведении */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280; /* gray-500 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af; /* gray-400 */
+}
+
+/* --- НОВЫЕ СТИЛИ ДЛЯ РЕЖИМА ПРОСМОТРА ПРИЛОЖЕНИЯ --- */
+
+/* Показываем сайдбар */
+body.app-view-active #sidebar {
+    display: flex; /* Используем flex для внутреннего расположения */
+}
+
+/* Сдвигаем основной контент */
+body.app-view-active #main-content-wrapper {
+    margin-left: 20rem; /* 320px, что равно ширине сайдбара */
+}
+
+/* Когда сайдбар активен, прячем дублирующиеся элементы на главной */
+body.app-view-active #top-right-controls,
+body.app-view-active #home-content-container {
+    display: none;
+}
+
+/* Стили для элементов списка приложений в сайдбаре */
+#sidebar-app-list .app-item {
+    min-height: 60px;
+    border-radius: 0.5rem !important;
+}
+#sidebar-app-list .app-item .app-icon-wrapper {
+    width: 56px;
+}
+#sidebar-app-list .app-item .app-icon-wrapper img {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+#sidebar-app-list .app-item .app-name-wrapper {
+    padding: 0.5rem 0.75rem;
+}
+#sidebar-app-list .app-item .app-name-text {
+    font-size: 0.9rem;
+}
+
+/* Добавляем эффект нажатия для активного приложения в сайдбаре */
+#sidebar-app-list .app-item.active-app-in-sidebar {
+    background-color: #dbeafe; /* blue-100 */
+    border-color: #3b82f6; /* blue-500 */
+    box-shadow: 0 0 0 2px #3b82f6;
+    transform: none !important;
+}
+.dark #sidebar-app-list .app-item.active-app-in-sidebar {
+     background-color: #1e3a8a; /* blue-900 */
+     border-color: #60a5fa; /* blue-400 */
+     box-shadow: 0 0 0 2px #60a5fa;
+}
+
+#sidebar-app-list .app-item .add-to-my-apps-btn {
+    display: none; /* Прячем кнопку "+" в списке сайдбара */
+}
