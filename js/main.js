@@ -406,10 +406,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
     if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.classList.add('dark');
-        sunIcon.classList.add('hidden');
-        moonIcon.classList.remove('hidden');
-    } else {
+    document.documentElement.classList.add('dark');
+    sunIcon.classList.add('hidden');
+    moonIcon.classList.remove('hidden');
+} else {
         sunIcon.classList.remove('hidden');
         moonIcon.classList.add('hidden');
     }
