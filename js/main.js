@@ -1,4 +1,4 @@
-// 28js/main.js
+// 32js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -111,7 +111,8 @@ const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 let allAppCards = [];
-let lastActiveFilter = 'default'; // Глобальная переменная для хранения последнего фильтра
+// ИЗМЕНЕНИЕ: Инициализируем значением по умолчанию
+let lastActiveFilter = 'default'; 
 
 const homeScreenHtml = `
     <div class="relative">
@@ -380,25 +381,32 @@ async function renderSidebar(currentAppModule) {
     // Сбрасываем поиск
     searchInput.value = '';
     
-    // Устанавливаем фильтр на основе сохраненного значения
-    let defaultFilter = lastActiveFilter;
-    if (!auth.currentUser && defaultFilter === 'my-apps') {
-        defaultFilter = 'all'; // Защита от показа "Мои приложения" если пользователь вышел
+    // ИЗМЕНЕНИЕ: Устанавливаем фильтр на основе сохраненного значения с главной страницы
+    let activeFilterValue = lastActiveFilter === 'default' ? 'all' : lastActiveFilter;
+
+    // Защита от случая, когда пользователь не залогинен, а фильтр стоял "мои приложения"
+    if (!auth.currentUser && activeFilterValue === 'my-apps') {
+        activeFilterValue = 'all';
     }
 
     filterContainer.querySelector('.active')?.classList.remove('active');
-    filterContainer.querySelector(`[data-sort="${defaultFilter}"]`)?.classList.add('active');
-
+    const newActiveButton = filterContainer.querySelector(`[data-sort="${activeFilterValue}"]`);
+    if (newActiveButton) {
+        newActiveButton.classList.add('active');
+    } else { // Если вдруг кнопки "my-apps" нет (юзер вышел), ставим "all"
+        filterContainer.querySelector(`[data-sort="all"]`)?.classList.add('active');
+    }
 
     const applySidebarFilter = async () => {
         const myApps = await getMyApps();
-        const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'all';
+        const currentActiveFilter = filterContainer.querySelector('.active')?.dataset.sort || 'all';
         const searchTerm = searchInput.value.toLowerCase().trim();
 
         let appsToRenderModules = [];
-        if (activeFilter === 'my-apps') {
+        if (currentActiveFilter === 'my-apps') {
             appsToRenderModules = myApps;
         } else {
+            // "Все" (и любые другие будущие фильтры) берут из полного списка
             appsToRenderModules = Array.from(appCardElements.keys());
         }
 
@@ -421,7 +429,6 @@ async function renderSidebar(currentAppModule) {
         });
     };
 
-    // Навешиваем обработчики событий один раз
     if (!filterContainer.dataset.initialized) {
         filterContainer.dataset.initialized = 'true';
         filterContainer.addEventListener('click', (e) => {
@@ -453,7 +460,6 @@ async function router() {
     const appName = moduleFileToAppName[moduleName];
     
     if (appName) {
-        // --- РЕЖИМ ПРОСМОТРА ПРИЛОЖЕНИЯ ---
         document.body.classList.add('app-view-active');
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
         
@@ -485,7 +491,6 @@ async function router() {
             document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
         }
     } else {
-        // --- РЕЖИМ ГЛАВНОЙ СТРАНИЦЫ ---
         document.body.classList.remove('app-view-active');
         
         homeHeaderContent.classList.remove('hidden');
@@ -604,7 +609,8 @@ async function applyAppListFilterAndRender() {
     const sortBtn = document.getElementById('sort-my-apps-btn');
     const filterContainer = document.getElementById('filter-container');
     const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
-    lastActiveFilter = activeFilter; // Обновляем глобальную переменную
+    // ИЗМЕНЕНИЕ: Обновляем глобальную переменную каждый раз при смене фильтра
+    lastActiveFilter = activeFilter;
     const myApps = await getMyApps();
 
     const renderApps = (appElements) => {
@@ -676,8 +682,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Управление темой ---
     const themeToggleBtns = [
-        document.getElementById('theme-toggle'), // Главная
-        document.getElementById('sidebar-theme-toggle') // Сайдбар
+        document.getElementById('theme-toggle'),
+        document.getElementById('sidebar-theme-toggle')
     ];
     const updateThemeIcons = (isDark) => {
         document.querySelectorAll('.sun-icon').forEach(icon => icon.classList.toggle('hidden', isDark));
@@ -700,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- НОВЫЙ БЛОК: Управление боковым меню ---
+    // --- Управление боковым меню ---
     const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
     const positionBtn = document.getElementById('toggle-sidebar-position-btn');
     const settingsBtn = document.getElementById('settings-btn');
@@ -717,10 +723,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('sidebar-collapsed', isSidebarCollapsed);
         document.body.classList.toggle('sidebar-on-right', sidebarPosition === 'right');
 
-        // Обновление иконки и title для кнопки-переключателя
         if (sidebarPosition === 'left') {
             sidebarToggleBtn.innerHTML = isSidebarCollapsed ? icon_chevron_right : icon_chevron_left;
-        } else { // right
+        } else {
             sidebarToggleBtn.innerHTML = isSidebarCollapsed ? icon_chevron_left : icon_chevron_right;
         }
         sidebarToggleBtn.title = isSidebarCollapsed ? 'Показать меню' : 'Скрыть меню';
@@ -739,18 +744,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Предотвращаем закрытие меню сразу после открытия
+        e.stopPropagation();
         settingsMenu.classList.toggle('hidden');
     });
 
-    // Закрытие меню настроек при клике вне его
     document.addEventListener('click', (e) => {
         if (!settingsContainer.contains(e.target)) {
             settingsMenu.classList.add('hidden');
         }
     });
 
-    applySidebarState(); // Применяем состояние при первой загрузке
+    applySidebarState();
 
 
     document.getElementById('changelog-container').addEventListener('click', (e) => {
@@ -816,6 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
                 document.querySelector('#filter-container [data-sort="default"]')?.classList.add('active');
+                // ИЗМЕНЕНИЕ: Сбрасываем сохраненный фильтр при выходе
                 lastActiveFilter = 'default';
             }
         }
