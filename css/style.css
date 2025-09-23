@@ -333,9 +333,14 @@ html.dark { scrollbar-color: #6b7280 #1f293b; }
 /* --- Управление положением и видимостью сайдбара --- */
 #sidebar {
     left: 0;
-    border-right: 1px solid;
+    /* ИСПРАВЛЕНИЕ 1: Задаем конкретный цвет границе */
+    border-right: 1px solid #e2e8f0; /* slate-200 */
     transform: translateX(0);
 }
+.dark #sidebar {
+    border-right-color: #334155; /* slate-700 */
+}
+
 #main-content-wrapper {
     margin-left: 0;
 }
@@ -359,8 +364,13 @@ body.sidebar-on-right #sidebar {
     left: auto;
     right: 0;
     border-right: none;
-    border-left: 1px solid;
+    /* ИСПРАВЛЕНИЕ 1: Задаем конкретный цвет границе */
+    border-left: 1px solid #e2e8f0; /* slate-200 */
 }
+.dark body.sidebar-on-right #sidebar {
+    border-left-color: #334155; /* slate-700 */
+}
+
 body.sidebar-on-right #sidebar-toggle-btn {
     left: auto;
     right: 20rem; /* 320px */
@@ -402,12 +412,55 @@ body.app-view-active #changelog-container {
 }
 
 
-/* Стили для элементов списка приложений в сайдбаре */
-#sidebar-app-list .app-item { min-height: 60px; border-radius: 0.5rem !important; }
+/* --- Стили для списка приложений в сайдбаре --- */
+#sidebar-app-list .app-item {
+    min-height: 60px;
+    border-radius: 0.5rem !important;
+    /* Убираем рамку по умолчанию для всех элементов, чтобы она не мешала новому стилю */
+    border: 1px solid transparent;
+}
+#sidebar-app-list .app-item:hover {
+    background-color: #f3f4f6; /* gray-100 */
+}
+.dark #sidebar-app-list .app-item:hover {
+    background-color: #374151; /* gray-700 */
+}
+
 #sidebar-app-list .app-item .app-icon-wrapper { width: 56px; }
 #sidebar-app-list .app-item .app-icon-wrapper img { width: 1.75rem; height: 1.75rem; }
 #sidebar-app-list .app-item .app-name-wrapper { padding: 0.5rem 0.75rem; }
-#sidebar-app-list .app-item .app-name-text { font-size: 0.9rem; }
-#sidebar-app-list .app-item.active-app-in-sidebar { background-color: #dbeafe; border-color: #3b82f6; box-shadow: 0 0 0 2px #3b82f6; transform: none !important; }
-.dark #sidebar-app-list .app-item.active-app-in-sidebar { background-color: #1e3a8a; border-color: #60a5fa; box-shadow: 0 0 0 2px #60a5fa; }
+#sidebar-app-list .app-item .app-name-text { font-size: 0.9rem; transition: color 0.2s; }
 #sidebar-app-list .app-item .add-to-my-apps-btn { display: none; }
+
+
+/* ИСПРАВЛЕНИЕ 2: НОВЫЙ СТИЛЬ ДЛЯ АКТИВНОГО ПРИЛОЖЕНИЯ В САЙДБАРЕ */
+#sidebar-app-list .app-item.active-app-in-sidebar {
+    background-color: #eff6ff !important; /* blue-50 */
+    transform: none !important;
+    box-shadow: none;
+    border-color: transparent;
+}
+.dark #sidebar-app-list .app-item.active-app-in-sidebar {
+     background-color: #1e3a8a !important; /* blue-900 с оттенком */
+}
+/* Акцентная полоса слева */
+#sidebar-app-list .app-item.active-app-in-sidebar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: #3b82f6; /* blue-500 */
+}
+.dark #sidebar-app-list .app-item.active-app-in-sidebar::before {
+    background-color: #60a5fa; /* blue-400 */
+}
+/* Выделение текста */
+#sidebar-app-list .app-item.active-app-in-sidebar .app-name-text {
+    color: #2563eb; /* blue-600 */
+    font-weight: 600;
+}
+.dark #sidebar-app-list .app-item.active-app-in-sidebar .app-name-text {
+    color: #93c5fd; /* blue-300 */
+}
