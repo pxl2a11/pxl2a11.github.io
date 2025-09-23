@@ -68,18 +68,30 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-200 font-sans">
 
-    <!-- Оверлеи для загрузки остаются здесь -->
-    <div id="initial-loading-overlay" class="... z-[9999] ...">...</div>
-    <div id="auth-loading-overlay" class="... z-[9998] hidden ...">...</div>
+    <!-- Оверлей для первоначальной загрузки -->
+    <div id="initial-loading-overlay" class="fixed inset-0 bg-gray-100 dark:bg-gray-800 flex flex-col justify-center items-center gap-6 z-[9999]">
+        <h1 class="text-5xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+            Mini Apps
+        </h1>
+        <img src="img/loading.svg" alt="Загрузка..." class="w-16 h-16">
+    </div>
+
+    <!-- Оверлей для загрузки при авторизации (по умолчанию скрыт) -->
+    <div id="auth-loading-overlay" class="fixed inset-0 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm flex flex-col justify-center items-center gap-6 z-[9998] hidden">
+        <h1 class="text-5xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+            Mini Apps
+        </h1>
+        <img src="img/loading.svg" alt="Вход..." class="w-16 h-16">
+    </div>
 
     <!-- ===== НОВЫЙ ГЛАВНЫЙ КОНТЕЙНЕР ===== -->
     <div class="flex h-screen">
 
         <!-- ===== 1. БОКОВАЯ ПАНЕЛЬ (SIDEBAR) ===== -->
-        <aside id="sidebar" class="w-96 bg-white dark:bg-slate-900/70 p-4 flex flex-col shadow-lg z-20 border-r border-slate-200 dark:border-slate-700">
+        <aside id="sidebar" class="bg-white dark:bg-slate-900/70 p-4 flex flex-col shadow-lg z-20 border-r border-slate-200 dark:border-slate-700">
             
             <!-- Шапка сайдбара -->
-            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
                 <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
                     <a href="/" id="home-link">Mini Apps</a>
                 </h1>
@@ -94,10 +106,10 @@
                     </div>
                     <!-- Переключатель темы -->
                     <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
-                        <svg id="sun-icon" class="h-5 w-5"></svg>
-                        <svg id="moon-icon" class="h-5 w-5 hidden"></svg>
+                        <svg id="sun-icon" class="h-5 w-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        <svg id="moon-icon" class="h-5 w-5 text-gray-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                     </button>
-                    <!-- Новый значок настроек (пример) -->
+                    <!-- Новый значок настроек -->
                     <button id="settings-btn" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
                         <svg class="h-5 w-5 text-gray-900 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </button>
@@ -105,19 +117,23 @@
             </div>
 
             <!-- Поиск -->
-            <div class="relative my-4">
-                <input id="search-input" type="text" placeholder="Поиск приложений..." class="..."/>
-                <!-- SVG и suggestions-container остаются здесь -->
+            <div class="relative my-4 flex-shrink-0">
+                <input id="search-input" type="text" placeholder="Поиск приложений..." class="w-full p-3 pl-10 pr-4 rounded-full border border-gray-300/80 dark:border-gray-700/80 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <div id="suggestions-container" class="absolute w-full mt-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-lg hidden z-40"></div>
             </div>
 
             <!-- Фильтры -->
-            <div id="filter-container" class="flex flex-wrap justify-center gap-2 mb-4">
-                <!-- Кнопки фильтров -->
+            <div id="filter-container" class="flex flex-wrap justify-center gap-2 mb-4 flex-shrink-0">
+                <button data-sort="my-apps" class="filter-btn hidden">Мои приложения</button>
+                <button data-sort="default" class="filter-btn active">Все</button>
+                <button data-sort="popular" class="filter-btn">Популярные</button>
+                <button data-sort="new" class="filter-btn">Новые</button>
             </div>
-
+            
             <!-- Контейнер для списка приложений с прокруткой -->
-            <div id="app-list-container" class="flex-1 overflow-y-auto pr-2">
-                <button id="sort-my-apps-btn" class="filter-btn hidden absolute top-0 right-4 z-10">Переместить</button>
+            <div id="app-list-container" class="relative flex-1 overflow-y-auto pr-2">
+                 <button id="sort-my-apps-btn" class="filter-btn hidden sticky top-2 ml-auto mr-0 mb-2 z-10 block">Переместить</button>
                 <div id="apps-container" class="grid grid-cols-1 gap-3">
                     <!-- Карточки приложений будут рендериться сюда -->
                 </div>
@@ -126,18 +142,18 @@
 
         <!-- ===== 2. ОСНОВНАЯ ОБЛАСТЬ КОНТЕНТА (MAIN) ===== -->
         <main id="main-content" class="flex-1 p-6 overflow-y-auto">
-            <!-- Сюда будет загружаться контент приложения или changelog -->
-            <!-- Элемент #dynamic-content-area больше не нужен -->
-            <div id="changelog-container-wrapper">
-                 <div id="changelog-container" class="w-full max-w-6xl mx-auto p-6 bg-white/60 ..."></div>
+            <div id="app-content-wrapper" class="w-full h-full">
+                <!-- Сюда будет вставляться HTML-код приложения (appScreenHtml) -->
             </div>
-            <div id="app-content-wrapper">
-                <!-- Сюда будет вставляться appScreenHtml -->
+            <div id="changelog-container-wrapper" class="w-full h-full">
+                 <div id="changelog-container" class="w-full max-w-4xl mx-auto bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg"></div>
             </div>
         </main>
     </div>
-        <!-- НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ -->
+
+    <!-- НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ (остается без изменений) -->
     <template id="all-apps-template">
+        <!-- ... все ваши <a href="..." class="app-item"> ... -->
         <a href="?app=speedTest" class="app-item" style="--app-color: #06b6d4;" data-name="Скорость интернета" data-module="speedTest">
             <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
             <div class="app-icon-wrapper"><img src="img/speedTest.svg" alt="Скорость интернета"></div>
