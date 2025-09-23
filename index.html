@@ -110,7 +110,6 @@
                  <div id="sidebar-user-controls" class="flex items-center justify-between gap-2">
                     <div id="sidebar-auth-container" class="min-w-0 flex-1"></div>
                     
-                    <!-- НОВОЕ МЕНЮ НАСТРОЕК -->
                     <div id="settings-container" class="relative">
                         <button id="settings-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Настройки">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -132,9 +131,7 @@
             </div>
         </aside>
         
-        <!-- ЕДИНАЯ КНОПКА УПРАВЛЕНИЯ ВИДИМОСТЬЮ МЕНЮ -->
         <button id="sidebar-toggle-btn" class="hidden fixed top-1/2 -translate-y-1/2 z-30 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-r-lg shadow-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 ease-in-out">
-             <!-- SVG иконка будет меняться через JS -->
         </button>
 
         <!-- ОСНОВНОЙ КОНТЕНТ -->
@@ -194,9 +191,283 @@
          <div id="google-signin-sidebar-container"></div>
     </template>
 
-    <!-- НЕВИДИМЫЙ ШАБЛОН СО ВСЕМИ КАРТОЧКАМИ ПРИЛОЖЕНИЙ -->
+    <!-- ИСПРАВЛЕНИЕ: ПОЛНОЕ СОДЕРЖИМОЕ ШАБЛОНА -->
     <template id="all-apps-template">
-        <!-- ... (содержимое шаблона не изменилось, поэтому опущено для краткости) ... -->
+        <a href="?app=speedTest" class="app-item" style="--app-color: #06b6d4;" data-name="Скорость интернета" data-module="speedTest">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/speedTest.svg" alt="Скорость интернета"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Скорость интернета</span></div>
+        </a>
+        <a href="?app=radio" class="app-item" style="--app-color: #6366f1;" data-name="Радио" data-module="radio">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/radio.svg" alt="Радио"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Радио</span></div>
+        </a>
+        <a href="?app=notesAndTasks" class="app-item" style="--app-color: #f59e0b;" data-name="Заметки и задачи" data-module="notesAndTasks">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/notesAndTasks.svg" alt="Заметки и задачи"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Заметки и задачи</span></div>
+        </a>
+        <a href="?app=soundAndMicTest" class="app-item" style="--app-color: #ec4899;" data-name="Тест звука и микрофона" data-module="soundAndMicTest">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/soundAndMicTest.svg" alt="Тест звука и микрофона"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тест звука и микрофона</span></div>
+        </a>
+        <a href="?app=audioCompressor" class="app-item" style="--app-color: #3b82f6;" data-name="Сжатие аудио" data-module="audioCompressor">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/audioCompressor.svg" alt="Сжатие аудио"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Сжатие аудио</span></div>
+        </a>
+        <a href="?app=myIp" class="app-item" style="--app-color: #6b7280;" data-name="Мой IP" data-module="myIp">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/myIp.svg" alt="Мой IP"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Мой IP</span></div>
+        </a>
+        <a href="?app=passwordGenerator" class="app-item" style="--app-color: #3b82f6;" data-name="Генератор паролей" data-module="passwordGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/passwordGenerator.svg" alt="Генератор паролей"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор паролей</span></div>
+        </a>
+        <a href="?app=percentageCalculator" class="app-item" style="--app-color: #d946ef;" data-name="Процентный калькулятор" data-module="percentageCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/percentageCalculator.svg" alt="Процентный калькулятор"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Процентный калькулятор</span></div>
+        </a>
+        <a href="?app=timer" class="app-item" style="--app-color: #fb923c;" data-name="Таймер" data-module="timer">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/timer.svg" alt="Таймер"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Таймер</span></div>
+        </a>
+        <a href="?app=fortuneWheel" class="app-item" style="--app-color: #a855f7;" data-name="Колесо фортуны" data-module="fortuneWheel">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/fortuneWheel.svg" alt="Колесо фортуны"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Колесо фортуны</span></div>
+        </a>
+        <a href="?app=magicBall" class="app-item" style="--app-color: #374151;" data-name="Шар предсказаний" data-module="magicBall">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/magicBall.svg" alt="Шар предсказаний"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Шар предсказаний</span></div>
+        </a>
+        <a href="?app=ticTacToe" class="app-item" style="--app-color: #14b8a6;" data-name="Крестики-нолики" data-module="ticTacToe">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/ticTacToe.svg" alt="Крестики-нолики"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Крестики-нолики</span></div>
+        </a>
+        <a href="?app=minesweeper" class="app-item" style="--app-color: #4b5563;" data-name="Сапер" data-module="minesweeper">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/minesweeper.svg" alt="Сапер"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Сапер</span></div>
+        </a>
+        <a href="?app=stopwatch" class="app-item" style="--app-color: #84cc16;" data-name="Секундомер" data-module="stopwatch">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/stopwatch.svg" alt="Секундомер"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Секундомер</span></div>
+        </a>
+        <a href="?app=randomColor" class="app-item" style="--app-color: #f43f5e;" data-name="Случайный цвет" data-module="randomColor">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/randomColor.svg" alt="Случайный цвет"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Случайный цвет</span></div>
+        </a>
+        <a href="?app=numberGenerator" class="app-item" style="--app-color: #22c55e;" data-name="Генератор чисел" data-module="numberGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/numberGenerator.svg" alt="Генератор чисел"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор чисел</span></div>
+        </a>
+        <a href="?app=qrCodeGenerator" class="app-item" style="--app-color: #16a34a;" data-name="Генератор QR-кодов" data-module="qrCodeGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/qrCodeGenerator.svg" alt="Генератор QR-кодов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор QR-кодов</span></div>
+        </a>
+        <a href="?app=emojiAndSymbols" class="app-item" style="--app-color: #f97316;" data-name="Эмодзи и символы" data-module="emojiAndSymbols">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/emojiAndSymbols.svg" alt="Эмодзи и символы"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Эмодзи и символы</span></div>
+        </a>
+        <a href="?app=unitConverter" class="app-item" style="--app-color: #0ea5e9;" data-name="Конвертер величин" data-module="unitConverter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/unitConverter.svg" alt="Конвертер величин"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Конвертер величин</span></div>
+        </a>
+        <a href="?app=dateCalculator" class="app-item" style="--app-color: #ef4444;" data-name="Калькулятор дат" data-module="dateCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/dateCalculator.svg" alt="Калькулятор дат"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор дат</span></div>
+        </a>
+        <a href="?app=bmiCalculator" class="app-item" style="--app-color: #10b981;" data-name="Калькулятор ИМТ" data-module="bmiCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/bmiCalculator.svg" alt="Калькулятор ИМТ"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор ИМТ</span></div>
+        </a>
+        <a href="?app=qrScanner" class="app-item" style="--app-color: #475569;" data-name="Сканер QR-кодов" data-module="qrScanner">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/qrScanner.svg" alt="Сканер QR-кодов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Сканер QR-кодов</span></div>
+        </a>
+        <a href="?app=piano" class="app-item" style="--app-color: #dc2626;" data-name="Пианино" data-module="piano">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/piano.svg" alt="Пианино"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Пианино</span></div>
+        </a>
+        <a href="?app=caseConverter" class="app-item" style="--app-color: #14b8a6;" data-name="Конвертер регистра" data-module="caseConverter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/caseConverter.svg" alt="Конвертер регистра"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Конвертер регистра</span></div>
+        </a>
+        <a href="?app=colorConverter" class="app-item" style="--app-color: #a855f7;" data-name="Конвертер цветов" data-module="colorConverter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/colorConverter.svg" alt="Конвертер цветов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Конвертер цветов</span></div>
+        </a>
+        <a href="?app=memoryGame" class="app-item" style="--app-color: #ec4899;" data-name="Игра на память" data-module="memoryGame">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/memoryGame.svg" alt="Игра на память"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Игра на память</span></div>
+        </a>
+        <a href="?app=textTranslit" class="app-item" style="--app-color: #0ea5e9;" data-name="Транслитерация текста" data-module="textTranslit">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/textTranslit.svg" alt="Транслитерация текста"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Транслитерация текста</span></div>
+        </a>
+        <a href="?app=currencyCalculator" class="app-item" style="--app-color: #10b981;" data-name="Калькулятор валют" data-module="currencyCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/currencyCalculator.svg" alt="Калькулятор валют"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор валют</span></div>
+        </a>
+        <a href="?app=snakeGame" class="app-item" style="--app-color: #65a30d;" data-name="Змейка" data-module="snakeGame">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/snakeGame.svg" alt="Змейка"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Змейка</span></div>
+        </a>
+        <a href="?app=timezoneConverter" class="app-item" style="--app-color: #0284c7;" data-name="Конвертер часовых поясов" data-module="timezoneConverter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/timezoneConverter.svg" alt="Конвертер часовых поясов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Конвертер часовых поясов</span></div>
+        </a>
+        <a href="?app=textToSpeech" class="app-item" style="--app-color: #0891b2;" data-name="Текст в речь" data-module="textToSpeech">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/textToSpeech.svg" alt="Текст в речь"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Текст в речь</span></div>
+        </a>
+        <a href="?app=rockPaperScissors" class="app-item" style="--app-color: #e11d48;" data-name="Камень, ножницы, бумага" data-module="rockPaperScissors">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/rockPaperScissors.svg" alt="Камень, ножницы, бумага"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Камень, ножницы, бумага</span></div>
+        </a>
+        <a href="?app=sudoku" class="app-item" style="--app-color: #4f46e5;" data-name="Судоку" data-module="sudoku">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/sudoku.svg" alt="Судоку"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Судоку</span></div>
+        </a>
+        <a href="?app=zipArchiver" class="app-item" style="--app-color: #eab308;" data-name="Архиватор файлов (ZIP)" data-module="zipArchiver">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/zipArchiver.svg" alt="Архиватор файлов (ZIP)"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Архиватор файлов (ZIP)</span></div>
+        </a>
+        <a href="?app=game2048" class="app-item" style="--app-color: #fb923c;" data-name="2048" data-module="game2048">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/game2048.svg" alt="2048"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">2048</span></div>
+        </a>
+        <a href="?app=barcodeGenerator" class="app-item" style="--app-color: #4b5563;" data-name="Генератор штрих-кодов" data-module="barcodeGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/barcodeGenerator.svg" alt="Генератор штрих-кодов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор штрих-кодов</span></div>
+        </a>
+        <a href="?app=voiceRecorder" class="app-item" style="--app-color: #ef4444;" data-name="Диктофон" data-module="voiceRecorder">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/voiceRecorder.svg" alt="Диктофон"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Диктофон</span></div>
+        </a>
+        <a href="?app=siteSkeletonGenerator" class="app-item" style="--app-color: #7e22ce;" data-name="Генератор каркаса Сайта" data-module="siteSkeletonGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/siteSkeletonGenerator.svg" alt="Генератор каркаса Сайта"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор каркаса сайта</span></div>
+        </a>
+        <a href="?app=mouseTester" class="app-item" style="--app-color: #34d399;" data-name="Тест мыши" data-module="mouseTester">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/mouseTester.svg" alt="Тест мыши"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тест мыши</span></div>
+        </a>
+        <a href="?app=keyboardTester" class="app-item" style="--app-color: #60a5fa;" data-name="Тест клавиатуры" data-module="keyboardTester">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/keyboardTester.svg" alt="Тест клавиатуры"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тест клавиатуры</span></div>
+        </a>
+        <a href="?app=drawingPad" class="app-item" style="--app-color: #f472b6;" data-name="Графический редактор" data-module="drawingPad">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/drawingPad.svg" alt="Графический редактор"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Графический редактор</span></div>
+        </a>
+        <a href="?app=textDiffTool" class="app-item" style="--app-color: #2dd4bf;" data-name="Сравнение текста" data-module="textDiffTool">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/textDiffTool.svg" alt="Сравнение текста"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Сравнение текста</span></div>
+        </a>
+        <a href="?app=faviconGenerator" class="app-item" style="--app-color: #fb7185;" data-name="Генератор favicon" data-module="faviconGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/faviconGenerator.svg" alt="Генератор favicon"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор favicon</span></div>
+        </a>
+        <a href="?app=loanCalculator" class="app-item" style="--app-color: #a78bfa;" data-name="Калькулятор кредита" data-module="loanCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/loanCalculator.svg" alt="Калькулятор кредита"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор кредита</span></div>
+        </a>
+        <a href="?app=typingTest" class="app-item" style="--app-color: #f59e0b;" data-name="Тест скорости печати" data-module="typingTest">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/typingTest.svg" alt="Тест скорости печати"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тест скорости печати</span></div>
+        </a>
+        <a href="?app=screenRecorder" class="app-item" style="--app-color: #ef4444;" data-name="Запись экрана" data-module="screenRecorder">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/screenRecorder.svg" alt="Запись экрана"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Запись экрана</span></div>
+        </a>
+        <a href="?app=flappyBird" class="app-item" style="--app-color: #f9a825;" data-name="Flappy Bird" data-module="flappyBird">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/flappyBird.svg" alt="Flappy Bird"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Flappy Bird</span></div>
+        </a>
+        <a href="?app=textAnalyzer" class="app-item" style="--app-color: #8b5cf6;" data-name="Анализатор текста" data-module="textAnalyzer">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/textAnalyzer.svg" alt="Анализатор текста"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Анализатор текста</span></div>
+        </a>
+        <a href="?app=virtualDice" class="app-item" style="--app-color: #9333ea;" data-name="Виртуальный кубик" data-module="virtualDice">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/virtualDice.svg" alt="Виртуальный кубик"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Виртуальный кубик</span></div>
+        </a>
+        <a href="?app=calorieCalculator" class="app-item" style="--app-color: #22c55e;" data-name="Калькулятор калорий" data-module="calorieCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/calorieCalculator.svg" alt="Калькулятор калорий"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор калорий</span></div>
+        </a>
+        <a href="?app=calculator" class="app-item" style="--app-color: #8b5cf6;" data-name="Калькулятор" data-module="calculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/calculator.svg" alt="Калькулятор"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор</span></div>
+        </a>
+        <a href="?app=imageEditor" class="app-item" style="--app-color: #8b5cf6;" data-name="Редактор изображений" data-module="imageEditor">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/imageEditor.svg" alt="Редактор изображений"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Редактор изображений</span></div>
+        </a>
+        <a href="?app=onlineTv" class="app-item" style="--app-color: #0ea5e9;" data-name="ТВ онлайн" data-module="onlineTv">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/onlineTv.svg" alt="ТВ онлайн"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">ТВ онлайн</span></div>
+        </a>
+        <a href="?app=markdownEditor" class="app-item" style="--app-color: #4a5568;" data-name="Markdown Редактор" data-module="markdownEditor">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/markdownEditor.svg" alt="Markdown Редактор"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Markdown Редактор</span></div>
+        </a>
+        <a href="?app=tetris" class="app-item" style="--app-color: #8b5cf6;" data-name="Тетрис" data-module="tetris">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/tetris.svg" alt="Тетрис"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тетрис</span></div>
+        </a>
     </template>
 </body>
 </html>
