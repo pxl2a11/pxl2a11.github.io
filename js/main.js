@@ -1,4 +1,4 @@
-// 36js/main.js
+// 16js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -106,15 +106,23 @@ const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
+const pageContainer = document.getElementById('page-container');
+const dynamicContentArea = document.getElementById('dynamic-content-area');
+const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
 const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 let allAppCards = [];
 
-// HTML-шаблон homeScreenHtml больше не нужен, так как список приложений теперь часть статичной разметки
+const homeScreenHtml = `
+    <div class="relative h-full">
+        <button id="sort-my-apps-btn" class="filter-btn hidden absolute -top-14 right-0 z-10">Переместить</button>
+        <div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"></div>
+    </div>
+`;
 const appScreenHtml = `
-    <div id="app-screen" class="hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
+    <div id="app-screen" class="hidden w-full h-full max-w-6xl mx-auto bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center">
                 <a href="/" id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"><svg class="h-6 w-6 text-gray-900 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></a>
@@ -330,25 +338,21 @@ async function router() {
         activeAppModule.cleanup();
     }
     activeAppModule = null;
-
-    const appContentWrapper = document.getElementById('app-content-wrapper');
-    const changelogWrapper = document.getElementById('changelog-container-wrapper');
-    appContentWrapper.innerHTML = ''; // Очищаем контейнер приложения
-
+    dynamicContentArea.innerHTML = '';
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName];
     
     if (appName) {
         // --- РЕЖИМ ПРОСМОТРА ПРИЛОЖЕНИЯ ---
+        pageContainer.classList.add('app-view-active');
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
-        changelogWrapper.classList.add('hidden'); // Скрываем changelog
-        appContentWrapper.classList.remove('hidden'); // Показываем контейнер приложения
-
-        appContentWrapper.innerHTML = appScreenHtml;
+        
+        dynamicContentArea.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
         appScreen.classList.remove('hidden');
         document.getElementById('app-title').textContent = appName;
+        changelogContainer.classList.add('hidden');
         document.title = `${appName} | Mini Apps`;
 
         try {
@@ -367,20 +371,13 @@ async function router() {
             document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
         }
     } else {
-        // --- РЕЖИМ ГЛАВНОЙ СТРАНИЦЫ (ПОКАЗЫВАЕМ CHANGELOG В ОСНОВНОМ ОКНЕ) ---
-        changelogWrapper.classList.remove('hidden');
-        appContentWrapper.classList.add('hidden');
+        // --- РЕЖИМ ГЛАВНОЙ СТРАНИЦЫ (СПИСОК ПРИЛОЖЕНИЙ) ---
+        pageContainer.classList.remove('app-view-active');
+        dynamicContentArea.innerHTML = homeScreenHtml;
+        changelogContainer.classList.remove('hidden');
         document.title = 'Mini Apps';
-        
-        const changelogContainer = document.getElementById('changelog-container');
-        renderChangelog(null, 5, changelogContainer); // Показываем 5 последних изменений
-
-        // Убедимся, что список приложений отрисован в сайдбаре, если его там еще нет
-        const appsContainer = document.getElementById('apps-container');
-        if (!appsContainer.hasChildNodes()) {
-            setupFilters();
-            await applyAppListFilterAndRender();
-        }
+        renderChangelog(null, 3, changelogContainer);
+        await applyAppListFilterAndRender();
     }
 }
 
@@ -404,8 +401,7 @@ function setupNavigationEvents() {
                     history.pushState({}, '', link.href);
                 }
                 router();
-                // Прокрутку делаем только для основного контента
-                document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
     });
@@ -479,7 +475,7 @@ async function applyAppListFilterAndRender() {
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
         if (appElements.length === 0 && activeFilter === 'my-apps') {
-            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400 p-4">У вас пока нет добавленных приложений. Нажмите "+" на карточке, чтобы добавить ее сюда.</p>`;
+            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400">У вас пока нет добавленных приложений. Нажмите "+" на карточке приложения, чтобы добавить его сюда.</p>`;
             return;
         }
         appElements.forEach(app => {
@@ -532,8 +528,8 @@ function setupFilters() {
 
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
-    setupFilters();
     setupSearch(); 
+    setupFilters();
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
     window.addEventListener('popstate', router);
@@ -564,23 +560,16 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestionsContainer.classList.add('hidden');
         }
     });
-    
-    const changelogContainerWrapper = document.getElementById('changelog-container-wrapper');
-    if (changelogContainerWrapper) {
-        changelogContainerWrapper.addEventListener('click', (e) => {
-            if (e.target.id === 'show-all-changelog-btn') {
-                e.preventDefault();
-                const moduleFile = appNameToModuleFile['История изменений'];
-                history.pushState({}, '', `?app=${moduleFile}`);
-                router();
-                return;
-            }
-        });
-    }
-
-    // Используем делегирование событий на document.body, так как контент динамический
-    document.body.addEventListener('click', async e => {
-        // Кнопка "+" на карточке в списке
+    changelogContainer.addEventListener('click', (e) => {
+        if (e.target.id === 'show-all-changelog-btn') {
+            e.preventDefault();
+            const moduleFile = appNameToModuleFile['История изменений'];
+            history.pushState({}, '', `?app=${moduleFile}`);
+            router();
+            return;
+        }
+    });
+    dynamicContentArea.addEventListener('click', async e => {
         const addBtn = e.target.closest('.add-to-my-apps-btn');
         if (addBtn) {
             e.preventDefault(); 
@@ -594,8 +583,6 @@ document.addEventListener('DOMContentLoaded', () => {
             await toggleMyAppStatus(moduleName);
             return;
         }
-
-        // Кнопка "Добавить/Удалить" на странице самого приложения
         const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
         if (addBtnAppView) {
             if (!auth.currentUser) {
@@ -606,8 +593,6 @@ document.addEventListener('DOMContentLoaded', () => {
             await toggleMyAppStatus(moduleName);
             await updateAppViewButton(moduleName);
         }
-
-        // Кнопка "Переместить"
         const sortBtn = e.target.closest('#sort-my-apps-btn');
         if (sortBtn) {
             isSortingMode = !isSortingMode;
@@ -624,20 +609,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setOnDataLoaded(async () => {
         console.log("Получены свежие данные из Firebase, интерфейс будет обновлен.");
-        await router();
-        await applyAppListFilterAndRender(); // Обновляем и список приложений
+        await router(); 
     });
 
     let isInitialAuthCheckDone = false;
     onAuthStateChanged(auth, async (user) => {
+        const myAppsButton = document.querySelector('[data-sort="my-apps"]');
+        const allAppsButton = document.querySelector('[data-sort="default"]');
+        
         if (user) {
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
-            const myAppsButton = document.querySelector('[data-sort="my-apps"]');
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
-                document.querySelector('[data-sort="default"]')?.classList.add('active');
+                allAppsButton?.classList.add('active');
             }
         }
 
@@ -648,22 +634,23 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const params = new URLSearchParams(window.location.search);
             const appModule = params.get('app');
-            // Если пользователь вошел и не открыто конкретное приложение, по умолчанию показываем "Мои приложения"
-            if (user && !appModule) {
-                document.querySelector('[data-sort="default"]')?.classList.remove('active');
-                document.querySelector('[data-sort="my-apps"]')?.classList.add('active');
+            // Устанавливаем фильтр по умолчанию ТОЛЬКО если мы на главной странице
+            if (!appModule) {
+                if (user) {
+                    document.querySelector('#filter-container .active')?.classList.remove('active');
+                    myAppsButton?.classList.add('active');
+                } else {
+                    document.querySelector('#filter-container .active')?.classList.remove('active');
+                    allAppsButton?.classList.add('active');
+                }
             }
             
-            await applyAppListFilterAndRender(); // Первичная отрисовка списка в сайдбаре
-            await router(); // Отрисовка основного контента
-            
+            await router(); 
             const loader = document.getElementById('initial-loading-overlay');
             if (loader) {
                 loader.style.display = 'none';
             }
         } else {
-            // При выходе/входе перерисовываем и список, и основной контент
-            await applyAppListFilterAndRender();
             await router();
         }
 
