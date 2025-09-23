@@ -1,4 +1,4 @@
-// 32js/main.js
+// 36js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
@@ -106,20 +106,13 @@ const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
 );
 
-const dynamicContentArea = document.getElementById('dynamic-content-area');
-const changelogContainer = document.getElementById('changelog-container');
 const searchInput = document.getElementById('search-input');
 const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 let allAppCards = [];
 
-const homeScreenHtml = `
-    <div class="relative">
-        <button id="sort-my-apps-btn" class="filter-btn hidden absolute -top-14 right-0 z-10">Переместить</button>
-        <div id="apps-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>
-    </div>
-`;
+// HTML-шаблон homeScreenHtml больше не нужен, так как список приложений теперь часть статичной разметки
 const appScreenHtml = `
     <div id="app-screen" class="hidden w-full max-w-6xl mx-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors">
         <div class="flex items-center justify-between mb-6">
@@ -337,21 +330,27 @@ async function router() {
         activeAppModule.cleanup();
     }
     activeAppModule = null;
-    dynamicContentArea.innerHTML = '';
+
+    const appContentWrapper = document.getElementById('app-content-wrapper');
+    const changelogWrapper = document.getElementById('changelog-container-wrapper');
+    appContentWrapper.innerHTML = ''; // Очищаем контейнер приложения
+
     const params = new URLSearchParams(window.location.search);
     const moduleName = params.get('app');
     const appName = moduleFileToAppName[moduleName];
-    const filterContainer = document.getElementById('filter-container');
     
     if (appName) {
+        // --- РЕЖИМ ПРОСМОТРА ПРИЛОЖЕНИЯ ---
         if (suggestionsContainer) suggestionsContainer.classList.add('hidden');
-        filterContainer?.classList.add('hidden');
-        dynamicContentArea.innerHTML = appScreenHtml;
+        changelogWrapper.classList.add('hidden'); // Скрываем changelog
+        appContentWrapper.classList.remove('hidden'); // Показываем контейнер приложения
+
+        appContentWrapper.innerHTML = appScreenHtml;
         const appScreen = document.getElementById('app-screen');
         appScreen.classList.remove('hidden');
         document.getElementById('app-title').textContent = appName;
-        changelogContainer.classList.add('hidden');
         document.title = `${appName} | Mini Apps`;
+
         try {
             const module = await import(`./apps/${moduleName}.js`);
             activeAppModule = module;
@@ -368,13 +367,20 @@ async function router() {
             document.getElementById('app-content-container').innerHTML = `<p class="text-center text-red-500">Не удалось загрузить приложение.</p>`;
         }
     } else {
-        dynamicContentArea.innerHTML = homeScreenHtml;
-        filterContainer?.classList.remove('hidden');
-        changelogContainer.classList.remove('hidden');
+        // --- РЕЖИМ ГЛАВНОЙ СТРАНИЦЫ (ПОКАЗЫВАЕМ CHANGELOG В ОСНОВНОМ ОКНЕ) ---
+        changelogWrapper.classList.remove('hidden');
+        appContentWrapper.classList.add('hidden');
         document.title = 'Mini Apps';
-        setupFilters();
-        renderChangelog(null, 3, changelogContainer);
-        await applyAppListFilterAndRender();
+        
+        const changelogContainer = document.getElementById('changelog-container');
+        renderChangelog(null, 5, changelogContainer); // Показываем 5 последних изменений
+
+        // Убедимся, что список приложений отрисован в сайдбаре, если его там еще нет
+        const appsContainer = document.getElementById('apps-container');
+        if (!appsContainer.hasChildNodes()) {
+            setupFilters();
+            await applyAppListFilterAndRender();
+        }
     }
 }
 
@@ -398,7 +404,8 @@ function setupNavigationEvents() {
                     history.pushState({}, '', link.href);
                 }
                 router();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Прокрутку делаем только для основного контента
+                document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
     });
@@ -472,7 +479,7 @@ async function applyAppListFilterAndRender() {
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
         if (appElements.length === 0 && activeFilter === 'my-apps') {
-            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400">У вас пока нет добавленных приложений. Нажмите "+" на карточке приложения, чтобы добавить его сюда.</p>`;
+            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400 p-4">У вас пока нет добавленных приложений. Нажмите "+" на карточке, чтобы добавить ее сюда.</p>`;
             return;
         }
         appElements.forEach(app => {
@@ -525,6 +532,7 @@ function setupFilters() {
 
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
+    setupFilters();
     setupSearch(); 
     signOutBtn.addEventListener('click', handleSignOut);
     setupNavigationEvents();
@@ -556,16 +564,23 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestionsContainer.classList.add('hidden');
         }
     });
-    changelogContainer.addEventListener('click', (e) => {
-        if (e.target.id === 'show-all-changelog-btn') {
-            e.preventDefault();
-            const moduleFile = appNameToModuleFile['История изменений'];
-            history.pushState({}, '', `?app=${moduleFile}`);
-            router();
-            return;
-        }
-    });
-    dynamicContentArea.addEventListener('click', async e => {
+    
+    const changelogContainerWrapper = document.getElementById('changelog-container-wrapper');
+    if (changelogContainerWrapper) {
+        changelogContainerWrapper.addEventListener('click', (e) => {
+            if (e.target.id === 'show-all-changelog-btn') {
+                e.preventDefault();
+                const moduleFile = appNameToModuleFile['История изменений'];
+                history.pushState({}, '', `?app=${moduleFile}`);
+                router();
+                return;
+            }
+        });
+    }
+
+    // Используем делегирование событий на document.body, так как контент динамический
+    document.body.addEventListener('click', async e => {
+        // Кнопка "+" на карточке в списке
         const addBtn = e.target.closest('.add-to-my-apps-btn');
         if (addBtn) {
             e.preventDefault(); 
@@ -579,6 +594,8 @@ document.addEventListener('DOMContentLoaded', () => {
             await toggleMyAppStatus(moduleName);
             return;
         }
+
+        // Кнопка "Добавить/Удалить" на странице самого приложения
         const addBtnAppView = e.target.closest('#add-to-my-apps-app-view-btn');
         if (addBtnAppView) {
             if (!auth.currentUser) {
@@ -589,6 +606,8 @@ document.addEventListener('DOMContentLoaded', () => {
             await toggleMyAppStatus(moduleName);
             await updateAppViewButton(moduleName);
         }
+
+        // Кнопка "Переместить"
         const sortBtn = e.target.closest('#sort-my-apps-btn');
         if (sortBtn) {
             isSortingMode = !isSortingMode;
@@ -605,7 +624,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setOnDataLoaded(async () => {
         console.log("Получены свежие данные из Firebase, интерфейс будет обновлен.");
-        await router(); 
+        await router();
+        await applyAppListFilterAndRender(); // Обновляем и список приложений
     });
 
     let isInitialAuthCheckDone = false;
@@ -628,17 +648,22 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const params = new URLSearchParams(window.location.search);
             const appModule = params.get('app');
+            // Если пользователь вошел и не открыто конкретное приложение, по умолчанию показываем "Мои приложения"
             if (user && !appModule) {
                 document.querySelector('[data-sort="default"]')?.classList.remove('active');
                 document.querySelector('[data-sort="my-apps"]')?.classList.add('active');
             }
             
-            await router(); 
+            await applyAppListFilterAndRender(); // Первичная отрисовка списка в сайдбаре
+            await router(); // Отрисовка основного контента
+            
             const loader = document.getElementById('initial-loading-overlay');
             if (loader) {
                 loader.style.display = 'none';
             }
         } else {
+            // При выходе/входе перерисовываем и список, и основной контент
+            await applyAppListFilterAndRender();
             await router();
         }
 
