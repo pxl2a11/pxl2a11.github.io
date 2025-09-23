@@ -1,4 +1,4 @@
-// --- 1START OF FILE apps/audioCompressor.js ---
+// --- 44START OF FILE apps/audioCompressor.js ---
 
 // Переменные для хранения состояния и ссылок на элементы
 let audioFile = null;
@@ -13,6 +13,13 @@ let bitrateContainer;
 let bitrateSelector;
 let wavOptionsContainer;
 let wavSamplerateSelector;
+
+// НОВОЕ: Переменные для элементов нормализации
+let normalizeContainer;
+let normalizeCheckbox;
+let lufsSlider;
+let lufsValueDisplay;
+
 
 // Функция для получения HTML-разметки приложения
 export function getHtml() {
@@ -48,6 +55,20 @@ export function getHtml() {
                     <option value="8000">8000 Гц (Телефонное качество)</option>
                 </select>
             </div>
+
+            <!-- НОВОЕ: Контейнер для настроек нормализации, изначально скрыт -->
+            <div id="normalize-container" class="hidden space-y-2">
+                 <label class="flex items-center space-x-2 text-sm font-medium text-gray-900 dark:text-white">
+                    <input type="checkbox" id="normalize-checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                    <span>Нормализовать громкость</span>
+                 </label>
+                 <div class="flex items-center space-x-4">
+                    <input id="lufs-slider" type="range" min="-24" max="-14" value="-16" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    <span class="font-semibold text-gray-900 dark:text-white"><span id="lufs-value-display">-16</span> LUFS</span>
+                 </div>
+                 <p class="text-xs text-gray-500 dark:text-gray-400">Целевая громкость. -16 LUFS - стандарт для большинства стриминговых сервисов.</p>
+            </div>
+
 
             <button id="process-button" disabled class="w-full px-4 py-2 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
                 Выберите файл для начала
@@ -94,9 +115,21 @@ export function init() {
     wavSamplerateSelector = document.getElementById('wav-samplerate-selector');
     const resultContainer = document.getElementById('result-container');
 
+    // НОВОЕ: Получаем элементы нормализации
+    normalizeContainer = document.getElementById('normalize-container');
+    normalizeCheckbox = document.getElementById('normalize-checkbox');
+    lufsSlider = document.getElementById('lufs-slider');
+    lufsValueDisplay = document.getElementById('lufs-value-display');
+
+
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
+
+    // НОВОЕ: Обработчик для слайдера LUFS
+    lufsSlider.addEventListener('input', (event) => {
+        lufsValueDisplay.textContent = event.target.value;
+    });
 
     // Обработчик выбора файла, который теперь управляет всей логикой UI
     fileInput.addEventListener('change', (event) => {
@@ -105,6 +138,7 @@ export function init() {
         resultContainer.classList.add('hidden');
         bitrateContainer.classList.add('hidden');
         wavOptionsContainer.classList.add('hidden');
+        normalizeContainer.classList.add('hidden'); // НОВОЕ: Скрываем блок нормализации
         processButton.disabled = true;
         
         if (!file) {
@@ -118,18 +152,24 @@ export function init() {
         audioFile = file;
         const fileName = file.name.toLowerCase();
 
+        // Общая логика для обоих типов файлов
+        const showOptions = () => {
+            normalizeContainer.classList.remove('hidden'); // НОВОЕ: Показываем блок нормализации
+            processButton.disabled = false;
+        };
+
         if (fileName.endsWith('.mp3')) {
             detectedInputFormat = 'mp3';
             statusMessage.textContent = `Выбран MP3 файл: ${file.name}`;
             bitrateContainer.classList.remove('hidden');
             processButton.textContent = 'Сжать в MP3';
-            processButton.disabled = false;
+            showOptions();
         } else if (fileName.endsWith('.wav')) {
             detectedInputFormat = 'wav';
             statusMessage.textContent = `Выбран WAV файл: ${file.name}`;
             wavOptionsContainer.classList.remove('hidden');
             processButton.textContent = 'Сжать в WAV';
-            processButton.disabled = false;
+            showOptions();
         } else {
             detectedInputFormat = null;
             statusMessage.textContent = 'Ошибка: Поддерживаются только файлы .mp3 и .wav';
@@ -149,10 +189,34 @@ export function init() {
             const arrayBuffer = await audioFile.arrayBuffer();
             let audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
             
+            // --- НОВЫЙ ШАГ: Нормализация громкости ---
+            if (normalizeCheckbox.checked) {
+                statusMessage.textContent = 'Анализ и нормализация громкости...';
+                const targetLufs = parseFloat(lufsSlider.value);
+                
+                // Это асинхронная функция, т.к. анализ может быть долгим
+                const measuredLufs = await measureIntegratedLoudness(audioBuffer); 
+                
+                const gainDb = targetLufs - measuredLufs;
+                const gainLinear = Math.pow(10, gainDb / 20);
+
+                // Проверка на клиппинг
+                const peak = findPeak(audioBuffer);
+                if (peak * gainLinear > 1.0) {
+                    // Если есть риск клиппинга, просто нормализуем по пиковому значению
+                    const newGain = 1.0 / peak;
+                    applyGain(audioBuffer, newGain);
+                    console.warn(`Риск клиппинга! Громкость увеличена до максимально возможной без искажений, а не до целевого LUFS.`);
+                } else {
+                    applyGain(audioBuffer, gainLinear);
+                }
+            }
+
             let outputBlob;
             let outputFileName;
 
             if (detectedInputFormat === 'mp3') {
+                statusMessage.textContent = 'Сжатие в MP3...';
                 const selectedBitrate = parseInt(bitrateSelector.value, 10);
                 outputBlob = await compressToMp3(audioBuffer, selectedBitrate);
                 outputFileName = `compressed_${Date.now()}.mp3`;
@@ -187,8 +251,71 @@ export function init() {
     });
 }
 
+// --- НОВЫЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ НОРМАЛИЗАЦИИ ---
+
+/**
+ * ВАЖНО: Это очень упрощенная имитация измерения громкости (на основе RMS), а НЕ настоящий LUFS.
+ * Реальный алгоритм EBU R128 намного сложнее.
+ * Для продакшена эту функцию нужно заменить на реализацию из специализированной библиотеки.
+ * @param {AudioBuffer} audioBuffer - Аудиобуфер для анализа.
+ * @returns {Promise<number>} - "Измеренное" значение громкости в LUFS.
+ */
+function measureIntegratedLoudness(audioBuffer) {
+    return new Promise(resolve => {
+        const channelData = audioBuffer.getChannelData(0); // Анализируем только первый канал для простоты
+        let sumOfSquares = 0;
+        for (let i = 0; i < channelData.length; i++) {
+            sumOfSquares += channelData[i] ** 2;
+        }
+        const rms = Math.sqrt(sumOfSquares / channelData.length);
+        
+        // Преобразуем RMS в шкалу, похожую на LUFS (очень грубое приближение)
+        const db = 20 * Math.log10(rms);
+        // Предположим, что 0 dBFS RMS соответствует примерно -3 LUFS
+        const lufs = db - 3; 
+
+        // Имитируем асинхронную операцию
+        setTimeout(() => resolve(lufs), 50); 
+    });
+}
+
+/**
+ * Находит пиковое (максимальное по модулю) значение сэмпла в буфере.
+ * @param {AudioBuffer} audioBuffer - Аудиобуфер для анализа.
+ * @returns {number} - Пиковое значение (от 0.0 до 1.0).
+ */
+function findPeak(audioBuffer) {
+    let peak = 0;
+    for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+        const channelData = audioBuffer.getChannelData(i);
+        for (let j = 0; j < channelData.length; j++) {
+            const absSample = Math.abs(channelData[j]);
+            if (absSample > peak) {
+                peak = absSample;
+            }
+        }
+    }
+    return peak;
+}
+
+/**
+ * Применяет линейное усиление ко всему аудиобуферу.
+ * @param {AudioBuffer} audioBuffer - Аудиобуfer, который нужно изменить.
+ * @param {number} gain - Линейный коэффициент усиления (например, 1.5 для +50% громкости).
+ */
+function applyGain(audioBuffer, gain) {
+    for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+        const channelData = audioBuffer.getChannelData(i);
+        for (let j = 0; j < channelData.length; j++) {
+            channelData[j] *= gain;
+        }
+    }
+}
+
+
 // Функция для понижения частоты (resampling)
 function resampleAudioBuffer(audioBuffer, targetSampleRate) {
+    // ... (код без изменений)
     return new Promise((resolve, reject) => {
         try {
             const offlineContext = new OfflineAudioContext(
@@ -207,6 +334,7 @@ function resampleAudioBuffer(audioBuffer, targetSampleRate) {
 
 // Функция сжатия в MP3
 function compressToMp3(audioBuffer, bitrate = 128) {
+    // ... (код без изменений)
     return new Promise((resolve, reject) => {
         try {
             const channels = audioBuffer.numberOfChannels;
@@ -242,6 +370,7 @@ function compressToMp3(audioBuffer, bitrate = 128) {
 
 // Функция конвертации в WAV
 function bufferToWav(buffer) {
+    // ... (код без изменений)
     const numOfChan = buffer.numberOfChannels,
         length = buffer.length * numOfChan * 2 + 44,
         bufferArr = new ArrayBuffer(length),
@@ -281,6 +410,7 @@ export function cleanup() {
 
 // Вспомогательная функция форматирования байтов
 function formatBytes(bytes, decimals = 2) {
+    // ... (код без изменений)
     if (!+bytes) return '0 Bytes';
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
