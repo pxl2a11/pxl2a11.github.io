@@ -369,21 +369,78 @@ html.dark {
 
 /* --- НОВЫЕ СТИЛИ ДЛЯ РЕЖИМА ПРОСМОТРА ПРИЛОЖЕНИЯ --- */
 
+/* --- Управление положением и видимостью сайдбара --- */
+#sidebar {
+    left: 0;
+    border-right: 1px solid;
+}
+#main-content-wrapper {
+    margin-left: 0;
+}
+#sidebar-controls {
+    right: 0.75rem; /* 12px */
+}
+
 /* Показываем сайдбар */
 body.app-view-active #sidebar {
-    display: flex; /* Используем flex для внутреннего расположения */
+    display: flex;
+}
+/* Сдвигаем основной контент, когда сайдбар слева и открыт */
+body.app-view-active:not(.sidebar-collapsed) #main-content-wrapper {
+    margin-left: 20rem; /* 320px */
 }
 
-/* Сдвигаем основной контент */
-body.app-view-active #main-content-wrapper {
-    margin-left: 20rem; /* 320px, что равно ширине сайдбара */
+/* --- Состояние: Сайдбар СПРАВА --- */
+body.sidebar-on-right #sidebar {
+    left: auto;
+    right: 0;
+    border-right: none;
+    border-left: 1px solid;
 }
+body.sidebar-on-right #sidebar-controls {
+    right: auto;
+    left: 0.75rem; /* 12px */
+}
+/* Сдвигаем основной контент, когда сайдбар справа и открыт */
+body.app-view-active.sidebar-on-right:not(.sidebar-collapsed) #main-content-wrapper {
+    margin-left: 0;
+    margin-right: 20rem; /* 320px */
+}
+/* Поворачиваем иконки кнопок управления */
+body.sidebar-on-right #collapse-sidebar-btn svg {
+    transform: rotate(180deg);
+}
+body.sidebar-on-right #show-sidebar-btn {
+    left: auto;
+    right: 0;
+    border-radius: 0.5rem 0 0 0.5rem; /* скругляем левые углы */
+}
+body.sidebar-on-right #show-sidebar-btn svg {
+    transform: rotate(180deg);
+}
+
+/* --- Состояние: Сайдбар СКРЫТ --- */
+body.sidebar-collapsed #sidebar {
+    transform: translateX(-100%);
+}
+body.sidebar-on-right.sidebar-collapsed #sidebar {
+    transform: translateX(100%);
+}
+/* Показываем кнопку "Открыть" */
+body.app-view-active.sidebar-collapsed #show-sidebar-btn {
+    display: flex;
+}
+
 
 /* Когда сайдбар активен, прячем дублирующиеся элементы на главной */
-body.app-view-active #top-right-controls,
-body.app-view-active #home-content-container {
+body.app-view-active #top-right-controls {
     display: none;
 }
+body.app-view-active #home-header-content,
+body.app-view-active #changelog-container {
+    display: none;
+}
+
 
 /* Стили для элементов списка приложений в сайдбаре */
 #sidebar-app-list .app-item {
