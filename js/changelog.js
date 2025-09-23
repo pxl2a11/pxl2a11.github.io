@@ -57,6 +57,7 @@ export const appNameToModuleFile = {
     'ТВ онлайн': 'onlineTv',
     'Markdown Редактор': 'markdownEditor',
     'Тетрис': 'tetris',
+    'Проигрыватель аудиокниг': 'audiobookPlayer',
     'Общее': null,
 };
 
@@ -72,6 +73,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-09-23T09:00:00Z'), appName: 'Проигрыватель аудиокниг', description: 'добавлено новое приложение для прослушивания аудиокниг с поддержкой глав, закладок, запоминанием прогресса и регулировкой скорости воспроизведения.' },
     { date: getRussianDate('2025-09-19T09:00:00Z'), appName: 'Конвертер цветов', description: 'добавлена функция извлечения цветовой палитры из изображения.' },
     { date: getRussianDate('2025-09-19T08:00:00Z'), appName: 'Тетрис', description: 'добавлена новая классическая игра-головоломка «Тетрис» с управлением на клавиатуре и сенсорном экране.' },
     { date: getRussianDate('2025-09-17T11:00:00Z'), appName: 'Markdown Редактор', description: 'добавлено новое приложение для редактирования текста с разметкой Markdown и предпросмотром в реальном времени.' },
