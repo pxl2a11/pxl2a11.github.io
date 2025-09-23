@@ -57,14 +57,41 @@ export const radioStations = [
         { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/200" },
         { name: "64 kbps (резерв)", url: "https://srv21.gpmradio.ru:8443/stream/air/aac/64/202" }] },
     { name: "STUDIO 21", logoUrl: "https://top-radio.ru/assets/image/radio/180/studio21.png", streams: [
-        { name: "96 kbps", url: "https://stream.studio21.ru/studio2196.aacp" },
-        { name: "96 kbps (резерв)", url: "https://hls.studio21.ru/studio21/playlist.m3u8" }] },
-    { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
-    { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
+        { name: "32 kbps", url: "https://hls.studio21.ru/studio21/32/playlist.m3u8" },
+        { name: "64 kbps", url: "https://hls.studio21.ru/studio21/64/playlist.m3u8" },
+        { name: "112 kbps", url: "https://hls.studio21.ru/studio21/112/playlist.m3u8" }] },
+    { name: "Радио ENERGY", logoUrl: "https://top-radio.ru/assets/image/radio/180/energy.png", streams: [
+        { name: "32 kbps", url: "https://hls-01-gpm.hostingradio.ru/energyfm495/32/playlist.m3u8" },
+        { name: "64 kbps", url: "https://hls-01-gpm.hostingradio.ru/energyfm495/64/playlist.m3u8" },
+        { name: "128 kbps", url: "https://hls-01-gpm.hostingradio.ru/energyfm495/128/playlist.m3u8" }] },
+    { name: "Радио Звезда", logoUrl: "https://top-radio.ru/assets/image/radio/180/zvezda-fm.jpg", streams: [
+        { name: "64 kbps", url: "https://icecast-zvezda.mediacdn.ru/radio/zvezda/zvezda_64" },
+        { name: "96 kbps", url: "https://icecast-zvezda.mediacdn.ru/radio/zvezda/zvezda_96" },
+        { name: "128 kbps", url: "https://zvezda-radio-rzv.mediacdn.ru/radio/zvezda/zvezda_128" }] },
+    { name: "Радио Гордость", logoUrl: "https://top-radio.ru/assets/image/radio/180/radiogordost.webp", streams: [
+        { name: "64 kbps", url: "https://rgordost.hostingradio.ru/rgordost64.aacp" },
+        { name: "128 kbps", url: "https://rgordost.hostingradio.ru/rgordost128.aacp" }] },
+    { name: "Хит FM", logoUrl: "https://top-radio.ru/assets/image/radio/180/hit-fm.png", streams: [
+        { name: "32 kbps", url: "https://hls-01-hitfm.hostingradio.ru/hitfm/32/playlist.m3u8" },
+        { name: "64 kbps", url: "https://hls-01-hitfm.hostingradio.ru/hitfm/64/playlist.m3u8" },
+        { name: "96 kbps", url: "https://hls-01-hitfm.hostingradio.ru/hitfm/96/playlist.m3u8" }] },
+    { name: "Комсомольская правда", logoUrl: "https://top-radio.ru/assets/image/radio/180/radiokp.png", streams: [
+        { name: "32 kbps", url: "https://hls-01-kpradio.hostingradio.ru/kpradio-msk/32/playlist.m3u8" },
+        { name: "64 kbps", url: "https://hls-01-kpradio.hostingradio.ru/kpradio-msk/64/playlist.m3u8" },
+        { name: "112 kbps", url: "https://hls-01-kpradio.hostingradio.ru/kpradio-msk/112/playlist.m3u8" }] },
     { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
         { name: "64 kbps", url: "https://emgspb.hostingradio.ru/novoespb64.mp3" },
         { name: "96 kbps", url: "https://stream.newradio.ru/novoe96.aacp" },
         { name: "128 kbps", url: "https://emgspb.hostingradio.ru/novoespb128.mp3" }] },
+    { name: "Радио ВАНЯ", logoUrl: "https://top-radio.ru/assets/image/radio/180/radio-vanya.png", streams: [
+        { name: "64 kbps", url: "https://icecast-radiovanya.cdnvideo.ru/radiovanya" },
+        { name: "64 kbps (резерв)", url: "https://radiokrug.ru/radio/vanya/icecast.audio" }] },
+    { name: "Радио Эрмитаж", logoUrl: "https://top-radio.ru/assets/image/radio/180/ermitaj.jpg", streams: [
+        { name: "128 kbps", url: "https://hermitage.hostingradio.ru/hermitage128.mp3" }] },
+    { name: "Радио Зенит", logoUrl: "https://top-radio.ru/assets/image/radio/180/zenit-fm.jpg", streams: [
+        { name: "256 kbps", url: "https://radiozenit.hostingradio.ru/radiozenit256.mp3" }] },
+    { name: "Маруся FM", logoUrl: "https://pcradio.ru/images/stations/61b09cf176d9e.jpg", streams: [{ name: "Основной поток", url: "https://msk8.radio-holding.ru/marusya_default" }] },
+    { name: "Record Russian Hits", logoUrl: "https://pcradio.ru/images/stations/61b09ca2ead8f.jpg", streams: [{ name: "Основной поток", url: "https://stream.pcradio.ru/record_rushits-med" }] },
     { name: "Дорожное Радио", logoUrl: "https://top-radio.ru/assets/image/radio/180/dorojnoe.png", streams: [
         { name: "32 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15_spb/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15_spb/64/playlist.m3u8" },
