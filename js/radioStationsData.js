@@ -84,8 +84,7 @@ export const radioStations = [
         { name: "96 kbps", url: "https://stream.newradio.ru/novoe96.aacp" },
         { name: "128 kbps", url: "https://emgspb.hostingradio.ru/novoespb128.mp3" }] },
     { name: "Радио ВАНЯ", logoUrl: "https://top-radio.ru/assets/image/radio/180/radio-vanya.png", streams: [
-        { name: "128 kbps", url: "https://air2.volna.top/Vanya-SPB" },
-        { name: "128 kbps (резерв)", url: "https://vanyareg.hostingradio.ru/saratov.vanya128.mp3" }] },
+        { name: "128 kbps", url: "https://air2.volna.top/Vanya-SPB" }] },
     { name: "Радио Эрмитаж", logoUrl: "https://top-radio.ru/assets/image/radio/180/ermitaj.jpg", streams: [
         { name: "128 kbps", url: "https://hermitage.hostingradio.ru/hermitage128.mp3" }] },
     { name: "Радио Зенит", logoUrl: "https://top-radio.ru/assets/image/radio/180/zenit-fm.jpg", streams: [
