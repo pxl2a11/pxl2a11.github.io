@@ -3,32 +3,6 @@
 export const tvChannels = [
 
     { 
-        name: "НТВ", 
-        logoUrl: "https://www.ntv.ru/images/logo1024.png",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://rutube.ru/play/embed/c37cd74192c6bc3d6cd6077c0c4fd686" style="border: none;" allow="clipboard-write; autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-    { 
-        name: "МАТЧ ТВ", 
-        logoUrl: "https://ntvplus.tv/files/image/88/52/29/06h.png",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://rutube.ru/play/embed/11bbbec75a2ceb8cf446ad16813c6eec" style="border: none;" allow="clipboard-write; autoplay=1"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                allowFullScreen
-            ></iframe>`
-    },
-    { 
         name: "ОТР", 
         logoUrl: "https://onlitvtime.ru/media/AEbLJVF7qXeWEKpEf7pQyWKjdI4jbcfPiaAxmoVm.png",
         embedHtml: `
@@ -107,6 +81,19 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "Пятница!", 
+        logoUrl: "https://www.sostav.ru/images/busmap/company/6/6827.jpg",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/play/embed/9f87a9a0cecbe773be6fddcbd93585ac" style="border: none;" allow="clipboard-write; autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "Звезда", 
         logoUrl: "https://ministar.ru/upload/iblock/dd9/t9388lfeudisqk09hzyonadct1hinn1t.png",
         embedHtml: `
@@ -114,6 +101,32 @@ export const tvChannels = [
                 width="100%"
                 height="100%"
                 src="https://vkvideo.ru/video_ext.php?oid=-220155889&id=456254118&hd=2&autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "МИР", 
+        logoUrl: "https://upload.wikimedia.org/wikipedia/ru/6/68/%D0%9C%D0%B8%D1%80_%D0%A2%D0%92_logo.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/live/video/afef67d151b5a607dee1ef0aa299a52c" style="border: none;" allow="clipboard-write; autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
+        name: "ТНТ", 
+        logoUrl: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Logo_tnt.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/live/video/546602986e6a424d74d594876ddb3f04" style="border: none;" allow="clipboard-write; autoplay=1"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
                 allowFullScreen
