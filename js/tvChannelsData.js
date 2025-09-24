@@ -3,6 +3,19 @@
 export const tvChannels = [
 
     { 
+        name: "Первый канал", 
+        logoUrl: "https://www.cableman.ru/sites/default/files/pervyy_kanal.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/play/embed/c58f502c7bb34a8fcdd976b221fca292" style="border: none;" allow="clipboard-write; autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "ОТР", 
         logoUrl: "https://onlitvtime.ru/media/AEbLJVF7qXeWEKpEf7pQyWKjdI4jbcfPiaAxmoVm.png",
         embedHtml: `
