@@ -16,6 +16,19 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "МАТЧ ТВ", 
+        logoUrl: "https://ntvplus.tv/files/image/88/52/29/06h.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/play/embed/11bbbec75a2ceb8cf446ad16813c6eec" style="border: none;" allow="clipboard-write; autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "ОТР", 
         logoUrl: "https://onlitvtime.ru/media/AEbLJVF7qXeWEKpEf7pQyWKjdI4jbcfPiaAxmoVm.png",
         embedHtml: `
