@@ -94,6 +94,19 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
+        name: "ТВ-3", 
+        logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/%D0%A2V3_logo_2023.svg/1200px-%D0%A2V3_logo_2023.svg.png",
+        embedHtml: `
+            <iframe
+                width="100%"
+                height="100%"
+                src="https://rutube.ru/play/embed/7bf12d9c050f9a7ef3728db5730432ae" style="border: none;" allow="clipboard-write; autoplay=1"
+                style="border: none; border-radius: 0.5rem;"
+                allow="clipboard-write; autoplay"
+                allowFullScreen
+            ></iframe>`
+    },
+    { 
         name: "Звезда", 
         logoUrl: "https://ministar.ru/upload/iblock/dd9/t9388lfeudisqk09hzyonadct1hinn1t.png",
         embedHtml: `
