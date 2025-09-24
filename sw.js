@@ -25,7 +25,8 @@ const appModules = [
     'onlineTv',
     'markdownEditor',
     'tetris',
-    'audiobookPlayer'
+    'audiobookPlayer',
+    'pomodoroTimer'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
