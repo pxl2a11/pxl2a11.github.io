@@ -1,4 +1,4 @@
-// --- 02START OF FILE apps/audioCompressor.js ---
+// ---11 START OF FILE apps/audioCompressor.js ---
 
 // Переменные для хранения состояния и ссылок на элементы
 let audioFile = null;
@@ -50,7 +50,7 @@ export function getHtml() {
                         </div> 
                     </div>
 
-                     <!-- НОВЫЙ БЛОК: Выбор формата сохранения -->
+                     <!-- БЛОК: Выбор формата сохранения -->
                     <div id="output-format-container" class="hidden pt-4 space-y-2">
                         <label class="block text-sm font-medium text-gray-900 dark:text-white">Формат сохранения:</label>
                         <div class="flex items-center space-x-6">
@@ -74,7 +74,7 @@ export function getHtml() {
                          </label>
                          <div id="normalize-options" class="hidden pl-8 space-y-2">
                             <label for="lufs-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Целевая громкость (LUFS):</label>
-                            <input type="number" id="lufs-input" value="-16" step="0.5" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" placeholder="-16">
+                            <input type="number" id="lufs-input" value="-16" step="0.5" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" placeholder="-16">
                             <p class="text-xs text-gray-500 dark:text-gray-400">-14 (музыка), -16 (стриминг), -23 (ТВ).</p>
                          </div>
                     </div>
@@ -89,7 +89,7 @@ export function getHtml() {
                             <!-- Настройки для MP3 -->
                             <div id="compress-options-mp3" class="hidden">
                                 <label for="bitrate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Битрейт MP3:</label>
-                                <select id="bitrate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
+                                <select id="bitrate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
                                     <option value="192">192 kbps</option>
                                     <option value="128" selected>128 kbps</option>
                                     <option value="96">96 kbps</option>
@@ -98,7 +98,7 @@ export function getHtml() {
                              <!-- Настройки для WAV -->
                             <div id="compress-options-wav" class="hidden">
                                  <label for="wav-samplerate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Частота дискретизации WAV:</label>
-                                 <select id="wav-samplerate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
+                                 <select id="wav-samplerate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
                                     <option value="44100">44100 Гц</option>
                                     <option value="22050" selected>22050 Гц</option>
                                     <option value="16000">16000 Гц</option>
