@@ -7,7 +7,9 @@ import { fetchUserAccountData, clearUserData, getUserData, saveUserData, setOnDa
 
 // --- Сопоставление имен приложений и метаданные ---
 const appNameToModuleFile = {
-    'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 'Сжатие аудио': 'audioCompressor', 'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Процентный калькулятор': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Редактор изображений': 'imageEditor', 'Транслитерация текста': 'textTranslit', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Конвертер часовых поясов': 'timezoneConverter', 'Текст в речь': 'textToSpeech', 'Камень, ножницы, бумага': 'rockPaperScissors', 'Судоку': 'sudoku', 'Архиватор файлов (ZIP)': 'zipArchiver', '2048': 'game2048', 'Генератор штрих-кодов': 'barcodeGenerator', 'Диктофон': 'voiceRecorder', 
+    'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Заметки и задачи': 'notesAndTasks', 'Тест звука и микрофона': 'soundAndMicTest', 
+    'Редактор аудио': 'audioEditor',
+    'Мой IP': 'myIp', 'Генератор паролей': 'passwordGenerator', 'Процентный калькулятор': 'percentageCalculator', 'Таймер': 'timer', 'Колесо фортуны': 'fortuneWheel', 'Шар предсказаний': 'magicBall', 'Крестики-нолики': 'ticTacToe', 'Сапер': 'minesweeper', 'Секундомер': 'stopwatch', 'Случайный цвет': 'randomColor', 'Генератор чисел': 'numberGenerator', 'Генератор QR-кодов': 'qrCodeGenerator', 'Эмодзи и символы': 'emojiAndSymbols', 'Конвертер величин': 'unitConverter', 'Калькулятор дат': 'dateCalculator', 'Калькулятор ИМТ': 'bmiCalculator', 'Сканер QR-кодов': 'qrScanner', 'Пианино': 'piano', 'История изменений': 'changelogPage', 'Конвертер регистра': 'caseConverter', 'Конвертер цветов': 'colorConverter', 'Игра на память': 'memoryGame', 'Редактор изображений': 'imageEditor', 'Транслитерация текста': 'textTranslit', 'Калькулятор валют': 'currencyCalculator', 'Змейка': 'snakeGame', 'Конвертер часовых поясов': 'timezoneConverter', 'Текст в речь': 'textToSpeech', 'Камень, ножницы, бумага': 'rockPaperScissors', 'Судоку': 'sudoku', 'Архиватор файлов (ZIP)': 'zipArchiver', '2048': 'game2048', 'Генератор штрих-кодов': 'barcodeGenerator', 'Диктофон': 'voiceRecorder', 
     'Генератор каркаса сайта': 'siteSkeletonGenerator',
     'Тест мыши': 'mouseTester',
     'Тест клавиатуры': 'keyboardTester',
@@ -29,7 +31,9 @@ const appNameToModuleFile = {
     "Pomodoro-таймер": "pomodoroTimer",
 };
 const appPopularity = {
-    'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 'audioCompressor': 65, 'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageEditor': 93, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74, 'timezoneConverter': 84, 'textToSpeech': 73, 'rockPaperScissors': 67, 'sudoku': 80, 'zipArchiver': 88, 'game2048': 79, 'barcodeGenerator': 84, 'voiceRecorder': 82, 'siteSkeletonGenerator': 78,
+    'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 
+    'audioEditor': 65, 
+    'percentageCalculator': 66, 'dateCalculator': 64, 'qrScanner': 86, 'piano': 77, 'minesweeper': 81, 'ticTacToe': 71, 'emojiAndSymbols': 79, 'fortuneWheel': 62, 'magicBall': 60, 'randomColor': 55, 'numberGenerator': 54, 'changelogPage': 10, 'imageEditor': 93, 'colorConverter': 87, 'memoryGame': 83, 'caseConverter': 76, 'currencyCalculator': 86, 'textTranslit': 72, 'snakeGame': 74, 'timezoneConverter': 84, 'textToSpeech': 73, 'rockPaperScissors': 67, 'sudoku': 80, 'zipArchiver': 88, 'game2048': 79, 'barcodeGenerator': 84, 'voiceRecorder': 82, 'siteSkeletonGenerator': 78,
     'mouseTester': 75,
     'keyboardTester': 76,
     'drawingPad': 80,
@@ -54,7 +58,7 @@ const appSearchMetadata = {
     'radio': { keywords: ['музыка', 'станции', 'слушать'], hashtags: ['#music', '#entertainment'] }, 
     'notesAndTasks': { keywords: ['задачи', 'список', 'дела', 'todo', 'записная книжка'], hashtags: ['#organizer', '#tools'] }, 
     'soundAndMicTest': { keywords: ['микрофон', 'звук', 'проверка', 'динамики', 'наушники'], hashtags: ['#audio', '#tools'] }, 
-    'audioCompressor': { keywords: ['сжать', 'аудио', 'mp3', 'размер', 'уменьшить'], hashtags: ['#audio', '#tools'] }, 
+    'audioEditor': { keywords: ['редактор', 'аудио', 'mp3', 'нормализация', 'сжатие', 'громкость'], hashtags: ['#audio', '#tools'] }, 
     'myIp': { keywords: ['ip', 'адрес', 'айпи', 'сеть'], hashtags: ['#network', '#tools'] }, 
     'passwordGenerator': { keywords: ['пароль', 'безопасность', 'создать', 'надежный'], hashtags: ['#security', '#tools'] }, 
     'percentageCalculator': { keywords: ['проценты', 'вычислить', 'доля'], hashtags: ['#math', '#calculator'] }, 
