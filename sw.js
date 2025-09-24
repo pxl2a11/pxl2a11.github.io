@@ -59,6 +59,7 @@ const urlsToCache = [
   '/js/utils/JsBarcode.all.min.js',
   '/js/utils/tailwind.js',
   '/js/utils/Sortable.min.js',
+  '/js/utils/chart.js',
   
   // Изображения из папки /img/
   '/img/logo.svg',
