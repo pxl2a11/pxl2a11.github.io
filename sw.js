@@ -6,7 +6,7 @@ const OFFLINE_URL = '/offline.html';
 
 // Список модулей приложений для автоматического кеширования их JS и SVG файлов
 const appModules = [
-    'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioCompressor', 'myIp', 'passwordGenerator',
+    'speedTest', 'radio', 'notesAndTasks', 'soundAndMicTest', 'audioEditor', 'myIp', 'passwordGenerator',
     'percentageCalculator', 'timer', 'fortuneWheel', 'magicBall', 'ticTacToe', 'minesweeper', 'stopwatch',
     'randomColor', 'numberGenerator', 'qrCodeGenerator', 'emojiAndSymbols', 'unitConverter', 'dateCalculator',
     'bmiCalculator', 'qrScanner', 'piano', 'caseConverter',
