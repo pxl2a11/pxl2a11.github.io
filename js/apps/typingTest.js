@@ -1,8 +1,12 @@
-// js/apps/typingTest.js
+// 25js/apps/typingTest.js
 
 let timerInterval;
 let time = 0;
 let isTestRunning = false;
+
+// Переменные для графика и истории
+let wpmChart;
+let wpmHistoryData = [];
 
 const TEXTS = [
     "Скорость печати важна для эффективной работы за компьютером, она позволяет экономить время.",
@@ -20,7 +24,7 @@ export function getHtml() {
             .dark #typing-text-display span.incorrect { background-color: #450a0a; } /* dark:bg-red-900/50 */
             #typing-text-display span.current { text-decoration: underline; }
         </style>
-        <div class="max-w-3xl mx-auto space-y-6 text-center">
+        <div class="max-w-4xl mx-auto space-y-6">
             <div id="typing-results" class="grid grid-cols-3 gap-4 text-center">
                  <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
                     <div class="text-sm text-gray-500 dark:text-gray-400">Время</div>
@@ -40,7 +44,34 @@ export function getHtml() {
             
             <textarea id="typing-input" rows="3" class="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500" placeholder="Начните печатать здесь, чтобы запустить тест..."></textarea>
             
-            <button id="reset-typing-test-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">Начать заново</button>
+            <div class="text-center">
+                <button id="reset-typing-test-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">Начать заново</button>
+            </div>
+
+            <!-- Блок для графика -->
+            <div class="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                 <h3 class="text-lg font-bold text-center mb-2">Прогресс WPM (в реальном времени)</h3>
+                 <canvas id="wpm-chart"></canvas>
+            </div>
+
+            <!-- Блок для истории результатов -->
+            <div class="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <h3 class="text-lg font-bold text-center mb-2">История тестов</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="text-sm text-gray-500 dark:text-gray-400">
+                            <tr>
+                                <th class="p-2">WPM</th>
+                                <th class="p-2">Точность</th>
+                                <th class="p-2">Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Данные будут добавлены из JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -53,6 +84,66 @@ export function init() {
     const accuracyDisplay = document.getElementById('accuracy-display');
     const resetBtn = document.getElementById('reset-typing-test-btn');
 
+    // --- Функции для истории результатов ---
+    function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('typingTestHistory')) || [];
+        const tableBody = document.getElementById('history-table-body');
+        tableBody.innerHTML = ''; // Очищаем таблицу перед отрисовкой
+        
+        // Показываем последние 10 результатов
+        history.slice(-10).reverse().forEach(result => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="p-2 font-bold">${result.wpm}</td>
+                <td class="p-2">${result.accuracy}%</td>
+                <td class="p-2 text-sm">${new Date(result.date).toLocaleString()}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function saveResult(wpm, accuracy) {
+        const history = JSON.parse(localStorage.getItem('typingTestHistory')) || [];
+        const newResult = { wpm, accuracy, date: new Date().toISOString() };
+        history.push(newResult);
+        localStorage.setItem('typingTestHistory', JSON.stringify(history));
+    }
+
+    // --- Функции для графика ---
+    function initChart() {
+        const ctx = document.getElementById('wpm-chart').getContext('2d');
+        wpmChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Слов/мин',
+                    data: [],
+                    borderColor: '#3b82f6', // blue-500
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } },
+                animation: { duration: 200 }
+            }
+        });
+    }
+
+    function updateChart() {
+        const currentWPM = calculateWPM(true); // Получаем текущий WPM
+        wpmHistoryData.push(currentWPM);
+        
+        wpmChart.data.labels = wpmHistoryData.map((_, i) => i + 1);
+        wpmChart.data.datasets[0].data = wpmHistoryData;
+        wpmChart.update();
+    }
+    
+    // --- Основная логика теста ---
     function startTest() {
         if (isTestRunning) return;
         isTestRunning = true;
@@ -62,6 +153,7 @@ export function init() {
             time++;
             timerDisplay.textContent = time;
             calculateWPM();
+            updateChart(); // Обновляем график каждую секунду
         }, 1000);
     }
 
@@ -69,8 +161,12 @@ export function init() {
         clearInterval(timerInterval);
         isTestRunning = false;
         textInput.disabled = true;
-        calculateWPM();
-        calculateAccuracy();
+
+        const finalWPM = calculateWPM();
+        const finalAccuracy = calculateAccuracy();
+
+        saveResult(finalWPM, finalAccuracy); // Сохраняем результат
+        renderHistory(); // Перерисовываем историю
     }
 
     function resetTest() {
@@ -83,6 +179,14 @@ export function init() {
         wpmDisplay.textContent = '0';
         accuracyDisplay.textContent = '100%';
         loadNewText();
+
+        // Сброс данных графика
+        wpmHistoryData = [];
+        if (wpmChart) {
+            wpmChart.data.labels = [];
+            wpmChart.data.datasets[0].data = [];
+            wpmChart.update();
+        }
     }
 
     function loadNewText() {
@@ -94,20 +198,29 @@ export function init() {
             charSpan.innerText = char;
             textDisplay.appendChild(charSpan);
         });
-        textDisplay.children[0].classList.add('current');
+        if (textDisplay.children.length > 0) {
+           textDisplay.children[0].classList.add('current');
+        }
     }
 
-    function calculateWPM() {
-        const wordsTyped = textInput.value.trim().split(/\s+/).filter(Boolean).length;
+    function calculateWPM(isForChart = false) {
+        // Стандартный подсчет WPM: (количество символов / 5) / минуты
+        const typedChars = textInput.value.length;
         if (time > 0) {
-            const wpm = Math.round((wordsTyped / time) * 60);
-            wpmDisplay.textContent = wpm;
+            const wpm = Math.round((typedChars / 5) / (time / 60));
+            if (!isForChart) { // Обновляем главный дисплей, только если это не промежуточный подсчет для графика
+               wpmDisplay.textContent = wpm;
+            }
+            return wpm;
         }
+        return 0;
     }
 
     function calculateAccuracy() {
         const originalText = Array.from(textDisplay.children).map(s => s.innerText).join('');
         const typedText = textInput.value;
+        if (typedText.length === 0) return 100;
+
         let correctChars = 0;
         for (let i = 0; i < typedText.length; i++) {
             if (typedText[i] === originalText[i]) {
@@ -115,7 +228,9 @@ export function init() {
             }
         }
         const accuracy = (correctChars / typedText.length) * 100;
-        accuracyDisplay.textContent = `${Math.round(accuracy) || 100}%`;
+        const roundedAccuracy = Math.round(accuracy) || 100;
+        accuracyDisplay.textContent = `${roundedAccuracy}%`;
+        return roundedAccuracy;
     }
 
     textInput.addEventListener('input', () => {
@@ -124,32 +239,44 @@ export function init() {
         const textChars = textDisplay.querySelectorAll('span');
         const inputChars = textInput.value.split('');
         
-        let allCorrect = true;
+        let correctSoFar = true;
         textChars.forEach((charSpan, index) => {
             const char = inputChars[index];
+
+            // Сбрасываем классы для будущих символов
+            charSpan.className = '';
+
             if (char == null) {
-                charSpan.className = '';
+                // Это символ, который еще не набран
                 if (index === inputChars.length) {
-                    charSpan.classList.add('current');
+                    charSpan.classList.add('current'); // Следующий символ для набора
                 }
-                allCorrect = false;
+                correctSoFar = false;
             } else if (char === charSpan.innerText) {
-                charSpan.className = 'correct';
+                charSpan.classList.add('correct');
             } else {
-                charSpan.className = 'incorrect';
-                allCorrect = false;
+                charSpan.classList.add('incorrect');
+                correctSoFar = false;
             }
         });
         
-        if (allCorrect) {
+        // Если весь текст набран правильно, заканчиваем тест
+        if (inputChars.length === textChars.length && correctSoFar) {
             endTest();
         }
     });
 
     resetBtn.addEventListener('click', resetTest);
-    resetTest(); // Initial setup
+    
+    // --- Первоначальная настройка ---
+    resetTest();
+    initChart();
+    renderHistory();
 }
 
 export function cleanup() {
     clearInterval(timerInterval);
+    if (wpmChart) {
+        wpmChart.destroy();
+    }
 }
