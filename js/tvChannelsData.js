@@ -74,9 +74,12 @@ export const tvChannels = [
             <iframe
                 width="100%"
                 height="100%"
-                src="https://rutube.ru/play/embed/7bf12d9c050f9a7ef3728db5730432ae" style="border: none;" allow="clipboard-write; autoplay=1"
+                src="https://rutube.ru/play/embed/7bf12d9c050f9a7ef3728db5730432ae"
+                frameBorder="0"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
+                webkitAllowFullScreen
+                mozallowfullscreen
                 allowFullScreen
             ></iframe>`
     },
@@ -88,8 +91,11 @@ export const tvChannels = [
                 width="100%"
                 height="100%"
                 src="https://rutube.ru/play/embed/9f87a9a0cecbe773be6fddcbd93585ac" style="border: none;" allow="clipboard-write; autoplay=1"
+                frameBorder="0"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
+                webkitAllowFullScreen
+                mozallowfullscreen
                 allowFullScreen
             ></iframe>`
     },
@@ -114,8 +120,11 @@ export const tvChannels = [
                 width="100%"
                 height="100%"
                 src="https://rutube.ru/live/video/afef67d151b5a607dee1ef0aa299a52c" style="border: none;" allow="clipboard-write; autoplay=1"
+                frameBorder="0"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
+                webkitAllowFullScreen
+                mozallowfullscreen
                 allowFullScreen
             ></iframe>`
     },
@@ -127,8 +136,11 @@ export const tvChannels = [
                 width="100%"
                 height="100%"
                 src="https://rutube.ru/live/video/546602986e6a424d74d594876ddb3f04" style="border: none;" allow="clipboard-write; autoplay=1"
+                frameBorder="0"
                 style="border: none; border-radius: 0.5rem;"
                 allow="clipboard-write; autoplay"
+                webkitAllowFullScreen
+                mozallowfullscreen
                 allowFullScreen
             ></iframe>`
     },
