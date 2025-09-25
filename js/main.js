@@ -113,7 +113,7 @@ const appSearchMetadata = {
     'tetris': { keywords: ['тетрис', 'игра', 'блоки', 'головоломка', 'классика', 'tetris'], hashtags: ['#game', '#fun', '#logic'] },
     'audiobookPlayer': { keywords: ['аудиокнига', 'книга', 'слушать', 'плеер', 'проигрыватель', 'аудио', 'главы', 'закладки', 'audiobook'], hashtags: ['#audio', '#entertainment', '#tools'] },
     'pomodoroTimer': { keywords: ['помодоро', 'таймер', 'фокус', 'работа', 'учеба', 'pomodoro'], hashtags: ['#time', '#tools', '#productivity'] },
-    'base64Converter': { keywords: ['base64', 'кодировщик', 'декодировщик', 'шифрование', 'btoa', 'atob', 'текст', 'данные'], hashtags: ['#tools', '#text', '#webdev'] },
+    'base64Converter': { keywords: ['base64', 'кодировщик', 'декодировщик', 'шифрование', 'btoa', 'atob', 'текст', 'данные', 'картинка', 'изображение', 'фото', 'data url'], hashtags: ['#tools', '#text', '#webdev', '#image'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
