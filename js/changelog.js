@@ -275,7 +275,7 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
             finalHtml += `<div class="text-center mt-6"><button id="show-all-changelog-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Показать всё</button></div>`;
         }
     } else {
-        finalHtml = `<div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-2xl shadow-inner"><h3 class="text-xl font-bold text-center mb-4">История изменений</h3>${entriesHtml}</div>`;
+        finalHtml = `<div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-2xl shadow-inner"><h3 class="text-xl font-bold mb-4">История изменений</h3>${entriesHtml}</div>`;
     }
     
     targetEl.innerHTML = finalHtml;
