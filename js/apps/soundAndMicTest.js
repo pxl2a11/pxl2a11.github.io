@@ -1,5 +1,9 @@
 let audioCtx, micStream, animationFrameId, mediaRecorder, audioChunks, isRecording = false;
 
+// --- ДОБАЛЕНО: Переменные для определения проблем с аудио ---
+let silenceTimeout, clippingTimeout;
+let lastStatusMessage = '';
+
 export function getHtml() {
     return `
         <div class="p-4 space-y-6">
@@ -28,7 +32,8 @@ export function getHtml() {
             <!-- Тест микрофона -->
             <div>
                 <h3 class="text-xl font-bold mb-2 text-center">Тест микрофона</h3>
-                <p id="mic-status" class="text-center mb-4">Нажмите "Начать" для проверки.</p>
+                {/* --- ИЗМЕНЕНО: Добавлены классы для transition и min-height --- */}
+                <p id="mic-status" class="text-center mb-4 min-h-[20px] transition-colors duration-300">Нажмите "Начать" для проверки.</p>
                 <div class="w-full h-16 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden mb-4">
                     <div id="mic-level" class="h-full bg-teal-500 transition-all duration-50" style="width: 0%;"></div>
                 </div>
@@ -65,7 +70,6 @@ export function init() {
             await audioCtx.resume();
         }
         
-        // Устанавливаем устройство вывода
         const sinkId = outputSelect.value;
         if (sinkId && typeof audioCtx.setSinkId === 'function') {
             try {
@@ -96,6 +100,21 @@ export function init() {
     const recordToggleBtn = document.getElementById('record-toggle-btn');
     const audioPlayback = document.getElementById('audio-playback');
 
+    // --- ДОБАВЛЕНО: Константы и функция для обновления статуса ---
+    const SILENCE_THRESHOLD = 5;    // Порог громкости для определения тишины (0-255)
+    const CLIPPING_THRESHOLD = 250; // Порог для определения клиппинга (макс. 255)
+    const WARNING_DELAY = 2000;     // Задержка в мс перед показом предупреждения
+
+    const updateMicStatus = (message, isWarning = false) => {
+        if (message !== lastStatusMessage) {
+            micStatus.textContent = message;
+            // Динамически добавляем/убираем классы для цвета ошибки
+            micStatus.classList.toggle('text-red-500', isWarning);
+            micStatus.classList.toggle('dark:text-red-400', isWarning);
+            lastStatusMessage = message;
+        }
+    };
+
     const stopMic = () => {
         if (micStream) {
             micStream.getTracks().forEach(track => track.stop());
@@ -105,17 +124,22 @@ export function init() {
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
+        // --- ДОБАВЛЕНО: Сброс таймеров при остановке ---
+        clearTimeout(silenceTimeout);
+        clearTimeout(clippingTimeout);
+        silenceTimeout = null;
+        clippingTimeout = null;
     };
 
     const startMic = async () => {
-        stopMic(); // Останавливаем предыдущий поток, если он есть
+        stopMic(); 
         const deviceId = micSelect.value;
         if (!deviceId) return;
         
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: deviceId } } });
             
-            micStatus.textContent = 'Говорите в микрофон...';
+            updateMicStatus('Говорите в микрофон...');
             if (!audioCtx || audioCtx.state === 'closed') audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
 
@@ -129,17 +153,50 @@ export function init() {
                 analyser.getByteFrequencyData(dataArray);
                 const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
                 micLevel.style.width = `${Math.min(average * 2, 100)}%`;
+
+                // --- ДОБАВЛЕНО: Логика определения проблем ---
+                const isSilent = average < SILENCE_THRESHOLD;
+                const isClipping = dataArray.some(value => value >= CLIPPING_THRESHOLD);
+
+                // Если сигнал нормализовался, сбрасываем таймеры
+                if (!isSilent && silenceTimeout) {
+                    clearTimeout(silenceTimeout);
+                    silenceTimeout = null;
+                }
+                if (!isClipping && clippingTimeout) {
+                    clearTimeout(clippingTimeout);
+                    clippingTimeout = null;
+                }
+                
+                // Если проблема обнаружена, запускаем таймер на показ предупреждения
+                if (isSilent && !silenceTimeout) {
+                    silenceTimeout = setTimeout(() => {
+                        updateMicStatus('Мы вас не слышим. Убедитесь, что микрофон не выключен.', true);
+                    }, WARNING_DELAY);
+                } else if (isClipping && !clippingTimeout) {
+                    clippingTimeout = setTimeout(() => {
+                        updateMicStatus('Сигнал слишком громкий (клиппинг). Уменьшите усиление микрофона.', true);
+                    }, WARNING_DELAY);
+                }
+
+                // Если нет активных проблем, возвращаем стандартное сообщение
+                if (!isSilent && !isClipping && micStatus.classList.contains('text-red-500')) {
+                   updateMicStatus('Говорите в микрофон...');
+                }
             };
             draw();
             setupRecording();
         } catch (err) {
-            micStatus.textContent = `Ошибка доступа к микрофону: ${err.message}`;
+            // --- ИЗМЕНЕНО: Используем новую функцию для статуса ---
+            updateMicStatus(`Ошибка доступа к микрофону: ${err.message}`, true);
             console.error(err);
         }
     };
 
     const populateDeviceLists = async () => {
         try {
+            // Перед перечислением нужно запросить доступ, иначе метки будут пустыми
+            await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             const devices = await navigator.mediaDevices.enumerateDevices();
             micSelect.innerHTML = '';
             outputSelect.innerHTML = '';
@@ -156,23 +213,29 @@ export function init() {
             deviceSelectors.classList.remove('hidden');
         } catch (err) {
              console.error('Не удалось получить список устройств:', err);
+             // --- ИЗМЕНЕНО: Используем новую функцию для статуса ---
+             if(err.name === 'NotAllowedError') {
+                updateMicStatus('Ошибка: Доступ к микрофону запрещен.', true);
+             }
         }
     };
     
     const initialStart = async () => {
          try {
-            // Запрашиваем доступ, чтобы получить имена устройств
-            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             await populateDeviceLists();
             
+            if (micSelect.options.length === 0) {
+                updateMicStatus('Микрофоны не найдены.', true);
+                return;
+            }
+
             startBtn.style.display = 'none';
             recordSection.classList.remove('hidden');
             micSelect.addEventListener('change', startMic);
             
-            // Запускаем тест с первым (и теперь уже выбранным) устройством
             await startMic();
          } catch (err) {
-            micStatus.textContent = 'Ошибка: Доступ к микрофону запрещен.';
+            // Ошибки доступа уже обрабатываются в populateDeviceLists
             console.error(err);
          }
     };
@@ -193,7 +256,6 @@ export function init() {
             audioChunks = [];
         };
 
-        // Сбрасываем состояние кнопки записи
         isRecording = false;
         recordToggleBtn.classList.remove('bg-gray-600');
         recordToggleBtn.classList.add('bg-red-500');
@@ -202,7 +264,6 @@ export function init() {
             <span>Запись</span>`;
     }
     
-    // Один листенер на кнопке записи
     recordToggleBtn.addEventListener('click', () => {
         if (!mediaRecorder) return;
         
@@ -215,7 +276,6 @@ export function init() {
         } else {
             mediaRecorder.stop();
             isRecording = false;
-            // Состояние кнопки сбрасывается в setupRecording после onstop
         }
     });
 }
@@ -230,10 +290,15 @@ export function cleanup() {
     if (audioCtx && audioCtx.state !== 'closed') {
         audioCtx.close();
     }
+    // --- ДОБАВЛЕНО: Сброс таймеров при очистке ---
+    clearTimeout(silenceTimeout);
+    clearTimeout(clippingTimeout);
+
     micStream = null;
     animationFrameId = null;
     audioCtx = null;
     mediaRecorder = null;
     audioChunks = [];
     isRecording = false;
+    lastStatusMessage = '';
 }
