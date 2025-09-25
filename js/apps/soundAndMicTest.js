@@ -32,7 +32,6 @@ export function getHtml() {
             <!-- Тест микрофона -->
             <div>
                 <h3 class="text-xl font-bold mb-2 text-center">Тест микрофона</h3>
-                {/* --- ИЗМЕНЕНО: Добавлены классы для transition и min-height --- */}
                 <p id="mic-status" class="text-center mb-4 min-h-[20px] transition-colors duration-300">Нажмите "Начать" для проверки.</p>
                 <div class="w-full h-16 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden mb-4">
                     <div id="mic-level" class="h-full bg-teal-500 transition-all duration-50" style="width: 0%;"></div>
