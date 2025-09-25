@@ -1,4 +1,4 @@
-// 07js/tvChannelsData.js
+// 12js/tvChannelsData.js
 
 export const tvChannels = [
 
@@ -77,7 +77,7 @@ export const tvChannels = [
                 src="https://rutube.ru/play/embed/7bf12d9c050f9a7ef3728db5730432ae"
                 frameBorder="0"
                 style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
+                allow="clipboard-write; autoplay=1"
                 webkitAllowFullScreen
                 mozallowfullscreen
                 allowFullScreen
