@@ -26,7 +26,8 @@ const appModules = [
     'markdownEditor',
     'tetris',
     'audiobookPlayer',
-    'pomodoroTimer'
+    'pomodoroTimer',
+    'base64Converter'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
