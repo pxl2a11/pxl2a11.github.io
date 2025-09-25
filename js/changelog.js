@@ -59,6 +59,7 @@ export const appNameToModuleFile = {
     'Тетрис': 'tetris',
     'Проигрыватель аудиокниг': 'audiobookPlayer',
     'Pomodoro-таймер': 'pomodoroTimer',
+    'Кодировщик Base64': 'base64Converter',
     'Общее': null,
 };
 
