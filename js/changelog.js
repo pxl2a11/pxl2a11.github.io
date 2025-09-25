@@ -269,7 +269,7 @@ export function renderChangelog(appNameFilter = null, limit = null, targetEl) {
 
     let finalHtml = '';
     if (isMainChangelog) {
-        finalHtml = `<h2 class="text-2xl font-bold text-center mb-4">История изменений</h2>`;
+        finalHtml = `<h2 class="text-2xl font-bold mb-4">История изменений</h2>`;
         finalHtml += dataToRender.length === 0 ? '<p class="text-center text-gray-500 dark:text-gray-400">Нет записей.</p>' : entriesHtml;
         if (limit && changelogData.length > limit) {
             finalHtml += `<div class="text-center mt-6"><button id="show-all-changelog-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Показать всё</button></div>`;
