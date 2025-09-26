@@ -1,4 +1,4 @@
-// js/radioStationsData.js
+// 12js/radioStationsData.js
 
 export const radioStations = [
     // --- ПРИМЕР НОВОГО ФОРМАТА ---
