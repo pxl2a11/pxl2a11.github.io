@@ -89,7 +89,7 @@ export const radioStations = [
         { name: "128 kbps", url: "https://hermitage.hostingradio.ru/hermitage128.mp3" }] },
     { name: "Радио Зенит", logoUrl: "https://top-radio.ru/assets/image/radio/180/zenit-fm.jpg", streams: [
         { name: "256 kbps", url: "https://radiozenit.hostingradio.ru/radiozenit256.mp3" }] },
-    { name: "Вести ФМ", logoUrl: "img/radio/russkoe.png", streams: [
+    { name: "Вести ФМ", logoUrl: "img/radio/vesti_fm.png", streams: [
         { name: "64 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/vestifm_mp3_64kbps" },
         { name: "128 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/vestifm_mp3_128kbps" },
         { name: "192 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/vestifm_mp3_192kbps" }] },
