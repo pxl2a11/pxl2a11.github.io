@@ -7,56 +7,79 @@
 export function getHtml() {
     return `
         <style>
-            /* Финальная цветовая палитра */
+            /* НОВАЯ ВИЗУАЛЬНАЯ СИСТЕМА С ИКОНКАМИ */
             .bs-grid {
                 display: grid;
                 grid-template-columns: repeat(10, 1fr);
-                gap: 2px;
+                gap: 1px; /* Уменьшим зазор для лучшего вида обводки */
             }
             .bs-cell {
+                position: relative; /* Необходимо для позиционирования псевдо-элементов */
                 width: 100%;
                 aspect-ratio: 1 / 1;
-                background-color: #1e40af; /* Вода: Тёмно-синий */
-                border: 1px solid #1d4ed8;
+                /* 1. Вода: #222222 */
+                background-color: #222222;
+                border: 1px solid #444;
                 transition: background-color 0.2s;
             }
             #computer-game-grid .bs-cell { cursor: pointer; }
-            #computer-game-grid .bs-cell:hover:not(.hit):not(.miss):not(.sunk) { background-color: #2563eb; }
+            #computer-game-grid .bs-cell:hover:not(.hit):not(.miss):not(.sunk) { background-color: #444; }
             
-            .bs-cell.ship { background-color: #166534; border-color: #15803d; } /* Корабль: Тёмно-зелёный */
-            .dark .bs-cell.ship { background-color: #15803d; border-color: #16a34a; }
+            /* 2. Корабль: Тёмно-синий */
+            .bs-cell.ship { background-color: #00008B; border-color: #0000CD; }
 
-            /* ИЗМЕНЕНО: Промах: Тёмно-серый */
-            .bs-cell.miss { background-color: #475569; cursor: not-allowed; } /* slate-600 */
+            /* 3. Промах: Светло-серая точка */
+            .bs-cell.miss::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 25%;
+                height: 25%;
+                background-color: #b0b0b0;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+            }
             
-            .bs-cell.hit { background-color: #c2410c; } /* Попадание: Тёмно-оранжевый */
-            .bs-cell.sunk { background-color: #b91c1c; border-color: #991b1b; } /* Потопленный: Тёмно-красный */
+            /* 4. Попадание: Красный крестик */
+            .bs-cell.hit::before,
+            .bs-cell.hit::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 15%;
+                width: 70%;
+                height: 12%;
+                background-color: #ff2a2a;
+                transform-origin: center;
+                border-radius: 2px;
+            }
+            .bs-cell.hit::before { transform: translate(0, -50%) rotate(45deg); }
+            .bs-cell.hit::after { transform: translate(0, -50%) rotate(-45deg); }
+            
+            /* 5. Потопленный корабль: Обводка */
+            .bs-cell.sunk-outline-top { border-top: 2px solid #ff2a2a; }
+            .bs-cell.sunk-outline-right { border-right: 2px solid #ff2a2a; }
+            .bs-cell.sunk-outline-bottom { border-bottom: 2px solid #ff2a2a; }
+            .bs-cell.sunk-outline-left { border-left: 2px solid #ff2a2a; }
 
+            /* Стили для предпросмотра и списка кораблей */
             .bs-cell.preview-valid { background-color: #22c55e; }
             .bs-cell.preview-invalid { background-color: #f43f5e; }
-
-            /* Стили для списка кораблей */
-            #ship-selection-list .ship-item { display: flex; align-items: center; cursor: pointer; padding: 8px; border: 2px solid transparent; border-radius: 6px; transition: all 0.2s; }
+            #ship-selection-list .ship-item { display: flex; align-items: center; cursor: pointer; padding: 8px; border: 2px solid transparent; border-radius: 6px; }
             #ship-selection-list .ship-item.horizontal { flex-direction: row; }
             #ship-selection-list .ship-item.vertical { flex-direction: column; align-items: flex-start; }
-            #ship-selection-list .ship-item .ship-name { margin-left: 10px; margin-top: 0; }
+            #ship-selection-list .ship-item .ship-name { margin-left: 10px; }
             #ship-selection-list .ship-item.vertical .ship-name { margin-left: 0; margin-top: 5px; }
             #ship-selection-list .ship-item.selected { border-color: #3b82f6; background-color: #dbeafe; }
             .dark #ship-selection-list .ship-item.selected { background-color: #1e3a8a; }
-            #ship-selection-list .ship-item.placed { opacity: 0.4; cursor: not-allowed; background-color: transparent; border-color: transparent; }
+            #ship-selection-list .ship-item.placed { opacity: 0.4; cursor: not-allowed; }
             .ship-preview-container { display: flex; gap: 2px; }
             .ship-item.vertical .ship-preview-container { flex-direction: column; }
-            .ship-item.horizontal .ship-preview-container { flex-direction: row; }
-            .ship-preview-cell {
-                width: 18px;
-                height: 18px;
-                background-color: #166534;
-                border: 1px solid #15803d;
-                border-radius: 2px;
-            }
-            .dark .ship-preview-cell { background-color: #15803d; border-color: #16a34a; }
+            .ship-preview-cell { width: 18px; height: 18px; background-color: #00008B; border: 1px solid #0000CD; border-radius: 2px; }
         </style>
         
+        <!-- HTML-разметка без изменений -->
         <div class="max-w-4xl mx-auto text-center">
             <div id="setup-screen">
                 <h2 class="text-2xl font-bold mb-4">Расстановка кораблей</h2>
@@ -123,7 +146,18 @@ export function init() {
         computerGameGrid: document.getElementById('computer-game-grid'), gameOverOverlay: document.getElementById('game-over-overlay'),
         gameOverMessage: document.getElementById('game-over-message'), playAgainBtn: document.getElementById('play-again-btn'),
     };
-    function createEmptyBoard() { return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null).map(() => ({ shipId: null, isHit: false, isSunk: false }))); }
+    /**
+     * ИЗМЕНЕНО: Модель ячейки теперь содержит информацию об обводке.
+     */
+    function createEmptyBoard() {
+        return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null).map(() => ({
+            shipId: null, isHit: false, isSunk: false,
+            outline: { top: false, bottom: false, left: false, right: false }
+        })));
+    }
+    /**
+     * ИЗМЕНЕНО: Рендеринг теперь добавляет классы для иконок и обводки.
+     */
     function renderGrid(gridElement, board, isPlayer) {
         gridElement.innerHTML = '';
         for (let y = 0; y < GRID_SIZE; y++) {
@@ -132,10 +166,20 @@ export function init() {
                 cell.className = 'bs-cell';
                 cell.dataset.x = x; cell.dataset.y = y;
                 const cellState = board[y][x];
-                if (cellState.shipId !== null && (isPlayer || cellState.isHit)) cell.classList.add('ship');
-                if (cellState.isHit && cellState.shipId !== null) cell.classList.add('hit');
-                if (cellState.isHit && cellState.shipId === null) cell.classList.add('miss');
-                if (cellState.isSunk) cell.classList.add('sunk');
+
+                if (cellState.shipId !== null && (isPlayer || cellState.isSunk || cellState.isHit)) {
+                    cell.classList.add('ship');
+                }
+                if (cellState.isHit) {
+                    if (cellState.shipId !== null) cell.classList.add('hit');
+                    else cell.classList.add('miss');
+                }
+                if (cellState.isSunk) {
+                    if (cellState.outline.top) cell.classList.add('sunk-outline-top');
+                    if (cellState.outline.bottom) cell.classList.add('sunk-outline-bottom');
+                    if (cellState.outline.left) cell.classList.add('sunk-outline-left');
+                    if (cellState.outline.right) cell.classList.add('sunk-outline-right');
+                }
                 gridElement.appendChild(cell);
             }
         }
@@ -158,11 +202,8 @@ export function init() {
             name.textContent = `${ship.name}`;
             item.appendChild(previewContainer);
             item.appendChild(name);
-            if (ship.isPlaced) {
-                item.classList.add('placed');
-            } else {
-                 item.addEventListener('click', () => { selectedShip = ship; renderShipSelection(); });
-            }
+            if (ship.isPlaced) { item.classList.add('placed'); }
+            else { item.addEventListener('click', () => { selectedShip = ship; renderShipSelection(); }); }
             if (selectedShip && ship.id === selectedShip.id) item.classList.add('selected');
             dom.shipSelectionList.appendChild(item);
         });
@@ -174,8 +215,7 @@ export function init() {
         if (!ship) return false;
         if ((isVertical ? y + ship.size : x + ship.size) > GRID_SIZE) return false;
         for (let i = 0; i < ship.size; i++) {
-            const currentX = isVertical ? x : x + i;
-            const currentY = isVertical ? y + i : y;
+            const currentX = isVertical ? x : x + i, currentY = isVertical ? y + i : y;
             for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
                 const checkX = currentX + dx, checkY = currentY + dy;
                 if (checkX >= 0 && checkX < 10 && checkY >= 0 && checkY < 10 && board[checkY][checkX].shipId !== null) return false;
@@ -227,17 +267,9 @@ export function init() {
         const hitShip = cell.shipId !== null;
         if (hitShip) checkAndMarkSunkShips(computerBoard, x, y);
         renderGrid(dom.computerGameGrid, computerBoard, false);
-        if (checkWinCondition(computerBoard)) {
-            endGame(true);
-            return;
-        }
-        if (hitShip) {
-            dom.gameStatus.textContent = "Попадание! Ваш ход снова.";
-        } else {
-            dom.gameStatus.textContent = "Промах. Ход противника...";
-            isPlayerTurn = false;
-            setTimeout(computerTurn, 1500);
-        }
+        if (checkWinCondition(computerBoard)) { endGame(true); return; }
+        if (hitShip) { dom.gameStatus.textContent = "Попадание! Ваш ход снова."; }
+        else { dom.gameStatus.textContent = "Промах. Ход противника..."; isPlayerTurn = false; setTimeout(computerTurn, 1500); }
     }
     function computerTurn() {
         if (isGameOver) return;
@@ -251,32 +283,29 @@ export function init() {
             if (sunkShipId !== null) computerAi.reportSunk();
         }
         renderGrid(dom.playerGameGrid, playerBoard, true);
-        if (checkWinCondition(playerBoard)) {
-            endGame(false);
-            return;
-        }
-        if (hitShip) {
-            dom.gameStatus.textContent = "Противник попал! Его ход снова.";
-            setTimeout(computerTurn, 1500);
-        } else {
-            dom.gameStatus.textContent = "Противник промахнулся. Ваш ход.";
-            isPlayerTurn = true;
-        }
+        if (checkWinCondition(playerBoard)) { endGame(false); return; }
+        if (hitShip) { dom.gameStatus.textContent = "Противник попал! Его ход снова."; setTimeout(computerTurn, 1500); }
+        else { dom.gameStatus.textContent = "Противник промахнулся. Ваш ход."; isPlayerTurn = true; }
     }
     /**
-     * ИЗМЕНЕНО: Логика открытия клеток вокруг корабля удалена.
+     * ИЗМЕНЕНО: Функция теперь вычисляет внешние границы корабля для обводки.
      */
     function checkAndMarkSunkShips(board, x, y) {
         const shipId = board[y][x].shipId;
         if (shipId === null) return null;
         const shipCells = [];
-        board.forEach((row, r_idx) => row.forEach((cell, c_idx) => { if (cell.shipId === shipId) shipCells.push({x: c_idx, y: r_idx}); }));
-        
+        board.forEach((row, r_idx) => row.forEach((cell, c_idx) => { if (cell.shipId === shipId) shipCells.push({ x: c_idx, y: r_idx }); }));
         const isSunk = shipCells.every(cell => board[cell.y][cell.x].isHit);
-
         if (isSunk) {
+            const isFriendlyCell = (cx, cy) => shipCells.some(sc => sc.x === cx && sc.y === cy);
             shipCells.forEach(cell => {
-                board[cell.y][cell.x].isSunk = true;
+                const { x: cx, y: cy } = cell;
+                const cellState = board[cy][cx];
+                cellState.isSunk = true;
+                cellState.outline.top = !isFriendlyCell(cx, cy - 1);
+                cellState.outline.bottom = !isFriendlyCell(cx, cy + 1);
+                cellState.outline.left = !isFriendlyCell(cx - 1, cy);
+                cellState.outline.right = !isFriendlyCell(cx + 1, cy);
             });
             return shipId;
         }
@@ -296,13 +325,7 @@ export function init() {
         dom.gameOverMessage.textContent = playerWon ? "Поздравляем, вы победили!" : "Вы проиграли. Попробуйте снова!";
         dom.gameOverMessage.className = playerWon ? 'text-3xl font-bold text-green-500' : 'text-3xl font-bold text-red-500';
     }
-    function resetSetup() {
-        playerBoard = createEmptyBoard();
-        playerShips = getShipsConfig();
-        selectedShip = playerShips.find(s => !s.isPlaced);
-        renderGrid(dom.playerSetupGrid, playerBoard, true);
-        renderShipSelection();
-    }
+    function resetSetup() { playerBoard = createEmptyBoard(); playerShips = getShipsConfig(); selectedShip = playerShips.find(s => !s.isPlaced); renderGrid(dom.playerSetupGrid, playerBoard, true); renderShipSelection(); }
     function initGame() {
         playerBoard = createEmptyBoard(); computerBoard = createEmptyBoard();
         playerShips = getShipsConfig(); selectedShip = playerShips[0];
@@ -310,28 +333,16 @@ export function init() {
         computerAi = new ComputerAI();
         dom.gameScreen.classList.add('hidden'); dom.setupScreen.classList.remove('hidden');
         dom.gameOverOverlay.classList.add('hidden'); dom.orientationCheckbox.checked = false;
-        renderGrid(dom.playerSetupGrid, playerBoard, true);
-        renderShipSelection();
+        renderGrid(dom.playerSetupGrid, playerBoard, true); renderShipSelection();
     }
     initGame();
     dom.playerSetupGrid.addEventListener('click', handleSetupCellClick);
     dom.playerSetupGrid.addEventListener('mouseover', handleSetupCellMouseOver);
     dom.playerSetupGrid.addEventListener('mouseout', handleSetupCellMouseOut);
     dom.orientationCheckbox.addEventListener('change', (e) => { isVertical = e.target.checked; renderShipSelection(); });
-    dom.randomPlaceBtn.addEventListener('click', () => {
-        playerBoard = createEmptyBoard(); playerShips = getShipsConfig();
-        randomlyPlaceShips(playerBoard, playerShips);
-        selectedShip = null;
-        renderGrid(dom.playerSetupGrid, playerBoard, true); renderShipSelection();
-    });
+    dom.randomPlaceBtn.addEventListener('click', () => { playerBoard = createEmptyBoard(); playerShips = getShipsConfig(); randomlyPlaceShips(playerBoard, playerShips); selectedShip = null; renderGrid(dom.playerSetupGrid, playerBoard, true); renderShipSelection(); });
     dom.resetBtn.addEventListener('click', resetSetup);
-    dom.startGameBtn.addEventListener('click', () => {
-        dom.setupScreen.classList.add('hidden'); dom.gameScreen.classList.remove('hidden');
-        computerBoard = createEmptyBoard();
-        randomlyPlaceShips(computerBoard, getShipsConfig());
-        renderGrid(dom.playerGameGrid, playerBoard, true);
-        renderGrid(dom.computerGameGrid, computerBoard, false);
-    });
+    dom.startGameBtn.addEventListener('click', () => { dom.setupScreen.classList.add('hidden'); dom.gameScreen.classList.remove('hidden'); computerBoard = createEmptyBoard(); randomlyPlaceShips(computerBoard, getShipsConfig()); renderGrid(dom.playerGameGrid, playerBoard, true); renderGrid(dom.computerGameGrid, computerBoard, false); });
     dom.computerGameGrid.addEventListener('click', handleComputerGridClick);
     dom.playAgainBtn.addEventListener('click', initGame);
 }
@@ -340,26 +351,15 @@ class ComputerAI {
     reset() { this.shots = Array(10).fill(null).map(() => Array(10).fill(false)); this.mode = 'hunt'; this.targetQueue = []; this.currentHits = []; }
     makeMove() {
         let x, y;
-        if (this.mode === 'target' && this.targetQueue.length > 0) {
-            const move = this.targetQueue.shift();
-            x = move.x; y = move.y;
-        } else {
-            this.mode = 'hunt';
-            const possibleMoves = [];
-            for(let r=0; r<10; r++) for(let c=0; c<10; c++) if(!this.shots[r][c]) possibleMoves.push({x:c, y:r});
-            const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-            x = move.x; y = move.y;
-        }
-        this.shots[y][x] = true;
-        return { x, y };
+        if (this.mode === 'target' && this.targetQueue.length > 0) { const move = this.targetQueue.shift(); x = move.x; y = move.y; }
+        else { this.mode = 'hunt'; const possibleMoves = []; for(let r=0; r<10; r++) for(let c=0; c<10; c++) if(!this.shots[r][c]) possibleMoves.push({x:c, y:r}); const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)]; x = move.x; y = move.y; }
+        this.shots[y][x] = true; return { x, y };
     }
     reportResult(x, y, isHit) {
         if (isHit) {
-            this.mode = 'target';
-            this.currentHits.push({x, y});
+            this.mode = 'target'; this.currentHits.push({x, y});
             if (this.currentHits.length >= 2) {
-                const isVertical = this.currentHits[0].x === this.currentHits[1].x;
-                this.targetQueue = [];
+                const isVertical = this.currentHits[0].x === this.currentHits[1].x; this.targetQueue = [];
                 const allCoords = this.currentHits.map(h => isVertical ? h.y : h.x);
                 const min = Math.min(...allCoords), max = Math.max(...allCoords);
                 if(isVertical) { this.addToQueue(x, min - 1); this.addToQueue(x, max + 1); }
