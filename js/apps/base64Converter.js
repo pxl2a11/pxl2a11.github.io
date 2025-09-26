@@ -1,4 +1,4 @@
-// js/apps/base64Converter.js
+// 22js/apps/base64Converter.js
 
 let sourceText, resultText, encodeBtn, decodeBtn, copyBtn, clearBtn, errorDiv;
 let imageDropZone, imageFileInput, imagePreview, resultContainer, imagePreviewContainer;
