@@ -1,14 +1,20 @@
-//23 js/apps/imageEditor.js
+//30 js/apps/imageEditor.js
 
 export function getHtml() {
     return `
         <style>
-            /* Убираем стрелочки из input[type=number] */
             .editor-input { -moz-appearance: textfield; }
             .editor-input::-webkit-outer-spin-button,
             .editor-input::-webkit-inner-spin-button {
               -webkit-appearance: none;
               margin: 0;
+            }
+            .fade-in {
+                animation: fadeIn 0.5s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
             }
         </style>
         <div class="flex flex-col items-center gap-6 max-w-2xl mx-auto">
@@ -17,38 +23,43 @@ export function getHtml() {
             <div class="w-full text-center">
                 <input type="file" id="image-editor-input" class="hidden" accept="image/png, image/jpeg, image/webp, image/svg+xml" multiple>
                 <label for="image-editor-input" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg cursor-pointer transition-colors">
-                    Выберите изображения
+                    Выберите изображение(я)
                 </label>
             </div>
 
-            <!-- 2. Область информации о файлах (изначально скрыта) -->
-            <div id="file-info-container" class="hidden w-full p-4 border-dashed border-2 rounded-lg text-center bg-gray-50 dark:bg-gray-700/50">
-                <span id="file-count"></span>
+            <!-- 2. Контейнер для предпросмотра (одиночный режим) -->
+            <div id="image-preview-container" class="hidden w-full p-4 border-dashed border-2 rounded-lg text-center bg-gray-50 dark:bg-gray-700/50">
+                <img id="image-preview" class="max-w-full max-h-80 mx-auto rounded"/>
+            </div>
+            
+            <!-- 3. Контейнер для списка файлов (пакетный режим) -->
+            <div id="batch-list-container" class="hidden w-full space-y-4">
+                <!-- Сюда будут динамически добавляться файлы -->
             </div>
 
-            <!-- 3. Панель управления (изначально скрыта) -->
+            <!-- 4. Панель управления -->
             <div id="controls-container" class="hidden w-full space-y-6">
                 
-                <!-- Настройки размера -->
-                <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
+                <!-- Настройки размера (только для одиночного режима) -->
+                <div id="single-mode-resize-controls" class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
                     <h3 class="font-semibold mb-3 text-lg">Изменить размер</h3>
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <div>
                             <label for="width-input" class="font-medium">Ширина:</label>
-                            <input type="number" id="width-input" class="editor-input w-28 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Авто">
+                            <input type="number" id="width-input" class="editor-input w-28 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600">
                         </div>
                         <div>
                             <label for="height-input" class="font-medium">Высота:</label>
-                            <input type="number" id="height-input" class="editor-input w-28 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Авто">
+                            <input type="number" id="height-input" class="editor-input w-28 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600">
                         </div>
                         <div class="flex items-center pt-5">
-                            <input type="checkbox" id="aspect-ratio-lock" class="h-4 w-4 rounded" checked disabled>
+                            <input type="checkbox" id="aspect-ratio-lock" class="h-4 w-4 rounded" checked>
                             <label for="aspect-ratio-lock" class="ml-2 text-sm">Сохранять пропорции</label>
                         </div>
                     </div>
                 </div>
 
-                <!-- Настройки формата -->
+                <!-- Общие настройки формата (для всех режимов) -->
                 <div class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
                     <h3 class="font-semibold mb-3 text-lg">Сохранить как...</h3>
                      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -67,7 +78,7 @@ export function getHtml() {
 
                 <!-- Кнопка действия -->
                 <button id="process-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                    Обработать и скачать ZIP
+                    Применить и скачать
                 </button>
             </div>
         </div>
@@ -76,12 +87,16 @@ export function getHtml() {
 
 export function init() {
     const imageInput = document.getElementById('image-editor-input');
-    const fileInfoContainer = document.getElementById('file-info-container');
-    const fileCount = document.getElementById('file-count');
+    const previewContainer = document.getElementById('image-preview-container');
+    const previewImage = document.getElementById('image-preview');
+    const batchListContainer = document.getElementById('batch-list-container');
     const controlsContainer = document.getElementById('controls-container');
-    const widthInput = document.getElementById('width-input');
-    const heightInput = document.getElementById('height-input');
-    const aspectRatioLock = document.getElementById('aspect-ratio-lock');
+    const singleModeResizeControls = document.getElementById('single-mode-resize-controls');
+    
+    const singleWidthInput = document.getElementById('width-input');
+    const singleHeightInput = document.getElementById('height-input');
+    const singleAspectRatioLock = document.getElementById('aspect-ratio-lock');
+    
     const formatSelect = document.getElementById('format-select');
     const qualityControl = document.getElementById('quality-control');
     const qualitySlider = document.getElementById('quality-slider');
@@ -89,45 +104,136 @@ export function init() {
     const processBtn = document.getElementById('process-btn');
 
     let selectedFiles = [];
+    let originalImage = null;
+    let originalWidth, originalHeight;
     let lastQualityValue = 100;
 
     imageInput.addEventListener('change', (e) => {
         selectedFiles = Array.from(e.target.files);
-        if (selectedFiles.length === 0) {
-            fileInfoContainer.classList.add('hidden');
-            controlsContainer.classList.add('hidden');
-            return;
-        }
+        resetUI();
 
-        fileCount.textContent = `Выбрано файлов: ${selectedFiles.length}`;
-        fileInfoContainer.classList.remove('hidden');
+        if (selectedFiles.length === 0) return;
+
         controlsContainer.classList.remove('hidden');
+
+        if (selectedFiles.length === 1) {
+            setupSingleFileMode(selectedFiles[0]);
+        } else {
+            setupBatchMode(selectedFiles);
+        }
+    });
+
+    function resetUI() {
+        previewContainer.classList.add('hidden');
+        batchListContainer.classList.add('hidden');
+        controlsContainer.classList.add('hidden');
+        singleModeResizeControls.classList.add('hidden');
+        batchListContainer.innerHTML = '';
+        originalImage = null;
+    }
+
+    function setupSingleFileMode(file) {
+        singleModeResizeControls.classList.remove('hidden');
+        processBtn.textContent = 'Применить и скачать';
+
+        originalImage = new Image();
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            originalImage.src = event.target.result;
+            originalImage.onload = () => {
+                originalWidth = originalImage.width;
+                originalHeight = originalImage.height;
+                singleWidthInput.value = originalWidth;
+                singleHeightInput.value = originalHeight;
+                
+                previewImage.src = event.target.result;
+                previewContainer.classList.remove('hidden');
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function setupBatchMode(files) {
+        batchListContainer.classList.remove('hidden');
+        processBtn.textContent = `Обработать ${files.length} файла и скачать ZIP`;
         
-        // В пакетном режиме мы не можем знать оригинальные размеры,
-        // поэтому блокируем сохранение пропорций и ожидаем ввода пользователя.
-        // Пользователь должен будет ввести хотя бы одно из полей: ширину или высоту.
-        widthInput.value = '';
-        heightInput.value = '';
-        aspectRatioLock.checked = false; // Отключаем, т.к. нет эталонного изображения
+        files.forEach((file, index) => {
+            const listItem = createBatchListItem(file, index);
+            batchListContainer.appendChild(listItem);
+        });
+    }
+
+    function createBatchListItem(file, index) {
+        const fileId = `file-${index}`;
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex flex-col sm:flex-row items-center gap-4 fade-in';
+        itemDiv.id = fileId;
+
+        let itemOriginalWidth, itemOriginalHeight;
+
+        itemDiv.innerHTML = `
+            <img id="img-${fileId}" class="w-20 h-20 object-cover rounded-md bg-gray-200 dark:bg-gray-600"/>
+            <div class="flex-grow text-center sm:text-left">
+                <p class="font-semibold truncate" title="${file.name}">${file.name}</p>
+                <p id="dims-${fileId}" class="text-sm text-gray-500 dark:text-gray-400">... x ...</p>
+            </div>
+            <div class="flex items-center justify-center gap-2">
+                <input type="number" data-type="width" class="editor-input w-24 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Ширина">
+                <span>x</span>
+                <input type="number" data-type="height" class="editor-input w-24 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Высота">
+                <input type="checkbox" id="lock-${fileId}" class="h-4 w-4 rounded ml-2" checked>
+            </div>
+        `;
+        
+        const imgElement = itemDiv.querySelector(`#img-${fileId}`);
+        const dimsElement = itemDiv.querySelector(`#dims-${fileId}`);
+        const widthInput = itemDiv.querySelector('input[data-type="width"]');
+        const heightInput = itemDiv.querySelector('input[data-type="height"]');
+        const aspectRatioLock = itemDiv.querySelector(`#lock-${fileId}`);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imgElement.src = e.target.result;
+            const tempImg = new Image();
+            tempImg.src = e.target.result;
+            tempImg.onload = () => {
+                itemOriginalWidth = tempImg.width;
+                itemOriginalHeight = tempImg.height;
+                dimsElement.textContent = `${itemOriginalWidth} x ${itemOriginalHeight}`;
+                widthInput.value = itemOriginalWidth;
+                heightInput.value = itemOriginalHeight;
+            };
+        };
+        reader.readAsDataURL(file);
+
+        widthInput.addEventListener('input', () => {
+            if (aspectRatioLock.checked && itemOriginalWidth > 0) {
+                heightInput.value = Math.round((widthInput.value / itemOriginalWidth) * itemOriginalHeight);
+            }
+        });
+        heightInput.addEventListener('input', () => {
+            if (aspectRatioLock.checked && itemOriginalHeight > 0) {
+                widthInput.value = Math.round((heightInput.value / itemOriginalHeight) * itemOriginalWidth);
+            }
+        });
+
+        return itemDiv;
+    }
+
+    singleWidthInput.addEventListener('input', () => {
+        if (singleAspectRatioLock.checked && originalImage && originalWidth > 0) {
+            singleHeightInput.value = Math.round((singleWidthInput.value / originalWidth) * originalHeight);
+        }
     });
 
-    // Убираем логику авто-изменения размеров, т.к. нет одного "оригинального" изображения
-    widthInput.addEventListener('input', () => {
-        if (!heightInput.value) aspectRatioLock.checked = false;
-    });
-
-    heightInput.addEventListener('input', () => {
-         if (!widthInput.value) aspectRatioLock.checked = false;
+    singleHeightInput.addEventListener('input', () => {
+        if (singleAspectRatioLock.checked && originalImage && originalHeight > 0) {
+            singleWidthInput.value = Math.round((singleHeightInput.value / originalHeight) * originalWidth);
+        }
     });
 
     formatSelect.addEventListener('change', () => {
-        if (formatSelect.value === 'png') {
-            qualityControl.style.visibility = 'hidden';
-        } else {
-            qualitySlider.value = lastQualityValue;
-            qualityValue.textContent = `${lastQualityValue}%`;
-            qualityControl.style.visibility = 'visible';
-        }
+        qualityControl.style.visibility = (formatSelect.value === 'png') ? 'hidden' : 'visible';
     });
     
     qualitySlider.addEventListener('input', () => {
@@ -135,92 +241,111 @@ export function init() {
         qualityValue.textContent = `${lastQualityValue}%`;
     });
 
-    processBtn.addEventListener('click', async () => {
-        if (selectedFiles.length === 0) {
-            alert('Пожалуйста, выберите файлы для обработки.');
+    processBtn.addEventListener('click', () => {
+        if (selectedFiles.length === 1) {
+            processSingleImage(); // <-- СКАЧИВАНИЕ ОДНОГО ФАЙЛА
+        } else if (selectedFiles.length > 1) {
+            processBatchImages(); // <-- СКАЧИВАНИЕ ZIP-АРХИВА
+        } else {
+            alert('Пожалуйста, выберите файлы.');
+        }
+    });
+
+    // Функция для обработки и скачивания ОДНОГО файла без ZIP
+    function processSingleImage() {
+        const newWidth = parseInt(singleWidthInput.value, 10);
+        const newHeight = parseInt(singleHeightInput.value, 10);
+        if (!newWidth || !newHeight || newWidth <= 0 || newHeight <= 0) {
+            alert('Укажите корректные размеры.');
             return;
         }
 
-        const newWidth = parseInt(widthInput.value, 10);
-        const newHeight = parseInt(heightInput.value, 10);
         const format = formatSelect.value;
         const quality = parseInt(lastQualityValue, 10) / 100;
+        const fileName = selectedFiles[0].name.split('.').slice(0, -1).join('.');
 
-        if (!newWidth && !newHeight) {
-            alert('Пожалуйста, укажите желаемую ширину или высоту.');
-            return;
-        }
+        const dataUrl = resizeImageOnCanvas(originalImage, newWidth, newHeight, format, quality);
 
-        // --- НАЧАЛО БЛОКА ПАКЕТНОЙ ОБРАБОТКИ ---
+        downloadDataUrl(dataUrl, `edited-${fileName}.${format}`);
+    }
+
+    // Функция для обработки и скачивания НЕСКОЛЬКИХ файлов в ZIP
+    async function processBatchImages() {
+        const format = formatSelect.value;
+        const quality = parseInt(lastQualityValue, 10) / 100;
+        const zip = new JSZip();
         
         processBtn.disabled = true;
         processBtn.textContent = 'Обработка...';
 
-        const zip = new JSZip();
+        const listItems = batchListContainer.querySelectorAll('.fade-in');
 
-        for (const file of selectedFiles) {
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const item = listItems[i];
+            const widthInput = item.querySelector('input[data-type="width"]');
+            const heightInput = item.querySelector('input[data-type="height"]');
+            
+            const newWidth = parseInt(widthInput.value, 10);
+            const newHeight = parseInt(heightInput.value, 10);
+
+            if (!newWidth || !newHeight || newWidth <= 0 || newHeight <= 0) continue;
+
             try {
-                const processedFile = await processImage(file, newWidth, newHeight, format, quality);
-                const originalFileName = file.name.split('.').slice(0, -1).join('.');
-                // Удаляем префикс dataURL, чтобы JSZip корректно работал с base64
-                const base64Data = processedFile.split(',')[1];
-                zip.file(`edited-${originalFileName}.${format}`, base64Data, { base64: true });
+                const dataUrl = await fileToDataUrl(file).then(src => createImage(src))
+                    .then(img => resizeImageOnCanvas(img, newWidth, newHeight, format, quality));
+                
+                const fileName = file.name.split('.').slice(0, -1).join('.');
+                const base64Data = dataUrl.split(',')[1];
+                zip.file(`edited-${fileName}.${format}`, base64Data, { base64: true });
             } catch (error) {
-                console.error(`Не удалось обработать файл ${file.name}:`, error);
+                console.error(`Ошибка обработки файла ${file.name}:`, error);
             }
         }
-
-        zip.generateAsync({ type: "blob" }).then((content) => {
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `edited-images.zip`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
-
-            processBtn.disabled = false;
-            processBtn.textContent = 'Обработать и скачать ZIP';
+        
+        zip.generateAsync({ type: "blob" }).then(content => {
+            downloadDataUrl(URL.createObjectURL(content), "edited-images.zip");
+            URL.revokeObjectURL(content); // Освобождаем память
         });
+        
+        processBtn.disabled = false;
+        processBtn.textContent = `Обработать ${selectedFiles.length} файла и скачать ZIP`;
+    }
 
-        // --- КОНЕЦ БЛОКА ПАКЕТНОЙ ОБРАБОТКИ ---
-    });
+    function resizeImageOnCanvas(image, width, height, format, quality) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0, width, height);
+        const mimeType = `image/${format}`;
+        return canvas.toDataURL(mimeType, format !== 'png' ? quality : undefined);
+    }
+    
+    function downloadDataUrl(dataUrl, filename) {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
-    function processImage(file, newWidth, newHeight, format, quality) {
+    function fileToDataUrl(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    let finalWidth = newWidth;
-                    let finalHeight = newHeight;
-
-                    // Если одно из полей не заполнено, вычисляем его на основе пропорций
-                    if (!finalWidth) {
-                        finalWidth = Math.round((newHeight / img.height) * img.width);
-                    } else if (!finalHeight) {
-                        finalHeight = Math.round((newWidth / img.width) * img.height);
-                    }
-                    
-                    if (finalWidth <= 0 || finalHeight <= 0) {
-                        return reject(new Error('Некорректные размеры для обработки.'));
-                    }
-
-                    const canvas = document.createElement('canvas');
-                    canvas.width = finalWidth;
-                    canvas.height = finalHeight;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
-
-                    const mimeType = `image/${format}`;
-                    const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality : undefined);
-                    resolve(dataUrl);
-                };
-                img.onerror = reject;
-                img.src = event.target.result;
-            };
+            reader.onload = e => resolve(e.target.result);
             reader.onerror = reject;
             reader.readAsDataURL(file);
+        });
+    }
+
+    function createImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
         });
     }
 }
