@@ -95,7 +95,7 @@ export function init() {
 
     // --- НОВЫЙ КОД ---
     // Инициализируем воркер
-    qrWorker = new Worker('qr-worker.js');
+    qrWorker = new Worker('js/utils/qr-worker.js');
 
     // Устанавливаем обработчик сообщений от воркера
     qrWorker.onmessage = function(event) {
