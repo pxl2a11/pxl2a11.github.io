@@ -1,4 +1,4 @@
-// 58js/apps/battleship.js
+// js/apps/battleship.js
 
 /**
  * Возвращает HTML-структуру для игры "Морской бой".
@@ -7,7 +7,7 @@
 export function getHtml() {
     return `
         <style>
-            /* НОВАЯ КОНТРАСТНАЯ ЦВЕТОВАЯ ПАЛИТРА */
+            /* Финальная цветовая палитра */
             .bs-grid {
                 display: grid;
                 grid-template-columns: repeat(10, 1fr);
@@ -16,31 +16,26 @@ export function getHtml() {
             .bs-cell {
                 width: 100%;
                 aspect-ratio: 1 / 1;
-                /* 1. Вода: Тёмно-синий */
-                background-color: #1e40af; /* blue-800 */
-                border: 1px solid #1d4ed8; /* blue-700 */
+                background-color: #1e40af; /* Вода: Тёмно-синий */
+                border: 1px solid #1d4ed8;
                 transition: background-color 0.2s;
             }
             #computer-game-grid .bs-cell { cursor: pointer; }
             #computer-game-grid .bs-cell:hover:not(.hit):not(.miss):not(.sunk) { background-color: #2563eb; }
             
-            /* 2. Корабль: Тёмно-зелёный */
-            .bs-cell.ship { background-color: #166534; border-color: #15803d; } /* green-800 */
+            .bs-cell.ship { background-color: #166534; border-color: #15803d; } /* Корабль: Тёмно-зелёный */
             .dark .bs-cell.ship { background-color: #15803d; border-color: #16a34a; }
 
-            /* 3. Промах: Светло-серый */
-            .bs-cell.miss { background-color: #94a3b8; cursor: not-allowed; } /* slate-400 */
+            /* ИЗМЕНЕНО: Промах: Тёмно-серый */
+            .bs-cell.miss { background-color: #475569; cursor: not-allowed; } /* slate-600 */
             
-            /* 4. Попадание: Тёмно-оранжевый */
-            .bs-cell.hit { background-color: #c2410c; } /* orange-700 */
-            
-            /* 5. Потопленный корабль: Тёмно-красный */
-            .bs-cell.sunk { background-color: #b91c1c; border-color: #991b1b; } /* red-700 */
+            .bs-cell.hit { background-color: #c2410c; } /* Попадание: Тёмно-оранжевый */
+            .bs-cell.sunk { background-color: #b91c1c; border-color: #991b1b; } /* Потопленный: Тёмно-красный */
 
             .bs-cell.preview-valid { background-color: #22c55e; }
             .bs-cell.preview-invalid { background-color: #f43f5e; }
 
-            /* Стили для списка кораблей с новым цветом */
+            /* Стили для списка кораблей */
             #ship-selection-list .ship-item { display: flex; align-items: center; cursor: pointer; padding: 8px; border: 2px solid transparent; border-radius: 6px; transition: all 0.2s; }
             #ship-selection-list .ship-item.horizontal { flex-direction: row; }
             #ship-selection-list .ship-item.vertical { flex-direction: column; align-items: flex-start; }
@@ -55,7 +50,7 @@ export function getHtml() {
             .ship-preview-cell {
                 width: 18px;
                 height: 18px;
-                background-color: #166534; /* green-800 */
+                background-color: #166534;
                 border: 1px solid #15803d;
                 border-radius: 2px;
             }
@@ -223,37 +218,27 @@ export function init() {
             }
         });
     }
-    /**
-     * ИЗМЕНЕНО: Логика обработки хода игрока
-     */
     function handleComputerGridClick(e) {
         if (!isPlayerTurn || isGameOver || !e.target.dataset.x) return;
         const x = parseInt(e.target.dataset.x), y = parseInt(e.target.dataset.y);
         const cell = computerBoard[y][x];
         if (cell.isHit) return;
         cell.isHit = true;
-        
         const hitShip = cell.shipId !== null;
         if (hitShip) checkAndMarkSunkShips(computerBoard, x, y);
         renderGrid(dom.computerGameGrid, computerBoard, false);
-
         if (checkWinCondition(computerBoard)) {
             endGame(true);
             return;
         }
-
         if (hitShip) {
             dom.gameStatus.textContent = "Попадание! Ваш ход снова.";
-            // Не передаем ход компьютеру
         } else {
             dom.gameStatus.textContent = "Промах. Ход противника...";
             isPlayerTurn = false;
             setTimeout(computerTurn, 1500);
         }
     }
-    /**
-     * ИЗМЕНЕНО: Логика обработки хода компьютера
-     */
     function computerTurn() {
         if (isGameOver) return;
         const { x, y } = computerAi.makeMove(playerBoard);
@@ -266,32 +251,32 @@ export function init() {
             if (sunkShipId !== null) computerAi.reportSunk();
         }
         renderGrid(dom.playerGameGrid, playerBoard, true);
-
         if (checkWinCondition(playerBoard)) {
             endGame(false);
             return;
         }
-
         if (hitShip) {
             dom.gameStatus.textContent = "Противник попал! Его ход снова.";
-            setTimeout(computerTurn, 1500); // Компьютер ходит еще раз
+            setTimeout(computerTurn, 1500);
         } else {
             dom.gameStatus.textContent = "Противник промахнулся. Ваш ход.";
             isPlayerTurn = true;
         }
     }
+    /**
+     * ИЗМЕНЕНО: Логика открытия клеток вокруг корабля удалена.
+     */
     function checkAndMarkSunkShips(board, x, y) {
         const shipId = board[y][x].shipId;
         if (shipId === null) return null;
         const shipCells = [];
         board.forEach((row, r_idx) => row.forEach((cell, c_idx) => { if (cell.shipId === shipId) shipCells.push({x: c_idx, y: r_idx}); }));
-        if (shipCells.every(cell => board[cell.y][cell.x].isHit)) {
+        
+        const isSunk = shipCells.every(cell => board[cell.y][cell.x].isHit);
+
+        if (isSunk) {
             shipCells.forEach(cell => {
                 board[cell.y][cell.x].isSunk = true;
-                for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-                    const checkX = cell.x + dx, checkY = cell.y + dy;
-                    if (checkX >= 0 && checkX < 10 && checkY >= 0 && checkY < 10 && !board[checkY][checkX].isHit) board[checkY][checkX].isHit = true;
-                }
             });
             return shipId;
         }
