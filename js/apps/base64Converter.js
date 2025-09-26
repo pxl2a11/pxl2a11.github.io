@@ -1,7 +1,8 @@
-// 19js/apps/base64Converter.js
+// js/apps/base64Converter.js
 
-let sourceText, resultText, encodeBtn, decodeBtn, decodeImageBtn, copyBtn, clearBtn, errorDiv;
+let sourceText, resultText, encodeBtn, decodeBtn, copyBtn, clearBtn, errorDiv;
 let imageDropZone, imageFileInput, imagePreview, resultContainer, imagePreviewContainer;
+let sourceImageText, decodeImageBtn; // Элементы для декодирования на вкладке "Изображение"
 let activeTab = 'text';
 let eventListeners = [];
 
@@ -40,7 +41,7 @@ export function getHtml() {
             <!-- Вкладки для выбора режима -->
             <div class="flex border-b border-gray-200 dark:border-gray-700">
                 <button data-tab="text" class="base64-tab-btn active-tab">Текст ↔ Base64</button>
-                <button data-tab="image" class="base64-tab-btn">Изображение → Base64</button>
+                <button data-tab="image" class="base64-tab-btn">Изображение ↔ Base64</button>
             </div>
 
             <!-- Панель для текста -->
@@ -52,15 +53,29 @@ export function getHtml() {
                 <div class="flex flex-wrap items-center justify-center gap-3">
                     <button id="base64-encode-btn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Кодировать</button>
                     <button id="base64-decode-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Декодировать</button>
-                    <button id="base64-decode-image-btn" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Декодировать в изображение</button>
                 </div>
             </div>
 
             <!-- Панель для изображения -->
             <div id="panel-image" class="hidden space-y-4">
-                <div id="image-drop-zone" class="drop-zone">
-                    <p>Перетащите изображение сюда или нажмите для выбора</p>
-                    <input type="file" id="image-file-input" class="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml">
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Кодировать: Из файла в Base64</label>
+                    <div id="image-drop-zone" class="drop-zone">
+                        <p>Перетащите изображение сюда или нажмите для выбора</p>
+                        <input type="file" id="image-file-input" class="hidden" accept="image/*">
+                    </div>
+                </div>
+                
+                <div class="flex items-center text-center">
+                    <hr class="flex-grow border-t dark:border-gray-600">
+                    <span class="px-3 text-sm text-gray-500 dark:text-gray-400">ИЛИ</span>
+                    <hr class="flex-grow border-t dark:border-gray-600">
+                </div>
+        
+                <div>
+                    <label for="base64-image-source" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Декодировать: Из Base64 (Data URL) в изображение</label>
+                    <textarea id="base64-image-source" placeholder="Вставьте сюда строку вида data:image/..." class="w-full h-32 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <button id="base64-decode-image-btn" class="w-full mt-2 bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Показать изображение</button>
                 </div>
             </div>
             
@@ -94,6 +109,8 @@ export function init() {
     copyBtn = document.getElementById('base64-copy-btn');
     clearBtn = document.getElementById('base64-clear-btn');
     errorDiv = document.getElementById('base64-error');
+    imagePreview = document.getElementById('image-preview');
+    imagePreviewContainer = document.getElementById('image-preview-container');
     
     // Элементы для вкладок
     const tabs = document.querySelectorAll('.base64-tab-btn');
@@ -104,13 +121,12 @@ export function init() {
     sourceText = document.getElementById('base64-source');
     encodeBtn = document.getElementById('base64-encode-btn');
     decodeBtn = document.getElementById('base64-decode-btn');
-    decodeImageBtn = document.getElementById('base64-decode-image-btn');
 
-    // Элементы для вкладки "Изображение" и общего предпросмотра
+    // Элементы для вкладки "Изображение"
     imageDropZone = document.getElementById('image-drop-zone');
     imageFileInput = document.getElementById('image-file-input');
-    imagePreview = document.getElementById('image-preview');
-    imagePreviewContainer = document.getElementById('image-preview-container');
+    sourceImageText = document.getElementById('base64-image-source');
+    decodeImageBtn = document.getElementById('base64-decode-image-btn');
 
     // --- Функции кодирования/декодирования ---
     const encodeText = () => {
@@ -125,7 +141,7 @@ export function init() {
         try {
             const base64String = sourceText.value.trim();
             if (base64String.startsWith('data:image')) {
-                 showError('Это Data URL изображения. Используйте кнопку "Декодировать в изображение".');
+                 showError('Это Data URL. Используйте вкладку "Изображение ↔ Base64" для декодирования.');
                  return;
             }
             const binaryString = atob(base64String);
@@ -138,18 +154,14 @@ export function init() {
     
     const decodeImage = () => {
         try {
-            const dataUrl = sourceText.value.trim();
+            const dataUrl = sourceImageText.value.trim();
             if (!dataUrl.startsWith('data:image')) {
                 showError('Входная строка не является Data URL (должна начинаться с "data:image/...").');
                 return;
             }
-            // Простая проверка на валидность Base64 части
             atob(dataUrl.split(',')[1]); 
-    
-            errorDiv.textContent = '';
-            resultContainer.classList.add('hidden'); // Скрыть текстовый результат
-            imagePreview.src = dataUrl;
-            imagePreviewContainer.classList.remove('hidden'); // Показать результат-изображение
+            
+            showImageResult(dataUrl);
         } catch (e) {
             showError('Неверная Base64 строка в Data URL.');
         }
@@ -163,9 +175,9 @@ export function init() {
         const reader = new FileReader();
         reader.onload = (e) => {
             const dataUrl = e.target.result;
+            showResult(dataUrl); // Показываем текстовый результат
             imagePreview.src = dataUrl;
-            imagePreviewContainer.classList.remove('hidden');
-            showResult(dataUrl);
+            imagePreviewContainer.classList.remove('hidden'); // И предпросмотр
         };
         reader.onerror = () => showError('Не удалось прочитать файл.');
         reader.readAsDataURL(file);
@@ -182,12 +194,20 @@ export function init() {
         errorDiv.textContent = '';
         resultText.value = content;
         resultContainer.classList.remove('hidden');
-        imagePreviewContainer.classList.add('hidden');
+        imagePreviewContainer.classList.add('hidden'); // Скрываем предпросмотр, если показываем текст
+    };
+    
+    const showImageResult = (dataUrl) => {
+        errorDiv.textContent = '';
+        imagePreview.src = dataUrl;
+        imagePreviewContainer.classList.remove('hidden');
+        resultContainer.classList.add('hidden'); // Скрываем текстовый результат
     };
 
     const clearAll = () => {
         sourceText.value = '';
         resultText.value = '';
+        if (sourceImageText) sourceImageText.value = '';
         errorDiv.textContent = '';
         imageFileInput.value = '';
         imagePreview.src = '';
@@ -207,11 +227,11 @@ export function init() {
     // --- Назначение обработчиков ---
     addListener(encodeBtn, 'click', encodeText);
     addListener(decodeBtn, 'click', decodeText);
-    addListener(decodeImageBtn, 'click', decodeImage);
     addListener(copyBtn, 'click', copyResult);
     addListener(clearBtn, 'click', clearAll);
 
     // Обработчики для вкладки "Изображение"
+    addListener(decodeImageBtn, 'click', decodeImage);
     addListener(imageDropZone, 'click', () => imageFileInput.click());
     addListener(imageFileInput, 'change', (e) => handleImageFile(e.target.files[0]));
     ['dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -219,9 +239,9 @@ export function init() {
             e.preventDefault();
             e.stopPropagation();
             if (eventName === 'dragover') imageDropZone.classList.add('dragover');
-            if (eventName === 'dragleave') imageDropZone.classList.remove('dragover');
+            else imageDropZone.classList.remove('dragover');
+            
             if (eventName === 'drop') {
-                imageDropZone.classList.remove('dragover');
                 handleImageFile(e.dataTransfer.files[0]);
             }
         });
