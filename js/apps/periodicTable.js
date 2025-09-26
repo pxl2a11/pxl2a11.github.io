@@ -1,4 +1,4 @@
-// 33js/apps/periodicTable.js
+// 45js/apps/periodicTable.js
 
 // --- Данные элементов таблицы Менделеева (ПОЛНАЯ ВЕРСИЯ) ---
 const elements = [
@@ -190,7 +190,7 @@ export function getHtml() {
             </div>
             
             <!-- Панель информации -->
-            <div id="pt-detail-panel" class="w-full xl:w-100 flex-shrink-0 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-inner">
+            <div id="pt-detail-panel" class="w-full xl:w-72 flex-shrink-0 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-inner">
                 <div id="pt-detail-content" class="text-center space-y-3 sticky top-4">
                     <!-- Содержимое будет вставлено JavaScript -->
                     <p class="text-gray-500 dark:text-gray-400 pt-10 text-sm">Выберите элемент, чтобы увидеть информацию о нём.</p>
