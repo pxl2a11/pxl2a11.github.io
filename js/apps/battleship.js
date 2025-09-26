@@ -1,4 +1,4 @@
-// js/apps/battleship.js
+//08 js/apps/battleship.js
 
 /**
  * Возвращает HTML-структуру для игры "Морской бой".
