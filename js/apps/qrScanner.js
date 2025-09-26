@@ -1,6 +1,7 @@
 let video, canvasElement, canvas, resultContainer, statusMessage;
 let stream;
 let animationFrameId;
+let qrWorker; // Переменная для нашего воркера
 
 function drawLine(begin, end, color) {
     canvas.beginPath();
@@ -11,6 +12,27 @@ function drawLine(begin, end, color) {
     canvas.stroke();
 }
 
+// Эта функция будет обрабатывать результат, полученный от воркера
+function handleQrCode(code) {
+    if (code) {
+        drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+        drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+        drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
+        drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+        
+        resultContainer.classList.remove('hidden');
+        statusMessage.textContent = "✅ Код найден!";
+        
+        if (code.data.startsWith('http://') || code.data.startsWith('https://')) {
+            resultContainer.innerHTML = `Результат: <a href="${code.data}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">${code.data}</a>`;
+        } else {
+             resultContainer.textContent = `Результат: ${code.data}`;
+        }
+
+        cleanup(); // Останавливаем сканирование после нахождения кода
+    }
+}
+
 function tick() {
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
         statusMessage.textContent = "🔍 Сканирование...";
@@ -18,30 +40,13 @@ function tick() {
         canvasElement.width = video.videoWidth;
         canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
         const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-        });
-
-        if (code) {
-            drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-            drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-            drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-            drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
-            
-            resultContainer.classList.remove('hidden');
-            statusMessage.textContent = "✅ Код найден!";
-            
-            // Проверяем, является ли результат ссылкой
-            if (code.data.startsWith('http://') || code.data.startsWith('https://')) {
-                resultContainer.innerHTML = `Результат: <a href="${code.data}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">${code.data}</a>`;
-            } else {
-                 resultContainer.textContent = `Результат: ${code.data}`;
-            }
-
-            cleanup(); // Останавливаем сканирование после нахождения кода
-            return;
-        }
+        
+        // --- ИЗМЕНЕНИЕ ---
+        // Вместо вызова jsQR() напрямую, отправляем данные в воркер.
+        // Передаем объект imageData. Воркер не может получить доступ к canvas напрямую.
+        qrWorker.postMessage(imageData);
     }
+    // Продолжаем запрашивать кадры, пока не остановим сканирование
     animationFrameId = requestAnimationFrame(tick);
 }
 
@@ -57,7 +62,7 @@ function startScan() {
         .then(function(s) {
             stream = s;
             video.srcObject = stream;
-            video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+            video.setAttribute("playsinline", true);
             video.play();
             animationFrameId = requestAnimationFrame(tick);
         })
@@ -88,6 +93,16 @@ export function init() {
     resultContainer = document.getElementById("qr-result-container");
     statusMessage = document.getElementById("qr-status-message");
 
+    // --- НОВЫЙ КОД ---
+    // Инициализируем воркер
+    qrWorker = new Worker('qr-worker.js');
+
+    // Устанавливаем обработчик сообщений от воркера
+    qrWorker.onmessage = function(event) {
+        const code = event.data;
+        handleQrCode(code); // Вызываем нашу функцию для обработки результата
+    };
+
     document.getElementById("start-scan-btn").addEventListener('click', startScan);
 }
 
@@ -100,6 +115,11 @@ export function cleanup() {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
         video.srcObject = null;
+    }
+    // --- ИЗМЕНЕНИЕ ---
+    // Добавлена очистка холста, чтобы рамка не оставалась висеть
+    if (canvas) {
+        canvas.clearRect(0, 0, canvasElement.width, canvasElement.height);
     }
     const startBtn = document.getElementById("start-scan-btn");
     if(startBtn) startBtn.textContent = "Начать сканирование";
