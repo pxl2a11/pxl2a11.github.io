@@ -59,6 +59,7 @@ const appPopularity = {
     'pomodoroTimer': 85,
     'base64Converter': 78,
     'periodicTable': 88,
+    'battleship': 92,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -120,6 +121,7 @@ const appSearchMetadata = {
     'pomodoroTimer': { keywords: ['помодоро', 'таймер', 'фокус', 'работа', 'учеба', 'pomodoro'], hashtags: ['#time', '#tools', '#productivity'] },
     'base64Converter': { keywords: ['base64', 'кодировщик', 'декодировщик', 'шифрование', 'btoa', 'atob', 'текст', 'данные', 'картинка', 'изображение', 'фото', 'data url'], hashtags: ['#tools', '#text', '#webdev', '#image'] },
     'periodicTable': { keywords: ['элементы', 'химия', 'атом', 'менделеев', 'таблица', 'вещества', 'наука'], hashtags: ['#science', '#tools', '#education'] },
+    'battleship': { keywords: ['игра', 'корабли', 'флот', 'стрелять', 'бой', 'battleship', 'sea battle'], hashtags: ['#game', '#logic', '#fun'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
