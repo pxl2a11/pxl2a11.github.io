@@ -1,4 +1,4 @@
-//08 js/apps/battleship.js
+// 13js/apps/battleship.js
 
 /**
  * Возвращает HTML-структуру для игры "Морской бой".
@@ -6,117 +6,133 @@
  */
 export function getHtml() {
     return `
+        <!-- Подключаем рукописный шрифт для антуража -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Neucha&display=swap" rel="stylesheet">
+
         <style>
-            /* НОВАЯ ВИЗУАЛЬНАЯ СИСТЕМА С ИКОНКАМИ */
+            /* ОБЩИЙ СТИЛЬ "БУМАГИ" */
+            .battleship-container {
+                font-family: 'Neucha', cursive; /* Применяем рукописный шрифт */
+                background-color: #fdfaef; /* Цвет тетрадного листа */
+                padding: 20px;
+                border-radius: 5px;
+                box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            }
+            .battleship-container h2, .battleship-container h3 {
+                font-weight: normal; /* Убираем жирность для рукописного стиля */
+            }
+
+            /* 1. СЕТКА "СИНЕЙ РУЧКОЙ" */
             .bs-grid {
                 display: grid;
                 grid-template-columns: repeat(10, 1fr);
-                gap: 1px; /* Уменьшим зазор для лучшего вида обводки */
+                /* Рисуем сетку через фон и зазоры */
+                background-color: #aaccff; /* Цвет линий сетки */
+                gap: 2px;
+                border: 2px solid #aaccff;
             }
             .bs-cell {
-                position: relative; /* Необходимо для позиционирования псевдо-элементов */
+                position: relative;
                 width: 100%;
                 aspect-ratio: 1 / 1;
-                /* 1. Вода: #222222 */
-                background-color: #222222;
-                border: 1px solid #444;
-                transition: background-color 0.2s;
+                background-color: #fdfaef; /* Цвет бумаги в клетке */
             }
-            #computer-game-grid .bs-cell { cursor: pointer; }
-            #computer-game-grid .bs-cell:hover:not(.hit):not(.miss):not(.sunk) { background-color: #444; }
+            #computer-game-grid .bs-cell { cursor: crosshair; }
+            #computer-game-grid .bs-cell:hover { background-color: #f0eada; }
             
-            /* 2. Корабль: Тёмно-синий */
-            .bs-cell.ship { background-color: #00008B; border-color: #0000CD; }
-
-            /* 3. Промах: Светло-серая точка */
+            /* 2. СИНЯЯ РУЧКА: Корабли и промахи */
+            .bs-cell.ship {
+                background-color: #eaf4ff; /* Легкая синяя заливка */
+                border: 1.5px solid #0056b3; /* Обводка "ручкой" */
+                border-radius: 2px;
+            }
             .bs-cell.miss::after {
                 content: '';
                 position: absolute;
                 top: 50%;
                 left: 50%;
-                width: 25%;
-                height: 25%;
-                background-color: #b0b0b0;
+                width: 30%;
+                height: 30%;
+                background-color: #0056b3; /* Синяя точка */
                 border-radius: 50%;
                 transform: translate(-50%, -50%);
             }
             
-            /* 4. Попадание: Красный крестик */
+            /* 3. КРАСНАЯ РУЧКА: Попадания и потопления */
             .bs-cell.hit::before,
             .bs-cell.hit::after {
                 content: '';
                 position: absolute;
                 top: 50%;
-                left: 15%;
-                width: 70%;
-                height: 12%;
-                background-color: #ff2a2a;
-                transform-origin: center;
+                left: 10%;
+                width: 80%;
+                height: 15%;
+                background-color: #d90429; /* Ярко-красный */
                 border-radius: 2px;
+                transform-origin: center;
             }
             .bs-cell.hit::before { transform: translate(0, -50%) rotate(45deg); }
             .bs-cell.hit::after { transform: translate(0, -50%) rotate(-45deg); }
             
-            /* 5. Потопленный корабль: Обводка */
-            .bs-cell.sunk-outline-top { border-top: 2px solid #ff2a2a; }
-            .bs-cell.sunk-outline-right { border-right: 2px solid #ff2a2a; }
-            .bs-cell.sunk-outline-bottom { border-bottom: 2px solid #ff2a2a; }
-            .bs-cell.sunk-outline-left { border-left: 2px solid #ff2a2a; }
-
-            /* Стили для предпросмотра и списка кораблей */
-            .bs-cell.preview-valid { background-color: #22c55e; }
-            .bs-cell.preview-invalid { background-color: #f43f5e; }
+            .bs-cell.sunk-outline-top { border-top: 3px dashed #d90429; }
+            .bs-cell.sunk-outline-right { border-right: 3px dashed #d90429; }
+            .bs-cell.sunk-outline-bottom { border-bottom: 3px dashed #d90429; }
+            .bs-cell.sunk-outline-left { border-left: 3px dashed #d90429; }
+            
+            /* Стили интерфейса */
+            .bs-cell.preview-valid { background-color: #d1fae5; }
+            .bs-cell.preview-invalid { background-color: #fee2e2; }
+            .ship-preview-cell { width: 16px; height: 16px; background-color: #eaf4ff; border: 1px solid #0056b3; border-radius: 2px; }
             #ship-selection-list .ship-item { display: flex; align-items: center; cursor: pointer; padding: 8px; border: 2px solid transparent; border-radius: 6px; }
             #ship-selection-list .ship-item.horizontal { flex-direction: row; }
             #ship-selection-list .ship-item.vertical { flex-direction: column; align-items: flex-start; }
             #ship-selection-list .ship-item .ship-name { margin-left: 10px; }
             #ship-selection-list .ship-item.vertical .ship-name { margin-left: 0; margin-top: 5px; }
-            #ship-selection-list .ship-item.selected { border-color: #3b82f6; background-color: #dbeafe; }
-            .dark #ship-selection-list .ship-item.selected { background-color: #1e3a8a; }
+            #ship-selection-list .ship-item.selected { border-color: #0056b3; background-color: #eaf4ff; }
             #ship-selection-list .ship-item.placed { opacity: 0.4; cursor: not-allowed; }
             .ship-preview-container { display: flex; gap: 2px; }
             .ship-item.vertical .ship-preview-container { flex-direction: column; }
-            .ship-preview-cell { width: 18px; height: 18px; background-color: #00008B; border: 1px solid #0000CD; border-radius: 2px; }
         </style>
         
-        <!-- HTML-разметка без изменений -->
-        <div class="max-w-4xl mx-auto text-center">
+        <div class="max-w-4xl mx-auto text-center battleship-container">
             <div id="setup-screen">
-                <h2 class="text-2xl font-bold mb-4">Расстановка кораблей</h2>
-                <p class="mb-4 text-gray-600 dark:text-gray-400">Выберите корабль, ориентацию и кликните на поле для размещения.</p>
+                <h2 class="text-3xl mb-4">Расстановка кораблей</h2>
+                <p class="mb-4 text-gray-700">Нарисуйте корабли или расставьте случайно.</p>
                 <div class="flex flex-col md:flex-row gap-8 items-center md:items-start">
-                    <div class="w-full md:w-1/3 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                        <h3 class="font-semibold mb-2">Ваш флот:</h3>
+                    <div class="w-full md:w-1/3 p-4">
+                        <h3 class="text-2xl mb-2">Ваш флот:</h3>
                         <div id="ship-selection-list" class="space-y-2"></div>
                         <div class="mt-4 flex flex-col space-y-2">
-                             <label class="flex items-center cursor-pointer p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">
-                                <input type="checkbox" id="orientation-checkbox" class="h-4 w-4 rounded">
-                                <span class="ml-2">Вертикально</span>
+                             <label class="flex items-center cursor-pointer p-2">
+                                <input type="checkbox" id="orientation-checkbox" class="h-4 w-4">
+                                <span class="ml-2 text-lg">Вертикально</span>
                             </label>
-                            <button id="random-place-btn" class="w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600">Расставить случайно</button>
+                            <button id="random-place-btn" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600">Расставить случайно</button>
                              <button id="reset-btn" class="w-full bg-red-500 text-white p-2 rounded-md hover:bg-red-600">Сбросить</button>
-                            <button id="start-game-btn" class="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 disabled:opacity-50" disabled>Начать игру</button>
+                            <button id="start-game-btn" class="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 disabled:opacity-50" disabled>В бой!</button>
                         </div>
                     </div>
                     <div class="w-full md:w-2/3">
-                        <div id="player-setup-grid" class="bs-grid shadow-lg"></div>
+                        <div id="player-setup-grid" class="bs-grid"></div>
                     </div>
                 </div>
             </div>
             <div id="game-screen" class="hidden">
-                 <h2 id="game-status" class="text-2xl font-bold mb-4">Ваш ход</h2>
+                 <h2 id="game-status" class="text-3xl mb-4">Ваш ход</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <h3 class="text-xl font-semibold mb-2">Ваш флот</h3>
-                        <div id="player-game-grid" class="bs-grid shadow-md"></div>
+                        <h3 class="text-2xl mb-2">Ваши корабли</h3>
+                        <div id="player-game-grid" class="bs-grid"></div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold mb-2">Флот противника</h3>
-                        <div id="computer-game-grid" class="bs-grid shadow-md"></div>
+                        <h3 class="text-2xl mb-2">Корабли противника</h3>
+                        <div id="computer-game-grid" class="bs-grid"></div>
                     </div>
                 </div>
                  <div id="game-over-overlay" class="hidden mt-4">
-                     <h2 id="game-over-message" class="text-3xl font-bold"></h2>
+                     <h2 id="game-over-message" class="text-4xl font-bold"></h2>
                      <button id="play-again-btn" class="mt-4 bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 text-lg">Играть снова</button>
                  </div>
             </div>
@@ -126,6 +142,7 @@ export function getHtml() {
 
 /**
  * Инициализирует логику игры.
+ * (JavaScript остаётся без изменений, т.к. вся новая логика реализована в CSS)
  */
 export function init() {
     const GRID_SIZE = 10;
@@ -146,18 +163,12 @@ export function init() {
         computerGameGrid: document.getElementById('computer-game-grid'), gameOverOverlay: document.getElementById('game-over-overlay'),
         gameOverMessage: document.getElementById('game-over-message'), playAgainBtn: document.getElementById('play-again-btn'),
     };
-    /**
-     * ИЗМЕНЕНО: Модель ячейки теперь содержит информацию об обводке.
-     */
     function createEmptyBoard() {
         return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null).map(() => ({
             shipId: null, isHit: false, isSunk: false,
             outline: { top: false, bottom: false, left: false, right: false }
         })));
     }
-    /**
-     * ИЗМЕНЕНО: Рендеринг теперь добавляет классы для иконок и обводки.
-     */
     function renderGrid(gridElement, board, isPlayer) {
         gridElement.innerHTML = '';
         for (let y = 0; y < GRID_SIZE; y++) {
@@ -209,7 +220,7 @@ export function init() {
         });
         const allPlaced = playerShips.every(s => s.isPlaced);
         dom.startGameBtn.disabled = !allPlaced;
-        if (allPlaced) dom.shipSelectionList.innerHTML = '<p class="p-2 text-green-600 dark:text-green-400">Флот готов к бою!</p>';
+        if (allPlaced) dom.shipSelectionList.innerHTML = '<p class="p-2 text-green-700">Флот готов к бою!</p>';
     }
     function isValidPlacement(board, ship, x, y, isVertical) {
         if (!ship) return false;
@@ -268,7 +279,7 @@ export function init() {
         if (hitShip) checkAndMarkSunkShips(computerBoard, x, y);
         renderGrid(dom.computerGameGrid, computerBoard, false);
         if (checkWinCondition(computerBoard)) { endGame(true); return; }
-        if (hitShip) { dom.gameStatus.textContent = "Попадание! Ваш ход снова."; }
+        if (hitShip) { dom.gameStatus.textContent = "Попал! Ходи еще."; }
         else { dom.gameStatus.textContent = "Промах. Ход противника..."; isPlayerTurn = false; setTimeout(computerTurn, 1500); }
     }
     function computerTurn() {
@@ -284,12 +295,9 @@ export function init() {
         }
         renderGrid(dom.playerGameGrid, playerBoard, true);
         if (checkWinCondition(playerBoard)) { endGame(false); return; }
-        if (hitShip) { dom.gameStatus.textContent = "Противник попал! Его ход снова."; setTimeout(computerTurn, 1500); }
-        else { dom.gameStatus.textContent = "Противник промахнулся. Ваш ход."; isPlayerTurn = true; }
+        if (hitShip) { dom.gameStatus.textContent = "Враг попал! Его ход."; setTimeout(computerTurn, 1500); }
+        else { dom.gameStatus.textContent = "Враг промахнулся. Твой ход."; isPlayerTurn = true; }
     }
-    /**
-     * ИЗМЕНЕНО: Функция теперь вычисляет внешние границы корабля для обводки.
-     */
     function checkAndMarkSunkShips(board, x, y) {
         const shipId = board[y][x].shipId;
         if (shipId === null) return null;
@@ -322,8 +330,8 @@ export function init() {
         isGameOver = true;
         dom.gameOverOverlay.classList.remove('hidden');
         dom.gameStatus.textContent = "Игра окончена!";
-        dom.gameOverMessage.textContent = playerWon ? "Поздравляем, вы победили!" : "Вы проиграли. Попробуйте снова!";
-        dom.gameOverMessage.className = playerWon ? 'text-3xl font-bold text-green-500' : 'text-3xl font-bold text-red-500';
+        dom.gameOverMessage.textContent = playerWon ? "Победа!" : "Поражение";
+        dom.gameOverMessage.className = playerWon ? 'text-4xl text-green-700' : 'text-4xl text-red-700';
     }
     function resetSetup() { playerBoard = createEmptyBoard(); playerShips = getShipsConfig(); selectedShip = playerShips.find(s => !s.isPlaced); renderGrid(dom.playerSetupGrid, playerBoard, true); renderShipSelection(); }
     function initGame() {
