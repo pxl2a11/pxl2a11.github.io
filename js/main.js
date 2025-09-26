@@ -1,9 +1,12 @@
-// 32js/main.js
+// js/main.js
 
 import { renderChangelog } from './changelog.js';
 import { auth } from './firebaseConfig.js';
 import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { fetchUserAccountData, clearUserData, getUserData, saveUserData, setOnDataLoaded } from './dataManager.js';
+
+let sidebarFilterHandler;
+let sidebarSearchHandler;
 
 // --- Сопоставление имен приложений и метаданные ---
 const appNameToModuleFile = {
@@ -391,7 +394,7 @@ async function renderSidebar(currentAppModule) {
     if (!sidebarList || !filterContainer || !searchInput) return;
 
     searchInput.value = '';
-    
+
     // Определяем, какой фильтр должен быть активен
     let activeFilterValue = 'all';
     // Фильтр 'my-apps' активен, только если он был последним выбранным И пользователь авторизован
@@ -432,22 +435,34 @@ async function renderSidebar(currentAppModule) {
         });
     };
 
-    if (!filterContainer.dataset.initialized) {
-        filterContainer.dataset.initialized = 'true';
-        filterContainer.addEventListener('click', (e) => {
-            const button = e.target.closest('.filter-btn');
-            if (!button || button.classList.contains('active')) return;
-            filterContainer.querySelector('.active')?.classList.remove('active');
-            button.classList.add('active');
-            
-            // ИЗМЕНЕНИЕ: Сохраняем выбор фильтра из бокового меню в глобальную переменную
-            const newFilter = button.dataset.sort;
-            lastActiveFilter = newFilter === 'all' ? 'default' : newFilter;
-            
-            applySidebarFilter();
-        });
-        searchInput.addEventListener('input', applySidebarFilter);
+    // --- ИСПРАВЛЕНИЕ: Удаляем старые и добавляем новые обработчики ---
+    // Удаляем предыдущие обработчики, если они существуют
+    if (sidebarFilterHandler) {
+        filterContainer.removeEventListener('click', sidebarFilterHandler);
     }
+    if (sidebarSearchHandler) {
+        searchInput.removeEventListener('input', sidebarSearchHandler);
+    }
+
+    // Создаем новые обработчики с актуальным замыканием
+    sidebarFilterHandler = (e) => {
+        const button = e.target.closest('.filter-btn');
+        if (!button || button.classList.contains('active')) return;
+        filterContainer.querySelector('.active')?.classList.remove('active');
+        button.classList.add('active');
+        
+        const newFilter = button.dataset.sort;
+        lastActiveFilter = newFilter === 'all' ? 'default' : newFilter;
+        
+        applySidebarFilter();
+    };
+
+    sidebarSearchHandler = applySidebarFilter;
+
+    // Добавляем новые обработчики
+    filterContainer.addEventListener('click', sidebarFilterHandler);
+    searchInput.addEventListener('input', sidebarSearchHandler);
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
     
     await applySidebarFilter();
 }
