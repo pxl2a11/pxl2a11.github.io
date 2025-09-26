@@ -1,4 +1,4 @@
-// 9 js/apps/imageEditor.js
+// 19 js/apps/imageEditor.js
 
 export function getHtml() {
     return `
