@@ -1,4 +1,4 @@
-//35 js/apps/imageEditor.js
+//39 js/apps/imageEditor.js
 
 export function getHtml() {
     return `
@@ -86,7 +86,7 @@ export function getHtml() {
 }
 
 export function init() {
-    // Получение всех элементов DOM
+    // ... (весь код получения элементов DOM остается без изменений)
     const imageInput = document.getElementById('image-editor-input');
     const previewContainer = document.getElementById('image-preview-container');
     const previewImage = document.getElementById('image-preview');
@@ -94,23 +94,19 @@ export function init() {
     const controlsContainer = document.getElementById('controls-container');
     const singleModeResizeControls = document.getElementById('single-mode-resize-controls');
     const globalFormatControls = document.getElementById('global-format-controls');
-    
     const singleWidthInput = document.getElementById('width-input');
     const singleHeightInput = document.getElementById('height-input');
     const singleAspectRatioLock = document.getElementById('aspect-ratio-lock');
-    
     const globalFormatSelect = document.getElementById('format-select');
     const globalQualityControl = document.getElementById('quality-control');
     const globalQualitySlider = document.getElementById('quality-slider');
     const globalQualityValue = document.getElementById('quality-value');
-    
     const processBtn = document.getElementById('process-btn');
 
     let selectedFiles = [];
     let originalImage = null;
     let originalWidth, originalHeight;
 
-    // --- ОСНОВНОЙ ОБРАБОТЧИК ЗАГРУЗКИ ФАЙЛОВ ---
     imageInput.addEventListener('change', (e) => {
         selectedFiles = Array.from(e.target.files);
         resetUI();
@@ -125,8 +121,6 @@ export function init() {
             setupBatchMode(selectedFiles);
         }
     });
-
-    // --- ФУНКЦИИ НАСТРОЙКИ ИНТЕРФЕЙСА ---
 
     function resetUI() {
         previewContainer.classList.add('hidden');
@@ -169,8 +163,6 @@ export function init() {
         });
     }
 
-    // --- СОЗДАНИЕ ЭЛЕМЕНТА СПИСКА ДЛЯ ПАКЕТНОЙ ОБРАБОТКИ ---
-
     function createBatchListItem(file, index) {
         const fileId = `file-${index}`;
         const itemDiv = document.createElement('div');
@@ -179,11 +171,16 @@ export function init() {
 
         let itemOriginalWidth, itemOriginalHeight;
 
+        // --- НАЧАЛО БЛОКА ИЗМЕНЕНИЙ ---
+        // Вызываем функцию сокращения имени, 35 - примерная длина, которую можно настроить
+        const displayName = truncateFilename(file.name, 35);
+
+        // Добавлен класс min-w-0 к обертке текста, чтобы свойство truncate работало корректно в flex-контейнере
         itemDiv.innerHTML = `
             <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
                 <img id="img-${fileId}" class="w-20 h-20 object-cover rounded-md bg-gray-200 dark:bg-gray-600"/>
-                <div class="flex-grow text-center sm:text-left">
-                    <p class="font-semibold truncate" title="${file.name}">${file.name}</p>
+                <div class="flex-grow text-center sm:text-left min-w-0"> 
+                    <p class="font-semibold truncate" title="${file.name}">${displayName}</p>
                     <p id="dims-${fileId}" class="text-sm text-gray-500 dark:text-gray-400">... x ...</p>
                 </div>
                 <div class="flex items-center justify-center gap-2">
@@ -207,8 +204,9 @@ export function init() {
                 </div>
             </div>
         `;
+        // --- КОНЕЦ БЛОКА ИЗМЕНЕНИЙ ---
         
-        // --- Получение элементов и добавление логики для этого конкретного элемента ---
+        // ... (остальная часть функции createBatchListItem остается без изменений)
         const imgElement = itemDiv.querySelector(`#img-${fileId}`);
         const dimsElement = itemDiv.querySelector(`#dims-${fileId}`);
         const widthInput = itemDiv.querySelector('input[data-type="width"]');
@@ -224,7 +222,7 @@ export function init() {
             const tempImg = new Image();
             tempImg.src = e.target.result;
             tempImg.onload = () => {
-                imgElement.src = e.target.result; // Показываем превью только после загрузки
+                imgElement.src = e.target.result;
                 itemOriginalWidth = tempImg.width;
                 itemOriginalHeight = tempImg.height;
                 dimsElement.textContent = `${itemOriginalWidth} x ${itemOriginalHeight}`;
@@ -234,7 +232,6 @@ export function init() {
         };
         reader.readAsDataURL(file);
 
-        // Индивидуальные обработчики
         widthInput.addEventListener('input', () => {
             if (aspectRatioLock.checked && itemOriginalWidth > 0) {
                 heightInput.value = Math.round((widthInput.value / itemOriginalWidth) * itemOriginalHeight);
@@ -255,8 +252,7 @@ export function init() {
         return itemDiv;
     }
 
-    // --- ГЛОБАЛЬНЫЕ ОБРАБОТЧИКИ (в основном для одиночного режима) ---
-
+    // ... (обработчики для одиночного режима и глобальные обработчики без изменений)
     singleWidthInput.addEventListener('input', () => {
         if (singleAspectRatioLock.checked && originalImage && originalWidth > 0) {
             singleHeightInput.value = Math.round((singleWidthInput.value / originalWidth) * originalHeight);
@@ -273,9 +269,6 @@ export function init() {
     globalQualitySlider.addEventListener('input', () => {
         globalQualityValue.textContent = `${globalQualitySlider.value}%`;
     });
-
-    // --- ЛОГИКА НАЖАТИЯ НА ГЛАВНУЮ КНОПКУ ---
-
     processBtn.addEventListener('click', () => {
         if (selectedFiles.length === 1) {
             processSingleImage();
@@ -285,9 +278,8 @@ export function init() {
             alert('Пожалуйста, выберите файлы.');
         }
     });
-
-    // --- ФУНКЦИИ ОБРАБОТКИ ИЗОБРАЖЕНИЙ ---
-
+    
+    // ... (функции processSingleImage и processBatchImages без изменений)
     function processSingleImage() {
         const newWidth = parseInt(singleWidthInput.value, 10);
         const newHeight = parseInt(singleHeightInput.value, 10);
@@ -300,37 +292,28 @@ export function init() {
         const dataUrl = resizeImageOnCanvas(originalImage, newWidth, newHeight, format, quality);
         downloadDataUrl(dataUrl, `edited-${fileName}.${format}`);
     }
-
     async function processBatchImages() {
         const zip = new JSZip();
         processBtn.disabled = true;
         processBtn.textContent = 'Обработка...';
-
         const listItems = batchListContainer.children;
-
         for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
             const item = listItems[i];
-            
-            // Получаем значения из индивидуальных контролов
             const widthInput = item.querySelector('input[data-type="width"]');
             const heightInput = item.querySelector('input[data-type="height"]');
             const formatSelect = item.querySelector('select[data-type="format"]');
             const qualitySlider = item.querySelector('div[data-type="quality-control"] input[type="range"]');
-            
             const newWidth = parseInt(widthInput.value, 10);
             const newHeight = parseInt(heightInput.value, 10);
             const format = formatSelect.value;
             const quality = parseInt(qualitySlider.value, 10) / 100;
-
             if (!newWidth || !newHeight || newWidth <= 0 || newHeight <= 0) {
                 console.warn(`Пропущен файл ${file.name} из-за некорректных размеров.`); continue;
             }
-
             try {
                 const dataUrl = await fileToDataUrl(file).then(createImage)
                     .then(img => resizeImageOnCanvas(img, newWidth, newHeight, format, quality));
-                
                 const fileName = file.name.split('.').slice(0, -1).join('.');
                 const base64Data = dataUrl.split(',')[1];
                 zip.file(`edited-${fileName}.${format}`, base64Data, { base64: true });
@@ -338,16 +321,54 @@ export function init() {
                 console.error(`Ошибка обработки файла ${file.name}:`, error);
             }
         }
-        
         const zipContent = await zip.generateAsync({ type: "blob" });
         downloadDataUrl(URL.createObjectURL(zipContent), "edited-images.zip");
         URL.revokeObjectURL(zipContent);
-        
         processBtn.disabled = false;
         processBtn.textContent = `Обработать ${selectedFiles.length} файла и скачать ZIP`;
     }
 
+
     // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+    
+    // --- НОВАЯ ФУНКЦИЯ ---
+    /**
+     * Сокращает имя файла, сохраняя начало, конец и расширение.
+     * @param {string} filename - Полное имя файла.
+     * @param {number} maxLength - Максимальная желаемая длина.
+     * @returns {string} - Сокращенное имя файла.
+     */
+    function truncateFilename(filename, maxLength) {
+        if (filename.length <= maxLength) {
+            return filename;
+        }
+
+        const dotIndex = filename.lastIndexOf('.');
+        // Если нет расширения, просто обрезаем конец
+        if (dotIndex === -1) {
+            return filename.substring(0, maxLength - 3) + '...';
+        }
+
+        const name = filename.substring(0, dotIndex);
+        const extension = filename.substring(dotIndex); // например, ".jpeg"
+
+        // Сколько символов доступно для имени файла (за вычетом расширения и "...")
+        const availableLength = maxLength - extension.length - 3;
+        
+        // Если для имени файла не остается места, возвращаем просто обрезанное имя с расширением
+        if (availableLength <= 1) {
+             return filename.substring(0, maxLength - extension.length - 3) + '...' + extension;
+        }
+
+        const frontChars = Math.ceil(availableLength / 2);
+        const backChars = Math.floor(availableLength / 2);
+
+        const truncatedName = name.substring(0, frontChars) + '...' + name.substring(name.length - backChars);
+
+        return truncatedName + extension;
+    }
+    
+    // ... (остальные вспомогательные функции без изменений)
     function resizeImageOnCanvas(image, width, height, format, quality) {
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
@@ -355,7 +376,6 @@ export function init() {
         ctx.drawImage(image, 0, 0, width, height);
         return canvas.toDataURL(`image/${format}`, format !== 'png' ? quality : undefined);
     }
-    
     function downloadDataUrl(dataUrl, filename) {
         const link = document.createElement('a');
         link.href = dataUrl; link.download = filename;
@@ -363,7 +383,6 @@ export function init() {
         link.click();
         document.body.removeChild(link);
     }
-
     function fileToDataUrl(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -372,7 +391,6 @@ export function init() {
             reader.readAsDataURL(file);
         });
     }
-
     function createImage(src) {
         return new Promise((resolve, reject) => {
             const img = new Image();
