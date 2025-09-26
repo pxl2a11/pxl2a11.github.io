@@ -2,110 +2,110 @@
 
 export const radioStations = [
     // --- ПРИМЕР НОВОГО ФОРМАТА ---
-    { name: "Русское радио", logoUrl: "https://radiopotok.ru/f/station/512/85.png", streams: [
+    { name: "Русское радио", logoUrl: "img/radio/russkoe.png", streams: [
         { name: "96 kbps", url: "https://rusradio.hostingradio.ru/rusradio96.aacp" }, 
         { name: "128 kbps", url: "https://rusradio.hostingradio.ru/rusradio128.mp3" }] },
-    { name: "Бизнес FM", logoUrl: "https://top-radio.ru/assets/image/radio/180/bfm-russia.png", streams: [
+    { name: "Бизнес FM", logoUrl: "img/radio/biznes_fm.png", streams: [
         { name: "128 kbps", url: "https://bfmreg.hostingradio.ru/spb.bfm128.mp3" },
         { name: "256 kbps", url: "https://bfm.hostingradio.ru/bfm256.mp3" }] },
-    { name: "Радио Маяк", logoUrl: "https://radiopotok.ru/f/station/512/89.png", streams: [
+    { name: "Радио Маяк", logoUrl: "img/radio/radio_mayak.png", streams: [
         { name: "64 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/mayakfm_mp3_64kbps" },
         { name: "128 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/mayakfm_mp3_128kbps" },
         { name: "192 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/mayakfm_mp3_192kbps" }] },
-    { name: "Радио Рекорд", logoUrl: "https://top-radio.ru/assets/image/radio/180/radiorecod.png", streams: [
+    { name: "Радио Рекорд", logoUrl: "img/radio/radio_rekord.png", streams: [
         { name: "96 kbps", url: "https://radiorecord.hostingradio.ru/rr_main96.aacp" },
         { name: "112 kbps", url: "https://hls-01-radiorecord.hostingradio.ru/record/playlist.m3u8" },
         { name: "192 kbps", url: "https://radio-srv1.11one.ru/record192k.mp3" }] },
-    { name: "Радио Монте-Карло", logoUrl: "https://montecarlo.ru/uploads/logo_for_og.png", streams: [
+    { name: "Радио Монте-Карло", logoUrl: "img/radio/radio_monte-karlo.png", streams: [
         { name: "96 kbps", url: "https://montecarlo.hostingradio.ru/montecarlo96.aacp" },
         { name: "128 kbps", url: "https://montecarlo.hostingradio.ru/montecarlo128.mp3" }] },
-    { name: "НАШЕ Радио", logoUrl: "https://top-radio.ru/assets/image/radio/180/nase-radio.png", streams: [
+    { name: "НАШЕ Радио", logoUrl: "img/radio/nashe_radio.png", streams: [
         { name: "64 kbps", url: "https://nashe1.hostingradio.ru/nashe-64.mp3" },
         { name: "128 kbps", url: "https://nashe1.hostingradio.ru/nashe-128.mp3" },
         { name: "256 kbps", url: "https://nashe1.hostingradio.ru/nashe-256" }] },
-    { name: "Детское Радио", logoUrl: "https://pic.rutubelist.ru/user/5a/0a/5a0a80014f20a20ef9868fa3ab9eb751.jpg", streams: [
+    { name: "Детское Радио", logoUrl: "img/radio/detskoe_radio.png", streams: [
         { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/199" },
         { name: "64 kbps (резерв)", url: "https://srv21.gpmradio.ru:8443/stream/air/aac/64/199" }] },
-    { name: "Радио DFM", logoUrl: "https://top-radio.ru/assets/image/radio/180/radio-dfm.webp", streams: [
+    { name: "Радио DFM", logoUrl: "img/radio/radio_dfm.png", streams: [
         { name: "32 kbps", url: "https://hls-01-dfm.hostingradio.ru/dfm/32/playlist.m3u8" },
         { name: "96 kbps", url: "https://hls-01-dfm.hostingradio.ru/dfm/96/playlist.m3u8" },
         { name: "128 kbps", url: "https://dfm.hostingradio.ru/dfm128.mp3" }] },
-    { name: "Радио Maximum", logoUrl: "https://radiopotok.ru/f/station/512/87.png", streams: [
+    { name: "Радио Maximum", logoUrl: "img/radio/radio_maximum.png", streams: [
         { name: "96 kbps", url: "https://maximum.hostingradio.ru/maximum96.aacp" },
         { name: "128 kbps", url: "https://maximum.hostingradio.ru/maximum128.mp3" }] },
-    { name: "Радио МЕТРО", logoUrl: "https://top-radio.ru/assets/image/radio/180/metro-fm-spb.jpg", streams: [
+    { name: "Радио МЕТРО", logoUrl: "img/radio/radio_metro.png", streams: [
         { name: "128 kbps", url: "https://stream.radiometro.ru:8443/metro.mp3" }] },
-    { name: "Радио ТВОЯ ВОЛНА", logoUrl: "https://top-radio.pro/assets/image/radio/180/radio-tvoya-volna.jpg", streams: [
+    { name: "Радио ТВОЯ ВОЛНА", logoUrl: "img/radio/radio_tvoya_volna.png", streams: [
         { name: "256 kbps", url: "https://icecast-tvoyavolna.cdnvideo.ru/tvoyavolna" }] },
-    { name: "Эльдорадио", logoUrl: "https://top-radio.ru/assets/image/radio/180/eldo-radio.jpg", streams: [
+    { name: "Эльдорадио", logoUrl: "img/radio/eldoradio.png", streams: [
         { name: "64 kbps", url: "https://emgspb.hostingradio.ru/eldoradio64.mp3" },
         { name: "96 kbps", url: "https://hls-01-eldoradio.emgsound.ru/4/96/playlist.m3u8" },
         { name: "128 kbps", url: "https://emgspb.hostingradio.ru/eldoradio128.mp3" }] },
-    { name: "Питер FM", logoUrl: "https://radiopiterfm.ru/assets/images/undef.jpg", streams: [
+    { name: "Питер FM", logoUrl: "img/radio/piter_fm.png", streams: [
         { name: "Основной поток", url: "https://piterfm-hls.cdnvideo.ru/piterfm-live/piterfm.stream/tracks-a1/mono.ts.m3u8" }] },
-    { name: "Европа Плюс", logoUrl: "https://www.radiobells.com/stations/europaplus.webp", streams: [
+    { name: "Европа Плюс", logoUrl: "img/radio/evropa_plyus.png", streams: [
         { name: "32 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/64/playlist.m3u8" },
         { name: "112 kbps", url: "https://hls-02-europaplus.emgsound.ru/11/112/playlist.m3u8" }] },
-    { name: "Радио России", logoUrl: "https://zastavki.gas-kvas.com/uploads/posts/2024-05/thumbs/zastavki-gas-kvas-com-1wb3-p-zastavki-radio-rossii-32.jpg", streams: [
+    { name: "Радио России", logoUrl: "img/radio/radio_rossii.png", streams: [
         { name: "64 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/rrzonam_aac_64kbps" },
         { name: "128 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/rrzonam_mp3_128kbps" },
         { name: "192 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/rrzonam_mp3_192kbps" }] },
-    { name: "Royal Radio", logoUrl: "https://top-radio.ru/assets/image/radio/180/Royal.png", streams: [
+    { name: "Royal Radio", logoUrl: "img/radio/royal_radio.png", streams: [
         { name: "128 kbps", url: "https://royalradio.space/986FM" }] },
-    { name: "Comedy Radio", logoUrl: "https://top-radio.ru/assets/image/radio/180/comedy-radio.png", streams: [
+    { name: "Comedy Radio", logoUrl: "img/radio/comedy_radio.png", streams: [
         { name: "64 kbps", url: "https://pub0201.101.ru/stream/air/aac/64/200" },
         { name: "64 kbps (резерв)", url: "https://srv21.gpmradio.ru:8443/stream/air/aac/64/202" }] },
-    { name: "STUDIO 21", logoUrl: "https://top-radio.ru/assets/image/radio/180/studio21.png", streams: [
+    { name: "STUDIO 21", logoUrl: "img/radio/studio_21.png", streams: [
         { name: "32 kbps", url: "https://hls.studio21.ru/studio21/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls.studio21.ru/studio21/64/playlist.m3u8" },
         { name: "112 kbps", url: "https://hls.studio21.ru/studio21/112/playlist.m3u8" }] },
-    { name: "Радио ENERGY", logoUrl: "https://top-radio.ru/assets/image/radio/180/energy.png", streams: [
+    { name: "Радио ENERGY", logoUrl: "img/radio/radio_energy.png", streams: [
         { name: "32 kbps", url: "https://hls-01-gpm.hostingradio.ru/energyfm495/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-gpm.hostingradio.ru/energyfm495/64/playlist.m3u8" },
         { name: "128 kbps", url: "https://hls-01-gpm.hostingradio.ru/energyfm495/128/playlist.m3u8" }] },
-    { name: "Радио Звезда", logoUrl: "https://top-radio.ru/assets/image/radio/180/zvezda-fm.jpg", streams: [
+    { name: "Радио Звезда", logoUrl: "img/radio/radio_zvezda.png", streams: [
         { name: "64 kbps", url: "https://icecast-zvezda.mediacdn.ru/radio/zvezda/zvezda_64" },
         { name: "96 kbps", url: "https://icecast-zvezda.mediacdn.ru/radio/zvezda/zvezda_96" },
         { name: "128 kbps", url: "https://zvezda-radio-rzv.mediacdn.ru/radio/zvezda/zvezda_128" }] },
-    { name: "Радио Гордость", logoUrl: "https://top-radio.ru/assets/image/radio/180/radiogordost.webp", streams: [
+    { name: "Радио Гордость", logoUrl: "img/radio/radio_gordost.png", streams: [
         { name: "64 kbps", url: "https://rgordost.hostingradio.ru/rgordost64.aacp" },
         { name: "128 kbps", url: "https://rgordost.hostingradio.ru/rgordost128.aacp" }] },
-    { name: "Хит FM", logoUrl: "https://top-radio.ru/assets/image/radio/180/hit-fm.png", streams: [
+    { name: "Хит FM", logoUrl: "img/radio/hit_fm.png", streams: [
         { name: "32 kbps", url: "https://hls-01-hitfm.hostingradio.ru/hitfm/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-hitfm.hostingradio.ru/hitfm/64/playlist.m3u8" },
         { name: "96 kbps", url: "https://hls-01-hitfm.hostingradio.ru/hitfm/96/playlist.m3u8" }] },
-    { name: "Комсомольская правда", logoUrl: "https://top-radio.ru/assets/image/radio/180/radiokp.png", streams: [
+    { name: "Комсомольская правда", logoUrl: "img/radio/komsomolskaya_pravda.png", streams: [
         { name: "32 kbps", url: "https://hls-01-kpradio.hostingradio.ru/kpradio-msk/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-kpradio.hostingradio.ru/kpradio-msk/64/playlist.m3u8" },
         { name: "112 kbps", url: "https://hls-01-kpradio.hostingradio.ru/kpradio-msk/112/playlist.m3u8" }] },
-    { name: "Новое Радио", logoUrl: "https://pcradio.ru/images/stations/62ea3eb91b608.jpg", streams: [
+    { name: "Новое Радио", logoUrl: "img/radio/novoe_radio.png", streams: [
         { name: "64 kbps", url: "https://emgspb.hostingradio.ru/novoespb64.mp3" },
         { name: "96 kbps", url: "https://stream.newradio.ru/novoe96.aacp" },
         { name: "128 kbps", url: "https://emgspb.hostingradio.ru/novoespb128.mp3" }] },
-    { name: "Радио ВАНЯ", logoUrl: "https://top-radio.ru/assets/image/radio/180/radio-vanya.png", streams: [
+    { name: "Радио ВАНЯ", logoUrl: "img/radio/radio_vanya.png", streams: [
         { name: "128 kbps", url: "https://air2.volna.top/Vanya-SPB" }] },
-    { name: "Радио Эрмитаж", logoUrl: "https://top-radio.ru/assets/image/radio/180/ermitaj.jpg", streams: [
+    { name: "Радио Эрмитаж", logoUrl: "img/radio/radio_ermitazh.png", streams: [
         { name: "128 kbps", url: "https://hermitage.hostingradio.ru/hermitage128.mp3" }] },
     { name: "Радио Зенит", logoUrl: "https://top-radio.ru/assets/image/radio/180/zenit-fm.jpg", streams: [
         { name: "256 kbps", url: "https://radiozenit.hostingradio.ru/radiozenit256.mp3" }] },
-    { name: "Вести ФМ", logoUrl: "https://top-radio.ru/assets/image/radio/180/vestifm.png", streams: [
+    { name: "Вести ФМ", logoUrl: "img/radio/russkoe.png", streams: [
         { name: "64 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/vestifm_mp3_64kbps" },
         { name: "128 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/vestifm_mp3_128kbps" },
         { name: "192 kbps", url: "https://icecast-vgtrk.cdnvideo.ru/vestifm_mp3_192kbps" }] },
-    { name: "Юмор FM", logoUrl: "https://top-radio.ru/assets/image/radio/180/humorfm.jpg", streams: [
+    { name: "Юмор FM", logoUrl: "img/radio/yumor fm.png", streams: [
         { name: "32 kbps", url: "https://hls-01-gpm.hostingradio.ru/humorfm495/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-gpm.hostingradio.ru/humorfm495/64/playlist.m3u8" },
         { name: "128 kbps", url: "https://hls-01-gpm.hostingradio.ru/humorfm495/128/playlist.m3u8" }] },
-    { name: "Авторадио", logoUrl: "https://top-radio.ru/assets/image/radio/180/auto.png", streams: [
+    { name: "Авторадио", logoUrl: "img/radio/avtoradio.png", streams: [
         { name: "32 kbps", url: "https://hls-01-gpm.hostingradio.ru/avtoradio495/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-gpm.hostingradio.ru/avtoradio495/64/playlist.m3u8" },
         { name: "128 kbps", url: "https://hls-01-gpm.hostingradio.ru/avtoradio495/128/playlist.m3u8" }] },
-    { name: "Ретро FM", logoUrl: "https://top-radio.ru/assets/image/radio/180/retro_fm.png", streams: [
+    { name: "Ретро FM", logoUrl: "img/radio/retro_fm.png", streams: [
         { name: "64 kbps", url: "https://retro.hostingradio.ru:8043/retro64" },
         { name: "128 kbps", url: "https://retro.hostingradio.ru:8043/retro128" },
         { name: "256 kbps", url: "https://retro.hostingradio.ru:8043/retro256.mp3" }] },
-    { name: "Дорожное Радио", logoUrl: "https://top-radio.ru/assets/image/radio/180/dorojnoe.png", streams: [
+    { name: "Дорожное Радио", logoUrl: "img/radio/dorozhnoe_radio.png", streams: [
         { name: "32 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15_spb/32/playlist.m3u8" },
         { name: "64 kbps", url: "https://hls-01-dorognoe.emgsound.ru/15_spb/64/playlist.m3u8" },
         { name: "112 kbps", url: "https://hls-01-regions.emgsound.ru/15_spb/112/playlist.m3u8" }] },
