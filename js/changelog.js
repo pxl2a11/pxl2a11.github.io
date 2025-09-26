@@ -61,6 +61,7 @@ export const appNameToModuleFile = {
     'Pomodoro-таймер': 'pomodoroTimer',
     'Кодировщик Base64': 'base64Converter',
     'Таблица Менделеева': 'periodicTable',
+    'Морской бой': 'battleship',
     'Общее': null,
 };
 
