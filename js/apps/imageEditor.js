@@ -1,4 +1,4 @@
-//39 js/apps/imageEditor.js
+//44 js/apps/imageEditor.js
 
 export function getHtml() {
     return `
@@ -59,8 +59,8 @@ export function getHtml() {
                     </div>
                 </div>
 
-                <!-- Общие настройки формата (только для одиночного режима) -->
-                <div id="global-format-controls" class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
+                <!-- Общие настройки формата (для ВСЕХ режимов) -->
+                <div id="shared-format-controls" class="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
                     <h3 class="font-semibold mb-3 text-lg">Сохранить как...</h3>
                      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <select id="format-select" class="p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
@@ -86,21 +86,23 @@ export function getHtml() {
 }
 
 export function init() {
-    // ... (весь код получения элементов DOM остается без изменений)
     const imageInput = document.getElementById('image-editor-input');
     const previewContainer = document.getElementById('image-preview-container');
     const previewImage = document.getElementById('image-preview');
     const batchListContainer = document.getElementById('batch-list-container');
     const controlsContainer = document.getElementById('controls-container');
     const singleModeResizeControls = document.getElementById('single-mode-resize-controls');
-    const globalFormatControls = document.getElementById('global-format-controls');
+    const sharedFormatControls = document.getElementById('shared-format-controls');
+    
     const singleWidthInput = document.getElementById('width-input');
     const singleHeightInput = document.getElementById('height-input');
     const singleAspectRatioLock = document.getElementById('aspect-ratio-lock');
-    const globalFormatSelect = document.getElementById('format-select');
-    const globalQualityControl = document.getElementById('quality-control');
-    const globalQualitySlider = document.getElementById('quality-slider');
-    const globalQualityValue = document.getElementById('quality-value');
+    
+    const formatSelect = document.getElementById('format-select');
+    const qualityControl = document.getElementById('quality-control');
+    const qualitySlider = document.getElementById('quality-slider');
+    const qualityValue = document.getElementById('quality-value');
+    
     const processBtn = document.getElementById('process-btn');
 
     let selectedFiles = [];
@@ -113,7 +115,9 @@ export function init() {
 
         if (selectedFiles.length === 0) return;
 
+        // Показываем общие контейнеры для любого режима
         controlsContainer.classList.remove('hidden');
+        sharedFormatControls.classList.remove('hidden');
 
         if (selectedFiles.length === 1) {
             setupSingleFileMode(selectedFiles[0]);
@@ -127,14 +131,13 @@ export function init() {
         batchListContainer.classList.add('hidden');
         controlsContainer.classList.add('hidden');
         singleModeResizeControls.classList.add('hidden');
-        globalFormatControls.classList.add('hidden');
+        sharedFormatControls.classList.add('hidden');
         batchListContainer.innerHTML = '';
         originalImage = null;
     }
 
     function setupSingleFileMode(file) {
         singleModeResizeControls.classList.remove('hidden');
-        globalFormatControls.classList.remove('hidden');
         processBtn.textContent = 'Применить и скачать';
 
         originalImage = new Image();
@@ -163,59 +166,36 @@ export function init() {
         });
     }
 
+    // --- ИЗМЕНЕНО: Шаблон элемента списка стал проще ---
     function createBatchListItem(file, index) {
         const fileId = `file-${index}`;
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex flex-col gap-4 fade-in';
+        // Убрали flex-col, т.к. вложенных строк больше нет
+        itemDiv.className = 'p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex flex-col sm:flex-row items-center gap-4 fade-in';
         itemDiv.id = fileId;
 
         let itemOriginalWidth, itemOriginalHeight;
-
-        // --- НАЧАЛО БЛОКА ИЗМЕНЕНИЙ ---
-        // Вызываем функцию сокращения имени, 35 - примерная длина, которую можно настроить
         const displayName = truncateFilename(file.name, 35);
 
-        // Добавлен класс min-w-0 к обертке текста, чтобы свойство truncate работало корректно в flex-контейнере
         itemDiv.innerHTML = `
-            <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
-                <img id="img-${fileId}" class="w-20 h-20 object-cover rounded-md bg-gray-200 dark:bg-gray-600"/>
-                <div class="flex-grow text-center sm:text-left min-w-0"> 
-                    <p class="font-semibold truncate" title="${file.name}">${displayName}</p>
-                    <p id="dims-${fileId}" class="text-sm text-gray-500 dark:text-gray-400">... x ...</p>
-                </div>
-                <div class="flex items-center justify-center gap-2">
-                    <input type="number" data-type="width" class="editor-input w-24 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Ширина">
-                    <span>x</span>
-                    <input type="number" data-type="height" class="editor-input w-24 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Высота">
-                    <input type="checkbox" id="lock-${fileId}" class="h-4 w-4 rounded ml-2" checked>
-                </div>
+            <img id="img-${fileId}" class="w-20 h-20 object-cover rounded-md bg-gray-200 dark:bg-gray-600"/>
+            <div class="flex-grow text-center sm:text-left min-w-0">
+                <p class="font-semibold truncate" title="${file.name}">${displayName}</p>
+                <p id="dims-${fileId}" class="text-sm text-gray-500 dark:text-gray-400">... x ...</p>
             </div>
-            <hr class="w-full border-gray-200 dark:border-gray-600">
-            <div class="flex flex-wrap items-center justify-center gap-4 w-full">
-                <select data-type="format" class="p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
-                    <option value="jpeg">JPEG</option>
-                    <option value="png">PNG</option>
-                    <option value="webp">WebP</option>
-                </select>
-                <div data-type="quality-control" class="flex items-center gap-2">
-                    <label>Качество:</label>
-                    <input type="range" min="10" max="100" value="100" class="w-32">
-                    <span class="font-mono text-sm w-10">100%</span>
-                </div>
+            <div class="flex items-center justify-center gap-2">
+                <input type="number" data-type="width" class="editor-input w-24 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Ширина">
+                <span>x</span>
+                <input type="number" data-type="height" class="editor-input w-24 p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Высота">
+                <input type="checkbox" id="lock-${fileId}" class="h-4 w-4 rounded ml-2" checked>
             </div>
         `;
-        // --- КОНЕЦ БЛОКА ИЗМЕНЕНИЙ ---
         
-        // ... (остальная часть функции createBatchListItem остается без изменений)
         const imgElement = itemDiv.querySelector(`#img-${fileId}`);
         const dimsElement = itemDiv.querySelector(`#dims-${fileId}`);
         const widthInput = itemDiv.querySelector('input[data-type="width"]');
         const heightInput = itemDiv.querySelector('input[data-type="height"]');
         const aspectRatioLock = itemDiv.querySelector(`#lock-${fileId}`);
-        const formatSelect = itemDiv.querySelector('select[data-type="format"]');
-        const qualityControl = itemDiv.querySelector('div[data-type="quality-control"]');
-        const qualitySlider = qualityControl.querySelector('input[type="range"]');
-        const qualityValue = qualityControl.querySelector('span');
 
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -242,17 +222,11 @@ export function init() {
                 widthInput.value = Math.round((heightInput.value / itemOriginalHeight) * itemOriginalWidth);
             }
         });
-        formatSelect.addEventListener('change', () => {
-            qualityControl.style.visibility = (formatSelect.value === 'png') ? 'hidden' : 'visible';
-        });
-        qualitySlider.addEventListener('input', () => {
-            qualityValue.textContent = `${qualitySlider.value}%`;
-        });
 
         return itemDiv;
     }
 
-    // ... (обработчики для одиночного режима и глобальные обработчики без изменений)
+    // Обработчики для одиночного режима (без изменений)
     singleWidthInput.addEventListener('input', () => {
         if (singleAspectRatioLock.checked && originalImage && originalWidth > 0) {
             singleHeightInput.value = Math.round((singleWidthInput.value / originalWidth) * originalHeight);
@@ -263,12 +237,15 @@ export function init() {
             singleWidthInput.value = Math.round((singleHeightInput.value / originalHeight) * originalWidth);
         }
     });
-    globalFormatSelect.addEventListener('change', () => {
-        globalQualityControl.style.visibility = (globalFormatSelect.value === 'png') ? 'hidden' : 'visible';
+
+    // Глобальные обработчики формата (без изменений)
+    formatSelect.addEventListener('change', () => {
+        qualityControl.style.visibility = (formatSelect.value === 'png') ? 'hidden' : 'visible';
     });
-    globalQualitySlider.addEventListener('input', () => {
-        globalQualityValue.textContent = `${globalQualitySlider.value}%`;
+    qualitySlider.addEventListener('input', () => {
+        qualityValue.textContent = `${qualitySlider.value}%`;
     });
+
     processBtn.addEventListener('click', () => {
         if (selectedFiles.length === 1) {
             processSingleImage();
@@ -278,42 +255,51 @@ export function init() {
             alert('Пожалуйста, выберите файлы.');
         }
     });
-    
-    // ... (функции processSingleImage и processBatchImages без изменений)
+
     function processSingleImage() {
         const newWidth = parseInt(singleWidthInput.value, 10);
         const newHeight = parseInt(singleHeightInput.value, 10);
         if (!newWidth || !newHeight || newWidth <= 0 || newHeight <= 0) {
             alert('Укажите корректные размеры.'); return;
         }
-        const format = globalFormatSelect.value;
-        const quality = parseInt(globalQualitySlider.value, 10) / 100;
+        const format = formatSelect.value;
+        const quality = parseInt(qualitySlider.value, 10) / 100;
         const fileName = selectedFiles[0].name.split('.').slice(0, -1).join('.');
         const dataUrl = resizeImageOnCanvas(originalImage, newWidth, newHeight, format, quality);
         downloadDataUrl(dataUrl, `edited-${fileName}.${format}`);
     }
+
+    // --- ИЗМЕНЕНО: Настройки формата и качества берутся из глобальных контролов ---
     async function processBatchImages() {
+        // Настройки берутся один раз из общих полей
+        const format = formatSelect.value;
+        const quality = parseInt(qualitySlider.value, 10) / 100;
+        
         const zip = new JSZip();
         processBtn.disabled = true;
         processBtn.textContent = 'Обработка...';
+
         const listItems = batchListContainer.children;
+
         for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
             const item = listItems[i];
+            
             const widthInput = item.querySelector('input[data-type="width"]');
             const heightInput = item.querySelector('input[data-type="height"]');
-            const formatSelect = item.querySelector('select[data-type="format"]');
-            const qualitySlider = item.querySelector('div[data-type="quality-control"] input[type="range"]');
+            
             const newWidth = parseInt(widthInput.value, 10);
             const newHeight = parseInt(heightInput.value, 10);
-            const format = formatSelect.value;
-            const quality = parseInt(qualitySlider.value, 10) / 100;
+
             if (!newWidth || !newHeight || newWidth <= 0 || newHeight <= 0) {
-                console.warn(`Пропущен файл ${file.name} из-за некорректных размеров.`); continue;
+                console.warn(`Пропущен файл ${file.name} из-за некорректных размеров.`);
+                continue;
             }
+
             try {
                 const dataUrl = await fileToDataUrl(file).then(createImage)
-                    .then(img => resizeImageOnCanvas(img, newWidth, newHeight, format, quality));
+                    .then(img => resizeImageOnCanvas(img, newWidth, newHeight, format, quality)); // Используем общие format и quality
+                
                 const fileName = file.name.split('.').slice(0, -1).join('.');
                 const base64Data = dataUrl.split(',')[1];
                 zip.file(`edited-${fileName}.${format}`, base64Data, { base64: true });
@@ -321,54 +307,30 @@ export function init() {
                 console.error(`Ошибка обработки файла ${file.name}:`, error);
             }
         }
+        
         const zipContent = await zip.generateAsync({ type: "blob" });
         downloadDataUrl(URL.createObjectURL(zipContent), "edited-images.zip");
         URL.revokeObjectURL(zipContent);
+        
         processBtn.disabled = false;
         processBtn.textContent = `Обработать ${selectedFiles.length} файла и скачать ZIP`;
     }
 
-
-    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-    
-    // --- НОВАЯ ФУНКЦИЯ ---
-    /**
-     * Сокращает имя файла, сохраняя начало, конец и расширение.
-     * @param {string} filename - Полное имя файла.
-     * @param {number} maxLength - Максимальная желаемая длина.
-     * @returns {string} - Сокращенное имя файла.
-     */
+    // --- Вспомогательные функции (без изменений) ---
     function truncateFilename(filename, maxLength) {
-        if (filename.length <= maxLength) {
-            return filename;
-        }
-
+        if (filename.length <= maxLength) return filename;
         const dotIndex = filename.lastIndexOf('.');
-        // Если нет расширения, просто обрезаем конец
-        if (dotIndex === -1) {
-            return filename.substring(0, maxLength - 3) + '...';
-        }
-
+        if (dotIndex === -1) return filename.substring(0, maxLength - 3) + '...';
         const name = filename.substring(0, dotIndex);
-        const extension = filename.substring(dotIndex); // например, ".jpeg"
-
-        // Сколько символов доступно для имени файла (за вычетом расширения и "...")
+        const extension = filename.substring(dotIndex);
         const availableLength = maxLength - extension.length - 3;
-        
-        // Если для имени файла не остается места, возвращаем просто обрезанное имя с расширением
-        if (availableLength <= 1) {
-             return filename.substring(0, maxLength - extension.length - 3) + '...' + extension;
-        }
-
+        if (availableLength <= 1) return filename.substring(0, maxLength - extension.length - 3) + '...' + extension;
         const frontChars = Math.ceil(availableLength / 2);
         const backChars = Math.floor(availableLength / 2);
-
         const truncatedName = name.substring(0, frontChars) + '...' + name.substring(name.length - backChars);
-
         return truncatedName + extension;
     }
     
-    // ... (остальные вспомогательные функции без изменений)
     function resizeImageOnCanvas(image, width, height, format, quality) {
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
@@ -376,6 +338,7 @@ export function init() {
         ctx.drawImage(image, 0, 0, width, height);
         return canvas.toDataURL(`image/${format}`, format !== 'png' ? quality : undefined);
     }
+    
     function downloadDataUrl(dataUrl, filename) {
         const link = document.createElement('a');
         link.href = dataUrl; link.download = filename;
@@ -383,6 +346,7 @@ export function init() {
         link.click();
         document.body.removeChild(link);
     }
+
     function fileToDataUrl(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -391,6 +355,7 @@ export function init() {
             reader.readAsDataURL(file);
         });
     }
+
     function createImage(src) {
         return new Promise((resolve, reject) => {
             const img = new Image();
