@@ -1,4 +1,4 @@
-// 13js/apps/battleship.js
+// 20js/apps/battleship.js
 
 /**
  * Возвращает HTML-структуру для игры "Морской бой".
@@ -6,30 +6,52 @@
  */
 export function getHtml() {
     return `
-        <!-- Подключаем рукописный шрифт для антуража -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Neucha&display=swap" rel="stylesheet">
 
         <style>
-            /* ОБЩИЙ СТИЛЬ "БУМАГИ" */
             .battleship-container {
-                font-family: 'Neucha', cursive; /* Применяем рукописный шрифт */
-                background-color: #fdfaef; /* Цвет тетрадного листа */
+                font-family: 'Neucha', cursive;
+                background-color: #fdfaef;
                 padding: 20px;
                 border-radius: 5px;
                 box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
             }
-            .battleship-container h2, .battleship-container h3 {
-                font-weight: normal; /* Убираем жирность для рукописного стиля */
+
+            /* ИЗМЕНЕНО: Стили для текста, чтобы сделать его читаемым */
+            .battleship-container h2, 
+            .battleship-container h3, 
+            .battleship-container p,
+            .battleship-container span,
+            .battleship-container button {
+                color: #003366; /* Насыщенный тёмно-синий "чернильный" цвет */
             }
 
-            /* 1. СЕТКА "СИНЕЙ РУЧКОЙ" */
+            .battleship-container h2 {
+                font-size: 2.25rem; /* 36px */
+                font-weight: 600; /* Полужирный для лучшей видимости */
+            }
+            .battleship-container h3 {
+                font-size: 1.875rem; /* 30px */
+            }
+            .battleship-container p {
+                font-size: 1.125rem; /* 18px */
+                 color: #004488;
+            }
+
+            #game-over-message {
+                font-weight: 600;
+                font-size: 3rem; /* 48px */
+            }
+            .game-over-win { color: #15803d; } /* Темно-зеленый */
+            .game-over-lose { color: #b91c1c; } /* Темно-красный */
+            
+            /* Стили сетки и ячеек */
             .bs-grid {
                 display: grid;
                 grid-template-columns: repeat(10, 1fr);
-                /* Рисуем сетку через фон и зазоры */
-                background-color: #aaccff; /* Цвет линий сетки */
+                background-color: #aaccff;
                 gap: 2px;
                 border: 2px solid #aaccff;
             }
@@ -37,41 +59,26 @@ export function getHtml() {
                 position: relative;
                 width: 100%;
                 aspect-ratio: 1 / 1;
-                background-color: #fdfaef; /* Цвет бумаги в клетке */
+                background-color: #fdfaef;
             }
             #computer-game-grid .bs-cell { cursor: crosshair; }
             #computer-game-grid .bs-cell:hover { background-color: #f0eada; }
             
-            /* 2. СИНЯЯ РУЧКА: Корабли и промахи */
             .bs-cell.ship {
-                background-color: #eaf4ff; /* Легкая синяя заливка */
-                border: 1.5px solid #0056b3; /* Обводка "ручкой" */
+                background-color: #eaf4ff;
+                border: 1.5px solid #0056b3;
                 border-radius: 2px;
             }
             .bs-cell.miss::after {
-                content: '';
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                width: 30%;
-                height: 30%;
-                background-color: #0056b3; /* Синяя точка */
-                border-radius: 50%;
-                transform: translate(-50%, -50%);
+                content: ''; position: absolute; top: 50%; left: 50%;
+                width: 30%; height: 30%; background-color: #0056b3;
+                border-radius: 50%; transform: translate(-50%, -50%);
             }
-            
-            /* 3. КРАСНАЯ РУЧКА: Попадания и потопления */
             .bs-cell.hit::before,
             .bs-cell.hit::after {
-                content: '';
-                position: absolute;
-                top: 50%;
-                left: 10%;
-                width: 80%;
-                height: 15%;
-                background-color: #d90429; /* Ярко-красный */
-                border-radius: 2px;
-                transform-origin: center;
+                content: ''; position: absolute; top: 50%; left: 10%;
+                width: 80%; height: 15%; background-color: #d90429;
+                border-radius: 2px; transform-origin: center;
             }
             .bs-cell.hit::before { transform: translate(0, -50%) rotate(45deg); }
             .bs-cell.hit::after { transform: translate(0, -50%) rotate(-45deg); }
@@ -81,7 +88,6 @@ export function getHtml() {
             .bs-cell.sunk-outline-bottom { border-bottom: 3px dashed #d90429; }
             .bs-cell.sunk-outline-left { border-left: 3px dashed #d90429; }
             
-            /* Стили интерфейса */
             .bs-cell.preview-valid { background-color: #d1fae5; }
             .bs-cell.preview-invalid { background-color: #fee2e2; }
             .ship-preview-cell { width: 16px; height: 16px; background-color: #eaf4ff; border: 1px solid #0056b3; border-radius: 2px; }
@@ -98,11 +104,11 @@ export function getHtml() {
         
         <div class="max-w-4xl mx-auto text-center battleship-container">
             <div id="setup-screen">
-                <h2 class="text-3xl mb-4">Расстановка кораблей</h2>
-                <p class="mb-4 text-gray-700">Нарисуйте корабли или расставьте случайно.</p>
+                <h2 class="mb-4">Расстановка кораблей</h2>
+                <p class="mb-4">Нарисуйте корабли или расставьте случайно.</p>
                 <div class="flex flex-col md:flex-row gap-8 items-center md:items-start">
                     <div class="w-full md:w-1/3 p-4">
-                        <h3 class="text-2xl mb-2">Ваш флот:</h3>
+                        <h3 class="mb-2">Ваш флот:</h3>
                         <div id="ship-selection-list" class="space-y-2"></div>
                         <div class="mt-4 flex flex-col space-y-2">
                              <label class="flex items-center cursor-pointer p-2">
@@ -120,19 +126,19 @@ export function getHtml() {
                 </div>
             </div>
             <div id="game-screen" class="hidden">
-                 <h2 id="game-status" class="text-3xl mb-4">Ваш ход</h2>
+                 <h2 id="game-status" class="mb-4">Ваш ход</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <h3 class="text-2xl mb-2">Ваши корабли</h3>
+                        <h3 class="mb-2">Ваши корабли</h3>
                         <div id="player-game-grid" class="bs-grid"></div>
                     </div>
                     <div>
-                        <h3 class="text-2xl mb-2">Корабли противника</h3>
+                        <h3 class="mb-2">Корабли противника</h3>
                         <div id="computer-game-grid" class="bs-grid"></div>
                     </div>
                 </div>
                  <div id="game-over-overlay" class="hidden mt-4">
-                     <h2 id="game-over-message" class="text-4xl font-bold"></h2>
+                     <h2 id="game-over-message"></h2>
                      <button id="play-again-btn" class="mt-4 bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 text-lg">Играть снова</button>
                  </div>
             </div>
@@ -142,9 +148,9 @@ export function getHtml() {
 
 /**
  * Инициализирует логику игры.
- * (JavaScript остаётся без изменений, т.к. вся новая логика реализована в CSS)
  */
 export function init() {
+    // JavaScript-логика остается без изменений.
     const GRID_SIZE = 10;
     const getShipsConfig = () => JSON.parse(JSON.stringify([
         { id: 0, name: "Линкор", size: 4, isPlaced: false }, { id: 1, name: "Крейсер", size: 3, isPlaced: false },
@@ -177,10 +183,7 @@ export function init() {
                 cell.className = 'bs-cell';
                 cell.dataset.x = x; cell.dataset.y = y;
                 const cellState = board[y][x];
-
-                if (cellState.shipId !== null && (isPlayer || cellState.isSunk || cellState.isHit)) {
-                    cell.classList.add('ship');
-                }
+                if (cellState.shipId !== null && (isPlayer || cellState.isSunk || cellState.isHit)) cell.classList.add('ship');
                 if (cellState.isHit) {
                     if (cellState.shipId !== null) cell.classList.add('hit');
                     else cell.classList.add('miss');
@@ -331,7 +334,7 @@ export function init() {
         dom.gameOverOverlay.classList.remove('hidden');
         dom.gameStatus.textContent = "Игра окончена!";
         dom.gameOverMessage.textContent = playerWon ? "Победа!" : "Поражение";
-        dom.gameOverMessage.className = playerWon ? 'text-4xl text-green-700' : 'text-4xl text-red-700';
+        dom.gameOverMessage.className = playerWon ? 'game-over-win' : 'game-over-lose';
     }
     function resetSetup() { playerBoard = createEmptyBoard(); playerShips = getShipsConfig(); selectedShip = playerShips.find(s => !s.isPlaced); renderGrid(dom.playerSetupGrid, playerBoard, true); renderShipSelection(); }
     function initGame() {
@@ -352,7 +355,7 @@ export function init() {
     dom.resetBtn.addEventListener('click', resetSetup);
     dom.startGameBtn.addEventListener('click', () => { dom.setupScreen.classList.add('hidden'); dom.gameScreen.classList.remove('hidden'); computerBoard = createEmptyBoard(); randomlyPlaceShips(computerBoard, getShipsConfig()); renderGrid(dom.playerGameGrid, playerBoard, true); renderGrid(dom.computerGameGrid, computerBoard, false); });
     dom.computerGameGrid.addEventListener('click', handleComputerGridClick);
-    dom.playAgainBtn.addEventListener('click', initGame);
+    dom.playAgain-btn.addEventListener('click', initGame);
 }
 class ComputerAI {
     constructor() { this.reset(); }
