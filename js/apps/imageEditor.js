@@ -91,6 +91,7 @@ export function init() {
     let originalImage = null;
     let originalFileName = '';
     let originalWidth, originalHeight;
+    let lastQualityValue = 100;
 
     imageInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -129,18 +130,27 @@ export function init() {
     });
 
     formatSelect.addEventListener('change', () => {
-        qualityControl.style.display = formatSelect.value === 'png' ? 'none' : 'flex';
+        // --- НАЧАЛО БЛОКА ИЗМЕНЕНИЙ ---
+        if (formatSelect.value === 'png') {
+            qualityControl.style.visibility = 'hidden'; // Скрываем, но сохраняем место
+        } else {
+            qualitySlider.value = lastQualityValue;
+            qualityValue.textContent = `${lastQualityValue}%`;
+            qualityControl.style.visibility = 'visible'; // Показываем снова
+        }
+        // --- КОНЕЦ БЛОКА ИЗМЕНЕНИЙ ---
     });
     
     qualitySlider.addEventListener('input', () => {
-        qualityValue.textContent = `${qualitySlider.value}%`;
+        lastQualityValue = qualitySlider.value;
+        qualityValue.textContent = `${lastQualityValue}%`;
     });
 
     processBtn.addEventListener('click', () => {
         const newWidth = parseInt(widthInput.value, 10);
         const newHeight = parseInt(heightInput.value, 10);
         const format = formatSelect.value;
-        const quality = parseInt(qualitySlider.value, 10) / 100;
+        const quality = parseInt(lastQualityValue, 10) / 100;
 
         if (!newWidth || !newHeight || !originalImage.src || newWidth <= 0 || newHeight <= 0) {
             alert('Пожалуйста, выберите файл и укажите корректные размеры.');
@@ -152,14 +162,11 @@ export function init() {
         canvas.height = newHeight;
         const ctx = canvas.getContext('2d');
         
-        // Рисуем изображение с новыми размерами (изменение размера)
         ctx.drawImage(originalImage, 0, 0, newWidth, newHeight);
 
-        // Конвертируем в нужный формат и качество
         const mimeType = `image/${format}`;
         const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality : undefined);
 
-        // Создаем ссылку и инициируем скачивание
         const link = document.createElement('a');
         link.href = dataUrl;
         link.download = `edited-${originalFileName}.${format}`;
