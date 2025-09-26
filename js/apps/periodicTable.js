@@ -1,4 +1,4 @@
-// 20js/apps/periodicTable.js
+// 28js/apps/periodicTable.js
 
 // --- Данные элементов таблицы Менделеева (ПОЛНАЯ ВЕРСИЯ) ---
 const elements = [
