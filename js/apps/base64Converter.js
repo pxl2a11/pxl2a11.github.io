@@ -1,7 +1,7 @@
 // js/apps/base64Converter.js
 
-let sourceText, resultText, encodeBtn, decodeBtn, copyBtn, clearBtn, errorDiv;
-let imageDropZone, imageFileInput, imagePreview, resultContainer;
+let sourceText, resultText, encodeBtn, decodeBtn, decodeImageBtn, copyBtn, clearBtn, errorDiv;
+let imageDropZone, imageFileInput, imagePreview, resultContainer, imagePreviewContainer;
 let activeTab = 'text';
 let eventListeners = [];
 
@@ -52,6 +52,7 @@ export function getHtml() {
                 <div class="flex flex-wrap items-center justify-center gap-3">
                     <button id="base64-encode-btn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Кодировать</button>
                     <button id="base64-decode-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Декодировать</button>
+                    <button id="base64-decode-image-btn" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Декодировать в изображение</button>
                 </div>
             </div>
 
@@ -61,11 +62,13 @@ export function getHtml() {
                     <p>Перетащите изображение сюда или нажмите для выбора</p>
                     <input type="file" id="image-file-input" class="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml">
                 </div>
-                <div id="image-preview-container" class="hidden text-center">
-                     <img id="image-preview" class="max-w-xs max-h-48 mx-auto rounded-lg border-2 p-2 bg-gray-100 dark:bg-gray-700">
-                </div>
             </div>
             
+            <!-- Общая область предпросмотра изображения -->
+            <div id="image-preview-container" class="hidden text-center">
+                 <img id="image-preview" class="max-w-xs max-h-48 mx-auto rounded-lg border-2 p-2 bg-gray-100 dark:bg-gray-700">
+            </div>
+
             <div id="base64-error" class="text-center text-red-500 min-h-[20px]"></div>
 
             <!-- Общая область для результата -->
@@ -101,11 +104,13 @@ export function init() {
     sourceText = document.getElementById('base64-source');
     encodeBtn = document.getElementById('base64-encode-btn');
     decodeBtn = document.getElementById('base64-decode-btn');
+    decodeImageBtn = document.getElementById('base64-decode-image-btn');
 
-    // Элементы для вкладки "Изображение"
+    // Элементы для вкладки "Изображение" и общего предпросмотра
     imageDropZone = document.getElementById('image-drop-zone');
     imageFileInput = document.getElementById('image-file-input');
     imagePreview = document.getElementById('image-preview');
+    imagePreviewContainer = document.getElementById('image-preview-container');
 
     // --- Функции кодирования/декодирования ---
     const encodeText = () => {
@@ -120,7 +125,7 @@ export function init() {
         try {
             const base64String = sourceText.value.trim();
             if (base64String.startsWith('data:image')) {
-                 showError('Для декодирования Data URL изображения используйте вкладку "Изображение".');
+                 showError('Это Data URL изображения. Используйте кнопку "Декодировать в изображение".');
                  return;
             }
             const binaryString = atob(base64String);
@@ -131,6 +136,25 @@ export function init() {
         } catch (error) { showError('Неверная Base64 строка. Проверьте данные.'); }
     };
     
+    const decodeImage = () => {
+        try {
+            const dataUrl = sourceText.value.trim();
+            if (!dataUrl.startsWith('data:image')) {
+                showError('Входная строка не является Data URL (должна начинаться с "data:image/...").');
+                return;
+            }
+            // Простая проверка на валидность Base64 части
+            atob(dataUrl.split(',')[1]); 
+    
+            errorDiv.textContent = '';
+            resultContainer.classList.add('hidden'); // Скрыть текстовый результат
+            imagePreview.src = dataUrl;
+            imagePreviewContainer.classList.remove('hidden'); // Показать результат-изображение
+        } catch (e) {
+            showError('Неверная Base64 строка в Data URL.');
+        }
+    };
+
     const handleImageFile = (file) => {
         if (!file || !file.type.startsWith('image/')) {
             showError('Пожалуйста, выберите файл изображения.');
@@ -140,7 +164,7 @@ export function init() {
         reader.onload = (e) => {
             const dataUrl = e.target.result;
             imagePreview.src = dataUrl;
-            document.getElementById('image-preview-container').classList.remove('hidden');
+            imagePreviewContainer.classList.remove('hidden');
             showResult(dataUrl);
         };
         reader.onerror = () => showError('Не удалось прочитать файл.');
@@ -151,12 +175,14 @@ export function init() {
     const showError = (message) => {
         errorDiv.textContent = message;
         resultContainer.classList.add('hidden');
+        imagePreviewContainer.classList.add('hidden');
     };
 
     const showResult = (content) => {
         errorDiv.textContent = '';
         resultText.value = content;
         resultContainer.classList.remove('hidden');
+        imagePreviewContainer.classList.add('hidden');
     };
 
     const clearAll = () => {
@@ -165,7 +191,7 @@ export function init() {
         errorDiv.textContent = '';
         imageFileInput.value = '';
         imagePreview.src = '';
-        document.getElementById('image-preview-container').classList.add('hidden');
+        imagePreviewContainer.classList.add('hidden');
         resultContainer.classList.add('hidden');
     };
     
@@ -181,6 +207,7 @@ export function init() {
     // --- Назначение обработчиков ---
     addListener(encodeBtn, 'click', encodeText);
     addListener(decodeBtn, 'click', decodeText);
+    addListener(decodeImageBtn, 'click', decodeImage);
     addListener(copyBtn, 'click', copyResult);
     addListener(clearBtn, 'click', clearAll);
 
