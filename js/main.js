@@ -33,6 +33,7 @@ const appNameToModuleFile = {
     'Проигрыватель аудиокниг': 'audiobookPlayer',
     "Pomodoro-таймер": "pomodoroTimer",
     "Кодировщик Base64": "base64Converter",
+    "Таблица Менделеева": "periodicTable",
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 
@@ -57,6 +58,7 @@ const appPopularity = {
     'audiobookPlayer': 89,
     'pomodoroTimer': 85,
     'base64Converter': 78,
+    'periodicTable': 88,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -117,6 +119,7 @@ const appSearchMetadata = {
     'audiobookPlayer': { keywords: ['аудиокнига', 'книга', 'слушать', 'плеер', 'проигрыватель', 'аудио', 'главы', 'закладки', 'audiobook'], hashtags: ['#audio', '#entertainment', '#tools'] },
     'pomodoroTimer': { keywords: ['помодоро', 'таймер', 'фокус', 'работа', 'учеба', 'pomodoro'], hashtags: ['#time', '#tools', '#productivity'] },
     'base64Converter': { keywords: ['base64', 'кодировщик', 'декодировщик', 'шифрование', 'btoa', 'atob', 'текст', 'данные', 'картинка', 'изображение', 'фото', 'data url'], hashtags: ['#tools', '#text', '#webdev', '#image'] },
+    'periodicTable': { keywords: ['элементы', 'химия', 'атом', 'менделеев', 'таблица', 'вещества', 'наука'], hashtags: ['#science', '#tools', '#education'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
