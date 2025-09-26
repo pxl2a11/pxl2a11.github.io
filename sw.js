@@ -51,7 +51,6 @@ const urlsToCache = [
   '/js/firebaseConfig.js',
   '/js/radioStationsData.js',
   '/js/tvChannelsData.js',
-  '/js/apps/periodicTableData.js',
   
   // Библиотеки из папки /js/utils/
   '/js/utils/lame.min.js',
