@@ -1,4 +1,4 @@
-//5 js/apps/imageEditor.js
+// 10 js/apps/imageEditor.js
 
 export function getHtml() {
     return `
@@ -9,6 +9,30 @@ export function getHtml() {
             .editor-input::-webkit-inner-spin-button {
               -webkit-appearance: none;
               margin: 0;
+            }
+            /* Стили для списка файлов */
+            .file-list-item {
+                cursor: pointer;
+                padding: 8px 12px;
+                border-radius: 6px;
+                transition: background-color 0.2s;
+                border: 1px solid transparent;
+                margin-bottom: 4px;
+            }
+            .file-list-item:hover {
+                background-color: #e9e9e9;
+            }
+            .dark .file-list-item:hover {
+                background-color: #3a3a3a;
+            }
+            .file-list-item.active {
+                font-weight: bold;
+                background-color: #dbeafe; /* Tailwind's blue-100 */
+                border-color: #93c5fd; /* Tailwind's blue-300 */
+            }
+            .dark .file-list-item.active {
+                background-color: #1e3a8a; /* Tailwind's blue-900 */
+                border-color: #3b82f6; /* Tailwind's blue-500 */
             }
         </style>
         <div class="flex flex-col items-center gap-6 max-w-2xl mx-auto">
@@ -21,11 +45,21 @@ export function getHtml() {
                 </label>
             </div>
 
-            <!-- 2. Область предпросмотра (изначально скрыта) -->
-            <div id="image-preview-container" class="hidden w-full p-4 border-dashed border-2 rounded-lg text-center bg-gray-50 dark:bg-gray-700/50">
-                <p id="file-list" class="mb-4"></p>
-                <img id="image-preview" class="max-w-full max-h-80 mx-auto rounded"/>
+            <!-- 2. Область предпросмотра и списка файлов -->
+            <div id="image-preview-container" class="hidden w-full p-4 border-dashed border-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <!-- Список файлов -->
+                    <div id="file-list-wrapper" class="w-full md:w-1/3">
+                         <h4 class="font-semibold mb-2 text-md text-center">Загруженные файлы:</h4>
+                         <div id="file-list" class="max-h-80 overflow-y-auto pr-2"></div>
+                    </div>
+                    <!-- Превью изображения -->
+                    <div class="w-full md:w-2/3 flex justify-center items-center">
+                        <img id="image-preview" class="max-w-full max-h-80 mx-auto rounded"/>
+                    </div>
+                </div>
             </div>
+
 
             <!-- 3. Панель управления (изначально скрыта) -->
             <div id="controls-container" class="hidden w-full space-y-6">
@@ -92,37 +126,84 @@ export function init() {
     const processBtn = document.getElementById('process-btn');
     const processingStatus = document.getElementById('processing-status');
 
-    let originalImage = null;
-    let originalFileName = '';
     let originalWidth, originalHeight;
     let lastQualityValue = 100;
-    let filesToProcess = [];
+    let filesData = []; // { file, name, dataUrl, width, height }
+    let selectedIndex = -1;
+
+    // --- Функция обновления списка файлов ---
+    function updateFileList() {
+        fileListDisplay.innerHTML = ''; // Очищаем список
+        filesData.forEach((data, index) => {
+            const item = document.createElement('div');
+            item.textContent = data.name;
+            item.classList.add('file-list-item');
+            item.dataset.index = index;
+            if (index === selectedIndex) {
+                item.classList.add('active');
+            }
+            fileListDisplay.appendChild(item);
+        });
+    }
+
+    // --- Функция выбора изображения для редактирования ---
+    function selectImage(index) {
+        if (index < 0 || index >= filesData.length) return;
+
+        selectedIndex = index;
+        const data = filesData[index];
+        
+        previewImage.src = data.dataUrl;
+        originalWidth = data.width;
+        originalHeight = data.height;
+        widthInput.value = originalWidth;
+        heightInput.value = originalHeight;
+        
+        updateFileList(); // Перерисовываем список для подсветки активного элемента
+    }
+    
+    // --- Обработчик клика по списку файлов ---
+    fileListDisplay.addEventListener('click', (e) => {
+        if (e.target && e.target.matches('.file-list-item')) {
+            const index = parseInt(e.target.dataset.index, 10);
+            if (!isNaN(index)) {
+                selectImage(index);
+            }
+        }
+    });
 
     imageInput.addEventListener('change', (e) => {
-        filesToProcess = Array.from(e.target.files);
-        if (filesToProcess.length === 0) return;
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
 
-        fileListDisplay.textContent = `Выбрано файлов: ${filesToProcess.length}`;
-        const firstFile = filesToProcess[0];
-        
-        originalImage = new Image();
-        originalFileName = firstFile.name.split('.').slice(0, -1).join('.');
-        const reader = new FileReader();
+        filesData = []; // Сбрасываем предыдущий список
+        let loadedCount = 0;
 
-        reader.onload = (event) => {
-            previewImage.src = event.target.result;
-            originalImage.src = event.target.result;
-            originalImage.onload = () => {
-                originalWidth = originalImage.width;
-                originalHeight = originalImage.height;
-                widthInput.value = originalWidth;
-                heightInput.value = originalHeight;
-                
-                previewContainer.classList.remove('hidden');
-                controlsContainer.classList.remove('hidden');
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    filesData[index] = {
+                        file: file,
+                        name: file.name,
+                        dataUrl: event.target.result,
+                        width: img.width,
+                        height: img.height,
+                    };
+
+                    loadedCount++;
+                    if (loadedCount === files.length) {
+                        // Показываем все, когда все файлы загружены и обработаны
+                        previewContainer.classList.remove('hidden');
+                        controlsContainer.classList.remove('hidden');
+                        selectImage(0); // Выбираем первое изображение по умолчанию
+                    }
+                };
+                img.src = event.target.result;
             };
-        };
-        reader.readAsDataURL(firstFile);
+            reader.readAsDataURL(file);
+        });
     });
 
     widthInput.addEventListener('input', () => {
@@ -163,7 +244,7 @@ export function init() {
             return;
         }
 
-        if (filesToProcess.length === 0) {
+        if (filesData.length === 0) {
             alert('Пожалуйста, выберите файлы для обработки.');
             return;
         }
@@ -172,43 +253,56 @@ export function init() {
         processBtn.disabled = true;
         processBtn.textContent = 'Обработка...';
 
-        for (let i = 0; i < filesToProcess.length; i++) {
-            const file = filesToProcess[i];
-            processingStatus.textContent = `Обработка ${i + 1} из ${filesToProcess.length}: ${file.name}`;
+        // Применяем текущие настройки ко всем загруженным изображениям
+        for (let i = 0; i < filesData.length; i++) {
+            const data = filesData[i];
+            processingStatus.textContent = `Обработка ${i + 1} из ${filesData.length}: ${data.name}`;
             
             const image = new Image();
-            const fileName = file.name.split('.').slice(0, -1).join('.');
-            
-            const reader = new FileReader();
+            const fileName = data.name.split('.').slice(0, -1).join('.');
             
             await new Promise(resolve => {
-                reader.onload = (event) => {
-                    image.src = event.target.result;
-                    image.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = newWidth;
-                        canvas.height = newHeight;
-                        const ctx = canvas.getContext('2d');
-                        
-                        ctx.drawImage(image, 0, 0, newWidth, newHeight);
+                image.src = data.dataUrl;
+                image.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    
+                    // Для каждого изображения сохраняем его собственные пропорции
+                    let processWidth = newWidth;
+                    let processHeight = newHeight;
+                    if (aspectRatioLock.checked) {
+                        processWidth = Math.round((newHeight / image.height) * image.width);
+                        // Если мы хотим, чтобы все изображения имели ОДИНАКОВУЮ ширину или высоту,
+                        // этот блок нужно изменить. Текущая логика сохраняет пропорции каждого файла
+                        // относительно новых размеров, введенных для активного изображения.
+                        // Для более простого и предсказуемого поведения, применим размеры как есть
+                        processWidth = newWidth;
+                        processHeight = newHeight;
+                    }
+                    
+                    canvas.width = processWidth;
+                    canvas.height = processHeight;
+                    const ctx = canvas.getContext('2d');
+                    
+                    ctx.drawImage(image, 0, 0, processWidth, processHeight);
 
-                        const mimeType = `image/${format}`;
-                        const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality : undefined);
+                    const mimeType = `image/${format}`;
+                    const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality : undefined);
 
-                        const link = document.createElement('a');
-                        link.href = dataUrl;
-                        link.download = `edited-${fileName}.${format}`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        resolve();
-                    };
+                    const link = document.createElement('a');
+                    link.href = dataUrl;
+                    link.download = `edited-${fileName}.${format}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    resolve();
                 };
-                reader.readAsDataURL(file);
             });
         }
         
         processingStatus.textContent = 'Обработка завершена!';
+        setTimeout(() => {
+             processingStatus.classList.add('hidden');
+        }, 3000);
         processBtn.disabled = false;
         processBtn.textContent = 'Применить и скачать все';
     });
