@@ -1,4 +1,4 @@
-//44 js/apps/imageEditor.js
+//49 js/apps/imageEditor.js
 
 export function getHtml() {
     return `
@@ -112,13 +112,9 @@ export function init() {
     imageInput.addEventListener('change', (e) => {
         selectedFiles = Array.from(e.target.files);
         resetUI();
-
         if (selectedFiles.length === 0) return;
-
-        // Показываем общие контейнеры для любого режима
         controlsContainer.classList.remove('hidden');
         sharedFormatControls.classList.remove('hidden');
-
         if (selectedFiles.length === 1) {
             setupSingleFileMode(selectedFiles[0]);
         } else {
@@ -139,7 +135,6 @@ export function init() {
     function setupSingleFileMode(file) {
         singleModeResizeControls.classList.remove('hidden');
         processBtn.textContent = 'Применить и скачать';
-
         originalImage = new Image();
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -159,24 +154,19 @@ export function init() {
     function setupBatchMode(files) {
         batchListContainer.classList.remove('hidden');
         processBtn.textContent = `Обработать ${files.length} файла и скачать ZIP`;
-        
         files.forEach((file, index) => {
             const listItem = createBatchListItem(file, index);
             batchListContainer.appendChild(listItem);
         });
     }
 
-    // --- ИЗМЕНЕНО: Шаблон элемента списка стал проще ---
     function createBatchListItem(file, index) {
         const fileId = `file-${index}`;
         const itemDiv = document.createElement('div');
-        // Убрали flex-col, т.к. вложенных строк больше нет
         itemDiv.className = 'p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex flex-col sm:flex-row items-center gap-4 fade-in';
         itemDiv.id = fileId;
-
         let itemOriginalWidth, itemOriginalHeight;
         const displayName = truncateFilename(file.name, 35);
-
         itemDiv.innerHTML = `
             <img id="img-${fileId}" class="w-20 h-20 object-cover rounded-md bg-gray-200 dark:bg-gray-600"/>
             <div class="flex-grow text-center sm:text-left min-w-0">
@@ -190,13 +180,11 @@ export function init() {
                 <input type="checkbox" id="lock-${fileId}" class="h-4 w-4 rounded ml-2" checked>
             </div>
         `;
-        
         const imgElement = itemDiv.querySelector(`#img-${fileId}`);
         const dimsElement = itemDiv.querySelector(`#dims-${fileId}`);
         const widthInput = itemDiv.querySelector('input[data-type="width"]');
         const heightInput = itemDiv.querySelector('input[data-type="height"]');
         const aspectRatioLock = itemDiv.querySelector(`#lock-${fileId}`);
-
         const reader = new FileReader();
         reader.onload = (e) => {
             const tempImg = new Image();
@@ -211,7 +199,6 @@ export function init() {
             };
         };
         reader.readAsDataURL(file);
-
         widthInput.addEventListener('input', () => {
             if (aspectRatioLock.checked && itemOriginalWidth > 0) {
                 heightInput.value = Math.round((widthInput.value / itemOriginalWidth) * itemOriginalHeight);
@@ -222,11 +209,9 @@ export function init() {
                 widthInput.value = Math.round((heightInput.value / itemOriginalHeight) * itemOriginalWidth);
             }
         });
-
         return itemDiv;
     }
 
-    // Обработчики для одиночного режима (без изменений)
     singleWidthInput.addEventListener('input', () => {
         if (singleAspectRatioLock.checked && originalImage && originalWidth > 0) {
             singleHeightInput.value = Math.round((singleWidthInput.value / originalWidth) * originalHeight);
@@ -238,7 +223,6 @@ export function init() {
         }
     });
 
-    // Глобальные обработчики формата (без изменений)
     formatSelect.addEventListener('change', () => {
         qualityControl.style.visibility = (formatSelect.value === 'png') ? 'hidden' : 'visible';
     });
@@ -269,25 +253,19 @@ export function init() {
         downloadDataUrl(dataUrl, `edited-${fileName}.${format}`);
     }
 
-    // --- ИЗМЕНЕНО: Настройки формата и качества берутся из глобальных контролов ---
     async function processBatchImages() {
-        // Настройки берутся один раз из общих полей
         const format = formatSelect.value;
         const quality = parseInt(qualitySlider.value, 10) / 100;
-        
         const zip = new JSZip();
         processBtn.disabled = true;
         processBtn.textContent = 'Обработка...';
-
         const listItems = batchListContainer.children;
 
         for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
             const item = listItems[i];
-            
             const widthInput = item.querySelector('input[data-type="width"]');
             const heightInput = item.querySelector('input[data-type="height"]');
-            
             const newWidth = parseInt(widthInput.value, 10);
             const newHeight = parseInt(heightInput.value, 10);
 
@@ -298,11 +276,16 @@ export function init() {
 
             try {
                 const dataUrl = await fileToDataUrl(file).then(createImage)
-                    .then(img => resizeImageOnCanvas(img, newWidth, newHeight, format, quality)); // Используем общие format и quality
+                    .then(img => resizeImageOnCanvas(img, newWidth, newHeight, format, quality));
                 
                 const fileName = file.name.split('.').slice(0, -1).join('.');
                 const base64Data = dataUrl.split(',')[1];
-                zip.file(`edited-${fileName}.${format}`, base64Data, { base64: true });
+                
+                // --- НАЧАЛО ИЗМЕНЕНИЯ ---
+                // Убираем префикс "edited-"
+                zip.file(`${fileName}.${format}`, base64Data, { base64: true });
+                // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
             } catch (error) {
                 console.error(`Ошибка обработки файла ${file.name}:`, error);
             }
@@ -316,7 +299,6 @@ export function init() {
         processBtn.textContent = `Обработать ${selectedFiles.length} файла и скачать ZIP`;
     }
 
-    // --- Вспомогательные функции (без изменений) ---
     function truncateFilename(filename, maxLength) {
         if (filename.length <= maxLength) return filename;
         const dotIndex = filename.lastIndexOf('.');
