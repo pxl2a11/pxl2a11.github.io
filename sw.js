@@ -62,6 +62,7 @@ const urlsToCache = [
   '/js/utils/tailwind.js',
   '/js/utils/Sortable.min.js',
   '/js/utils/chart.js',
+  '/js/utils/qr-worker.js',
   
   // Изображения из папки /img/
   '/img/logo.svg',
