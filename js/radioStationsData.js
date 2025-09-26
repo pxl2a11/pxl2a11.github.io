@@ -2,7 +2,7 @@
 
 export const radioStations = [
     // --- ПРИМЕР НОВОГО ФОРМАТА ---
-    { name: "Русское радио", logoUrl: "img/radio/russkoe.png", streams: [
+    { name: "Русское радио", logoUrl: "img/radio/russkoe_radio.png", streams: [
         { name: "96 kbps", url: "https://rusradio.hostingradio.ru/rusradio96.aacp" }, 
         { name: "128 kbps", url: "https://rusradio.hostingradio.ru/rusradio128.mp3" }] },
     { name: "Бизнес FM", logoUrl: "img/radio/biznes_fm.png", streams: [
