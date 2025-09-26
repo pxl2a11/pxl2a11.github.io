@@ -1,4 +1,4 @@
-// 20js/apps/battleship.js
+//24 js/apps/battleship.js
 
 /**
  * Возвращает HTML-структуру для игры "Морской бой".
@@ -19,35 +19,33 @@ export function getHtml() {
                 box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
             }
 
-            /* ИЗМЕНЕНО: Стили для текста, чтобы сделать его читаемым */
             .battleship-container h2, 
             .battleship-container h3, 
             .battleship-container p,
             .battleship-container span,
             .battleship-container button {
-                color: #003366; /* Насыщенный тёмно-синий "чернильный" цвет */
+                color: #003366;
             }
 
             .battleship-container h2 {
-                font-size: 2.25rem; /* 36px */
-                font-weight: 600; /* Полужирный для лучшей видимости */
+                font-size: 2.25rem;
+                font-weight: 600;
             }
             .battleship-container h3 {
-                font-size: 1.875rem; /* 30px */
+                font-size: 1.875rem;
             }
             .battleship-container p {
-                font-size: 1.125rem; /* 18px */
+                font-size: 1.125rem;
                  color: #004488;
             }
 
             #game-over-message {
                 font-weight: 600;
-                font-size: 3rem; /* 48px */
+                font-size: 3rem;
             }
-            .game-over-win { color: #15803d; } /* Темно-зеленый */
-            .game-over-lose { color: #b91c1c; } /* Темно-красный */
+            .game-over-win { color: #15803d; }
+            .game-over-lose { color: #b91c1c; }
             
-            /* Стили сетки и ячеек */
             .bs-grid {
                 display: grid;
                 grid-template-columns: repeat(10, 1fr);
@@ -150,7 +148,6 @@ export function getHtml() {
  * Инициализирует логику игры.
  */
 export function init() {
-    // JavaScript-логика остается без изменений.
     const GRID_SIZE = 10;
     const getShipsConfig = () => JSON.parse(JSON.stringify([
         { id: 0, name: "Линкор", size: 4, isPlaced: false }, { id: 1, name: "Крейсер", size: 3, isPlaced: false },
@@ -355,7 +352,9 @@ export function init() {
     dom.resetBtn.addEventListener('click', resetSetup);
     dom.startGameBtn.addEventListener('click', () => { dom.setupScreen.classList.add('hidden'); dom.gameScreen.classList.remove('hidden'); computerBoard = createEmptyBoard(); randomlyPlaceShips(computerBoard, getShipsConfig()); renderGrid(dom.playerGameGrid, playerBoard, true); renderGrid(dom.computerGameGrid, computerBoard, false); });
     dom.computerGameGrid.addEventListener('click', handleComputerGridClick);
-    dom.playAgain-btn.addEventListener('click', initGame);
+    
+    // ИСПРАВЛЕННАЯ СТРОКА:
+    dom.playAgainBtn.addEventListener('click', initGame);
 }
 class ComputerAI {
     constructor() { this.reset(); }
