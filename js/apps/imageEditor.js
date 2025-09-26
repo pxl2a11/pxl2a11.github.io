@@ -15,14 +15,15 @@ export function getHtml() {
             
             <!-- 1. Область загрузки файла -->
             <div class="w-full text-center">
-                <input type="file" id="image-editor-input" class="hidden" accept="image/png, image/jpeg, image/webp, image/svg+xml">
+                <input type="file" id="image-editor-input" class="hidden" accept="image/png, image/jpeg, image/webp, image/svg+xml" multiple>
                 <label for="image-editor-input" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg cursor-pointer transition-colors">
-                    Выберите изображение
+                    Выберите изображения
                 </label>
             </div>
 
             <!-- 2. Область предпросмотра (изначально скрыта) -->
             <div id="image-preview-container" class="hidden w-full p-4 border-dashed border-2 rounded-lg text-center bg-gray-50 dark:bg-gray-700/50">
+                <p id="file-list" class="mb-4"></p>
                 <img id="image-preview" class="max-w-full max-h-80 mx-auto rounded"/>
             </div>
 
@@ -67,8 +68,9 @@ export function getHtml() {
 
                 <!-- Кнопка действия -->
                 <button id="process-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                    Применить и скачать
+                    Применить и скачать все
                 </button>
+                <div id="processing-status" class="text-center font-medium hidden"></div>
             </div>
         </div>
     `;
@@ -77,6 +79,7 @@ export function getHtml() {
 export function init() {
     const imageInput = document.getElementById('image-editor-input');
     const previewContainer = document.getElementById('image-preview-container');
+    const fileListDisplay = document.getElementById('file-list');
     const previewImage = document.getElementById('image-preview');
     const controlsContainer = document.getElementById('controls-container');
     const widthInput = document.getElementById('width-input');
@@ -87,21 +90,27 @@ export function init() {
     const qualitySlider = document.getElementById('quality-slider');
     const qualityValue = document.getElementById('quality-value');
     const processBtn = document.getElementById('process-btn');
+    const processingStatus = document.getElementById('processing-status');
 
     let originalImage = null;
     let originalFileName = '';
     let originalWidth, originalHeight;
     let lastQualityValue = 100;
+    let filesToProcess = [];
 
     imageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        filesToProcess = Array.from(e.target.files);
+        if (filesToProcess.length === 0) return;
 
+        fileListDisplay.textContent = `Выбрано файлов: ${filesToProcess.length}`;
+        const firstFile = filesToProcess[0];
+        
         originalImage = new Image();
-        originalFileName = file.name.split('.').slice(0, -1).join('.');
+        originalFileName = firstFile.name.split('.').slice(0, -1).join('.');
         const reader = new FileReader();
 
         reader.onload = (event) => {
+            previewImage.src = event.target.result;
             originalImage.src = event.target.result;
             originalImage.onload = () => {
                 originalWidth = originalImage.width;
@@ -109,12 +118,11 @@ export function init() {
                 widthInput.value = originalWidth;
                 heightInput.value = originalHeight;
                 
-                previewImage.src = event.target.result;
                 previewContainer.classList.remove('hidden');
                 controlsContainer.classList.remove('hidden');
             };
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(firstFile);
     });
 
     widthInput.addEventListener('input', () => {
@@ -130,15 +138,13 @@ export function init() {
     });
 
     formatSelect.addEventListener('change', () => {
-        // --- НАЧАЛО БЛОКА ИЗМЕНЕНИЙ ---
         if (formatSelect.value === 'png') {
-            qualityControl.style.visibility = 'hidden'; // Скрываем, но сохраняем место
+            qualityControl.style.visibility = 'hidden';
         } else {
             qualitySlider.value = lastQualityValue;
             qualityValue.textContent = `${lastQualityValue}%`;
-            qualityControl.style.visibility = 'visible'; // Показываем снова
+            qualityControl.style.visibility = 'visible';
         }
-        // --- КОНЕЦ БЛОКА ИЗМЕНЕНИЙ ---
     });
     
     qualitySlider.addEventListener('input', () => {
@@ -146,33 +152,65 @@ export function init() {
         qualityValue.textContent = `${lastQualityValue}%`;
     });
 
-    processBtn.addEventListener('click', () => {
+    processBtn.addEventListener('click', async () => {
         const newWidth = parseInt(widthInput.value, 10);
         const newHeight = parseInt(heightInput.value, 10);
         const format = formatSelect.value;
         const quality = parseInt(lastQualityValue, 10) / 100;
 
-        if (!newWidth || !newHeight || !originalImage.src || newWidth <= 0 || newHeight <= 0) {
-            alert('Пожалуйста, выберите файл и укажите корректные размеры.');
+        if (!newWidth || !newHeight || newWidth <= 0 || newHeight <= 0) {
+            alert('Пожалуйста, укажите корректные размеры.');
             return;
         }
 
-        const canvas = document.createElement('canvas');
-        canvas.width = newWidth;
-        canvas.height = newHeight;
-        const ctx = canvas.getContext('2d');
+        if (filesToProcess.length === 0) {
+            alert('Пожалуйста, выберите файлы для обработки.');
+            return;
+        }
         
-        ctx.drawImage(originalImage, 0, 0, newWidth, newHeight);
+        processingStatus.classList.remove('hidden');
+        processBtn.disabled = true;
+        processBtn.textContent = 'Обработка...';
 
-        const mimeType = `image/${format}`;
-        const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality : undefined);
+        for (let i = 0; i < filesToProcess.length; i++) {
+            const file = filesToProcess[i];
+            processingStatus.textContent = `Обработка ${i + 1} из ${filesToProcess.length}: ${file.name}`;
+            
+            const image = new Image();
+            const fileName = file.name.split('.').slice(0, -1).join('.');
+            
+            const reader = new FileReader();
+            
+            await new Promise(resolve => {
+                reader.onload = (event) => {
+                    image.src = event.target.result;
+                    image.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        const ctx = canvas.getContext('2d');
+                        
+                        ctx.drawImage(image, 0, 0, newWidth, newHeight);
 
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = `edited-${originalFileName}.${format}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+                        const mimeType = `image/${format}`;
+                        const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality : undefined);
+
+                        const link = document.createElement('a');
+                        link.href = dataUrl;
+                        link.download = `edited-${fileName}.${format}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        resolve();
+                    };
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        processingStatus.textContent = 'Обработка завершена!';
+        processBtn.disabled = false;
+        processBtn.textContent = 'Применить и скачать все';
     });
 }
 
