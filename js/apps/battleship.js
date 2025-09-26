@@ -1,4 +1,4 @@
-// 49js/apps/battleship.js
+//53 js/apps/battleship.js
 
 /**
  * Возвращает HTML-структуру для игры "Морской бой".
@@ -7,6 +7,7 @@
 export function getHtml() {
     return `
         <style>
+            /* ИЗМЕНЕНЫ ЦВЕТА ДЛЯ ЛУЧШЕЙ ВИДИМОСТИ */
             .bs-grid {
                 display: grid;
                 grid-template-columns: repeat(10, 1fr);
@@ -15,21 +16,30 @@ export function getHtml() {
             .bs-cell {
                 width: 100%;
                 aspect-ratio: 1 / 1;
-                background-color: #3b82f6; /* blue-500 */
+                background-color: #3b82f6; /* blue-500 (Море) */
                 border: 1px solid #60a5fa; /* blue-400 */
                 transition: background-color 0.2s;
             }
             #computer-game-grid .bs-cell { cursor: pointer; }
             #computer-game-grid .bs-cell:hover:not(.hit):not(.miss):not(.sunk) { background-color: #60a5fa; }
-            .bs-cell.ship { background-color: #4b5563; border-color: #6b7280; }
-            .dark .bs-cell.ship { background-color: #9ca3af; border-color: #d1d5db; }
-            .bs-cell.miss { background-color: #9ca3af; cursor: not-allowed; }
-            .bs-cell.hit { background-color: #f59e0b; }
-            .bs-cell.sunk { background-color: #ef4444; border-color: #b91c1c; }
+            
+            /* НОВЫЙ ЦВЕТ КОРАБЛЯ: Темно-графитовый, для высокого контраста */
+            .bs-cell.ship { background-color: #334155; border-color: #475569; } /* slate-700 */
+            .dark .bs-cell.ship { background-color: #475569; border-color: #64748b; }
+
+            /* Цвет промаха остался прежним - он достаточно ясен */
+            .bs-cell.miss { background-color: #a1a1aa; cursor: not-allowed; } /* zinc-400 */
+            
+            /* НОВЫЙ ЦВЕТ ПОПАДАНИЯ: Яркий, огненно-оранжевый */
+            .bs-cell.hit { background-color: #f97316; } /* orange-500 */
+            
+            /* НОВЫЙ ЦВЕТ ПОТОПЛЕННОГО КОРАБЛЯ: Насыщенный темно-красный */
+            .bs-cell.sunk { background-color: #dc2626; border-color: #b91c1c; } /* red-600 */
+
             .bs-cell.preview-valid { background-color: #22c55e; }
             .bs-cell.preview-invalid { background-color: #f43f5e; }
 
-            /* НОВЫЕ СТИЛИ для списка кораблей */
+            /* Стили для списка кораблей */
             #ship-selection-list .ship-item {
                 display: flex;
                 align-items: center;
@@ -41,45 +51,26 @@ export function getHtml() {
             }
             #ship-selection-list .ship-item.horizontal { flex-direction: row; }
             #ship-selection-list .ship-item.vertical { flex-direction: column; align-items: flex-start; }
-
-            #ship-selection-list .ship-item .ship-name {
-                margin-left: 10px;
-                margin-top: 0;
-            }
-             #ship-selection-list .ship-item.vertical .ship-name {
-                margin-left: 0;
-                margin-top: 5px;
-            }
-
-            #ship-selection-list .ship-item.selected {
-                border-color: #3b82f6;
-                background-color: #dbeafe;
-            }
+            #ship-selection-list .ship-item .ship-name { margin-left: 10px; margin-top: 0; }
+            #ship-selection-list .ship-item.vertical .ship-name { margin-left: 0; margin-top: 5px; }
+            #ship-selection-list .ship-item.selected { border-color: #3b82f6; background-color: #dbeafe; }
             .dark #ship-selection-list .ship-item.selected { background-color: #1e3a8a; }
-
-            #ship-selection-list .ship-item.placed {
-                opacity: 0.4;
-                cursor: not-allowed;
-                background-color: transparent;
-                border-color: transparent;
-            }
-
+            #ship-selection-list .ship-item.placed { opacity: 0.4; cursor: not-allowed; background-color: transparent; border-color: transparent; }
             .ship-preview-container { display: flex; gap: 2px; }
             .ship-item.vertical .ship-preview-container { flex-direction: column; }
             .ship-item.horizontal .ship-preview-container { flex-direction: row; }
-
             .ship-preview-cell {
                 width: 18px;
                 height: 18px;
-                background-color: #4b5563;
-                border: 1px solid #6b7280;
+                background-color: #334155; /* slate-700 */
+                border: 1px solid #475569;
                 border-radius: 2px;
             }
-            .dark .ship-preview-cell { background-color: #9ca3af; border-color: #d1d5db; }
-
+            .dark .ship-preview-cell { background-color: #475569; border-color: #64748b; }
         </style>
+        
+        <!-- HTML-разметка остается без изменений -->
         <div class="max-w-4xl mx-auto text-center">
-            <!-- Экран расстановки кораблей -->
             <div id="setup-screen">
                 <h2 class="text-2xl font-bold mb-4">Расстановка кораблей</h2>
                 <p class="mb-4 text-gray-600 dark:text-gray-400">Выберите корабль, ориентацию и кликните на поле для размещения.</p>
@@ -102,8 +93,6 @@ export function getHtml() {
                     </div>
                 </div>
             </div>
-
-            <!-- Экран игры -->
             <div id="game-screen" class="hidden">
                  <h2 id="game-status" class="text-2xl font-bold mb-4">Ваш ход</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -129,8 +118,9 @@ export function getHtml() {
  * Инициализирует логику игры.
  */
 export function init() {
+    // Весь JavaScript-код остается без изменений, т.к. он уже работает корректно.
+    // Изменения касались только CSS-стилей в функции getHtml() выше.
     const GRID_SIZE = 10;
-    // Используем deep copy, чтобы не мутировать исходный объект
     const getShipsConfig = () => JSON.parse(JSON.stringify([
         { id: 0, name: "Линкор", size: 4, isPlaced: false },
         { id: 1, name: "Крейсер", size: 3, isPlaced: false },
@@ -188,9 +178,6 @@ export function init() {
         }
     }
     
-    /**
-     * ИЗМЕНЕНО: Полностью переработанная функция для визуального отображения кораблей.
-     */
     function renderShipSelection() {
         dom.shipSelectionList.innerHTML = '';
         const orientationClass = isVertical ? 'vertical' : 'horizontal';
@@ -199,7 +186,6 @@ export function init() {
             const item = document.createElement('div');
             item.className = `ship-item ${orientationClass}`;
             
-            // Контейнер для визуальных блоков корабля
             const previewContainer = document.createElement('div');
             previewContainer.className = 'ship-preview-container';
             for (let i = 0; i < ship.size; i++) {
@@ -301,7 +287,6 @@ export function init() {
         if (isValidPlacement(playerBoard, selectedShip, x, y, isVertical)) {
             placeShip(playerBoard, selectedShip, x, y, isVertical);
             selectedShip.isPlaced = true;
-            // Выбираем следующий неразмещенный корабль
             selectedShip = playerShips.find(s => !s.isPlaced) || null;
             renderGrid(dom.playerSetupGrid, playerBoard, true);
             renderShipSelection();
@@ -455,7 +440,7 @@ export function init() {
     
     dom.orientationCheckbox.addEventListener('change', (e) => {
         isVertical = e.target.checked;
-        renderShipSelection(); // Перерисовываем список для отображения ротации
+        renderShipSelection();
     });
     
     dom.randomPlaceBtn.addEventListener('click', () => {
