@@ -413,10 +413,77 @@ body.app-view-active #changelog-container {
 
 
 /* --- Стили для списка приложений в сайдбаре --- */
+
+/* НОВЫЕ СТИЛИ ДЛЯ АККОРДЕОНА В САЙДБАРЕ */
+.sidebar-category {
+    /* Контейнер для одной категории */
+}
+
+.sidebar-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background-color: #f1f5f9; /* slate-100 */
+    border: 1px solid #e2e8f0; /* slate-200 */
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+.dark .sidebar-category-header {
+    background-color: #1e293b; /* slate-800 */
+    border-color: #334155; /* slate-700 */
+}
+
+.sidebar-category-header:hover {
+    background-color: #e2e8f0; /* slate-200 */
+    border-color: #cbd5e1; /* slate-300 */
+}
+.dark .sidebar-category-header:hover {
+    background-color: #334155; /* slate-700 */
+    border-color: #475569; /* slate-600 */
+}
+
+.sidebar-category-name {
+    font-weight: 600;
+}
+
+.sidebar-category-count {
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background-color: #e2e8f0; /* slate-200 */
+    color: #475569; /* slate-600 */
+    margin-left: auto;
+    margin-right: 0.5rem;
+}
+.dark .sidebar-category-count {
+    background-color: #334155; /* slate-700 */
+    color: #cbd5e1; /* slate-300 */
+}
+
+.sidebar-category-chevron {
+    transition: transform 0.3s ease-in-out;
+}
+.sidebar-category.expanded .sidebar-category-chevron {
+    transform: rotate(90deg);
+}
+
+.sidebar-category-apps {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+    padding-left: 0.5rem; /* Небольшой отступ для вложенности */
+}
+.sidebar-category.expanded .sidebar-category-apps {
+    margin-top: 0.5rem;
+    max-height: 1500px; /* Достаточно большое значение для всех приложений */
+}
+
 #sidebar-app-list .app-item {
     min-height: 60px;
     border-radius: 0.5rem !important;
-    /* Убираем рамку по умолчанию для всех элементов, чтобы она не мешала новому стилю */
     border: 1px solid transparent;
 }
 #sidebar-app-list .app-item:hover {
