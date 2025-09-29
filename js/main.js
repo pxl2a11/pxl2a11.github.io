@@ -33,7 +33,7 @@ const appNameToModuleFile = {
     "Таблица Менделеева": "periodicTable",
     'Морской бой': 'battleship',
     'Метроном': 'metronome',
-    'Генератор рифм': 'rhymeGenerator',
+    'Трекер привычек': 'habitTracker',
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 
@@ -61,7 +61,7 @@ const appPopularity = {
     'periodicTable': 88,
     'battleship': 92,
     'metronome': 75,
-    'rhymeGenerator': 75,
+    'habitTracker': 85,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -125,7 +125,7 @@ const appSearchMetadata = {
     'periodicTable': { keywords: ['элементы', 'химия', 'атом', 'менделеев', 'таблица', 'вещества', 'наука'], hashtags: ['#science', '#tools', '#education'] },
     'battleship': { keywords: ['игра', 'корабли', 'флот', 'стрелять', 'бой', 'battleship', 'sea battle'], hashtags: ['#game', '#logic', '#fun'] },
     'metronome': { keywords: ['метроном', 'темп', 'ритм', 'музыка', 'bpm', 'уд/мин'], hashtags: ['#music', '#tools'] },
-    'rhymeGenerator': { keywords: ['рифма', 'поэт', 'стихи', 'подобрать', 'слово'], hashtags: ['#text', '#fun', '#tools'] },
+    'habitTracker': { keywords: ['привычки', 'трекер', 'цели', 'ежедневно', 'рутина', 'трекинг', 'streak', 'серия'], hashtags: ['#organizer', '#tools', '#health'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
