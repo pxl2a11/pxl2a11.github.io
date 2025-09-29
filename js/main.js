@@ -34,7 +34,8 @@ const appNameToModuleFile = {
     "Pomodoro-таймер": "pomodoroTimer",
     "Кодировщик Base64": "base64Converter",
     "Таблица Менделеева": "periodicTable",
-    'Морской бой': 'battleship'
+    'Морской бой': 'battleship',
+    'Метроном': 'metronome'
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 
@@ -61,6 +62,7 @@ const appPopularity = {
     'base64Converter': 78,
     'periodicTable': 88,
     'battleship': 92,
+    'metronome': 75,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -123,6 +125,7 @@ const appSearchMetadata = {
     'base64Converter': { keywords: ['base64', 'кодировщик', 'декодировщик', 'шифрование', 'btoa', 'atob', 'текст', 'данные', 'картинка', 'изображение', 'фото', 'data url'], hashtags: ['#tools', '#text', '#webdev', '#image'] },
     'periodicTable': { keywords: ['элементы', 'химия', 'атом', 'менделеев', 'таблица', 'вещества', 'наука'], hashtags: ['#science', '#tools', '#education'] },
     'battleship': { keywords: ['игра', 'корабли', 'флот', 'стрелять', 'бой', 'battleship', 'sea battle'], hashtags: ['#game', '#logic', '#fun'] },
+    'metronome': { keywords: ['метроном', 'темп', 'ритм', 'музыка', 'bpm', 'уд/мин'], hashtags: ['#music', '#tools'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
