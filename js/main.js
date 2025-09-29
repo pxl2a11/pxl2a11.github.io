@@ -409,6 +409,8 @@ async function renderSidebar(currentAppModule) {
     // Фильтр 'my-apps' активен, только если он был последним выбранным И пользователь авторизован
     if (lastActiveFilter === 'my-apps' && auth.currentUser) {
         activeFilterValue = 'my-apps';
+    } else if (['popular', 'new'].includes(lastActiveFilter)) {
+        activeFilterValue = lastActiveFilter;
     }
 
     filterContainer.querySelector('.active')?.classList.remove('active');
@@ -423,7 +425,13 @@ async function renderSidebar(currentAppModule) {
         if (currentActiveFilterInSidebar === 'my-apps') {
             appsToRenderModules = myApps;
         } else {
-            appsToRenderModules = Array.from(appCardElements.keys());
+            let allModules = Array.from(appCardElements.keys());
+            if (currentActiveFilterInSidebar === 'popular') {
+                allModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
+            } else if (currentActiveFilterInSidebar === 'new') {
+                allModules.reverse();
+            }
+            appsToRenderModules = allModules;
         }
 
         sidebarList.innerHTML = '';
