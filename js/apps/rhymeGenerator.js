@@ -1,9 +1,8 @@
-// 15--- Глобальные переменные модуля ---
+//22 --- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
 let eventListeners = [];
 
-// --- ВАШ URL, ПОЛУЧЕННЫЙ НА ШАГЕ 4 ---
-// Я уже вставил ваш URL сюда.
+// --- Ваш обновленный URL уже здесь ---
 const AI_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwN97z3sQUEQQRTPbp7IDCIcDKNwdAanUXSoMG-xwW8FVoTGaFsLoj8wM2mUiLznkxo/exec';
 
 
@@ -44,10 +43,6 @@ export function getHtml() {
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim();
-    if (AI_WEB_APP_URL.includes('СЮДА_ВСТАВЬТЕ_ВАШ_URL')) {
-        statusMessage.textContent = 'Ошибка: Укажите URL вашего веб-приложения в коде.';
-        return;
-    }
     if (word.length < 2) {
         statusMessage.textContent = 'Пожалуйста, введите слово.';
         resultsContainer.innerHTML = '';
@@ -66,7 +61,9 @@ async function fetchRhymes() {
 
         const rhymesArray = await response.json();
 
+        // Улучшенная обработка ошибок, которые может вернуть наш скрипт
         if (rhymesArray.error) {
+            console.error('Ошибка от AI-сервера:', rhymesArray.details);
             throw new Error(rhymesArray.error);
         }
         
@@ -80,7 +77,7 @@ async function fetchRhymes() {
             statusMessage.textContent = `К сожалению, AI не смог подобрать рифму для "${word}".`;
         }
     } catch (error) {
-        console.error("Ошибка при получении рифм:", error);
+        console.error("Подробная ошибка при получении рифм:", error);
         statusMessage.textContent = 'Произошла ошибка при загрузке. Попробуйте позже.';
     }
 }
