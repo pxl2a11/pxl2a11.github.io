@@ -136,7 +136,7 @@ const suggestionsContainer = document.getElementById('suggestions-container');
 let activeAppModule = null; 
 const appCardElements = new Map();
 let allAppCards = [];
-let lastActiveFilter = 'all';
+let lastActiveFilter = 'default';
 
 const homeScreenHtml = `
     <div class="relative">
@@ -233,7 +233,6 @@ function renderGoogleButton() {
 
 function updateAuthStateUI(user) {
     const myAppsButton = document.querySelector('#filter-container [data-sort="my-apps"]');
-    const myAppsCard = document.querySelector('#filter-card-container [data-filter="my-apps"]');
     const sidebarMyAppsButton = document.querySelector('#sidebar-filter-container [data-sort="my-apps"]');
 
     if (user) {
@@ -242,7 +241,7 @@ function updateAuthStateUI(user) {
         if (userAvatarElement) userAvatarElement.src = user.photoURL;
         userProfileElement?.classList.remove('hidden');
         googleSignInContainer?.classList.add('hidden');
-        myAppsCard?.classList.remove('hidden');
+        myAppsButton?.classList.remove('hidden');
 
         // --- Сайдбар ---
         sidebarAuthContainer.innerHTML = '';
@@ -256,7 +255,7 @@ function updateAuthStateUI(user) {
         // --- Главная страница ---
         userProfileElement?.classList.add('hidden');
         googleSignInContainer?.classList.remove('hidden');
-        myAppsCard?.classList.add('hidden');
+        myAppsButton?.classList.add('hidden');
 
         // --- Сайдбар ---
         sidebarAuthContainer.innerHTML = '';
@@ -308,13 +307,12 @@ async function toggleMyAppStatus(moduleName) {
         myApps.push(moduleName);
     }
     await saveMyApps(myApps);
-    const activeFilter = document.querySelector('#sidebar-filter-container .active')?.dataset.sort;
+    const activeFilter = document.querySelector('#filter-container .active')?.dataset.sort;
     if (activeFilter === 'my-apps') {
-        await renderSidebar(null);
+        await applyAppListFilterAndRender();
     } else {
         await updateAllMyAppButtonsUI();
     }
-    await updateFilterCardCounts();
 }
 
 async function updateAllMyAppButtonsUI() {
@@ -406,6 +404,19 @@ async function renderSidebar(currentAppModule) {
 
     searchInput.value = '';
 
+    // Определяем, какой фильтр должен быть активен
+    let activeFilterValue = 'all';
+    // Фильтр 'my-apps' активен, только если он был последним выбранным И пользователь авторизован
+    if (lastActiveFilter === 'my-apps' && auth.currentUser) {
+        activeFilterValue = 'my-apps';
+    } else if (lastActiveFilter === 'popular' || lastActiveFilter === 'new') {
+        activeFilterValue = lastActiveFilter;
+    }
+
+
+    filterContainer.querySelector('.active')?.classList.remove('active');
+    filterContainer.querySelector(`[data-sort="${activeFilterValue}"]`)?.classList.add('active');
+
     const applySidebarFilter = async () => {
         const myApps = await getMyApps();
         const currentActiveFilterInSidebar = filterContainer.querySelector('.active')?.dataset.sort || 'all';
@@ -442,6 +453,8 @@ async function renderSidebar(currentAppModule) {
         });
     };
 
+    // --- ИСПРАВЛЕНИЕ: Удаляем старые и добавляем новые обработчики ---
+    // Удаляем предыдущие обработчики, если они существуют
     if (sidebarFilterHandler) {
         filterContainer.removeEventListener('click', sidebarFilterHandler);
     }
@@ -449,21 +462,25 @@ async function renderSidebar(currentAppModule) {
         searchInput.removeEventListener('input', sidebarSearchHandler);
     }
 
+    // Создаем новые обработчики с актуальным замыканием
     sidebarFilterHandler = (e) => {
         const button = e.target.closest('.filter-btn');
         if (!button || button.classList.contains('active')) return;
         filterContainer.querySelector('.active')?.classList.remove('active');
         button.classList.add('active');
         
-        lastActiveFilter = button.dataset.sort;
+        const newFilter = button.dataset.sort;
+        lastActiveFilter = newFilter === 'all' ? 'default' : newFilter;
         
         applySidebarFilter();
     };
 
     sidebarSearchHandler = applySidebarFilter;
 
+    // Добавляем новые обработчики
     filterContainer.addEventListener('click', sidebarFilterHandler);
     searchInput.addEventListener('input', sidebarSearchHandler);
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
     
     await applySidebarFilter();
 }
@@ -523,8 +540,7 @@ async function router() {
         dynamicContentArea.innerHTML = homeScreenHtml;
         document.title = 'Mini Apps';
         
-        setupFilterCards();
-        await updateFilterCardCounts();
+        setupFilters();
         renderChangelog(null, 3, changelogContainer);
         await applyAppListFilterAndRender();
     }
@@ -621,20 +637,27 @@ function setupSearch() {
     });
 }
 
-async function applyAppListFilterAndRender(filter = 'all') {
+async function applyAppListFilterAndRender() {
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer) return;
-
+    
     destroyDragAndDrop();
     isSortingMode = false;
-
+    
     const sortBtn = document.getElementById('sort-my-apps-btn');
-    if (sortBtn) sortBtn.classList.add('hidden');
-
+    const filterContainer = document.getElementById('filter-container');
+    const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
+    
+    lastActiveFilter = activeFilter;
+    
     const myApps = await getMyApps();
 
     const renderApps = (appElements) => {
         appsContainer.innerHTML = '';
+        if (appElements.length === 0 && activeFilter === 'my-apps') {
+            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400">У вас пока нет добавленных приложений. Нажмите "+" на карточке приложения, чтобы добавить его сюда.</p>`;
+            return;
+        }
         appElements.forEach(app => {
             const appClone = app.cloneNode(true);
             const button = appClone.querySelector('.add-to-my-apps-btn');
@@ -644,64 +667,44 @@ async function applyAppListFilterAndRender(filter = 'all') {
             appsContainer.appendChild(appClone);
         });
     };
-    
-    renderApps(allAppCards);
 
+    let appsToRender = [];
+    if (activeFilter === 'my-apps') {
+        appsToRender = myApps.map(moduleName => appCardElements.get(moduleName)).filter(Boolean);
+        if (sortBtn) {
+            sortBtn.classList.remove('hidden');
+            sortBtn.classList.remove('active');
+            sortBtn.textContent = 'Переместить';
+        }
+    } else {
+        if (sortBtn) sortBtn.classList.add('hidden');
+        let sortedApps = [...allAppCards];
+        if (activeFilter === 'popular') {
+            sortedApps.sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
+        } else if (activeFilter === 'new') {
+            sortedApps.sort((a, b) => allAppCards.indexOf(b) - allAppCards.indexOf(a));
+        }
+        appsToRender = sortedApps;
+    }
+    renderApps(appsToRender);
+    
     if (searchInput.value) {
         searchInput.value = '';
         searchInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
 }
 
-async function updateFilterCardCounts() {
-    const myApps = await getMyApps();
-    const myAppsCount = myApps.length;
-    const allAppsCount = allAppCards.length;
-
-    const myAppsCard = document.querySelector('[data-filter="my-apps"]');
-    if (myAppsCard) {
-        myAppsCard.querySelector('.filter-card-count').textContent = myAppsCount;
-    }
-    const allCard = document.querySelector('[data-filter="all"]');
-    if(allCard) {
-         allCard.querySelector('.filter-card-count').textContent = allAppsCount;
-    }
-     const popularCard = document.querySelector('[data-filter="popular"]');
-    if(popularCard) {
-        popularCard.querySelector('.filter-card-count').textContent = allAppsCount;
-    }
-     const newCard = document.querySelector('[data-filter="new"]');
-    if(newCard) {
-        newCard.querySelector('.filter-card-count').textContent = allAppsCount;
-    }
-}
-
-
-function setupFilterCards() {
-    const filterContainer = document.getElementById('filter-card-container');
+function setupFilters() {
+    const filterContainer = document.getElementById('filter-container');
     if (!filterContainer) return;
     filterContainer.addEventListener('click', (e) => {
-        const card = e.target.closest('.filter-card');
-        if (!card) return;
-        
-        const filterType = card.dataset.filter;
-        
-        // Открыть сайдбар
-        isSidebarCollapsed = false;
-        localStorage.setItem('sidebarCollapsed', 'false');
-        applySidebarState();
-        
-        // Установить активный фильтр в сайдбаре
-        const sidebarFilterContainer = document.getElementById('sidebar-filter-container');
-        const targetBtn = sidebarFilterContainer.querySelector(`[data-sort="${filterType}"]`);
-        
-        if (targetBtn) {
-            // Имитируем клик, чтобы запустить всю логику обновления
-            targetBtn.click();
-        }
+        const button = e.target.closest('.filter-btn');
+        if (!button || button.classList.contains('active')) return;
+        filterContainer.querySelector('.active')?.classList.remove('active');
+        button.classList.add('active');
+        applyAppListFilterAndRender();
     });
 }
-
 
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
@@ -766,12 +769,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         sidebarToggleBtn.title = isSidebarCollapsed ? 'Показать меню' : 'Скрыть меню';
     };
-    
-    // Скрываем сайдбар по умолчанию при первой загрузке
-    if (localStorage.getItem('sidebarCollapsed') === null) {
-        isSidebarCollapsed = true;
-    }
-
 
     sidebarToggleBtn.addEventListener('click', () => {
         isSidebarCollapsed = !isSidebarCollapsed;
@@ -850,7 +847,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setOnDataLoaded(async () => {
         console.log("Получены свежие данные из Firebase, интерфейс будет обновлен.");
         await router(); 
-        await updateFilterCardCounts();
     });
 
     let isInitialAuthCheckDone = false;
@@ -859,11 +855,11 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchUserAccountData(user.uid);
         } else {
             clearUserData();
-            const myAppsButton = document.querySelector('#sidebar-filter-container [data-sort="my-apps"]');
+            const myAppsButton = document.querySelector('#filter-container [data-sort="my-apps"]');
             if (myAppsButton?.classList.contains('active')) {
                 myAppsButton.classList.remove('active');
-                document.querySelector('#sidebar-filter-container [data-sort="all"]')?.classList.add('active');
-                lastActiveFilter = 'all';
+                document.querySelector('#filter-container [data-sort="default"]')?.classList.add('active');
+                lastActiveFilter = 'default';
             }
         }
 
@@ -872,14 +868,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isInitialAuthCheckDone) {
             isInitialAuthCheckDone = true;
             
+            // --- НОВАЯ ЛОГИКА: Установка фильтра по умолчанию на главной ---
             const params = new URLSearchParams(window.location.search);
-            const appModule = params.get('app');
-            if (user && !appModule) {
-                 const mainFilterMyApps = document.querySelector('#sidebar-filter-container [data-sort="my-apps"]');
-                 if(mainFilterMyApps) {
+            const isHomePage = !params.has('app');
+
+            if (isHomePage) {
+                const mainFilterDefault = document.querySelector('#filter-container [data-sort="default"]');
+                const mainFilterMyApps = document.querySelector('#filter-container [data-sort="my-apps"]');
+
+                if (user && mainFilterMyApps) {
+                    // Пользователь вошел: активируем "Мои приложения"
+                    mainFilterDefault?.classList.remove('active');
+                    mainFilterMyApps.classList.add('active');
                     lastActiveFilter = 'my-apps';
-                 }
+                } else {
+                    // Пользователь не вошел: активируем "Все"
+                    mainFilterMyApps?.classList.remove('active');
+                    mainFilterDefault?.classList.add('active');
+                    lastActiveFilter = 'default';
+                }
             }
+            // --- КОНЕЦ НОВОЙ ЛОГИКИ ---
             
             await router(); 
             const loader = document.getElementById('initial-loading-overlay');
@@ -893,8 +902,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  await applyAppListFilterAndRender();
             }
         }
-
-        await updateFilterCardCounts();
 
         if (isGsiInitialized) {
             renderGoogleButton();
