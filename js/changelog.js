@@ -62,6 +62,7 @@ export const appNameToModuleFile = {
     'Кодировщик Base64': 'base64Converter',
     'Таблица Менделеева': 'periodicTable',
     'Морской бой': 'battleship',
+    'Метроном': 'metronome',
     'Общее': null,
 };
 
