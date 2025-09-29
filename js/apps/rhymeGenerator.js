@@ -55,7 +55,7 @@ export function getHtml() {
 }
 
 /**
- * Асинхронная функция для получения рифм с помощью API от Stihi.ru.
+ * Асинхронная функция для получения рифм с помощью API от Stihi.ru через CORS-прокси.
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
@@ -69,8 +69,11 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Используем работающий API от Stihi.ru ---
-        const response = await fetch(`https://stihi.ru/assist/rifma_json.pl?word=${encodeURIComponent(word)}`);
+        // --- ИСПРАВЛЕНИЕ: Используем CORS-прокси для обхода ограничений ---
+        const targetUrl = `https://stihi.ru/assist/rifma_json.pl?word=${encodeURIComponent(word)}`;
+        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`;
+
+        const response = await fetch(proxyUrl);
         
         if (!response.ok) {
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
@@ -79,13 +82,10 @@ async function fetchRhymes() {
         const rhymes = await response.json();
         
         // API от Stihi.ru возвращает массив объектов вида { "val": "рифма" }
-        // Фильтруем пустые или некорректные результаты
         const validRhymes = rhymes.filter(r => r.val && r.val.trim() !== '');
 
         if (validRhymes.length > 0) {
             statusMessage.textContent = `Найдено рифм: ${validRhymes.length}. Нажмите на слово, чтобы скопировать.`;
-            // Адаптируем массив к формату, который ожидает renderRhymes
-            // Меняем r.val на r.word для совместимости с вашей функцией renderRhymes
             renderRhymes(validRhymes.map(r => ({ word: r.val })));
         } else {
             statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
@@ -102,7 +102,6 @@ async function fetchRhymes() {
  * @param {Array<Object>} rhymes - Массив объектов со словами.
  */
 function renderRhymes(rhymes) {
-    // Очищаем предыдущие результаты
     resultsContainer.innerHTML = '';
 
     rhymes.forEach(rhymeObj => {
@@ -130,13 +129,11 @@ function renderRhymes(rhymes) {
  * Инициализирует логику приложения.
  */
 export function init() {
-    // Получаем элементы DOM
     rhymeInput = document.getElementById('rhyme-input');
     findBtn = document.getElementById('find-rhymes-btn');
     resultsContainer = document.getElementById('rhymes-results-container');
     statusMessage = document.getElementById('rhyme-status');
 
-    // Назначаем обработчики событий
     addListener(findBtn, 'click', fetchRhymes);
     
     addListener(rhymeInput, 'keypress', (e) => {
