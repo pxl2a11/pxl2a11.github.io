@@ -474,7 +474,6 @@ body.app-view-active #changelog-container {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease-in-out;
-    padding-left: 0.5rem; /* Небольшой отступ для вложенности */
 }
 .sidebar-category.expanded .sidebar-category-apps {
     margin-top: 0.5rem;
