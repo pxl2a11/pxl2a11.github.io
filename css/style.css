@@ -354,10 +354,6 @@ body.app-view-active #sidebar,
 body.app-view-active #sidebar-toggle-btn {
     display: flex;
 }
-/* Сдвигаем основной контент, когда сайдбар слева и открыт */
-body.app-view-active:not(.sidebar-collapsed) #main-content-wrapper {
-    margin-left: 20rem; /* 320px */
-}
 
 /* --- Состояние: Сайдбар СПРАВА --- */
 body.sidebar-on-right #sidebar {
@@ -375,11 +371,6 @@ body.sidebar-on-right #sidebar-toggle-btn {
     left: auto;
     right: 20rem; /* 320px */
     border-radius: 0.5rem 0 0 0.5rem; /* скругляем левые углы */
-}
-/* Сдвигаем основной контент, когда сайдбар справа и открыт */
-body.app-view-active.sidebar-on-right:not(.sidebar-collapsed) #main-content-wrapper {
-    margin-left: 0;
-    margin-right: 20rem; /* 320px */
 }
 
 /* --- Состояние: Сайдбар СКРЫТ --- */
