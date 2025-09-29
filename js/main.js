@@ -160,8 +160,235 @@ const appScreenHtml = `
 
 let sortableInstance = null;
 let isSortingMode = false;
-// ... (остальные функции до renderSidebar без изменений: initializeDragAndDrop, destroyDragAndDrop, show/hideAuthLoader, ...)
-// ... (остальные функции до renderSidebar без изменений: initializeDragAndDrop, destroyDragAndDrop, show/hideAuthLoader, ..., updateAppViewButton, populateAppCardMap, renderSimilarApps)
+
+function initializeDragAndDrop() {
+    const appsContainer = document.getElementById('apps-container');
+    if (!appsContainer || sortableInstance) return;
+    appsContainer.classList.add('sortable-active');
+    sortableInstance = new Sortable(appsContainer, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd: async (evt) => {
+            const newOrder = Array.from(evt.target.children).map(card => card.dataset.module);
+            await saveMyApps(newOrder);
+        },
+    });
+}
+
+function destroyDragAndDrop() {
+    const appsContainer = document.getElementById('apps-container');
+    if (appsContainer) appsContainer.classList.remove('sortable-active');
+    if (sortableInstance) {
+        sortableInstance.destroy();
+        sortableInstance = null;
+    }
+}
+
+function showAuthLoader() {
+    document.getElementById('auth-loading-overlay')?.classList.remove('hidden');
+}
+function hideAuthLoader() {
+    document.getElementById('auth-loading-overlay')?.classList.add('hidden');
+}
+
+// Элементы для главной страницы
+const userProfileElement = document.getElementById('user-profile');
+const userAvatarElement = document.getElementById('user-avatar');
+const userNameElement = document.getElementById('user-name');
+const signOutBtn = document.getElementById('sign-out-btn');
+const googleSignInContainer = document.getElementById('google-signin-top-right-container');
+let isGsiInitialized = false;
+
+// Элементы для сайдбара
+const sidebarAuthContainer = document.getElementById('sidebar-auth-container');
+const sidebarUserProfileTemplate = document.getElementById('sidebar-user-profile-template');
+const sidebarGoogleSignInTemplate = document.getElementById('sidebar-google-signin-template');
+
+
+function renderGoogleButton() {
+    if (!isGsiInitialized || !googleSignInContainer || auth.currentUser) return;
+
+    // Кнопка для главной страницы
+    googleSignInContainer.innerHTML = '';
+    window.google.accounts.id.renderButton(
+        googleSignInContainer,
+        { type: "icon", shape: "circle", theme: "outline", size: "large" }
+    );
+    googleSignInContainer.classList.remove('hidden');
+
+    // Кнопка для сайдбара
+    const sidebarGoogleSignInContainer = document.getElementById('google-signin-sidebar-container');
+    if (sidebarGoogleSignInContainer) {
+        sidebarGoogleSignInContainer.innerHTML = '';
+        window.google.accounts.id.renderButton(
+            sidebarGoogleSignInContainer,
+            { type: "standard", theme: "outline", size: "large", text: "signin_with", shape: "rectangular" }
+        );
+    }
+}
+
+function updateAuthStateUI(user) {
+    const myAppsButton = document.querySelector('#filter-container [data-sort="my-apps"]');
+
+    if (user) {
+        // --- Главная страница ---
+        if (userNameElement) userNameElement.textContent = user.displayName;
+        if (userAvatarElement) userAvatarElement.src = user.photoURL;
+        userProfileElement?.classList.remove('hidden');
+        googleSignInContainer?.classList.add('hidden');
+        myAppsButton?.classList.remove('hidden');
+
+        // --- Сайдбар ---
+        sidebarAuthContainer.innerHTML = '';
+        const profileClone = sidebarUserProfileTemplate.content.cloneNode(true);
+        profileClone.querySelector('.user-name').textContent = user.displayName;
+        profileClone.querySelector('.user-avatar').src = user.photoURL;
+        sidebarAuthContainer.appendChild(profileClone);
+
+    } else {
+        // --- Главная страница ---
+        userProfileElement?.classList.add('hidden');
+        googleSignInContainer?.classList.remove('hidden');
+        myAppsButton?.classList.add('hidden');
+
+        // --- Сайдбар ---
+        sidebarAuthContainer.innerHTML = '';
+        const signInClone = sidebarGoogleSignInTemplate.content.cloneNode(true);
+        sidebarAuthContainer.appendChild(signInClone);
+        renderGoogleButton(); // Перерисовываем кнопку Google в сайдбаре
+    }
+}
+
+
+async function getMyApps() { return getUserData('myApps', []); }
+async function saveMyApps(myAppsModules) { await saveUserData('myApps', myAppsModules); }
+
+function handleCredentialResponse(response) {
+    showAuthLoader();
+    const googleCredential = GoogleAuthProvider.credential(response.credential);
+    signInWithCredential(auth, googleCredential)
+        .catch((error) => {
+            console.error("Firebase sign-in error", error);
+            hideAuthLoader();
+        });
+}
+
+function handleSignOut() {
+    signOut(auth);
+    if (window.google && window.google.accounts) {
+        google.accounts.id.disableAutoSelect();
+    }
+}
+
+function initializeGoogleSignIn() {
+    if (window.google && window.google.accounts) {
+        window.google.accounts.id.initialize({
+            client_id: '327345325953-bubmv3lac6ctv2tgddin8mshdbceve27.apps.googleusercontent.com',
+            callback: handleCredentialResponse
+        });
+        isGsiInitialized = true;
+        renderGoogleButton();
+    }
+}
+
+async function toggleMyAppStatus(moduleName) {
+    if (!moduleName) return;
+    let myApps = await getMyApps();
+    if (myApps.includes(moduleName)) {
+        myApps = myApps.filter(m => m !== moduleName);
+    } else {
+        myApps.push(moduleName);
+    }
+    await saveMyApps(myApps);
+    const activeFilter = document.querySelector('#filter-container .active')?.dataset.sort;
+    if (activeFilter === 'my-apps') {
+        await applyAppListFilterAndRender();
+    } else {
+        await updateAllMyAppButtonsUI();
+    }
+}
+
+async function updateAllMyAppButtonsUI() {
+    const myApps = await getMyApps();
+    document.querySelectorAll('.app-item').forEach(card => {
+        const moduleName = card.dataset.module;
+        const button = card.querySelector('.add-to-my-apps-btn');
+        if (button) {
+            button.classList.toggle('is-added', myApps.includes(moduleName));
+        }
+    });
+    const currentAppModule = new URLSearchParams(window.location.search).get('app');
+    if (currentAppModule) {
+        await updateAppViewButton(currentAppModule, myApps);
+    }
+}
+
+async function updateAppViewButton(moduleName, myAppsList) {
+    const myApps = myAppsList || await getMyApps();
+    const button = document.getElementById('add-to-my-apps-app-view-btn');
+    if (!button) return;
+    const isAdded = myApps.includes(moduleName);
+    const textSpan = button.querySelector('.btn-text');
+    const plusIcon = button.querySelector('.plus-icon');
+    const crossIcon = button.querySelector('.cross-icon');
+    plusIcon.classList.toggle('hidden', isAdded);
+    crossIcon.classList.toggle('hidden', !isAdded);
+    if (isAdded) {
+        textSpan.textContent = 'Удалить';
+        button.classList.add('remove-style');
+        button.classList.remove('add-style');
+    } else {
+        textSpan.textContent = 'Добавить';
+        button.classList.add('add-style');
+        button.classList.remove('remove-style');
+    }
+    button.dataset.module = moduleName;
+}
+
+
+function populateAppCardMap() {
+    if (appCardElements.size > 0) return;
+    const template = document.getElementById('all-apps-template');
+    if (!template) { console.error('Template with app cards not found!'); return; }
+    template.content.querySelectorAll('.app-item').forEach(card => {
+        const moduleName = card.dataset.module;
+        if (moduleName) appCardElements.set(moduleName, card);
+    });
+    allAppCards = Array.from(appCardElements.values());
+}
+
+async function renderSimilarApps(currentModule, container) {
+    const currentAppMeta = appSearchMetadata[currentModule];
+    if (!currentAppMeta || !currentAppMeta.hashtags || !currentAppMeta.hashtags.length) { container.innerHTML = ''; container.classList.add('hidden'); return; }
+    const currentHashtags = new Set(currentAppMeta.hashtags);
+    let similarModules = [];
+    for (const moduleName in appSearchMetadata) {
+        if (moduleName === currentModule) continue;
+        const meta = appSearchMetadata[moduleName];
+        if (meta.hashtags && meta.hashtags.some(tag => currentHashtags.has(tag))) {
+            similarModules.push(moduleName);
+        }
+    }
+    similarModules.sort((a, b) => (appPopularity[b] || 0) - (appPopularity[a] || 0));
+    const topSimilar = similarModules.slice(0, 4);
+    if (topSimilar.length === 0) { container.innerHTML = ''; container.classList.add('hidden'); return; }
+    container.innerHTML = `<h3 class="text-xl font-bold mb-4">Похожие приложения</h3>`;
+    const grid = document.createElement('div');
+    grid.className = 'similar-apps-grid';
+    topSimilar.forEach(module => {
+        const card = appCardElements.get(module);
+        if (card) {
+            const cardClone = card.cloneNode(true);
+            const addBtn = cardClone.querySelector('.add-to-my-apps-btn');
+            if (addBtn) addBtn.remove();
+            grid.appendChild(cardClone);
+        }
+    });
+    container.appendChild(grid);
+    container.classList.remove('hidden');
+}
+
 
 async function renderSidebar(currentAppModule) {
     const sidebarList = document.getElementById('sidebar-app-list');
@@ -258,8 +485,10 @@ async function renderSidebar(currentAppModule) {
         });
     };
     
-    searchInput.removeEventListener('input', window.sidebarSearchHandler); // Удаляем старый, если он был
-    window.sidebarSearchHandler = sidebarSearchHandler; // Сохраняем новый в глобальную область
+    if (window.sidebarSearchHandler) {
+       searchInput.removeEventListener('input', window.sidebarSearchHandler);
+    }
+    window.sidebarSearchHandler = sidebarSearchHandler;
     searchInput.addEventListener('input', window.sidebarSearchHandler);
 }
 
@@ -324,7 +553,165 @@ async function router() {
     }
 }
 
-// ... (остальные функции без изменений: setupNavigationEvents, setupSearch, applyAppListFilterAndRender, setupFilters, ...)
+function setupNavigationEvents() {
+    document.body.addEventListener('click', e => {
+        const link = e.target.closest('a');
+        if (!link || e.target.closest('.add-to-my-apps-btn')) return;
+        
+        const isBackButton = (link.id === 'home-link' || link.id === 'sidebar-home-link') && new URL(link.href).pathname === '/';
+        if (isBackButton) { 
+             e.preventDefault(); 
+             if(new URLSearchParams(window.location.search).has('app')) {
+                 history.pushState({}, '', '/');
+                 router();
+             }
+             return; 
+        }
+
+        const url = new URL(link.href);
+        if (url.origin === window.location.origin) {
+            const isAppNavigation = url.search.startsWith('?app=') || (url.pathname === '/' && !url.search);
+            const isChangelogLink = link.classList.contains('changelog-link');
+            
+            if (isAppNavigation || isChangelogLink) {
+                e.preventDefault();
+                if (window.location.href === link.href && link.id !== 'home-link' && link.id !== 'sidebar-home-link') return;
+                
+                const appNameToOpen = link.dataset.appName;
+                if (isChangelogLink && appNameToOpen) {
+                    const moduleFile = appNameToModuleFile[appNameToOpen];
+                    if (moduleFile) history.pushState({}, '', `?app=${moduleFile}`);
+                } else {
+                    history.pushState({}, '', link.href);
+                }
+                router();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
+}
+
+
+function setupSearch() {
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const suggestions = [];
+        allAppCards.forEach(card => {
+            const appName = card.dataset.name.toLowerCase();
+            const moduleName = card.dataset.module;
+            const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
+            const searchCorpus = [appName, ...metadata.keywords].join(' ');
+            if (searchTerm.length > 0 && searchCorpus.includes(searchTerm)) {
+                suggestions.push({
+                    name: card.dataset.name,
+                    module: moduleName,
+                    hashtags: metadata.hashtags || []
+                });
+            }
+        });
+        suggestionsContainer.innerHTML = '';
+        if (suggestions.length > 0) {
+            suggestionsContainer.classList.remove('hidden');
+            suggestions.slice(0, 7).forEach(suggestion => {
+                const suggestionEl = document.createElement('div');
+                suggestionEl.className = 'suggestion-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg';
+                suggestionEl.innerHTML = `<span class="suggestion-name">${suggestion.name}</span><span class="suggestion-hashtags text-gray-500 dark:text-gray-400 text-sm ml-4">${suggestion.hashtags.join(' ')}</span>`;
+                suggestionEl.addEventListener('click', () => {
+                    if (suggestion.module) {
+                        history.pushState({}, '', `?app=${suggestion.module}`);
+                        router();
+                    }
+                });
+                suggestionsContainer.appendChild(suggestionEl);
+            });
+        } else {
+            suggestionsContainer.classList.add('hidden');
+        }
+        const appsContainer = document.getElementById('apps-container');
+        if (appsContainer) {
+            const visibleAppCards = appsContainer.querySelectorAll('.app-item');
+            visibleAppCards.forEach(app => {
+                const appName = app.dataset.name.toLowerCase();
+                const moduleName = app.dataset.module;
+                const metadata = appSearchMetadata[moduleName] || { keywords: [], hashtags: [] };
+                const searchCorpus = [appName, ...metadata.keywords].join(' ');
+                const isVisible = searchCorpus.includes(searchTerm);
+                app.style.display = isVisible ? 'flex' : 'none';
+            });
+        }
+    });
+}
+
+async function applyAppListFilterAndRender() {
+    const appsContainer = document.getElementById('apps-container');
+    if (!appsContainer) return;
+    
+    destroyDragAndDrop();
+    isSortingMode = false;
+    
+    const sortBtn = document.getElementById('sort-my-apps-btn');
+    const filterContainer = document.getElementById('filter-container');
+    const activeFilter = filterContainer.querySelector('.active')?.dataset.sort || 'default';
+    
+    lastActiveFilter = activeFilter;
+    
+    const myApps = await getMyApps();
+
+    const renderApps = (appElements) => {
+        appsContainer.innerHTML = '';
+        if (appElements.length === 0 && activeFilter === 'my-apps') {
+            appsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 dark:text-gray-400">У вас пока нет добавленных приложений. Нажмите "+" на карточке приложения, чтобы добавить его сюда.</p>`;
+            return;
+        }
+        appElements.forEach(app => {
+            const appClone = app.cloneNode(true);
+            const button = appClone.querySelector('.add-to-my-apps-btn');
+            if (button && myApps.includes(app.dataset.module)) {
+                button.classList.add('is-added');
+            }
+            appsContainer.appendChild(appClone);
+        });
+    };
+
+    let appsToRender = [];
+    if (activeFilter === 'my-apps') {
+        appsToRender = myApps.map(moduleName => appCardElements.get(moduleName)).filter(Boolean);
+        if (sortBtn) {
+            sortBtn.classList.remove('hidden');
+            sortBtn.classList.remove('active');
+            sortBtn.textContent = 'Переместить';
+        }
+    } else {
+        if (sortBtn) sortBtn.classList.add('hidden');
+        let sortedApps = [...allAppCards];
+        if (activeFilter === 'popular') {
+            sortedApps.sort((a, b) => (appPopularity[b.dataset.module] || 0) - (appPopularity[a.dataset.module] || 0));
+        } else if (activeFilter === 'new') {
+            sortedApps.sort((a, b) => allAppCards.indexOf(b) - allAppCards.indexOf(a));
+        }
+        appsToRender = sortedApps;
+    }
+    renderApps(appsToRender);
+    
+    if (searchInput.value) {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
+function setupFilters() {
+    const filterContainer = document.getElementById('filter-container');
+    if (!filterContainer) return;
+    filterContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.filter-btn');
+        if (!button || button.classList.contains('active')) return;
+        filterContainer.querySelector('.active')?.classList.remove('active');
+        button.classList.add('active');
+        applyAppListFilterAndRender();
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     populateAppCardMap();
