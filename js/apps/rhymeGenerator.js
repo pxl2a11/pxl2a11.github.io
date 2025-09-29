@@ -1,4 +1,4 @@
-// 20js/apps/rhymeGenerator.js
+// js/apps/rhymeGenerator.js
 
 // --- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
@@ -57,30 +57,38 @@ export function getHtml() {
  * Асинхронная функция для получения рифм с помощью Datamuse API.
  */
 async function fetchRhymes() {
-    const word = rhymeInput.value.trim();
-    if (!word) {
-        statusMessage.textContent = 'Пожалуйста, введите слово.';
+    const word = rhymeInput.value.trim().toLowerCase();
+    if (word.length < 2) {
+        statusMessage.textContent = 'Пожалуйста, введите слово подлиннее.';
+        resultsContainer.innerHTML = '';
         return;
     }
 
     statusMessage.textContent = 'Ищем рифмы...';
-    resultsContainer.innerHTML = ''; // Очищаем предыдущие результаты
+    resultsContainer.innerHTML = '';
+
+    // Определяем окончание для поиска. Используем последние 3 символа, или 2, если слово короткое.
+    const ending = word.length > 3 ? word.slice(-3) : word.slice(-2);
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Используем параметр `ml=` вместо `rel_rhy=` для поддержки русского языка ---
-        const response = await fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(word)}`);
+        // ИСПРАВЛЕНИЕ: Используем параметр `sp=` (spelled like) с маской `*` (любые символы) + окончание.
+        // Добавляем lang=ru для поиска только на русском и max=100 для ограничения результатов.
+        const response = await fetch(`https://api.datamuse.com/words?sp=*${encodeURIComponent(ending)}&lang=ru&max=100`);
         
         if (!response.ok) {
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
         }
 
-        const rhymes = await response.json();
+        let rhymes = await response.json();
+        
+        // Фильтруем результаты, чтобы убрать исходное слово
+        rhymes = rhymes.filter(rhymeObj => rhymeObj.word !== word);
 
         if (rhymes.length > 0) {
-            statusMessage.textContent = `Найдено созвучных слов: ${rhymes.length}. Нажмите на слово, чтобы скопировать.`;
+            statusMessage.textContent = `Найдено рифм: ${rhymes.length}. Нажмите на слово, чтобы скопировать.`;
             renderRhymes(rhymes);
         } else {
-            statusMessage.textContent = `К сожалению, ничего не найдено для слова "${word}".`;
+            statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено.`;
         }
     } catch (error) {
         console.error("Ошибка при получении рифм:", error);
@@ -93,7 +101,7 @@ async function fetchRhymes() {
  * @param {Array<Object>} rhymes - Массив объектов со словами.
  */
 function renderRhymes(rhymes) {
-    // Ограничим количество рифм для лучшего отображения
+    // Ограничим количество отображаемых рифм, чтобы не перегружать интерфейс
     rhymes.slice(0, 50).forEach(rhymeObj => {
         const rhymeSpan = document.createElement('span');
         rhymeSpan.className = 'rhyme-word p-2 rounded-md bg-gray-200 dark:bg-gray-700 font-semibold';
@@ -132,7 +140,7 @@ export function init() {
     // Позволяет нажимать Enter в поле ввода
     addListener(rhymeInput, 'keypress', (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Предотвращаем отправку формы, если она есть
+            e.preventDefault(); // Предотвращаем стандартное поведение (например, отправку формы)
             fetchRhymes();
         }
     });
