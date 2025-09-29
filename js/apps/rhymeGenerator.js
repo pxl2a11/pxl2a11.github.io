@@ -1,11 +1,12 @@
-//34 js/apps/rhymeGenerator.js
-
 // --- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
 let eventListeners = [];
 
 /**
  * Вспомогательная функция для добавления и отслеживания обработчиков событий.
+ * @param {HTMLElement} element - Элемент, к которому добавляется обработчик.
+ * @param {string} event - Тип события (например, 'click').
+ * @param {Function} handler - Функция-обработчик.
  */
 function addListener(element, event, handler) {
     element.addEventListener(event, handler);
@@ -54,7 +55,7 @@ export function getHtml() {
 }
 
 /**
- * Асинхронная функция для получения рифм с помощью нового API.
+ * Асинхронная функция для получения рифм с помощью API от Stihi.ru.
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
@@ -68,8 +69,8 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Используем новый, более стабильный API от rhymes.su ---
-        const response = await fetch(`https://rhymes.su/api/rhymes?word=${encodeURIComponent(word)}`);
+        // --- ИСПРАВЛЕНИЕ: Используем работающий API от Stihi.ru ---
+        const response = await fetch(`https://stihi.ru/assist/rifma_json.pl?word=${encodeURIComponent(word)}`);
         
         if (!response.ok) {
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
@@ -77,14 +78,15 @@ async function fetchRhymes() {
 
         const rhymes = await response.json();
         
-        // Новый API возвращает массив объектов вида { text: 'рифма' }
-        // Фильтруем пустые или некорректные результаты на всякий случай
-        const validRhymes = rhymes.filter(r => r.text && r.text.trim() !== '');
+        // API от Stihi.ru возвращает массив объектов вида { "val": "рифма" }
+        // Фильтруем пустые или некорректные результаты
+        const validRhymes = rhymes.filter(r => r.val && r.val.trim() !== '');
 
         if (validRhymes.length > 0) {
             statusMessage.textContent = `Найдено рифм: ${validRhymes.length}. Нажмите на слово, чтобы скопировать.`;
             // Адаптируем массив к формату, который ожидает renderRhymes
-            renderRhymes(validRhymes.map(r => ({ word: r.text })));
+            // Меняем r.val на r.word для совместимости с вашей функцией renderRhymes
+            renderRhymes(validRhymes.map(r => ({ word: r.val })));
         } else {
             statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
         }
