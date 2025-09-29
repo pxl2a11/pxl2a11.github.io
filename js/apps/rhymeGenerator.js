@@ -1,5 +1,61 @@
-// 30--- КОД С ИСПРАВЛЕНИЯМИ ---
+//32 js/apps/rhymeGenerator.js
 
+// --- Глобальные переменные модуля ---
+let rhymeInput, findBtn, resultsContainer, statusMessage;
+let eventListeners = [];
+
+/**
+ * Вспомогательная функция для добавления и отслеживания обработчиков событий.
+ */
+function addListener(element, event, handler) {
+    element.addEventListener(event, handler);
+    eventListeners.push({ element, event, handler });
+}
+
+
+/**
+ * Возвращает HTML-структуру для приложения "Генератор рифм".
+ * @returns {string} HTML-разметка.
+ */
+export function getHtml() {
+    return `
+        <style>
+            .rhyme-word {
+                cursor: pointer;
+                transition: background-color 0.2s, color 0.2s;
+            }
+            .rhyme-word:hover {
+                background-color: #3b82f6; /* blue-500 */
+                color: white;
+            }
+            .dark .rhyme-word:hover {
+                background-color: #60a5fa; /* blue-400 */
+                color: #1f2937; /* gray-800 */
+            }
+        </style>
+        <div class="max-w-xl mx-auto p-4 space-y-6">
+            <h3 class="text-2xl font-bold text-center">Генератор рифм</h3>
+            
+            <!-- Поле ввода и кнопка -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="rhyme-input" placeholder="Введите слово..." class="flex-grow w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <button id="find-rhymes-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">Найти рифмы</button>
+            </div>
+
+            <!-- Контейнер для результатов -->
+            <div>
+                <p id="rhyme-status" class="text-center text-gray-600 dark:text-gray-400 min-h-[24px] mb-4">Введите слово и нажмите на кнопку</p>
+                <div id="rhymes-results-container" class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-inner min-h-[100px] flex flex-wrap gap-3 justify-center">
+                    <!-- Рифмы появятся здесь -->
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Асинхронная функция для получения рифм с помощью специализированного API.
+ */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
     if (word.length < 2) {
@@ -12,11 +68,11 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Используем новый, специализированный API для русского языка ---
+        // --- ИСПРАВЛЕНИЕ: Используем специализированный API для русского языка (rifma-api) ---
         const response = await fetch(`https://rifma-api.herokuapp.com/rifma/${encodeURIComponent(word)}`);
         
         if (!response.ok) {
-            // Этот API может возвращать 404, если рифм не найдено, обрабатываем это как пустой результат.
+            // Этот API возвращает 404, если рифм не найдено, обрабатываем это как пустой результат.
             if (response.status === 404) {
                 statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
                 resultsContainer.innerHTML = '';
@@ -27,13 +83,10 @@ async function fetchRhymes() {
 
         const data = await response.json();
         const rhymes = data.rhymes; // API возвращает рифмы в поле 'rhymes'
-        
-        // API уже возвращает отфильтрованные рифмы, дополнительная фильтрация не требуется.
 
         if (rhymes && rhymes.length > 0) {
             statusMessage.textContent = `Найдено рифм: ${rhymes.length}. Нажмите на слово, чтобы скопировать.`;
-            // Функция renderRhymes ожидает массив объектов, а новый API возвращает массив строк.
-            // Поэтому мы преобразуем его.
+            // Адаптируем массив строк к формату, который ожидает renderRhymes (массив объектов)
             renderRhymes(rhymes.map(r => ({ word: r })));
         } else {
             statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
@@ -42,4 +95,62 @@ async function fetchRhymes() {
         console.error("Ошибка при получении рифм:", error);
         statusMessage.textContent = 'Произошла ошибка при загрузке. Попробуйте позже.';
     }
+}
+
+
+/**
+ * Отображает найденные рифмы в контейнере.
+ * @param {Array<Object>} rhymes - Массив объектов со словами.
+ */
+function renderRhymes(rhymes) {
+    rhymes.forEach(rhymeObj => {
+        const rhymeSpan = document.createElement('span');
+        rhymeSpan.className = 'rhyme-word p-2 rounded-md bg-gray-200 dark:bg-gray-700 font-semibold';
+        rhymeSpan.textContent = rhymeObj.word;
+        rhymeSpan.title = 'Нажмите, чтобы скопировать';
+        
+        rhymeSpan.addEventListener('click', () => {
+            navigator.clipboard.writeText(rhymeObj.word).then(() => {
+                const originalText = rhymeSpan.textContent;
+                rhymeSpan.textContent = 'Скопировано!';
+                setTimeout(() => {
+                    rhymeSpan.textContent = originalText;
+                }, 1500);
+            });
+        });
+
+        resultsContainer.appendChild(rhymeSpan);
+    });
+}
+
+
+/**
+ * Инициализирует логику приложения.
+ */
+export function init() {
+    // Получаем элементы DOM
+    rhymeInput = document.getElementById('rhyme-input');
+    findBtn = document.getElementById('find-rhymes-btn');
+    resultsContainer = document.getElementById('rhymes-results-container');
+    statusMessage = document.getElementById('rhyme-status');
+
+    // Назначаем обработчики событий
+    addListener(findBtn, 'click', fetchRhymes);
+    
+    addListener(rhymeInput, 'keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            fetchRhymes();
+        }
+    });
+}
+
+/**
+ * Очищает ресурсы при выходе из приложения.
+ */
+export function cleanup() {
+    eventListeners.forEach(({ element, event, handler }) => {
+        element.removeEventListener(event, handler);
+    });
+    eventListeners = [];
 }
