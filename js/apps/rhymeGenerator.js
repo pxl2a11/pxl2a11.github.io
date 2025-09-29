@@ -1,4 +1,4 @@
-// --- Глобальные переменные модуля ---
+// 44--- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
 let eventListeners = [];
 
