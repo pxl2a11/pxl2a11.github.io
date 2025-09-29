@@ -1,4 +1,4 @@
-// js/apps/rhymeGenerator.js
+//24 js/apps/rhymeGenerator.js
 
 // --- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
