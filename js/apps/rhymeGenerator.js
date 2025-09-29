@@ -1,4 +1,4 @@
-// 54--- Глобальные переменные модуля ---
+//59 --- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
 let eventListeners = [];
 
@@ -48,7 +48,7 @@ export function getHtml() {
 }
 
 /**
- * Асинхронная функция для получения рифм через простой и рабочий CORS-прокси.
+ * Асинхронная функция для получения рифм напрямую с API kartaslov.ru (без прокси).
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
@@ -62,33 +62,27 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Используем новый, более простой прокси-сервер ---
-        const targetUrl = `https://stihi.ru/assist/rifma_json.pl?word=${encodeURIComponent(word)}`;
-        const proxyUrl = `https://thingproxy.freeboard.io/fetch/${targetUrl}`;
-
-        const response = await fetch(proxyUrl);
+        // --- ИСПРАВЛЕНИЕ: Прямой запрос к API kartaslov.ru, который поддерживает CORS ---
+        const response = await fetch(`https://kartaslov.ru/api-json/v1/getRhymes?word=${encodeURIComponent(word)}`);
 
         if (!response.ok) {
-            // Если прокси вернул ошибку, это поможет нам увидеть причину в консоли
-            const errorText = await response.text();
-            console.error('Ошибка от прокси-сервера или API:', errorText);
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
         }
 
-        // Этот прокси возвращает данные напрямую, поэтому парсим JSON сразу
-        const rhymes = await response.json();
+        const data = await response.json();
         
-        const validRhymes = rhymes.filter(r => r.val && r.val.trim() !== '');
+        // API возвращает объект { rhymes: [ {word: '...'}, ... ] }
+        const validRhymes = data.rhymes || [];
 
         if (validRhymes.length > 0) {
             statusMessage.textContent = `Найдено рифм: ${validRhymes.length}. Нажмите на слово, чтобы скопировать.`;
-            renderRhymes(validRhymes.map(r => ({ word: r.val })));
+            // Массив validRhymes уже имеет нужный формат [ {word: '...'} ], передаем его напрямую
+            renderRhymes(validRhymes);
         } else {
             statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
         }
     } catch (error) {
-        // Эта строка выведет детальную информацию об ошибке в консоль разработчика (F12)
-        console.error("Подробная ошибка при получении рифм:", error);
+        console.error("Ошибка при получении рифм:", error);
         statusMessage.textContent = 'Произошла ошибка при загрузке. Попробуйте позже.';
     }
 }
