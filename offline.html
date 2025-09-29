@@ -126,6 +126,7 @@
                 'Markdown Редактор': 'markdownEditor',
                 'Тетрис': 'tetris',
                 'Метроном': 'metronome',
+                'Генератор рифм': 'rhymeGenerator', // <-- ДОБАВЛЕНО НОВОЕ ПРИЛОЖЕНИЕ
                 // Приложения, требующие онлайн
                 'Скорость интернета': 'speedTest', 'Радио': 'radio', 'Мой IP': 'myIp', 'Калькулятор валют': 'currencyCalculator',
                 'Заметки и задачи': 'notesAndTasks',
@@ -136,7 +137,7 @@
                 'Морской бой': 'battleship',
             };
             
-            const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks'];
+            const onlineOnlyApps = ['speedTest', 'radio', 'myIp', 'currencyCalculator', 'notesAndTasks', 'rhymeGenerator']; // <-- ДОБАВЛЕНО СЮДА
             
             const sortedAppNames = Object.keys(allApps).sort((a, b) => a.localeCompare(b, 'ru'));
             
