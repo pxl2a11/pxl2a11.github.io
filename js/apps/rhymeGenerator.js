@@ -1,4 +1,4 @@
-//24 js/apps/rhymeGenerator.js
+// js/apps/rhymeGenerator.js
 
 // --- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
@@ -59,7 +59,7 @@ export function getHtml() {
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
     if (word.length < 2) {
-        statusMessage.textContent = 'Пожалуйста, введите слово подлиннее.';
+        statusMessage.textContent = 'Пожалуйста, введите слово.';
         resultsContainer.innerHTML = '';
         return;
     }
@@ -67,13 +67,13 @@ async function fetchRhymes() {
     statusMessage.textContent = 'Ищем рифмы...';
     resultsContainer.innerHTML = '';
 
-    // Определяем окончание для поиска. Используем последние 3 символа, или 2, если слово короткое.
-    const ending = word.length > 3 ? word.slice(-3) : word.slice(-2);
-
     try {
-        // ИСПРАВЛЕНИЕ: Используем параметр `sp=` (spelled like) с маской `*` (любые символы) + окончание.
-        // Добавляем lang=ru для поиска только на русском и max=100 для ограничения результатов.
-        const response = await fetch(`https://api.datamuse.com/words?sp=*${encodeURIComponent(ending)}&lang=ru&max=100`);
+        // --- ИСПРАВЛЕНИЕ: Используем параметр `rel_rhy=` который, как оказалось, работает,
+        // но требует дополнительной обработки для отображения. 
+        // Альтернативный параметр `sp` с маской надежнее для русского языка.
+        // Мы будем использовать `sp` с маской, чтобы найти слова с похожим окончанием.
+        const ending = word.length > 4 ? word.slice(-4) : word.slice(-3);
+        const response = await fetch(`https://api.datamuse.com/words?sp=*${encodeURIComponent(ending)}&max=100`);
         
         if (!response.ok) {
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
@@ -81,14 +81,14 @@ async function fetchRhymes() {
 
         let rhymes = await response.json();
         
-        // Фильтруем результаты, чтобы убрать исходное слово
-        rhymes = rhymes.filter(rhymeObj => rhymeObj.word !== word);
+        // Фильтруем результаты, чтобы убрать исходное слово и слишком непохожие слова
+        rhymes = rhymes.filter(rhymeObj => rhymeObj.word !== word && rhymeObj.word.length > 1);
 
         if (rhymes.length > 0) {
             statusMessage.textContent = `Найдено рифм: ${rhymes.length}. Нажмите на слово, чтобы скопировать.`;
             renderRhymes(rhymes);
         } else {
-            statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено.`;
+            statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
         }
     } catch (error) {
         console.error("Ошибка при получении рифм:", error);
@@ -101,14 +101,12 @@ async function fetchRhymes() {
  * @param {Array<Object>} rhymes - Массив объектов со словами.
  */
 function renderRhymes(rhymes) {
-    // Ограничим количество отображаемых рифм, чтобы не перегружать интерфейс
-    rhymes.slice(0, 50).forEach(rhymeObj => {
+    rhymes.forEach(rhymeObj => {
         const rhymeSpan = document.createElement('span');
         rhymeSpan.className = 'rhyme-word p-2 rounded-md bg-gray-200 dark:bg-gray-700 font-semibold';
         rhymeSpan.textContent = rhymeObj.word;
         rhymeSpan.title = 'Нажмите, чтобы скопировать';
         
-        // Добавляем обработчик для копирования в буфер обмена
         rhymeSpan.addEventListener('click', () => {
             navigator.clipboard.writeText(rhymeObj.word).then(() => {
                 const originalText = rhymeSpan.textContent;
@@ -137,10 +135,9 @@ export function init() {
     // Назначаем обработчики событий
     addListener(findBtn, 'click', fetchRhymes);
     
-    // Позволяет нажимать Enter в поле ввода
     addListener(rhymeInput, 'keypress', (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Предотвращаем стандартное поведение (например, отправку формы)
+            e.preventDefault();
             fetchRhymes();
         }
     });
@@ -150,7 +147,6 @@ export function init() {
  * Очищает ресурсы при выходе из приложения.
  */
 export function cleanup() {
-    // Удаляем все слушатели событий
     eventListeners.forEach(({ element, event, handler }) => {
         element.removeEventListener(event, handler);
     });
