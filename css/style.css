@@ -43,6 +43,68 @@ body:has(#initial-loading-overlay:not([style*="display: none"])) {
     color: #1f2937;
 }
 
+/* --- НОВЫЕ СТИЛИ: для карточек фильтрации на главной странице --- */
+.filter-card {
+    position: relative;
+    display: flex !important;
+    align-items: center !important;
+    padding: 1.25rem 1.5rem !important;
+    overflow: hidden;
+    background-color: #f1f5f9; /* slate-100 */
+    border: 1px solid #e2e8f0; /* slate-200 */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    border-radius: 0.75rem !important;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    cursor: pointer;
+    text-decoration: none !important;
+    color: inherit !important;
+}
+.filter-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
+    border-color: #9ca3af;
+}
+.dark .filter-card {
+    background-color: #1e293b !important; /* slate-800 */
+    border: 1px solid #334155 !important; /* slate-700 */
+}
+.dark .filter-card:hover {
+    border-color: #4b5563;
+}
+.filter-card.active {
+    border-color: #3b82f6;
+    box-shadow: inset 0 0 0 2px #3b82f6;
+}
+.dark .filter-card.active {
+    border-color: #60a5fa;
+    box-shadow: inset 0 0 0 2px #60a5fa;
+}
+
+.filter-card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.filter-card-name {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+}
+
+.filter-card-count {
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    background-color: #e2e8f0; /* slate-200 */
+    color: #475569; /* slate-600 */
+}
+.dark .filter-card-count {
+    background-color: #334155; /* slate-700 */
+    color: #cbd5e1; /* slate-300 */
+}
+
 /* --- НОВЫЕ СТИЛИ: для кнопки "Переместить" --- */
 #sort-my-apps-btn {
     /* Убираем стили обычной кнопки */
@@ -332,8 +394,8 @@ html.dark { scrollbar-color: #6b7280 #1f293b; }
 
 /* --- Управление положением и видимостью сайдбара --- */
 #sidebar {
+    display: flex; /* ИЗМЕНЕНИЕ: Сайдбар всегда является flex-контейнером */
     left: 0;
-    /* ИСПРАВЛЕНИЕ 1: Задаем конкретный цвет границе */
     border-right: 1px solid #e2e8f0; /* slate-200 */
     transform: translateX(0);
 }
@@ -345,14 +407,14 @@ html.dark { scrollbar-color: #6b7280 #1f293b; }
     margin-left: 0;
 }
 #sidebar-toggle-btn {
+    display: flex; /* ИЗМЕНЕНИЕ: Кнопка всегда видима */
     left: 20rem; /* 320px */
     border-radius: 0 0.5rem 0.5rem 0;
 }
 
-/* Показываем сайдбар и кнопку управления */
-body.app-view-active #sidebar,
-body.app-view-active #sidebar-toggle-btn {
-    display: flex;
+/* Сдвигаем основной контент, когда сайдбар слева и открыт */
+body.app-view-active:not(.sidebar-collapsed) #main-content-wrapper {
+    margin-left: 20rem; /* 320px */
 }
 
 /* --- Состояние: Сайдбар СПРАВА --- */
@@ -360,7 +422,6 @@ body.sidebar-on-right #sidebar {
     left: auto;
     right: 0;
     border-right: none;
-    /* ИСПРАВЛЕНИЕ 1: Задаем конкретный цвет границе */
     border-left: 1px solid #e2e8f0; /* slate-200 */
 }
 .dark body.sidebar-on-right #sidebar {
@@ -371,6 +432,11 @@ body.sidebar-on-right #sidebar-toggle-btn {
     left: auto;
     right: 20rem; /* 320px */
     border-radius: 0.5rem 0 0 0.5rem; /* скругляем левые углы */
+}
+/* Сдвигаем основной контент, когда сайдбар справа и открыт */
+body.app-view-active.sidebar-on-right:not(.sidebar-collapsed) #main-content-wrapper {
+    margin-left: 0;
+    margin-right: 20rem; /* 320px */
 }
 
 /* --- Состояние: Сайдбар СКРЫТ --- */
