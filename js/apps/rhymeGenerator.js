@@ -1,4 +1,4 @@
-//59 --- Глобальные переменные модуля ---
+// 03--- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
 let eventListeners = [];
 
@@ -48,7 +48,7 @@ export function getHtml() {
 }
 
 /**
- * Асинхронная функция для получения рифм напрямую с API kartaslov.ru (без прокси).
+ * Асинхронная функция для получения рифм с kartaslov.ru через прокси AllOrigins.
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
@@ -62,21 +62,29 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Прямой запрос к API kartaslov.ru, который поддерживает CORS ---
-        const response = await fetch(`https://kartaslov.ru/api-json/v1/getRhymes?word=${encodeURIComponent(word)}`);
+        // 1. Указываем URL нужного нам API (kartaslov.ru)
+        const targetUrl = `https://kartaslov.ru/api-json/v1/getRhymes?word=${encodeURIComponent(word)}`;
+        
+        // 2. Оборачиваем его в URL-адрес прокси-сервера AllOrigins
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
+        const response = await fetch(proxyUrl);
+        
         if (!response.ok) {
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
         }
 
         const data = await response.json();
         
-        // API возвращает объект { rhymes: [ {word: '...'}, ... ] }
-        const validRhymes = data.rhymes || [];
+        // 3. AllOrigins возвращает данные в поле 'contents'. Распарсим эту строку, чтобы получить ответ от API.
+        const apiResponse = JSON.parse(data.contents);
+        
+        // 4. Извлекаем массив рифм из ответа API
+        const validRhymes = apiResponse.rhymes || [];
 
         if (validRhymes.length > 0) {
             statusMessage.textContent = `Найдено рифм: ${validRhymes.length}. Нажмите на слово, чтобы скопировать.`;
-            // Массив validRhymes уже имеет нужный формат [ {word: '...'} ], передаем его напрямую
+            // Передаем массив в функцию отрисовки
             renderRhymes(validRhymes);
         } else {
             statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
