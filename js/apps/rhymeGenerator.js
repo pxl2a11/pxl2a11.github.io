@@ -1,4 +1,4 @@
-//32 js/apps/rhymeGenerator.js
+//34 js/apps/rhymeGenerator.js
 
 // --- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
@@ -54,7 +54,7 @@ export function getHtml() {
 }
 
 /**
- * Асинхронная функция для получения рифм с помощью специализированного API.
+ * Асинхронная функция для получения рифм с помощью нового API.
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
@@ -68,26 +68,23 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Используем специализированный API для русского языка (rifma-api) ---
-        const response = await fetch(`https://rifma-api.herokuapp.com/rifma/${encodeURIComponent(word)}`);
+        // --- ИСПРАВЛЕНИЕ: Используем новый, более стабильный API от rhymes.su ---
+        const response = await fetch(`https://rhymes.su/api/rhymes?word=${encodeURIComponent(word)}`);
         
         if (!response.ok) {
-            // Этот API возвращает 404, если рифм не найдено, обрабатываем это как пустой результат.
-            if (response.status === 404) {
-                statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
-                resultsContainer.innerHTML = '';
-                return;
-            }
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        const rhymes = data.rhymes; // API возвращает рифмы в поле 'rhymes'
+        const rhymes = await response.json();
+        
+        // Новый API возвращает массив объектов вида { text: 'рифма' }
+        // Фильтруем пустые или некорректные результаты на всякий случай
+        const validRhymes = rhymes.filter(r => r.text && r.text.trim() !== '');
 
-        if (rhymes && rhymes.length > 0) {
-            statusMessage.textContent = `Найдено рифм: ${rhymes.length}. Нажмите на слово, чтобы скопировать.`;
-            // Адаптируем массив строк к формату, который ожидает renderRhymes (массив объектов)
-            renderRhymes(rhymes.map(r => ({ word: r })));
+        if (validRhymes.length > 0) {
+            statusMessage.textContent = `Найдено рифм: ${validRhymes.length}. Нажмите на слово, чтобы скопировать.`;
+            // Адаптируем массив к формату, который ожидает renderRhymes
+            renderRhymes(validRhymes.map(r => ({ word: r.text })));
         } else {
             statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
         }
@@ -103,6 +100,9 @@ async function fetchRhymes() {
  * @param {Array<Object>} rhymes - Массив объектов со словами.
  */
 function renderRhymes(rhymes) {
+    // Очищаем предыдущие результаты
+    resultsContainer.innerHTML = '';
+
     rhymes.forEach(rhymeObj => {
         const rhymeSpan = document.createElement('span');
         rhymeSpan.className = 'rhyme-word p-2 rounded-md bg-gray-200 dark:bg-gray-700 font-semibold';
