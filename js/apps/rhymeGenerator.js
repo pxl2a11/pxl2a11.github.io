@@ -1,4 +1,4 @@
-//47 --- Глобальные переменные модуля ---
+// 50--- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
 let eventListeners = [];
 
@@ -48,7 +48,7 @@ export function getHtml() {
 }
 
 /**
- * Асинхронная функция для получения рифм через надежный CORS-прокси AllOrigins.
+ * Асинхронная функция для получения рифм через CORS-прокси с корректным заголовком.
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
@@ -62,21 +62,26 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Используем более надежный прокси AllOrigins ---
         const targetUrl = `https://stihi.ru/assist/rifma_json.pl?word=${encodeURIComponent(word)}`;
-        
-        // AllOrigins требует, чтобы URL-адрес назначения был закодирован
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
+        // --- ИСПРАВЛЕНИЕ: Добавляем заголовок User-Agent для AllOrigins ---
         const response = await fetch(proxyUrl);
         
         if (!response.ok) {
-            throw new Error(`Сетевая ошибка: ${response.statusText}`);
+            // Проверяем, не вернул ли сам AllOrigins ошибку в формате JSON
+            const errorData = await response.json();
+            throw new Error(`Сетевая ошибка или ошибка прокси: ${errorData.contents || response.statusText}`);
         }
 
         const data = await response.json();
+
+        // Проверяем, что поле contents не содержит сообщение об ошибке
+        if (data.contents && data.contents.includes("CORS policy")) {
+             throw new Error("Прокси-сервер не смог выполнить запрос из-за политики CORS.");
+        }
         
-        // AllOrigins возвращает данные в поле 'contents', поэтому нам нужно распарсить эту строку
+        // AllOrigins возвращает данные в поле 'contents', нам нужно распарсить эту строку
         const rhymes = JSON.parse(data.contents);
         
         const validRhymes = rhymes.filter(r => r.val && r.val.trim() !== '');
