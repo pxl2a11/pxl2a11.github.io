@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v69'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v70'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -30,7 +30,8 @@ const appModules = [
     'base64Converter',
     'periodicTable',
     'battleship',
-    'metronome'
+    'metronome',
+    'rhymeGenerator' // <-- ДОБАВЛЕНО НОВОЕ ПРИЛОЖЕНИЕ
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
