@@ -1,4 +1,4 @@
-// 50--- Глобальные переменные модуля ---
+// 54--- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
 let eventListeners = [];
 
@@ -48,7 +48,7 @@ export function getHtml() {
 }
 
 /**
- * Асинхронная функция для получения рифм через CORS-прокси с корректным заголовком.
+ * Асинхронная функция для получения рифм через простой и рабочий CORS-прокси.
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
@@ -62,27 +62,21 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
+        // --- ИСПРАВЛЕНИЕ: Используем новый, более простой прокси-сервер ---
         const targetUrl = `https://stihi.ru/assist/rifma_json.pl?word=${encodeURIComponent(word)}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+        const proxyUrl = `https://thingproxy.freeboard.io/fetch/${targetUrl}`;
 
-        // --- ИСПРАВЛЕНИЕ: Добавляем заголовок User-Agent для AllOrigins ---
         const response = await fetch(proxyUrl);
-        
+
         if (!response.ok) {
-            // Проверяем, не вернул ли сам AllOrigins ошибку в формате JSON
-            const errorData = await response.json();
-            throw new Error(`Сетевая ошибка или ошибка прокси: ${errorData.contents || response.statusText}`);
+            // Если прокси вернул ошибку, это поможет нам увидеть причину в консоли
+            const errorText = await response.text();
+            console.error('Ошибка от прокси-сервера или API:', errorText);
+            throw new Error(`Сетевая ошибка: ${response.statusText}`);
         }
 
-        const data = await response.json();
-
-        // Проверяем, что поле contents не содержит сообщение об ошибке
-        if (data.contents && data.contents.includes("CORS policy")) {
-             throw new Error("Прокси-сервер не смог выполнить запрос из-за политики CORS.");
-        }
-        
-        // AllOrigins возвращает данные в поле 'contents', нам нужно распарсить эту строку
-        const rhymes = JSON.parse(data.contents);
+        // Этот прокси возвращает данные напрямую, поэтому парсим JSON сразу
+        const rhymes = await response.json();
         
         const validRhymes = rhymes.filter(r => r.val && r.val.trim() !== '');
 
@@ -93,7 +87,8 @@ async function fetchRhymes() {
             statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено. Попробуйте другую форму слова.`;
         }
     } catch (error) {
-        console.error("Ошибка при получении рифм:", error);
+        // Эта строка выведет детальную информацию об ошибке в консоль разработчика (F12)
+        console.error("Подробная ошибка при получении рифм:", error);
         statusMessage.textContent = 'Произошла ошибка при загрузке. Попробуйте позже.';
     }
 }
