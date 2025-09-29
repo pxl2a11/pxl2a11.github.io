@@ -89,7 +89,7 @@
     <div class="flex min-h-screen">
 
         <!-- САЙДБАР -->
-        <aside id="sidebar" class="hidden fixed top-0 w-80 h-full bg-white dark:bg-slate-900/70 backdrop-blur-lg border-slate-200/50 dark:border-slate-700/50 z-40 p-4 flex flex-col transition-all duration-300 ease-in-out">
+        <aside id="sidebar" class="fixed top-0 w-80 h-full bg-white dark:bg-slate-900/70 backdrop-blur-lg border-slate-200/50 dark:border-slate-700/50 z-40 p-4 flex flex-col transition-all duration-300 ease-in-out">
             
             <h1 class="text-3xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
                 <a href="/" id="sidebar-home-link">Mini Apps</a>
@@ -101,7 +101,7 @@
             </div>
             
             <div id="sidebar-filter-container" class="flex flex-wrap justify-center items-center gap-2 mb-4">
-                 <button data-sort="my-apps" class="filter-btn hidden">Мои</button>
+                 <button data-sort="my-apps" class="filter-btn hidden">Мои приложения</button>
                  <button data-sort="all" class="filter-btn active">Все</button>
                  <button data-sort="popular" class="filter-btn">Популярные</button>
                  <button data-sort="new" class="filter-btn">Новые</button>
@@ -134,7 +134,7 @@
             </div>
         </aside>
         
-        <button id="sidebar-toggle-btn" class="hidden fixed top-1/2 -translate-y-1/2 z-30 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-r-lg shadow-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 ease-in-out">
+        <button id="sidebar-toggle-btn" class="fixed top-1/2 -translate-y-1/2 z-30 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-r-lg shadow-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 ease-in-out">
         </button>
 
         <!-- ОСНОВНОЙ КОНТЕНТ -->
@@ -164,11 +164,31 @@
                     <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     <div id="suggestions-container" class="absolute w-full mt-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-lg hidden z-40"></div>
                 </div>
-                <div id="filter-container" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-6">
-                    <button data-sort="my-apps" class="filter-btn hidden">Мои приложения</button>
-                    <button data-sort="default" class="filter-btn active">Все</button>
-                    <button data-sort="popular" class="filter-btn">Популярные</button>
-                    <button data-sort="new" class="filter-btn">Новые</button>
+                <div id="filter-card-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-left">
+                    <div data-filter="my-apps" class="filter-card hidden">
+                        <div class="filter-card-content">
+                            <span class="filter-card-name">Мои приложения</span>
+                            <span class="filter-card-count">0</span>
+                        </div>
+                    </div>
+                    <div data-filter="all" class="filter-card">
+                        <div class="filter-card-content">
+                            <span class="filter-card-name">Все</span>
+                            <span class="filter-card-count">0</span>
+                        </div>
+                    </div>
+                    <div data-filter="popular" class="filter-card">
+                        <div class="filter-card-content">
+                            <span class="filter-card-name">Популярные</span>
+                            <span class="filter-card-count">0</span>
+                        </div>
+                    </div>
+                    <div data-filter="new" class="filter-card">
+                        <div class="filter-card-content">
+                            <span class="filter-card-name">Новые</span>
+                            <span class="filter-card-count">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -496,9 +516,9 @@
             <div class="app-icon-wrapper"><img src="img/battleship.svg" alt="Морской бой"></div>
             <div class="app-name-wrapper"><span class="app-name-text">Морской бой</span></div>
         </a>
-        <a href="?app=metronome" class="app-item" style="--app-color: #475569;" data-name="Простой метроном" data-module="metronome">
+        <a href="?app=metronome" class="app-item" style="--app-color: #475569;" data-name="Метроном" data-module="metronome">
         <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
-        <div class="app-icon-wrapper"><img src="img/metronome.svg" alt="Простой метроном"></div>
+        <div class="app-icon-wrapper"><img src="img/metronome.svg" alt="Метроном"></div>
         <div class="app-name-wrapper"><span class="app-name-text">Метроном</span></div>
     </a>
     </template>
