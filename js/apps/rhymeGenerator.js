@@ -67,8 +67,8 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = ''; // Очищаем предыдущие результаты
 
     try {
-        // Используем бесплатный API Datamuse для поиска рифм
-        const response = await fetch(`https://api.datamuse.com/words?rel_rhy=${encodeURIComponent(word)}`);
+        // --- ИСПРАВЛЕНИЕ: Используем параметр `ml=` вместо `rel_rhy=` для поддержки русского языка ---
+        const response = await fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(word)}`);
         
         if (!response.ok) {
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
@@ -77,10 +77,10 @@ async function fetchRhymes() {
         const rhymes = await response.json();
 
         if (rhymes.length > 0) {
-            statusMessage.textContent = `Найдено рифм: ${rhymes.length}. Нажмите на слово, чтобы скопировать.`;
+            statusMessage.textContent = `Найдено созвучных слов: ${rhymes.length}. Нажмите на слово, чтобы скопировать.`;
             renderRhymes(rhymes);
         } else {
-            statusMessage.textContent = `К сожалению, рифм для слова "${word}" не найдено.`;
+            statusMessage.textContent = `К сожалению, ничего не найдено для слова "${word}".`;
         }
     } catch (error) {
         console.error("Ошибка при получении рифм:", error);
@@ -93,7 +93,8 @@ async function fetchRhymes() {
  * @param {Array<Object>} rhymes - Массив объектов со словами.
  */
 function renderRhymes(rhymes) {
-    rhymes.forEach(rhymeObj => {
+    // Ограничим количество рифм для лучшего отображения
+    rhymes.slice(0, 50).forEach(rhymeObj => {
         const rhymeSpan = document.createElement('span');
         rhymeSpan.className = 'rhyme-word p-2 rounded-md bg-gray-200 dark:bg-gray-700 font-semibold';
         rhymeSpan.textContent = rhymeObj.word;
@@ -131,6 +132,7 @@ export function init() {
     // Позволяет нажимать Enter в поле ввода
     addListener(rhymeInput, 'keypress', (e) => {
         if (e.key === 'Enter') {
+            e.preventDefault(); // Предотвращаем отправку формы, если она есть
             fetchRhymes();
         }
     });
