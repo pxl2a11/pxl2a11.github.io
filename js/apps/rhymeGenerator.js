@@ -1,22 +1,17 @@
-// 44--- Глобальные переменные модуля ---
+//47 --- Глобальные переменные модуля ---
 let rhymeInput, findBtn, resultsContainer, statusMessage;
 let eventListeners = [];
 
 /**
  * Вспомогательная функция для добавления и отслеживания обработчиков событий.
- * @param {HTMLElement} element - Элемент, к которому добавляется обработчик.
- * @param {string} event - Тип события (например, 'click').
- * @param {Function} handler - Функция-обработчик.
  */
 function addListener(element, event, handler) {
     element.addEventListener(event, handler);
     eventListeners.push({ element, event, handler });
 }
 
-
 /**
  * Возвращает HTML-структуру для приложения "Генератор рифм".
- * @returns {string} HTML-разметка.
  */
 export function getHtml() {
     return `
@@ -37,13 +32,11 @@ export function getHtml() {
         <div class="max-w-xl mx-auto p-4 space-y-6">
             <h3 class="text-2xl font-bold text-center">Генератор рифм</h3>
             
-            <!-- Поле ввода и кнопка -->
             <div class="flex flex-col sm:flex-row gap-3">
                 <input type="text" id="rhyme-input" placeholder="Введите слово..." class="flex-grow w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 <button id="find-rhymes-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">Найти рифмы</button>
             </div>
 
-            <!-- Контейнер для результатов -->
             <div>
                 <p id="rhyme-status" class="text-center text-gray-600 dark:text-gray-400 min-h-[24px] mb-4">Введите слово и нажмите на кнопку</p>
                 <div id="rhymes-results-container" class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-inner min-h-[100px] flex flex-wrap gap-3 justify-center">
@@ -55,7 +48,7 @@ export function getHtml() {
 }
 
 /**
- * Асинхронная функция для получения рифм с помощью API от Stihi.ru через CORS-прокси.
+ * Асинхронная функция для получения рифм через надежный CORS-прокси AllOrigins.
  */
 async function fetchRhymes() {
     const word = rhymeInput.value.trim().toLowerCase();
@@ -69,9 +62,11 @@ async function fetchRhymes() {
     resultsContainer.innerHTML = '';
 
     try {
-        // --- ИСПРАВЛЕНИЕ: Используем CORS-прокси для обхода ограничений ---
+        // --- ИСПРАВЛЕНИЕ: Используем более надежный прокси AllOrigins ---
         const targetUrl = `https://stihi.ru/assist/rifma_json.pl?word=${encodeURIComponent(word)}`;
-        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`;
+        
+        // AllOrigins требует, чтобы URL-адрес назначения был закодирован
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
         const response = await fetch(proxyUrl);
         
@@ -79,9 +74,11 @@ async function fetchRhymes() {
             throw new Error(`Сетевая ошибка: ${response.statusText}`);
         }
 
-        const rhymes = await response.json();
+        const data = await response.json();
         
-        // API от Stihi.ru возвращает массив объектов вида { "val": "рифма" }
+        // AllOrigins возвращает данные в поле 'contents', поэтому нам нужно распарсить эту строку
+        const rhymes = JSON.parse(data.contents);
+        
         const validRhymes = rhymes.filter(r => r.val && r.val.trim() !== '');
 
         if (validRhymes.length > 0) {
@@ -96,14 +93,11 @@ async function fetchRhymes() {
     }
 }
 
-
 /**
  * Отображает найденные рифмы в контейнере.
- * @param {Array<Object>} rhymes - Массив объектов со словами.
  */
 function renderRhymes(rhymes) {
     resultsContainer.innerHTML = '';
-
     rhymes.forEach(rhymeObj => {
         const rhymeSpan = document.createElement('span');
         rhymeSpan.className = 'rhyme-word p-2 rounded-md bg-gray-200 dark:bg-gray-700 font-semibold';
@@ -119,11 +113,9 @@ function renderRhymes(rhymes) {
                 }, 1500);
             });
         });
-
         resultsContainer.appendChild(rhymeSpan);
     });
 }
-
 
 /**
  * Инициализирует логику приложения.
