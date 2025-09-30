@@ -1,4 +1,4 @@
-// 58js/apps/solitaire.js
+//02 js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -15,7 +15,13 @@ let sourcePileElement = null;
 export function getHtml() {
     return `
         <style>
-            .solitaire-board { user-select: none; }
+            /* ИЗМЕНЕНО: Задаем минимальную высоту для всего поля, чтобы карты не вылезали за его пределы */
+            .solitaire-board { 
+                user-select: none; 
+                min-height: 850px; 
+                display: flex;
+                flex-direction: column;
+            }
             
             .solitaire-top {
                 display: flex;
@@ -28,6 +34,8 @@ export function getHtml() {
                 display: flex; 
                 gap: 15px;
                 margin-top: 30px;
+                /* Позволяем этому блоку занять оставшееся место, чтобы оттолкнуть кнопку вниз */
+                flex-grow: 1;
             }
 
             .pile { 
@@ -39,10 +47,9 @@ export function getHtml() {
             }
             .dark .pile { border-color: rgba(255,255,255,0.2); }
 
-            /* ИЗМЕНЕНО: Позволяем стопкам на столе расти по высоте */
             .tableau-pile {
-                height: auto; /* Убираем фиксированную высоту */
-                min-height: 145px; /* Задаем минимальную высоту, как у карты */
+                height: auto; 
+                min-height: 145px; 
             }
 
             .card {
@@ -82,30 +89,31 @@ export function getHtml() {
             .solitaire-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; }
         </style>
 
-        <div class="solitaire-board max-w-4xl mx-auto p-6 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
-            <div class="solitaire-top">
-                <div class="flex gap-4">
-                    <div id="stock-pile" class="pile"></div>
-                    <div id="waste-pile" class="pile"></div>
+        <!-- ИЗМЕНЕНО: Добавлен дополнительный нижний отступ (pb-8) -->
+        <div class=\"solitaire-board max-w-4xl mx-auto p-6 pb-8 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative\">
+            <div class=\"solitaire-top\">
+                <div class=\"flex gap-4\">
+                    <div id=\"stock-pile\" class=\"pile\"></div>
+                    <div id=\"waste-pile\" class=\"pile\"></div>
                 </div>
                 
-                <div class="flex gap-4">
-                    ${[0,1,2,3].map(i => `<div id="foundation-${i}" class="pile foundation-pile"></div>`).join('')}
+                <div class=\"flex gap-4\">
+                    ${[0,1,2,3].map(i => `<div id=\"foundation-${i}\" class=\"pile foundation-pile\"></div>`).join('')}
                 </div>
             </div>
             
-            <div class="solitaire-tableau">
-                 ${[0,1,2,3,4,5,6].map(i => `<div id="tableau-${i}" class="pile tableau-pile"></div>`).join('')}
+            <div class=\"solitaire-tableau\">
+                 ${[0,1,2,3,4,5,6].map(i => `<div id=\"tableau-${i}\" class=\"pile tableau-pile\"></div>`).join('')}
             </div>
             
-            <div class="mt-4 text-center">
-                <button id="new-game-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
+            <div class=\"mt-auto text-center pt-4\"> <!-- mt-auto отодвигает кнопку вниз -->
+                <button id=\"new-game-btn\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded\">Новая игра</button>
             </div>
 
-            <div id="win-overlay" class="solitaire-overlay rounded-lg">
-                <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
-                    <h2 class="text-3xl font-bold text-green-500">Поздравляем!</h2>
-                    <p class="mt-2">Вы выиграли!</p>
+            <div id=\"win-overlay\" class=\"solitaire-overlay rounded-lg\">
+                <div class=\"p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl\">
+                    <h2 class=\"text-3xl font-bold text-green-500\">Поздравляем!</h2>
+                    <p class=\"mt-2\">Вы выиграли!</p>
                 </div>
             </div>
         </div>
@@ -169,8 +177,8 @@ function renderBoard() {
         pileEl.innerHTML = '';
         tableau[i].forEach((card, index) => {
             const cardEl = createCardElement(card);
-            // ИЗМЕНЕНО: Уменьшен сдвиг карт для более компактных и коротких колонок
-            cardEl.style.top = `${index * 30}px`;
+            // ИЗМЕНЕНО: Возвращен более компактный сдвиг карт для уменьшения высоты колонок
+            cardEl.style.top = `${index * 25}px`;
             pileEl.appendChild(cardEl);
         });
     }
