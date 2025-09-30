@@ -1,4 +1,4 @@
-// 10 js/apps/jsonFormatter.js
+// 13 js/apps/jsonFormatter.js
 
 let inputArea, outputArea, formatBtn, minifyBtn, copyBtn, clearBtn, statusArea;
 let eventListeners = [];
@@ -12,20 +12,18 @@ function addListener(element, event, handler) {
 export function getHtml() {
     return `
         <style>
-            /* Горизонтальная прокрутка для поля ввода и вывода */
+            /* 
+             * Применяем стиль для горизонтальной прокрутки и моноширинный шрифт к обоим полям.
+             * Это обеспечивает одинаковый вид текста и поведение прокрутки.
+            */
             #json-input, #json-output {
                 white-space: pre;
                 overflow-x: auto;
+                font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
             }
 
-            #json-output {
-                font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-                background-color: #f8fafc; /* gray-50 */
-                min-height: 200px;
-            }
-            .dark #json-output {
-                background-color: #1e293b; /* slate-800 */
-            }
+            /* Убираем специфичные стили для #json-output, т.к. теперь используем классы Tailwind */
+            
             .json-valid {
                 border-color: #22c55e !important; /* green-500 */
             }
@@ -47,10 +45,10 @@ export function getHtml() {
                 <button id="clear-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Очистить</button>
             </div>
 
-            <!-- ИСПРАВЛЕНИЕ ЗДЕСЬ: Классы прокрутки и границ перенесены на сам <pre> -->
+            <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: <pre> заменен на <textarea> с атрибутом readonly и теми же классами, что и у поля ввода -->
             <div class="min-w-0"> 
                  <label for="json-output" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Результат:</label>
-                 <pre id="json-output" class="w-full overflow-x-auto p-3 border rounded-lg dark:border-gray-600"></pre>
+                 <textarea id="json-output" class="w-full h-48 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" placeholder="Результат будет здесь..." readonly></textarea>
             </div>
         </div>
     `;
@@ -92,29 +90,34 @@ export function init() {
     const processJson = (mode) => {
         const text = inputArea.value.trim();
         if (!text) {
-            outputArea.textContent = '';
+            // ИЗМЕНЕНИЕ: Используем .value для textarea
+            outputArea.value = '';
             copyBtn.disabled = true;
             return;
         }
         
         try {
             const jsonObj = JSON.parse(text);
+            // ИЗМЕНЕНИЕ: Используем .value для textarea
             if (mode === 'format') {
-                outputArea.textContent = JSON.stringify(jsonObj, null, 2);
+                outputArea.value = JSON.stringify(jsonObj, null, 2);
             } else { // minify
-                outputArea.textContent = JSON.stringify(jsonObj);
+                outputArea.value = JSON.stringify(jsonObj);
             }
             copyBtn.disabled = false;
         } catch (e) {
-            outputArea.textContent = `Ошибка валидации JSON:\n${e.message}`;
+            // ИЗМЕНЕНИЕ: Используем .value для textarea
+            outputArea.value = `Ошибка валидации JSON:\n${e.message}`;
             copyBtn.disabled = true;
         }
     };
     
     const copyOutput = () => {
-        if (!outputArea.textContent || copyBtn.disabled) return;
+        // ИЗМЕНЕНИЕ: Используем .value для textarea
+        if (!outputArea.value || copyBtn.disabled) return;
         
-        navigator.clipboard.writeText(outputArea.textContent).then(() => {
+        // ИЗМЕНЕНИЕ: Используем .value для textarea
+        navigator.clipboard.writeText(outputArea.value).then(() => {
             const originalText = copyBtn.textContent;
             copyBtn.textContent = 'Скопировано!';
             setTimeout(() => {
@@ -127,7 +130,8 @@ export function init() {
 
     const clearAll = () => {
         inputArea.value = '';
-        outputArea.textContent = '';
+        // ИЗМЕНЕНИЕ: Используем .value для textarea
+        outputArea.value = '';
         statusArea.textContent = '';
         inputArea.classList.remove('json-valid', 'json-invalid');
         copyBtn.disabled = true;
