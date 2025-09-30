@@ -32,7 +32,8 @@ const appModules = [
     'battleship',
     'metronome',
     'habitTracker',
-    'jsonFormatter'
+    'jsonFormatter',
+    'solitaire'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
