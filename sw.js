@@ -31,7 +31,8 @@ const appModules = [
     'periodicTable',
     'battleship',
     'metronome',
-    'habitTracker' // <-- ДОБАВЛЕНО НОВОЕ ПРИЛОЖЕНИЕ
+    'habitTracker',
+    'jsonFormatter'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
