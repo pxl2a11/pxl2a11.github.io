@@ -34,6 +34,7 @@ const appNameToModuleFile = {
     'Морской бой': 'battleship',
     'Метроном': 'metronome',
     'Трекер привычек': 'habitTracker',
+    'Форматировщик JSON': 'jsonFormatter',
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 
@@ -62,6 +63,7 @@ const appPopularity = {
     'battleship': 92,
     'metronome': 75,
     'habitTracker': 85,
+    'jsonFormatter': 87,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -126,6 +128,7 @@ const appSearchMetadata = {
     'battleship': { keywords: ['игра', 'корабли', 'флот', 'стрелять', 'бой', 'battleship', 'sea battle'], hashtags: ['#game', '#logic', '#fun'] },
     'metronome': { keywords: ['метроном', 'темп', 'ритм', 'музыка', 'bpm', 'уд/мин'], hashtags: ['#music', '#tools'] },
     'habitTracker': { keywords: ['привычки', 'трекер', 'цели', 'ежедневно', 'рутина', 'трекинг', 'streak', 'серия'], hashtags: ['#organizer', '#tools', '#health'] },
+    'jsonFormatter': { keywords: ['json', 'формат', 'валидатор', 'проверка', 'сжать', 'минимизировать', 'formatter', 'validator', 'minify'], hashtags: ['#tools', '#webdev', '#text'] },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
