@@ -1,4 +1,4 @@
-//55 js/apps/jsonFormatter.js
+//05 js/apps/jsonFormatter.js
 
 let inputArea, outputArea, formatBtn, minifyBtn, copyBtn, clearBtn, statusArea;
 let eventListeners = [];
@@ -48,10 +48,12 @@ export function getHtml() {
                 <button id="clear-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Очистить</button>
             </div>
 
-            <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлена div-обертка с классом min-w-0 -->
-            <div class="min-w-0">
+            <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: Комбинированный подход для надежной прокрутки -->
+            <!-- Этот div решает проблему растягивания flex-элемента на уровне страницы -->
+            <div class="min-w-0"> 
                  <label for="json-output" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Результат:</label>
-                 <div class="overflow-x-auto border rounded-lg dark:border-gray-600">
+                 <!-- Этот div имеет заданную ширину (w-full) и обрабатывает прокрутку (overflow-x-auto) -->
+                 <div class="w-full overflow-x-auto border rounded-lg dark:border-gray-600">
                     <pre id="json-output" class="p-3"></pre>
                  </div>
             </div>
