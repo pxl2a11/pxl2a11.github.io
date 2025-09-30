@@ -1,4 +1,4 @@
-//21 js/apps/solitaire.js
+// js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -36,22 +36,27 @@ export function getHtml() {
                 flex-grow: 1;
             }
 
-            /* ИЗМЕНЕНО: Рамка сделана прозрачной, чтобы убрать "овальные полоски" */
+            /* Рамка по умолчанию прозрачна (для ячеек с картами) */
             .pile { 
                 width: 100px; 
                 height: 145px; 
-                border: 2px solid transparent; /* Рамка теперь невидима */
+                border: 2px solid transparent; 
                 border-radius: 8px; 
                 position: relative; 
             }
-            /* Убираем рамку и для темной темы */
-            .dark .pile { 
-                border-color: transparent; 
+
+            /* ИЗМЕНЕНО: Возвращаем видимую рамку только для ПУСТЫХ ячеек */
+            .pile:empty {
+                border-color: rgba(0,0,0,0.2);
             }
-            /* Но пунктирная рамка при перетаскивании остается для обратной связи */
+            .dark .pile:empty {
+                border-color: rgba(255,255,255,0.2);
+            }
+
+            /* Пунктирная рамка при перетаскивании по-прежнему будет работать */
             .drag-over { 
-                border-style: dashed; 
-                border-color: #3b82f6 !important; /* !important, чтобы переопределить прозрачность */
+                border-style: dashed !important; 
+                border-color: #3b82f6 !important;
             }
 
             .tableau-pile {
@@ -64,7 +69,7 @@ export function getHtml() {
                 background-color: white; border: 1px solid #777;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 position: absolute; 
-                cursor: pointer; /* Курсор-рука только на картах */
+                cursor: pointer;
                 display: flex; flex-direction: column; justify-content: space-between; padding: 5px;
                 font-size: 1.4rem;
                 font-weight: bold;
@@ -88,7 +93,12 @@ export function getHtml() {
                 background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%239CA3AF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M23 4v6h-6\"/><path d=\"M1 20v-6h6\"/><path d=\"M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15\"/></svg>');
                 background-repeat: no-repeat;
                 background-position: center;
-                cursor: pointer; /* Курсор-рука на пустой колоде */
+                cursor: pointer;
+                /* ИЗМЕНЕНО: Добавляем рамку и для пустой колоды */
+                border-color: rgba(0,0,0,0.2);
+            }
+            .dark #stock-pile.empty {
+                border-color: rgba(255,255,255,0.2);
             }
 
             .dragging { opacity: 0.5; pointer-events: none; }
@@ -96,7 +106,6 @@ export function getHtml() {
             .solitaire-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; }
         </style>
 
-        <!-- ИЗМЕНЕНО: Убраны классы max-w-4xl и mx-auto, чтобы поле было во всю ширину -->
         <div class="solitaire-board p-6 pb-8 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
             <div class="solitaire-top">
                 <div class="flex gap-4">
