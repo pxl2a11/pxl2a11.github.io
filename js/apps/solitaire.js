@@ -1,4 +1,4 @@
-// 38js/apps/solitaire.js
+//47 js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -16,8 +16,21 @@ export function getHtml() {
     return `
         <style>
             .solitaire-board { user-select: none; }
-            .solitaire-top, .solitaire-tableau { display: flex; gap: 10px; }
-            .solitaire-tableau { margin-top: 20px; }
+            
+            /* Стили для верхнего ряда, чтобы расположить элементы как в Windows */
+            .solitaire-top {
+                display: flex;
+                justify-content: space-between; /* Расталкивает дочерние элементы по краям */
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .solitaire-tableau { 
+                display: flex; 
+                gap: 10px;
+                margin-top: 20px; 
+            }
+
             .pile { width: 90px; height: 130px; border: 2px solid rgba(0,0,0,0.2); border-radius: 8px; position: relative; }
             .dark .pile { border-color: rgba(255,255,255,0.2); }
 
@@ -44,7 +57,7 @@ export function getHtml() {
             }
             .card.face-down .rank, .card.face-down .suit { display: none; }
             
-            /* ИСПРАВЛЕНО: Удалены конфликтующие стили margin-top, так как позиционирование управляется через JS (style.top) */
+            /* JS полностью контролирует позицию карт в стопках, margin не нужен */
             
             #stock-pile.empty {
                 background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%239CA3AF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M23 4v6h-6\"/><path d=\"M1 20v-6h6\"/><path d=\"M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15\"/></svg>');
@@ -53,29 +66,35 @@ export function getHtml() {
                 cursor: pointer;
             }
 
-            .dragging { opacity: 0.5; pointer-events: none; /* Улучшение: чтобы перетаскиваемые карты не мешали событию drop */ }
+            .dragging { opacity: 0.5; pointer-events: none; }
             .drag-over { border-style: dashed; border-color: #3b82f6; }
 
             .solitaire-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; }
         </style>
 
         <div class="solitaire-board max-w-2xl mx-auto p-4 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
+            <!-- СТРУКТУРА HTML ДЛЯ КЛАССИЧЕСКОГО РАСПОЛОЖЕНИЯ -->
             <div class="solitaire-top">
+                <!-- Левая группа: Колода и Сброс -->
                 <div class="flex gap-4">
                     <div id="stock-pile" class="pile"></div>
                     <div id="waste-pile" class="pile"></div>
                 </div>
-                <div class="flex-grow"></div>
-                <div class="solitaire-foundations">
+                
+                <!-- Правая группа: "Дома" -->
+                <div class="flex gap-4">
                     ${[0,1,2,3].map(i => `<div id="foundation-${i}" class="pile foundation-pile"></div>`).join('')}
                 </div>
             </div>
+            
             <div class="solitaire-tableau">
                  ${[0,1,2,3,4,5,6].map(i => `<div id="tableau-${i}" class="pile tableau-pile"></div>`).join('')}
             </div>
+            
             <div class="mt-4 text-center">
                 <button id="new-game-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
+
             <div id="win-overlay" class="solitaire-overlay rounded-lg">
                 <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
                     <h2 class="text-3xl font-bold text-green-500">Поздравляем!</h2>
@@ -294,7 +313,6 @@ export function init() {
         const location = findCardLocation(cardId);
         if (!location) return;
 
-        // ИСПРАВЛЕНО: Упрощена и исправлена логика.
         // Авто-перемещение возможно только для верхней карты в стопке стола или в сбросе.
         const isTopCardInTableau = location.pile === 'tableau' && location.cardIndex === tableau[location.pileIndex].length - 1;
         const isTopCardInWaste = location.pile === 'waste';
@@ -366,7 +384,7 @@ export function init() {
     });
 
     boardEl.addEventListener('dragend', (e) => {
-        // ИСПРАВЛЕНО: Более надежный способ убрать класс .dragging
+        // Надежный способ убрать класс .dragging
         document.querySelectorAll('.card.dragging').forEach(el => el.classList.remove('dragging'));
         draggedCards = [];
         sourcePileElement = null;
@@ -421,8 +439,8 @@ export function init() {
                 // Удаляем перетаскиваемые карты из исходной стопки
                 sourcePile.splice(sourceLocation.cardIndex);
             
-                // ИСПРАВЛЕНО: Добавлена проверка, чтобы не было ошибки на пустой стопке
-                // Переворачиваем карту в исходной стопке, если нужно
+                // Проверка, чтобы не было ошибки на пустой стопке
+                // и переворачиваем карту в исходной стопке, если нужно
                 if (sourceLocation.pile === 'tableau' && sourcePile.length > 0) {
                     sourcePile[sourcePile.length - 1].isFaceUp = true;
                 }
