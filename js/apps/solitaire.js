@@ -1,4 +1,4 @@
-//29 js/apps/solitaire.js
+//41 js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -20,9 +20,10 @@ export function getHtml() {
                 min-height: 850px; 
                 display: flex;
                 flex-direction: column;
+                align-items: center; /* ИЗМЕНЕНО: Центрирует игровое поле по горизонтали */
+                position: relative; /* Необходимо для абсолютного позиционирования кнопки */
             }
             
-            /* ИЗМЕНЕНО: Верхний ряд теперь тоже имеет gap для выравнивания с нижним */
             .solitaire-top {
                 display: flex;
                 align-items: flex-start;
@@ -42,7 +43,7 @@ export function getHtml() {
                 border: 2px solid transparent; 
                 border-radius: 8px; 
                 position: relative; 
-                flex-shrink: 0; /* Предотвращаем сжатие элементов в flex-контейнере */
+                flex-shrink: 0;
             }
 
             .pile:empty {
@@ -52,7 +53,6 @@ export function getHtml() {
                 border-color: rgba(255,255,255,0.2);
             }
 
-            /* НОВЫЙ СТИЛЬ: для невидимого элемента-распорки */
             .invisible-placeholder {
                 visibility: hidden;
             }
@@ -108,18 +108,17 @@ export function getHtml() {
             .solitaire-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; }
         </style>
 
-        <div class="solitaire-board p-6 pb-8 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
+        <div class="solitaire-board p-6 pb-8 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg">
             
-            <!-- ИЗМЕНЕНА СТРУКТУРА HTML ДЛЯ ВЫРАВНИВАНИЯ "ДОМОВ" НАД СТОПКАМИ -->
+            <!-- ИЗМЕНЕНО: Кнопка "Новая игра" теперь здесь, в левом верхнем углу -->
+            <div style="position: absolute; top: 24px; left: 24px; z-index: 10;">
+                <button id="new-game-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
+            </div>
+
             <div class="solitaire-top">
-                <!-- Слоты 1 и 2: Колода и Сброс -->
                 <div id="stock-pile" class="pile"></div>
                 <div id="waste-pile" class="pile"></div>
-                
-                <!-- Слот 3: Невидимый элемент для создания пустого пространства -->
                 <div class="pile invisible-placeholder"></div>
-
-                <!-- Слоты 4, 5, 6, 7: "Дома" -->
                 ${[0,1,2,3].map(i => `<div id="foundation-${i}" class="pile foundation-pile"></div>`).join('')}
             </div>
             
@@ -127,9 +126,7 @@ export function getHtml() {
                  ${[0,1,2,3,4,5,6].map(i => `<div id="tableau-${i}" class="pile tableau-pile"></div>`).join('')}
             </div>
             
-            <div class="mt-auto text-center pt-4">
-                <button id="new-game-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
-            </div>
+            <!-- Старый контейнер для кнопки удален -->
 
             <div id="win-overlay" class="solitaire-overlay rounded-lg">
                 <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
