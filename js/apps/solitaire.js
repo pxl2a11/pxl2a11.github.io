@@ -1,4 +1,4 @@
-// js/apps/solitaire.js
+// 38js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -44,8 +44,7 @@ export function getHtml() {
             }
             .card.face-down .rank, .card.face-down .suit { display: none; }
             
-            .tableau-pile .card { margin-top: 25px; } /* Смещение карт в стопках */
-            .tableau-pile .card:first-child { margin-top: 0; }
+            /* ИСПРАВЛЕНО: Удалены конфликтующие стили margin-top, так как позиционирование управляется через JS (style.top) */
             
             #stock-pile.empty {
                 background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%239CA3AF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M23 4v6h-6\"/><path d=\"M1 20v-6h6\"/><path d=\"M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15\"/></svg>');
@@ -54,7 +53,7 @@ export function getHtml() {
                 cursor: pointer;
             }
 
-            .dragging { opacity: 0.5; }
+            .dragging { opacity: 0.5; pointer-events: none; /* Улучшение: чтобы перетаскиваемые карты не мешали событию drop */ }
             .drag-over { border-style: dashed; border-color: #3b82f6; }
 
             .solitaire-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; }
@@ -144,6 +143,7 @@ function renderBoard() {
         pileEl.innerHTML = '';
         tableau[i].forEach((card, index) => {
             const cardEl = createCardElement(card);
+            // Позиционирование карт для создания эффекта "стопки"
             cardEl.style.top = `${index * 25}px`;
             pileEl.appendChild(cardEl);
         });
@@ -172,7 +172,8 @@ function renderBoard() {
     stockPileEl.innerHTML = '';
     stockPileEl.classList.toggle('empty', stock.length === 0);
     if (stock.length > 0) {
-        const stockCard = createCardElement(stock[0]);
+        // Всегда показываем "рубашку" верхней карты колоды
+        const stockCard = createCardElement({ ...stock[0], isFaceUp: false });
         stockCard.classList.add('face-down');
         stockPileEl.appendChild(stockCard);
     }
@@ -181,6 +182,7 @@ function renderBoard() {
 function createCardElement(card) {
     const el = document.createElement('div');
     el.className = `card ${card.color}`;
+    // Перетаскивать можно только открытые карты
     el.draggable = card.isFaceUp;
     el.dataset.cardId = card.id;
 
@@ -204,6 +206,7 @@ function handleStockClick() {
         card.isFaceUp = true;
         waste.push(card);
     } else if (waste.length > 0) {
+        // Возвращаем карты из сброса обратно в колоду
         stock = waste.reverse();
         stock.forEach(c => c.isFaceUp = false);
         waste = [];
@@ -211,46 +214,49 @@ function handleStockClick() {
     renderBoard();
 }
 
-function canMoveToTableau(draggedCards, targetCard) {
+function canMoveToTableau(draggedCards, targetPile) {
     if (draggedCards.length === 0) return false;
     const firstDragged = draggedCards[0];
     
-    if (!targetCard) { // Перемещение на пустую стопку
+    // Перемещение на пустую стопку
+    if (targetPile.length === 0) {
         return firstDragged.value === 13; // Только Король (K)
     }
     
-    // Перемещение на другую карту
+    const targetCard = targetPile[targetPile.length - 1];
+    // Перемещение на другую карту: цвет должен отличаться, значение на 1 меньше
     return firstDragged.color !== targetCard.color && firstDragged.value === targetCard.value - 1;
 }
 
 function canMoveToFoundation(draggedCard, foundationPile) {
     if (!draggedCard) return false;
     
-    if (foundationPile.length === 0) { // Перемещение на пустой "дом"
+    // Перемещение на пустой "дом"
+    if (foundationPile.length === 0) {
         return draggedCard.value === 1; // Только Туз (A)
     }
     
     const topCard = foundationPile[foundationPile.length - 1];
+    // Масть должна совпадать, значение на 1 больше
     return draggedCard.suit === topCard.suit && draggedCard.value === topCard.value + 1;
 }
 
 function getCardById(cardId) {
-    const allPiles = [...tableau, ...foundations, waste, stock];
-    for (const pile of allPiles) {
-        const found = pile.find(c => c.id === cardId);
-        if (found) return found;
-    }
-    return null;
+    const allPiles = [...tableau.flat(), ...foundations.flat(), ...waste, ...stock];
+    return allPiles.find(c => c.id === cardId) || null;
 }
 
 function findCardLocation(cardId) {
+    // Поиск в стопках на столе (tableau)
     for (let i = 0; i < tableau.length; i++) {
         const cardIndex = tableau[i].findIndex(c => c.id === cardId);
         if (cardIndex > -1) return { pile: 'tableau', pileIndex: i, cardIndex: cardIndex };
     }
+    // Поиск в сбросе (waste)
     if (waste.length > 0 && waste[waste.length - 1].id === cardId) {
         return { pile: 'waste', pileIndex: -1, cardIndex: waste.length - 1 };
     }
+    // Поиск в "домах" (foundations)
      for (let i = 0; i < foundations.length; i++) {
         if (foundations[i].length > 0 && foundations[i][foundations[i].length - 1].id === cardId) {
             return { pile: 'foundation', pileIndex: i, cardIndex: foundations[i].length - 1 };
@@ -271,6 +277,7 @@ function checkWinCondition() {
 export function init() {
     const boardEl = document.querySelector('.solitaire-board');
 
+    // Клик по колоде (stock)
     boardEl.addEventListener('click', (e) => {
         const stockPile = e.target.closest('#stock-pile');
         if (stockPile) {
@@ -278,38 +285,50 @@ export function init() {
         }
     });
 
+    // Двойной клик по карте для авто-перемещения в "дом"
     boardEl.addEventListener('dblclick', (e) => {
         const cardEl = e.target.closest('.card:not(.face-down)');
         if (!cardEl) return;
         
         const cardId = cardEl.dataset.cardId;
-        const card = getCardById(cardId);
         const location = findCardLocation(cardId);
-        
-        // Позволяем авто-перемещение только для верхних карт стопок и сброса
-        if (!card || (location.pile === 'tableau' && location.cardIndex !== tableau[location.pileIndex].length - 1) && location.pile !== 'waste') {
+        if (!location) return;
+
+        // ИСПРАВЛЕНО: Упрощена и исправлена логика.
+        // Авто-перемещение возможно только для верхней карты в стопке стола или в сбросе.
+        const isTopCardInTableau = location.pile === 'tableau' && location.cardIndex === tableau[location.pileIndex].length - 1;
+        const isTopCardInWaste = location.pile === 'waste';
+
+        if (!isTopCardInTableau && !isTopCardInWaste) {
             return;
         }
 
+        const card = getCardById(cardId);
+        if (!card) return;
+
+        // Ищем подходящий "дом"
         for (let i = 0; i < 4; i++) {
             if (canMoveToFoundation(card, foundations[i])) {
                 // Убираем карту из исходной стопки
                 let sourcePile;
-                if (location.pile === 'tableau') sourcePile = tableau[location.pileIndex];
-                else if (location.pile === 'waste') sourcePile = waste;
+                if (location.pile === 'tableau') {
+                    sourcePile = tableau[location.pileIndex];
+                } else { // location.pile === 'waste'
+                    sourcePile = waste;
+                }
                 
                 sourcePile.pop();
                 
-                // Переворачиваем карту, если нужно
+                // Переворачиваем карту под ней, если она была на столе
                 if (location.pile === 'tableau' && sourcePile.length > 0) {
                      sourcePile[sourcePile.length - 1].isFaceUp = true;
                 }
                 
-                // Добавляем в "дом"
+                // Добавляем карту в "дом"
                 foundations[i].push(card);
                 renderBoard();
                 checkWinCondition();
-                return;
+                return; // Выходим после успешного перемещения
             }
         }
     });
@@ -323,31 +342,38 @@ export function init() {
         const location = findCardLocation(cardEl.dataset.cardId);
         if (!location) return;
 
+        // Определяем, какие карты нужно перетаскивать
         draggedCards = [];
         if (location.pile === 'tableau') {
+            // Если карта на столе, берем её и все карты под ней
             draggedCards = tableau[location.pileIndex].slice(location.cardIndex);
         } else {
+            // Иначе (сброс или дом) берем только одну карту
             const card = getCardById(cardEl.dataset.cardId);
             if (card) draggedCards.push(card);
         }
         
-        sourcePileElement = cardEl.parentElement;
-        setTimeout(() => {
-             draggedCards.forEach(c => {
-                const el = document.querySelector(`[data-card-id="${c.id}"]`);
-                if (el) el.classList.add('dragging');
-            });
-        }, 0);
+        if (draggedCards.length > 0) {
+            sourcePileElement = cardEl.parentElement;
+            // Небольшая задержка, чтобы браузер успел создать "призрак" элемента
+            setTimeout(() => {
+                 draggedCards.forEach(c => {
+                    const el = document.querySelector(`[data-card-id="${c.id}"]`);
+                    if (el) el.classList.add('dragging');
+                });
+            }, 0);
+        }
     });
 
     boardEl.addEventListener('dragend', (e) => {
+        // ИСПРАВЛЕНО: Более надежный способ убрать класс .dragging
+        document.querySelectorAll('.card.dragging').forEach(el => el.classList.remove('dragging'));
         draggedCards = [];
         sourcePileElement = null;
-        document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
     });
 
     boardEl.addEventListener('dragover', (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Обязательно для разрешения события drop
         const pileEl = e.target.closest('.pile');
         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
         if(pileEl) pileEl.classList.add('drag-over');
@@ -357,44 +383,49 @@ export function init() {
         e.preventDefault();
         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
         const targetPileEl = e.target.closest('.pile');
+
         if (!targetPileEl || draggedCards.length === 0) return;
 
         const sourceLocation = findCardLocation(draggedCards[0].id);
-        if(!sourceLocation) return;
+        if (!sourceLocation) return;
         
-        let isValid = false;
+        let moveWasSuccessful = false;
 
-        // Перемещение на "дом"
+        // Случай 1: Перемещение на "дом" (foundation)
         if (targetPileEl.classList.contains('foundation-pile')) {
             const foundationIndex = parseInt(targetPileEl.id.split('-')[1]);
+            // В "дом" можно класть только по одной карте
             if (draggedCards.length === 1 && canMoveToFoundation(draggedCards[0], foundations[foundationIndex])) {
                 foundations[foundationIndex].push(draggedCards[0]);
-                isValid = true;
+                moveWasSuccessful = true;
             }
         }
-        // Перемещение на стол
+        // Случай 2: Перемещение на стол (tableau)
         else if (targetPileEl.classList.contains('tableau-pile')) {
             const tableauIndex = parseInt(targetPileEl.id.split('-')[1]);
             const targetPile = tableau[tableauIndex];
-            const targetCard = targetPile.length > 0 ? targetPile[targetPile.length - 1] : null;
-            if (canMoveToTableau(draggedCards, targetCard)) {
+            if (canMoveToTableau(draggedCards, targetPile)) {
                 tableau[tableauIndex].push(...draggedCards);
-                isValid = true;
+                moveWasSuccessful = true;
             }
         }
 
-        if (isValid) {
-            // Убираем карты из исходной стопки
+        // Если перемещение было успешным, убираем карты из исходной стопки
+        if (moveWasSuccessful) {
             let sourcePile;
             if (sourceLocation.pile === 'tableau') sourcePile = tableau[sourceLocation.pileIndex];
             else if (sourceLocation.pile === 'waste') sourcePile = waste;
             else if (sourceLocation.pile === 'foundation') sourcePile = foundations[sourceLocation.pileIndex];
 
-            sourcePile.splice(sourceLocation.cardIndex);
+            if (sourcePile) {
+                // Удаляем перетаскиваемые карты из исходной стопки
+                sourcePile.splice(sourceLocation.cardIndex);
             
-            // Переворачиваем карту в исходной стопке, если нужно
-            if (sourceLocation.pile === 'tableau' && sourcePile.length > 0) {
-                sourcePile[sourcePile.length-1].isFaceUp = true;
+                // ИСПРАВЛЕНО: Добавлена проверка, чтобы не было ошибки на пустой стопке
+                // Переворачиваем карту в исходной стопке, если нужно
+                if (sourceLocation.pile === 'tableau' && sourcePile.length > 0) {
+                    sourcePile[sourcePile.length - 1].isFaceUp = true;
+                }
             }
 
             renderBoard();
@@ -409,6 +440,7 @@ export function init() {
 
 export function cleanup() {
     // В данном приложении нет глобальных слушателей или таймеров,
-    // все события привязаны к элементам внутри .solitaire-board,
-    // поэтому специальная очистка не требуется.
+    // которые нужно было бы специально очищать при уничтожении компонента.
+    // Все события привязаны к элементам внутри .solitaire-board,
+    // поэтому стандартной сборки мусора будет достаточно.
 }
