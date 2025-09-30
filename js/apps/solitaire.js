@@ -1,4 +1,4 @@
-// js/apps/solitaire.js
+//29 js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -22,11 +22,11 @@ export function getHtml() {
                 flex-direction: column;
             }
             
+            /* ИЗМЕНЕНО: Верхний ряд теперь тоже имеет gap для выравнивания с нижним */
             .solitaire-top {
                 display: flex;
-                justify-content: space-between;
                 align-items: flex-start;
-                gap: 15px;
+                gap: 15px; 
             }
 
             .solitaire-tableau { 
@@ -35,17 +35,16 @@ export function getHtml() {
                 margin-top: 30px;
                 flex-grow: 1;
             }
-
-            /* Рамка по умолчанию прозрачна (для ячеек с картами) */
+            
             .pile { 
                 width: 100px; 
                 height: 145px; 
                 border: 2px solid transparent; 
                 border-radius: 8px; 
                 position: relative; 
+                flex-shrink: 0; /* Предотвращаем сжатие элементов в flex-контейнере */
             }
 
-            /* ИЗМЕНЕНО: Возвращаем видимую рамку только для ПУСТЫХ ячеек */
             .pile:empty {
                 border-color: rgba(0,0,0,0.2);
             }
@@ -53,7 +52,11 @@ export function getHtml() {
                 border-color: rgba(255,255,255,0.2);
             }
 
-            /* Пунктирная рамка при перетаскивании по-прежнему будет работать */
+            /* НОВЫЙ СТИЛЬ: для невидимого элемента-распорки */
+            .invisible-placeholder {
+                visibility: hidden;
+            }
+
             .drag-over { 
                 border-style: dashed !important; 
                 border-color: #3b82f6 !important;
@@ -94,7 +97,6 @@ export function getHtml() {
                 background-repeat: no-repeat;
                 background-position: center;
                 cursor: pointer;
-                /* ИЗМЕНЕНО: Добавляем рамку и для пустой колоды */
                 border-color: rgba(0,0,0,0.2);
             }
             .dark #stock-pile.empty {
@@ -107,15 +109,18 @@ export function getHtml() {
         </style>
 
         <div class="solitaire-board p-6 pb-8 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
+            
+            <!-- ИЗМЕНЕНА СТРУКТУРА HTML ДЛЯ ВЫРАВНИВАНИЯ "ДОМОВ" НАД СТОПКАМИ -->
             <div class="solitaire-top">
-                <div class="flex gap-4">
-                    <div id="stock-pile" class="pile"></div>
-                    <div id="waste-pile" class="pile"></div>
-                </div>
+                <!-- Слоты 1 и 2: Колода и Сброс -->
+                <div id="stock-pile" class="pile"></div>
+                <div id="waste-pile" class="pile"></div>
                 
-                <div class="flex gap-4">
-                    ${[0,1,2,3].map(i => `<div id="foundation-${i}" class="pile foundation-pile"></div>`).join('')}
-                </div>
+                <!-- Слот 3: Невидимый элемент для создания пустого пространства -->
+                <div class="pile invisible-placeholder"></div>
+
+                <!-- Слоты 4, 5, 6, 7: "Дома" -->
+                ${[0,1,2,3].map(i => `<div id="foundation-${i}" class="pile foundation-pile"></div>`).join('')}
             </div>
             
             <div class="solitaire-tableau">
