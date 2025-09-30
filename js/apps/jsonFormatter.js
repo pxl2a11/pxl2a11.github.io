@@ -1,4 +1,4 @@
-//48 js/apps/jsonFormatter.js
+//51 js/apps/jsonFormatter.js
 
 let inputArea, outputArea, formatBtn, minifyBtn, copyBtn, clearBtn, statusArea;
 let eventListeners = [];
@@ -12,7 +12,7 @@ function addListener(element, event, handler) {
 export function getHtml() {
     return `
         <style>
-            /* ИЗМЕНЕНИЕ: Добавлены правила для горизонтальной прокрутки в поле ввода */
+            /* Горизонтальная прокрутка для поля ввода */
             #json-input {
                 white-space: pre;
                 overflow-x: auto;
@@ -51,7 +51,8 @@ export function getHtml() {
             <div>
                  <label for="json-output" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Результат:</label>
                  <div class="overflow-x-auto border rounded-lg dark:border-gray-600">
-                    <pre id="json-output" class="w-full p-3"></pre>
+                    <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: убран класс w-full -->
+                    <pre id="json-output" class="p-3"></pre>
                  </div>
             </div>
         </div>
