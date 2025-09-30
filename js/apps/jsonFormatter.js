@@ -1,4 +1,4 @@
-//40 js/apps/jsonFormatter.js
+//45 js/apps/jsonFormatter.js
 
 let inputArea, outputArea, formatBtn, minifyBtn, copyBtn, clearBtn, statusArea;
 let eventListeners = [];
@@ -17,7 +17,7 @@ export function getHtml() {
                 font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
                 background-color: #f8fafc; /* gray-50 */
                 min-height: 200px;
-                overflow-x: auto;
+                /* Свойство overflow-x теперь контролируется родительским div через класс Tailwind */
             }
             .dark #json-output {
                 background-color: #1e293b; /* slate-800 */
@@ -45,7 +45,10 @@ export function getHtml() {
 
             <div>
                  <label for="json-output" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Результат:</label>
-                 <pre id="json-output" class="w-full p-3 border rounded-lg dark:border-gray-600"></pre>
+                 <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлен div-обертка для изоляции прокрутки -->
+                 <div class="overflow-x-auto border rounded-lg dark:border-gray-600">
+                    <pre id="json-output" class="w-full p-3"></pre>
+                 </div>
             </div>
         </div>
     `;
