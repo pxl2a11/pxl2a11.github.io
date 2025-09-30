@@ -1,4 +1,4 @@
-//51 js/apps/jsonFormatter.js
+//55 js/apps/jsonFormatter.js
 
 let inputArea, outputArea, formatBtn, minifyBtn, copyBtn, clearBtn, statusArea;
 let eventListeners = [];
@@ -48,10 +48,10 @@ export function getHtml() {
                 <button id="clear-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Очистить</button>
             </div>
 
-            <div>
+            <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлена div-обертка с классом min-w-0 -->
+            <div class="min-w-0">
                  <label for="json-output" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Результат:</label>
                  <div class="overflow-x-auto border rounded-lg dark:border-gray-600">
-                    <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: убран класс w-full -->
                     <pre id="json-output" class="p-3"></pre>
                  </div>
             </div>
