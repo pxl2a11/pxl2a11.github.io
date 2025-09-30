@@ -1,4 +1,4 @@
-// js/apps/solitaire.js
+//53 js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
