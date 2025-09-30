@@ -1,4 +1,4 @@
-//53 js/apps/solitaire.js
+// 58js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -21,18 +21,29 @@ export function getHtml() {
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
-                gap: 15px; /* ИЗМЕНЕНО: Увеличен отступ */
+                gap: 15px;
             }
 
             .solitaire-tableau { 
                 display: flex; 
-                gap: 15px; /* ИЗМЕНЕНО: Увеличен отступ */
-                margin-top: 30px; /* ИЗМЕНЕНО: Увеличен отступ */
+                gap: 15px;
+                margin-top: 30px;
             }
 
-            /* ИЗМЕНЕНО: Увеличены размеры карт и стопок */
-            .pile { width: 100px; height: 145px; border: 2px solid rgba(0,0,0,0.2); border-radius: 8px; position: relative; }
+            .pile { 
+                width: 100px; 
+                height: 145px; /* Высота для стопок в верхнем ряду */
+                border: 2px solid rgba(0,0,0,0.2); 
+                border-radius: 8px; 
+                position: relative; 
+            }
             .dark .pile { border-color: rgba(255,255,255,0.2); }
+
+            /* ИЗМЕНЕНО: Позволяем стопкам на столе расти по высоте */
+            .tableau-pile {
+                height: auto; /* Убираем фиксированную высоту */
+                min-height: 145px; /* Задаем минимальную высоту, как у карты */
+            }
 
             .card {
                 width: 100px; height: 145px; border-radius: 8px;
@@ -40,13 +51,13 @@ export function getHtml() {
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 position: absolute; cursor: pointer;
                 display: flex; flex-direction: column; justify-content: space-between; padding: 5px;
-                font-size: 1.4rem; /* ИЗМЕНЕНО: Увеличен шрифт */
+                font-size: 1.4rem;
                 font-weight: bold;
                 box-sizing: border-box;
             }
             .dark .card { background-color: #374151; border-color: #6b7280; color: #f3f4f6; }
 
-            .card .suit { font-size: 1.7rem; } /* ИЗМЕНЕНО: Увеличен шрифт */
+            .card .suit { font-size: 1.7rem; }
             .card.red { color: #dc2626; }
             .dark .card.red { color: #f87171; }
             .card.black { color: #111827; }
@@ -71,16 +82,13 @@ export function getHtml() {
             .solitaire-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; }
         </style>
 
-        <!-- ИЗМЕНЕНО: Увеличена ширина (max-w-4xl) и внутренний отступ (p-6) -->
         <div class="solitaire-board max-w-4xl mx-auto p-6 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
             <div class="solitaire-top">
-                <!-- Левая группа: Колода и Сброс -->
                 <div class="flex gap-4">
                     <div id="stock-pile" class="pile"></div>
                     <div id="waste-pile" class="pile"></div>
                 </div>
                 
-                <!-- Правая группа: "Дома" -->
                 <div class="flex gap-4">
                     ${[0,1,2,3].map(i => `<div id="foundation-${i}" class="pile foundation-pile"></div>`).join('')}
                 </div>
@@ -161,8 +169,8 @@ function renderBoard() {
         pileEl.innerHTML = '';
         tableau[i].forEach((card, index) => {
             const cardEl = createCardElement(card);
-            // ИЗМЕНЕНО: Увеличен сдвиг карт для более длинных колонок
-            cardEl.style.top = `${index * 35}px`;
+            // ИЗМЕНЕНО: Уменьшен сдвиг карт для более компактных и коротких колонок
+            cardEl.style.top = `${index * 30}px`;
             pileEl.appendChild(cardEl);
         });
     }
