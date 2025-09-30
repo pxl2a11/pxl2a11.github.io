@@ -1,4 +1,4 @@
-//41 js/apps/solitaire.js
+// js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -20,19 +20,17 @@ export function getHtml() {
                 min-height: 850px; 
                 display: flex;
                 flex-direction: column;
-                align-items: center; /* ИЗМЕНЕНО: Центрирует игровое поле по горизонтали */
-                position: relative; /* Необходимо для абсолютного позиционирования кнопки */
+                align-items: center;
+                position: relative;
             }
             
-            .solitaire-top {
+            .solitaire-top, .solitaire-tableau {
                 display: flex;
                 align-items: flex-start;
                 gap: 15px; 
             }
 
             .solitaire-tableau { 
-                display: flex; 
-                gap: 15px;
                 margin-top: 30px;
                 flex-grow: 1;
             }
@@ -46,26 +44,27 @@ export function getHtml() {
                 flex-shrink: 0;
             }
 
-            .pile:empty {
-                border-color: rgba(0,0,0,0.2);
+            /* ИЗМЕНЕНО: Рамка для пустых ячеек теперь рисуется через псевдо-элемент, чтобы избежать растягивания */
+            .pile:empty::before {
+                content: '';
+                position: absolute;
+                inset: 0; /* top, right, bottom, left = 0 */
+                border: 2px solid rgba(0,0,0,0.2);
+                border-radius: 8px; /* Наследуем скругление */
             }
-            .dark .pile:empty {
+            .dark .pile:empty::before {
                 border-color: rgba(255,255,255,0.2);
             }
 
-            .invisible-placeholder {
-                visibility: hidden;
-            }
+            .invisible-placeholder { visibility: hidden; }
+            .invisible-placeholder::before { display: none; } /* Убираем рамку и у невидимого элемента */
 
             .drag-over { 
                 border-style: dashed !important; 
                 border-color: #3b82f6 !important;
             }
 
-            .tableau-pile {
-                height: auto; 
-                min-height: 145px; 
-            }
+            .tableau-pile { height: auto; min-height: 145px; }
 
             .card {
                 width: 100px; height: 145px; border-radius: 8px;
@@ -74,9 +73,7 @@ export function getHtml() {
                 position: absolute; 
                 cursor: pointer;
                 display: flex; flex-direction: column; justify-content: space-between; padding: 5px;
-                font-size: 1.4rem;
-                font-weight: bold;
-                box-sizing: border-box;
+                font-size: 1.4rem; font-weight: bold; box-sizing: border-box;
             }
             .dark .card { background-color: #374151; border-color: #6b7280; color: #f3f4f6; }
 
@@ -97,9 +94,12 @@ export function getHtml() {
                 background-repeat: no-repeat;
                 background-position: center;
                 cursor: pointer;
+            }
+            /* ИЗМЕНЕНО: Добавляем рамку и для пустой колоды через псевдо-элемент */
+            #stock-pile.empty::before {
                 border-color: rgba(0,0,0,0.2);
             }
-            .dark #stock-pile.empty {
+            .dark #stock-pile.empty::before {
                 border-color: rgba(255,255,255,0.2);
             }
 
@@ -110,7 +110,6 @@ export function getHtml() {
 
         <div class="solitaire-board p-6 pb-8 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg">
             
-            <!-- ИЗМЕНЕНО: Кнопка "Новая игра" теперь здесь, в левом верхнем углу -->
             <div style="position: absolute; top: 24px; left: 24px; z-index: 10;">
                 <button id="new-game-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
@@ -125,8 +124,6 @@ export function getHtml() {
             <div class="solitaire-tableau">
                  ${[0,1,2,3,4,5,6].map(i => `<div id="tableau-${i}" class="pile tableau-pile"></div>`).join('')}
             </div>
-            
-            <!-- Старый контейнер для кнопки удален -->
 
             <div id="win-overlay" class="solitaire-overlay rounded-lg">
                 <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
