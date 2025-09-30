@@ -1,4 +1,4 @@
-//02 js/apps/solitaire.js
+//21 js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -15,7 +15,6 @@ let sourcePileElement = null;
 export function getHtml() {
     return `
         <style>
-            /* ИЗМЕНЕНО: Задаем минимальную высоту для всего поля, чтобы карты не вылезали за его пределы */
             .solitaire-board { 
                 user-select: none; 
                 min-height: 850px; 
@@ -34,18 +33,26 @@ export function getHtml() {
                 display: flex; 
                 gap: 15px;
                 margin-top: 30px;
-                /* Позволяем этому блоку занять оставшееся место, чтобы оттолкнуть кнопку вниз */
                 flex-grow: 1;
             }
 
+            /* ИЗМЕНЕНО: Рамка сделана прозрачной, чтобы убрать "овальные полоски" */
             .pile { 
                 width: 100px; 
-                height: 145px; /* Высота для стопок в верхнем ряду */
-                border: 2px solid rgba(0,0,0,0.2); 
+                height: 145px; 
+                border: 2px solid transparent; /* Рамка теперь невидима */
                 border-radius: 8px; 
                 position: relative; 
             }
-            .dark .pile { border-color: rgba(255,255,255,0.2); }
+            /* Убираем рамку и для темной темы */
+            .dark .pile { 
+                border-color: transparent; 
+            }
+            /* Но пунктирная рамка при перетаскивании остается для обратной связи */
+            .drag-over { 
+                border-style: dashed; 
+                border-color: #3b82f6 !important; /* !important, чтобы переопределить прозрачность */
+            }
 
             .tableau-pile {
                 height: auto; 
@@ -56,7 +63,8 @@ export function getHtml() {
                 width: 100px; height: 145px; border-radius: 8px;
                 background-color: white; border: 1px solid #777;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                position: absolute; cursor: pointer;
+                position: absolute; 
+                cursor: pointer; /* Курсор-рука только на картах */
                 display: flex; flex-direction: column; justify-content: space-between; padding: 5px;
                 font-size: 1.4rem;
                 font-weight: bold;
@@ -80,40 +88,39 @@ export function getHtml() {
                 background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%239CA3AF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M23 4v6h-6\"/><path d=\"M1 20v-6h6\"/><path d=\"M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15\"/></svg>');
                 background-repeat: no-repeat;
                 background-position: center;
-                cursor: pointer;
+                cursor: pointer; /* Курсор-рука на пустой колоде */
             }
 
             .dragging { opacity: 0.5; pointer-events: none; }
-            .drag-over { border-style: dashed; border-color: #3b82f6; }
-
+            
             .solitaire-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; }
         </style>
 
-        <!-- ИЗМЕНЕНО: Добавлен дополнительный нижний отступ (pb-8) -->
-        <div class=\"solitaire-board max-w-4xl mx-auto p-6 pb-8 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative\">
-            <div class=\"solitaire-top\">
-                <div class=\"flex gap-4\">
-                    <div id=\"stock-pile\" class=\"pile\"></div>
-                    <div id=\"waste-pile\" class=\"pile\"></div>
+        <!-- ИЗМЕНЕНО: Убраны классы max-w-4xl и mx-auto, чтобы поле было во всю ширину -->
+        <div class="solitaire-board p-6 pb-8 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
+            <div class="solitaire-top">
+                <div class="flex gap-4">
+                    <div id="stock-pile" class="pile"></div>
+                    <div id="waste-pile" class="pile"></div>
                 </div>
                 
-                <div class=\"flex gap-4\">
-                    ${[0,1,2,3].map(i => `<div id=\"foundation-${i}\" class=\"pile foundation-pile\"></div>`).join('')}
+                <div class="flex gap-4">
+                    ${[0,1,2,3].map(i => `<div id="foundation-${i}" class="pile foundation-pile"></div>`).join('')}
                 </div>
             </div>
             
-            <div class=\"solitaire-tableau\">
-                 ${[0,1,2,3,4,5,6].map(i => `<div id=\"tableau-${i}\" class=\"pile tableau-pile\"></div>`).join('')}
+            <div class="solitaire-tableau">
+                 ${[0,1,2,3,4,5,6].map(i => `<div id="tableau-${i}" class="pile tableau-pile"></div>`).join('')}
             </div>
             
-            <div class=\"mt-auto text-center pt-4\"> <!-- mt-auto отодвигает кнопку вниз -->
-                <button id=\"new-game-btn\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded\">Новая игра</button>
+            <div class="mt-auto text-center pt-4">
+                <button id="new-game-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Новая игра</button>
             </div>
 
-            <div id=\"win-overlay\" class=\"solitaire-overlay rounded-lg\">
-                <div class=\"p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl\">
-                    <h2 class=\"text-3xl font-bold text-green-500\">Поздравляем!</h2>
-                    <p class=\"mt-2\">Вы выиграли!</p>
+            <div id="win-overlay" class="solitaire-overlay rounded-lg">
+                <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
+                    <h2 class="text-3xl font-bold text-green-500">Поздравляем!</h2>
+                    <p class="mt-2">Вы выиграли!</p>
                 </div>
             </div>
         </div>
@@ -177,7 +184,6 @@ function renderBoard() {
         pileEl.innerHTML = '';
         tableau[i].forEach((card, index) => {
             const cardEl = createCardElement(card);
-            // ИЗМЕНЕНО: Возвращен более компактный сдвиг карт для уменьшения высоты колонок
             cardEl.style.top = `${index * 25}px`;
             pileEl.appendChild(cardEl);
         });
