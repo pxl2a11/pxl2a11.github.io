@@ -65,6 +65,7 @@ export const appNameToModuleFile = {
     'Метроном': 'metronome',
     'Трекер привычек': 'habitTracker',
     'Форматировщик JSON': 'jsonFormatter',
+    'Пасьянс «Косынка»': 'solitaire',
     'Общее': null,
 };
 
