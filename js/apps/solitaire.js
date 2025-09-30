@@ -1,4 +1,4 @@
-//47 js/apps/solitaire.js
+// js/apps/solitaire.js
 
 // --- Глобальные переменные модуля ---
 let deck = [];
@@ -17,35 +17,36 @@ export function getHtml() {
         <style>
             .solitaire-board { user-select: none; }
             
-            /* Стили для верхнего ряда, чтобы расположить элементы как в Windows */
             .solitaire-top {
                 display: flex;
-                justify-content: space-between; /* Расталкивает дочерние элементы по краям */
+                justify-content: space-between;
                 align-items: flex-start;
-                gap: 10px;
+                gap: 15px; /* ИЗМЕНЕНО: Увеличен отступ */
             }
 
             .solitaire-tableau { 
                 display: flex; 
-                gap: 10px;
-                margin-top: 20px; 
+                gap: 15px; /* ИЗМЕНЕНО: Увеличен отступ */
+                margin-top: 30px; /* ИЗМЕНЕНО: Увеличен отступ */
             }
 
-            .pile { width: 90px; height: 130px; border: 2px solid rgba(0,0,0,0.2); border-radius: 8px; position: relative; }
+            /* ИЗМЕНЕНО: Увеличены размеры карт и стопок */
+            .pile { width: 100px; height: 145px; border: 2px solid rgba(0,0,0,0.2); border-radius: 8px; position: relative; }
             .dark .pile { border-color: rgba(255,255,255,0.2); }
 
             .card {
-                width: 90px; height: 130px; border-radius: 8px;
+                width: 100px; height: 145px; border-radius: 8px;
                 background-color: white; border: 1px solid #777;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 position: absolute; cursor: pointer;
                 display: flex; flex-direction: column; justify-content: space-between; padding: 5px;
-                font-size: 1.2rem; font-weight: bold;
+                font-size: 1.4rem; /* ИЗМЕНЕНО: Увеличен шрифт */
+                font-weight: bold;
                 box-sizing: border-box;
             }
             .dark .card { background-color: #374151; border-color: #6b7280; color: #f3f4f6; }
 
-            .card .suit { font-size: 1.5rem; }
+            .card .suit { font-size: 1.7rem; } /* ИЗМЕНЕНО: Увеличен шрифт */
             .card.red { color: #dc2626; }
             .dark .card.red { color: #f87171; }
             .card.black { color: #111827; }
@@ -56,8 +57,6 @@ export function getHtml() {
                 background-size: 28.28px 28.28px;
             }
             .card.face-down .rank, .card.face-down .suit { display: none; }
-            
-            /* JS полностью контролирует позицию карт в стопках, margin не нужен */
             
             #stock-pile.empty {
                 background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%239CA3AF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M23 4v6h-6\"/><path d=\"M1 20v-6h6\"/><path d=\"M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15\"/></svg>');
@@ -72,8 +71,8 @@ export function getHtml() {
             .solitaire-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; }
         </style>
 
-        <div class="solitaire-board max-w-2xl mx-auto p-4 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
-            <!-- СТРУКТУРА HTML ДЛЯ КЛАССИЧЕСКОГО РАСПОЛОЖЕНИЯ -->
+        <!-- ИЗМЕНЕНО: Увеличена ширина (max-w-4xl) и внутренний отступ (p-6) -->
+        <div class="solitaire-board max-w-4xl mx-auto p-6 bg-green-700 dark:bg-green-900 rounded-lg shadow-lg relative">
             <div class="solitaire-top">
                 <!-- Левая группа: Колода и Сброс -->
                 <div class="flex gap-4">
@@ -162,8 +161,8 @@ function renderBoard() {
         pileEl.innerHTML = '';
         tableau[i].forEach((card, index) => {
             const cardEl = createCardElement(card);
-            // Позиционирование карт для создания эффекта "стопки"
-            cardEl.style.top = `${index * 25}px`;
+            // ИЗМЕНЕНО: Увеличен сдвиг карт для более длинных колонок
+            cardEl.style.top = `${index * 35}px`;
             pileEl.appendChild(cardEl);
         });
     }
@@ -191,7 +190,6 @@ function renderBoard() {
     stockPileEl.innerHTML = '';
     stockPileEl.classList.toggle('empty', stock.length === 0);
     if (stock.length > 0) {
-        // Всегда показываем "рубашку" верхней карты колоды
         const stockCard = createCardElement({ ...stock[0], isFaceUp: false });
         stockCard.classList.add('face-down');
         stockPileEl.appendChild(stockCard);
@@ -201,7 +199,6 @@ function renderBoard() {
 function createCardElement(card) {
     const el = document.createElement('div');
     el.className = `card ${card.color}`;
-    // Перетаскивать можно только открытые карты
     el.draggable = card.isFaceUp;
     el.dataset.cardId = card.id;
 
@@ -225,7 +222,6 @@ function handleStockClick() {
         card.isFaceUp = true;
         waste.push(card);
     } else if (waste.length > 0) {
-        // Возвращаем карты из сброса обратно в колоду
         stock = waste.reverse();
         stock.forEach(c => c.isFaceUp = false);
         waste = [];
@@ -237,26 +233,22 @@ function canMoveToTableau(draggedCards, targetPile) {
     if (draggedCards.length === 0) return false;
     const firstDragged = draggedCards[0];
     
-    // Перемещение на пустую стопку
     if (targetPile.length === 0) {
         return firstDragged.value === 13; // Только Король (K)
     }
     
     const targetCard = targetPile[targetPile.length - 1];
-    // Перемещение на другую карту: цвет должен отличаться, значение на 1 меньше
     return firstDragged.color !== targetCard.color && firstDragged.value === targetCard.value - 1;
 }
 
 function canMoveToFoundation(draggedCard, foundationPile) {
     if (!draggedCard) return false;
     
-    // Перемещение на пустой "дом"
     if (foundationPile.length === 0) {
         return draggedCard.value === 1; // Только Туз (A)
     }
     
     const topCard = foundationPile[foundationPile.length - 1];
-    // Масть должна совпадать, значение на 1 больше
     return draggedCard.suit === topCard.suit && draggedCard.value === topCard.value + 1;
 }
 
@@ -266,16 +258,13 @@ function getCardById(cardId) {
 }
 
 function findCardLocation(cardId) {
-    // Поиск в стопках на столе (tableau)
     for (let i = 0; i < tableau.length; i++) {
         const cardIndex = tableau[i].findIndex(c => c.id === cardId);
         if (cardIndex > -1) return { pile: 'tableau', pileIndex: i, cardIndex: cardIndex };
     }
-    // Поиск в сбросе (waste)
     if (waste.length > 0 && waste[waste.length - 1].id === cardId) {
         return { pile: 'waste', pileIndex: -1, cardIndex: waste.length - 1 };
     }
-    // Поиск в "домах" (foundations)
      for (let i = 0; i < foundations.length; i++) {
         if (foundations[i].length > 0 && foundations[i][foundations[i].length - 1].id === cardId) {
             return { pile: 'foundation', pileIndex: i, cardIndex: foundations[i].length - 1 };
@@ -296,7 +285,6 @@ function checkWinCondition() {
 export function init() {
     const boardEl = document.querySelector('.solitaire-board');
 
-    // Клик по колоде (stock)
     boardEl.addEventListener('click', (e) => {
         const stockPile = e.target.closest('#stock-pile');
         if (stockPile) {
@@ -304,7 +292,6 @@ export function init() {
         }
     });
 
-    // Двойной клик по карте для авто-перемещения в "дом"
     boardEl.addEventListener('dblclick', (e) => {
         const cardEl = e.target.closest('.card:not(.face-down)');
         if (!cardEl) return;
@@ -313,7 +300,6 @@ export function init() {
         const location = findCardLocation(cardId);
         if (!location) return;
 
-        // Авто-перемещение возможно только для верхней карты в стопке стола или в сбросе.
         const isTopCardInTableau = location.pile === 'tableau' && location.cardIndex === tableau[location.pileIndex].length - 1;
         const isTopCardInWaste = location.pile === 'waste';
 
@@ -324,29 +310,25 @@ export function init() {
         const card = getCardById(cardId);
         if (!card) return;
 
-        // Ищем подходящий "дом"
         for (let i = 0; i < 4; i++) {
             if (canMoveToFoundation(card, foundations[i])) {
-                // Убираем карту из исходной стопки
                 let sourcePile;
                 if (location.pile === 'tableau') {
                     sourcePile = tableau[location.pileIndex];
-                } else { // location.pile === 'waste'
+                } else { 
                     sourcePile = waste;
                 }
                 
                 sourcePile.pop();
                 
-                // Переворачиваем карту под ней, если она была на столе
                 if (location.pile === 'tableau' && sourcePile.length > 0) {
                      sourcePile[sourcePile.length - 1].isFaceUp = true;
                 }
                 
-                // Добавляем карту в "дом"
                 foundations[i].push(card);
                 renderBoard();
                 checkWinCondition();
-                return; // Выходим после успешного перемещения
+                return;
             }
         }
     });
@@ -360,20 +342,16 @@ export function init() {
         const location = findCardLocation(cardEl.dataset.cardId);
         if (!location) return;
 
-        // Определяем, какие карты нужно перетаскивать
         draggedCards = [];
         if (location.pile === 'tableau') {
-            // Если карта на столе, берем её и все карты под ней
             draggedCards = tableau[location.pileIndex].slice(location.cardIndex);
         } else {
-            // Иначе (сброс или дом) берем только одну карту
             const card = getCardById(cardEl.dataset.cardId);
             if (card) draggedCards.push(card);
         }
         
         if (draggedCards.length > 0) {
             sourcePileElement = cardEl.parentElement;
-            // Небольшая задержка, чтобы браузер успел создать "призрак" элемента
             setTimeout(() => {
                  draggedCards.forEach(c => {
                     const el = document.querySelector(`[data-card-id="${c.id}"]`);
@@ -384,14 +362,13 @@ export function init() {
     });
 
     boardEl.addEventListener('dragend', (e) => {
-        // Надежный способ убрать класс .dragging
         document.querySelectorAll('.card.dragging').forEach(el => el.classList.remove('dragging'));
         draggedCards = [];
         sourcePileElement = null;
     });
 
     boardEl.addEventListener('dragover', (e) => {
-        e.preventDefault(); // Обязательно для разрешения события drop
+        e.preventDefault();
         const pileEl = e.target.closest('.pile');
         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
         if(pileEl) pileEl.classList.add('drag-over');
@@ -409,16 +386,13 @@ export function init() {
         
         let moveWasSuccessful = false;
 
-        // Случай 1: Перемещение на "дом" (foundation)
         if (targetPileEl.classList.contains('foundation-pile')) {
             const foundationIndex = parseInt(targetPileEl.id.split('-')[1]);
-            // В "дом" можно класть только по одной карте
             if (draggedCards.length === 1 && canMoveToFoundation(draggedCards[0], foundations[foundationIndex])) {
                 foundations[foundationIndex].push(draggedCards[0]);
                 moveWasSuccessful = true;
             }
         }
-        // Случай 2: Перемещение на стол (tableau)
         else if (targetPileEl.classList.contains('tableau-pile')) {
             const tableauIndex = parseInt(targetPileEl.id.split('-')[1]);
             const targetPile = tableau[tableauIndex];
@@ -428,7 +402,6 @@ export function init() {
             }
         }
 
-        // Если перемещение было успешным, убираем карты из исходной стопки
         if (moveWasSuccessful) {
             let sourcePile;
             if (sourceLocation.pile === 'tableau') sourcePile = tableau[sourceLocation.pileIndex];
@@ -436,11 +409,8 @@ export function init() {
             else if (sourceLocation.pile === 'foundation') sourcePile = foundations[sourceLocation.pileIndex];
 
             if (sourcePile) {
-                // Удаляем перетаскиваемые карты из исходной стопки
                 sourcePile.splice(sourceLocation.cardIndex);
             
-                // Проверка, чтобы не было ошибки на пустой стопке
-                // и переворачиваем карту в исходной стопке, если нужно
                 if (sourceLocation.pile === 'tableau' && sourcePile.length > 0) {
                     sourcePile[sourcePile.length - 1].isFaceUp = true;
                 }
@@ -457,8 +427,5 @@ export function init() {
 }
 
 export function cleanup() {
-    // В данном приложении нет глобальных слушателей или таймеров,
-    // которые нужно было бы специально очищать при уничтожении компонента.
-    // Все события привязаны к элементам внутри .solitaire-board,
-    // поэтому стандартной сборки мусора будет достаточно.
+    // Специальная очистка не требуется.
 }
