@@ -113,38 +113,6 @@ export const tvChannels = [
             ></iframe>`
     },
     { 
-        name: "МИР", 
-        logoUrl: "https://upload.wikimedia.org/wikipedia/ru/6/68/%D0%9C%D0%B8%D1%80_%D0%A2%D0%92_logo.png",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://rutube.ru/live/video/afef67d151b5a607dee1ef0aa299a52c" style="border: none;" allow="clipboard-write; autoplay=1"
-                frameBorder="0"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                webkitAllowFullScreen
-                mozallowfullscreen
-                allowFullScreen
-            ></iframe>`
-    },
-    { 
-        name: "ТНТ", 
-        logoUrl: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Logo_tnt.png",
-        embedHtml: `
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://rutube.ru/live/video/546602986e6a424d74d594876ddb3f04" style="border: none;" allow="clipboard-write; autoplay=1"
-                frameBorder="0"
-                style="border: none; border-radius: 0.5rem;"
-                allow="clipboard-write; autoplay"
-                webkitAllowFullScreen
-                mozallowfullscreen
-                allowFullScreen
-            ></iframe>`
-    },
-    { 
         name: "МУЗ-ТВ", 
         logoUrl: "https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-thumbnail/s3/022023/muz_tv_0.png",
         embedHtml: `
