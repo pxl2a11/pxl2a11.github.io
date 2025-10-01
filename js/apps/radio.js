@@ -1,4 +1,4 @@
-//59 js/apps/radio.js
+//06 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -26,16 +26,13 @@ function addListener(element, event, handler) {
 }
 
 /**
- * ***НОВАЯ ФУНКЦИЯ***
  * Извлекает имя логотипа из URL для использования в хеше.
  * @param {object} station - Объект радиостанции.
  * @returns {string|null} - Имя логотипа (например, "russkoe_radio") или null.
  */
 function getLogoName(station) {
     if (!station || !station.logoUrl) return null;
-    // Извлекаем имя файла: "img/radio/russkoe_radio.png" -> "russkoe_radio.png"
     const filename = station.logoUrl.split('/').pop();
-    // Убираем расширение: "russkoe_radio.png" -> "russkoe_radio"
     const logoName = filename.substring(0, filename.lastIndexOf('.'));
     return logoName;
 }
@@ -127,10 +124,11 @@ function playStation(station) {
     if (!station) return;
     currentStation = station;
 
-    // ***ИЗМЕНЕНИЕ***: Обновляем хеш в URL, используя имя логотипа
+    // Обновляем хеш в URL, используя имя логотипа, без перезагрузки
     const logoName = getLogoName(station);
     if (logoName) {
-        window.location.hash = logoName;
+        // Используем replaceState, чтобы не создавать лишних записей в истории браузера
+        history.replaceState(null, '', `#${logoName}`);
     }
 
     // Сразу обновляем UI, чтобы пользователь видел выбранную станцию
@@ -305,8 +303,18 @@ function createStationCards() {
             </button>
         `;
         
-        addListener(card.querySelector('.play-area'), 'click', () => playStation(station));
-        addListener(card.querySelector('.favorite-btn'), 'click', () => toggleFavorite(station.name));
+        // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+        // Добавляем e.stopPropagation() в обработчики, чтобы предотвратить "всплытие" события
+        // до глобального обработчика навигации в main.js.
+        addListener(card.querySelector('.play-area'), 'click', (e) => {
+            e.stopPropagation();
+            playStation(station);
+        });
+        addListener(card.querySelector('.favorite-btn'), 'click', (e) => {
+            e.stopPropagation();
+            toggleFavorite(station.name);
+        });
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
         stationsGrid.appendChild(card);
         stationCards.push(card);
@@ -430,7 +438,7 @@ export async function init() {
     createStationCards();
     setupMediaSessionHandlers();
     
-    // ***ИЗМЕНЕНИЕ***: Проверяем URL на наличие хеша при загрузке
+    // Проверяем URL на наличие хеша при загрузке
     const stationLogoFromUrl = window.location.hash.substring(1);
     if (stationLogoFromUrl) {
         const stationToPlay = radioStations.find(s => getLogoName(s) === stationLogoFromUrl);
@@ -462,9 +470,8 @@ export function cleanup() {
         element.removeEventListener(event, handler);
     });
     
-    // ***ИЗМЕНЕНИЕ***: Очищаем хеш в URL при выходе из приложения
-    // Это предотвращает автоматический запуск при следующем входе на страницу
-    history.pushState("", document.title, window.location.pathname + window.location.search);
+    // Очищаем хеш в URL при выходе из приложения
+    history.replaceState(null, '', window.location.pathname + window.location.search);
 
     eventListeners = [];
     currentStation = null;
