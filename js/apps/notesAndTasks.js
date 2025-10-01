@@ -1,4 +1,4 @@
-// 14js/apps/notesAndTasks.js
+// 18js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 // ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
@@ -292,8 +292,8 @@ export async function init() {
         // Этот блок сработает, только если не был нажат ни один из элементов выше.
         const listHeader = target.closest('.list-header');
         if (listHeader) {
-            // Игнорируем клик, если он был на элементе для перетаскивания
-            if (target.closest('.drag-handle')) {
+            // Игнорируем клик, если он был на элементе для перетаскивания или на редактируемом элементе
+            if (target.closest('.drag-handle') || target.closest('.editable-element')) {
                 return;
             }
             const index = parseInt(listHeader.dataset.listIndex, 10);
