@@ -56,7 +56,7 @@ export const tvChannels = [
     },
     {
         name: "Домашний",
-        logoUrl: "img/tv/domashniy.png",
+        logoUrl: "img/tv/domashnij.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -85,7 +85,7 @@ export const tvChannels = [
     },
     {
         name: "Пятница!",
-        logoUrl: "img/tv/pyatnica.png",
+        logoUrl: "img/tv/pyatnica!.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -179,7 +179,7 @@ export const tvChannels = [
     },
     {
         name: "Че!",
-        logoUrl: "img/tv/che.png",
+        logoUrl: "img/tv/che!.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -192,7 +192,7 @@ export const tvChannels = [
     },
     {
         name: "Суббота!",
-        logoUrl: "img/tv/subbota.png",
+        logoUrl: "img/tv/subbota!.png",
         embedHtml: `
             <iframe
                 width="100%"
@@ -322,7 +322,7 @@ export const tvChannels = [
     },
     {
         name: "RU.TV",
-        logoUrl: "img/tv/ru_tv.png",
+        logoUrl: "img/tv/ru.tv.png",
         embedHtml: `
             <iframe
                 width="100%"
