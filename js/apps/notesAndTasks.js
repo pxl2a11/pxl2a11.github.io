@@ -1,5 +1,7 @@
-// 11js/apps/notesAndTasks.js
+// 14js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
+
+// ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
 
 export function getHtml() {
     return `
@@ -11,10 +13,9 @@ export function getHtml() {
                 pointer-events: none;
                 display: block;
             }
-            /* Делаем редактируемые элементы строчно-блочными, чтобы они не занимали всю ширину,
-               и добавляем курсор для визуальной подсказки. */
+            /* Делаем редактируемые элементы строчно-блочными, чтобы они не занимали всю ширину */
             .editable-element {
-                cursor: text; /* Изменено на 'text' для ясности */
+                cursor: text;
                 display: inline-block;
                 width: 100%; 
             }
@@ -48,7 +49,7 @@ export function getHtml() {
             .collapse-btn.collapsed svg {
                 transform: rotate(-90deg);
             }
-            /* --- ИЗМЕНЕНИЕ: Курсор для заголовка --- */
+            /* Курсор для всей области заголовка, намекающий на кликабельность */
             .list-header {
                 cursor: pointer;
             }
@@ -62,7 +63,6 @@ export function getHtml() {
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"></path></svg>
                         Создать
                     </button>
-                    <!-- --- ИЗМЕНЕНИЕ: Упрощенное выпадающее меню --- -->
                     <div id="create-choice-box" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-48">
                         <button data-type="task" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Список задач</button>
                         <button data-type="note" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Заметку</button>
@@ -79,8 +79,6 @@ export function getHtml() {
 
             <!-- Контейнер для списков -->
             <div id="lists-container" class="space-y-4"></div>
-
-            <!-- Модальное окно удалено -->
         </div>
     `;
 }
@@ -159,13 +157,12 @@ export async function init() {
 
             return `
                 <div class="list-card bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
-                    <!-- --- ИЗМЕНЕНИЕ: Добавлен класс list-header и data-атрибут --- -->
                     <div class="list-header flex justify-between items-start mb-2" data-list-index="${originalIndex}">
                         <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
                         
                         <div class="flex items-center flex-shrink-0">
-                            <button data-list-index="${originalIndex}" class="collapse-btn p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ${isCollapsed ? 'collapsed' : ''}">
-                               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            <button class="collapse-btn p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ${isCollapsed ? 'collapsed' : ''}" tabindex="-1">
+                               <svg class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                             </button>
                             <div class="drag-handle text-gray-400 p-1 hover:text-gray-600 dark:hover:text-gray-200">
                                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -199,10 +196,10 @@ export async function init() {
 
         if (type === 'task') {
             newList.title = 'Название списка задач';
-            newList.items = [{ text: 'Новая задача', completed: false }]; // Добавляем задачу по умолчанию
+            newList.items = [{ text: 'Новая задача', completed: false }];
         } else { // 'note'
             newList.title = 'Название заметки';
-            newList.content = 'Новая заметка'; // Добавляем контент по умолчанию
+            newList.content = 'Новая заметка';
         }
 
         lists.unshift(newList);
@@ -238,72 +235,48 @@ export async function init() {
         }
     });
 
-    // --- ОБРАБОТЧИКИ ДЛЯ СПИСКОВ ---
+    // --- ИЗМЕНЕНИЕ: Полностью переработанный обработчик кликов для большей надежности ---
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
-        // Включение режима редактирования для заголовка или контента
+        // Приоритет 1: Активация редактирования текста (самое специфичное действие)
         const editableTarget = target.closest('.editable-element');
         if (editableTarget && editableTarget.getAttribute('contenteditable') !== 'true') {
-            // Предотвращаем сворачивание, когда цель - редактирование
-            e.stopPropagation(); 
-            
             editableTarget.setAttribute('contenteditable', 'true');
             editableTarget.focus();
-            // Устанавливаем курсор в конец текста
             const selection = window.getSelection();
             const range = document.createRange();
             range.selectNodeContents(editableTarget);
-            range.collapse(false);
+            range.collapse(false); // установить курсор в конец
             selection.removeAllRanges();
             selection.addRange(range);
-            return;
+            return; // Действие выполнено, выходим
         }
 
-        // Удаление всего списка
+        // Приоритет 2: Удаление всего списка
         const deleteListBtn = target.closest('.list-delete-btn');
         if (deleteListBtn) {
-            e.stopPropagation();
             const index = parseInt(deleteListBtn.dataset.listIndex, 10);
             if (confirm(`Вы уверены, что хотите удалить список "${lists[index].title}"?`)) {
                 lists.splice(index, 1);
                 saveLists();
                 renderLists();
             }
-            return;
+            return; // Действие выполнено, выходим
         }
         
-        // --- ИЗМЕНЕНИЕ: Логика сворачивания по клику на заголовок ---
-        const listHeader = target.closest('.list-header');
-        if (listHeader) {
-            // Игнорируем клик, если он был по интерактивному элементу внутри заголовка
-            if (target.closest('.editable-element') || target.closest('.drag-handle') || target.closest('.list-delete-btn')) {
-                return;
-            }
-            
-            e.stopPropagation();
-            const index = parseInt(listHeader.dataset.listIndex, 10);
-            if (index >= 0 && index < lists.length) {
-                lists[index].collapsed = !(lists[index].collapsed ?? false);
-                saveLists();
-                renderLists();
-            }
-            return;
-        }
-
-        // Удаление конкретной задачи
+        // Приоритет 3: Удаление отдельной задачи
         const deleteTaskBtn = target.closest('.delete-task-btn');
         if (deleteTaskBtn) {
-            e.stopPropagation();
             const listIndex = parseInt(deleteTaskBtn.dataset.listIndex, 10);
             const taskIndex = parseInt(deleteTaskBtn.dataset.taskIndex, 10);
             lists[listIndex].items.splice(taskIndex, 1);
             saveLists();
             renderLists();
-            return;
+            return; // Действие выполнено, выходим
         }
         
-        // Отметка чекбокса задачи
+        // Приоритет 4: Отметка чекбокса
         if (target.classList.contains('task-checkbox')) {
             const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
@@ -312,8 +285,26 @@ export async function init() {
                  saveLists();
                  renderLists();
             }
+            return; // Действие выполнено, выходим
+        }
+        
+        // Приоритет 5: Сворачивание/разворачивание списка (самое общее действие)
+        // Этот блок сработает, только если не был нажат ни один из элементов выше.
+        const listHeader = target.closest('.list-header');
+        if (listHeader) {
+            // Игнорируем клик, если он был на элементе для перетаскивания
+            if (target.closest('.drag-handle')) {
+                return;
+            }
+            const index = parseInt(listHeader.dataset.listIndex, 10);
+            if (index >= 0 && index < lists.length) {
+                lists[index].collapsed = !(lists[index].collapsed ?? false);
+                saveLists();
+                renderLists();
+            }
         }
     });
+
 
     // Сохранение при потере фокуса (blur)
     listsContainer.addEventListener('focusout', e => {
