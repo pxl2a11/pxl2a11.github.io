@@ -1,7 +1,5 @@
-// 33js/apps/notesAndTasks.js
+// 11js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
-
-// ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
 
 export function getHtml() {
     return `
@@ -16,7 +14,7 @@ export function getHtml() {
             /* Делаем редактируемые элементы строчно-блочными, чтобы они не занимали всю ширину,
                и добавляем курсор для визуальной подсказки. */
             .editable-element {
-                cursor: pointer;
+                cursor: text; /* Изменено на 'text' для ясности */
                 display: inline-block;
                 width: 100%; 
             }
@@ -49,6 +47,10 @@ export function getHtml() {
             }
             .collapse-btn.collapsed svg {
                 transform: rotate(-90deg);
+            }
+            /* --- ИЗМЕНЕНИЕ: Курсор для заголовка --- */
+            .list-header {
+                cursor: pointer;
             }
         </style>
         <div class="p-4">
@@ -157,7 +159,8 @@ export async function init() {
 
             return `
                 <div class="list-card bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
-                    <div class="flex justify-between items-start mb-2">
+                    <!-- --- ИЗМЕНЕНИЕ: Добавлен класс list-header и data-атрибут --- -->
+                    <div class="list-header flex justify-between items-start mb-2" data-list-index="${originalIndex}">
                         <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
                         
                         <div class="flex items-center flex-shrink-0">
@@ -239,12 +242,15 @@ export async function init() {
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
+        // Включение режима редактирования для заголовка или контента
         const editableTarget = target.closest('.editable-element');
         if (editableTarget && editableTarget.getAttribute('contenteditable') !== 'true') {
-            if(e.target.closest('.drag-handle')) return;
+            // Предотвращаем сворачивание, когда цель - редактирование
+            e.stopPropagation(); 
             
             editableTarget.setAttribute('contenteditable', 'true');
             editableTarget.focus();
+            // Устанавливаем курсор в конец текста
             const selection = window.getSelection();
             const range = document.createRange();
             range.selectNodeContents(editableTarget);
@@ -254,6 +260,7 @@ export async function init() {
             return;
         }
 
+        // Удаление всего списка
         const deleteListBtn = target.closest('.list-delete-btn');
         if (deleteListBtn) {
             e.stopPropagation();
@@ -266,10 +273,16 @@ export async function init() {
             return;
         }
         
-        const collapseBtn = target.closest('.collapse-btn');
-        if (collapseBtn) {
+        // --- ИЗМЕНЕНИЕ: Логика сворачивания по клику на заголовок ---
+        const listHeader = target.closest('.list-header');
+        if (listHeader) {
+            // Игнорируем клик, если он был по интерактивному элементу внутри заголовка
+            if (target.closest('.editable-element') || target.closest('.drag-handle') || target.closest('.list-delete-btn')) {
+                return;
+            }
+            
             e.stopPropagation();
-            const index = parseInt(collapseBtn.dataset.listIndex, 10);
+            const index = parseInt(listHeader.dataset.listIndex, 10);
             if (index >= 0 && index < lists.length) {
                 lists[index].collapsed = !(lists[index].collapsed ?? false);
                 saveLists();
@@ -278,6 +291,7 @@ export async function init() {
             return;
         }
 
+        // Удаление конкретной задачи
         const deleteTaskBtn = target.closest('.delete-task-btn');
         if (deleteTaskBtn) {
             e.stopPropagation();
@@ -289,6 +303,7 @@ export async function init() {
             return;
         }
         
+        // Отметка чекбокса задачи
         if (target.classList.contains('task-checkbox')) {
             const listIndex = parseInt(target.dataset.listIndex, 10);
             const taskIndex = parseInt(target.dataset.taskIndex, 10);
