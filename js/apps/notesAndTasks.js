@@ -1,4 +1,4 @@
-// 18js/apps/notesAndTasks.js
+// 22js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 // ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
@@ -13,11 +13,19 @@ export function getHtml() {
                 pointer-events: none;
                 display: block;
             }
-            /* Делаем редактируемые элементы строчно-блочными, чтобы они не занимали всю ширину */
+            /* Базовый стиль для редактируемых элементов */
             .editable-element {
                 cursor: text;
                 display: inline-block;
-                width: 100%; 
+            }
+            /* Задаем ширину по содержимому конкретно для заголовка */
+            .list-header > .editable-element {
+                width: auto;
+                max-width: 100%; /* Чтобы очень длинные заголовки не ломали верстку */
+            }
+            /* Возвращаем полную ширину для контента заметки и текста задачи */
+            .list-content .editable-element, .task-item-container .editable-element {
+                width: 100%;
             }
             /* Стили для перетаскивания */
             .drag-handle {
@@ -235,11 +243,11 @@ export async function init() {
         }
     });
 
-    // --- ИЗМЕНЕНИЕ: Полностью переработанный обработчик кликов для большей надежности ---
+    // Полностью переработанный обработчик кликов для большей надежности
     listsContainer.addEventListener('click', e => {
         const target = e.target;
         
-        // Приоритет 1: Активация редактирования текста (самое специфичное действие)
+        // Приоритет 1: Активация редактирования текста
         const editableTarget = target.closest('.editable-element');
         if (editableTarget && editableTarget.getAttribute('contenteditable') !== 'true') {
             editableTarget.setAttribute('contenteditable', 'true');
@@ -247,10 +255,10 @@ export async function init() {
             const selection = window.getSelection();
             const range = document.createRange();
             range.selectNodeContents(editableTarget);
-            range.collapse(false); // установить курсор в конец
+            range.collapse(false);
             selection.removeAllRanges();
             selection.addRange(range);
-            return; // Действие выполнено, выходим
+            return; 
         }
 
         // Приоритет 2: Удаление всего списка
@@ -262,7 +270,7 @@ export async function init() {
                 saveLists();
                 renderLists();
             }
-            return; // Действие выполнено, выходим
+            return;
         }
         
         // Приоритет 3: Удаление отдельной задачи
@@ -273,7 +281,7 @@ export async function init() {
             lists[listIndex].items.splice(taskIndex, 1);
             saveLists();
             renderLists();
-            return; // Действие выполнено, выходим
+            return;
         }
         
         // Приоритет 4: Отметка чекбокса
@@ -285,11 +293,10 @@ export async function init() {
                  saveLists();
                  renderLists();
             }
-            return; // Действие выполнено, выходим
+            return;
         }
         
-        // Приоритет 5: Сворачивание/разворачивание списка (самое общее действие)
-        // Этот блок сработает, только если не был нажат ни один из элементов выше.
+        // Приоритет 5: Сворачивание/разворачивание списка
         const listHeader = target.closest('.list-header');
         if (listHeader) {
             // Игнорируем клик, если он был на элементе для перетаскивания или на редактируемом элементе
