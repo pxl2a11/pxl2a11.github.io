@@ -1,4 +1,4 @@
-//27 js/apps/radio.js
+//59 js/apps/radio.js
 import { radioStations } from '../radioStationsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -24,6 +24,22 @@ function addListener(element, event, handler) {
     element.addEventListener(event, handler);
     eventListeners.push({ element, event, handler });
 }
+
+/**
+ * ***НОВАЯ ФУНКЦИЯ***
+ * Извлекает имя логотипа из URL для использования в хеше.
+ * @param {object} station - Объект радиостанции.
+ * @returns {string|null} - Имя логотипа (например, "russkoe_radio") или null.
+ */
+function getLogoName(station) {
+    if (!station || !station.logoUrl) return null;
+    // Извлекаем имя файла: "img/radio/russkoe_radio.png" -> "russkoe_radio.png"
+    const filename = station.logoUrl.split('/').pop();
+    // Убираем расширение: "russkoe_radio.png" -> "russkoe_radio"
+    const logoName = filename.substring(0, filename.lastIndexOf('.'));
+    return logoName;
+}
+
 
 // --- HTML-структура приложения ---
 export function getHtml() {
@@ -111,8 +127,14 @@ function playStation(station) {
     if (!station) return;
     currentStation = station;
 
+    // ***ИЗМЕНЕНИЕ***: Обновляем хеш в URL, используя имя логотипа
+    const logoName = getLogoName(station);
+    if (logoName) {
+        window.location.hash = logoName;
+    }
+
     // Сразу обновляем UI, чтобы пользователь видел выбранную станцию
-    updatePlayerUI(); 
+    updatePlayerUI();
     playerStationName.textContent = 'Загрузка...';
     renderStreamQualityButtons(station);
     
@@ -167,13 +189,11 @@ function changeStream(url) {
         console.log("Воспроизведение стандартного потока");
         audioElement.src = url;
         audioElement.play().catch(error => {
-            // Игнорируем ошибку AbortError, которая возникает при быстрой смене станций
             if (error.name === 'AbortError') {
                 console.log('Воспроизведение прервано новым запросом. Это нормально.');
-                return; 
+                return;
             }
             console.error("Ошибка воспроизведения:", error);
-            // ***ИЗМЕНЕНИЕ***: Показываем ошибку, но не сбрасываем currentStation
             playerStationName.textContent = "Ошибка потока";
         });
     }
@@ -184,16 +204,13 @@ function changeStream(url) {
 }
 
 function playNextStation() {
-    // ***ИЗМЕНЕНИЕ***: Логика теперь работает, даже если currentStation не был установлен
     const currentIndex = currentStation ? radioStations.findIndex(s => s.name === currentStation.name) : -1;
     const nextIndex = (currentIndex + 1) % radioStations.length;
     playStation(radioStations[nextIndex]);
 }
 
 function playPreviousStation() {
-    // ***ИЗМЕНЕНИЕ***: Логика теперь работает, даже если currentStation не был установлен
     const currentIndex = currentStation ? radioStations.findIndex(s => s.name === currentStation.name) : -1;
-    // Корректный расчет предыдущего индекса с зацикливанием
     const prevIndex = (currentIndex - 1 + radioStations.length) % radioStations.length;
     playStation(radioStations[prevIndex]);
 }
@@ -226,8 +243,8 @@ function updatePlayerUI() {
     playIcon.classList.toggle('hidden', isPlaying);
     pauseIcon.classList.toggle('hidden', !isPlaying);
     playPauseBtn.disabled = !currentStation;
-    nextStationBtn.disabled = false; // Кнопки вперед/назад всегда активны
-    prevStationBtn.disabled = false; // Кнопки вперед/назад всегда активны
+    nextStationBtn.disabled = false;
+    prevStationBtn.disabled = false;
     mutedIcon.classList.toggle('hidden', !audioElement.muted);
     unmutedIcon.classList.toggle('hidden', audioElement.muted);
 
@@ -235,7 +252,6 @@ function updatePlayerUI() {
         playerArtwork.src = currentStation.logoUrl || 'img/radio.svg';
         playerArtwork.classList.remove('hidden');
         playerPlaceholder.classList.add('hidden');
-        // Не меняем playerStationName здесь, чтобы не затереть сообщение об ошибке
         if (playerStationName.textContent === 'Загрузка...' || playerStationName.textContent === '') {
             playerStationName.textContent = currentStation.name;
         }
@@ -372,7 +388,6 @@ export async function init() {
     addListener(playPauseBtn, 'click', () => {
         if (!currentStation) return;
         if (audioElement.paused) {
-            // Если была ошибка, пробуем перезапустить тот же поток
             if (playerStationName.textContent.includes('Ошибка')) {
                 playStation(currentStation);
             } else {
@@ -399,24 +414,31 @@ export async function init() {
         favoritesFilterBtn.classList.toggle('active', isFavoritesFilterActive);
         filterStations();
     });
-    addListener(audioElement, 'play', () => { 
+    addListener(audioElement, 'play', () => {
         if(currentStation) playerStationName.textContent = currentStation.name;
-        updatePlayerUI(); 
-        updateMediaSessionMetadata(); 
+        updatePlayerUI();
+        updateMediaSessionMetadata();
     });
-    addListener(audioElement, 'pause', () => { 
-        updatePlayerUI(); 
-        updateMediaSessionMetadata(); 
+    addListener(audioElement, 'pause', () => {
+        updatePlayerUI();
+        updateMediaSessionMetadata();
     });
     addListener(audioElement, 'ended', updatePlayerUI);
     addListener(audioElement, 'volumechange', updatePlayerUI);
-    // ***ИЗМЕНЕНИЕ***: Глобальный обработчик ошибок audioElement удален,
-    // так как ошибки теперь обрабатываются более точно в функции changeStream.
 
     // Первоначальная отрисовка
     createStationCards();
     setupMediaSessionHandlers();
-    // Разблокируем кнопки навигации сразу
+    
+    // ***ИЗМЕНЕНИЕ***: Проверяем URL на наличие хеша при загрузке
+    const stationLogoFromUrl = window.location.hash.substring(1);
+    if (stationLogoFromUrl) {
+        const stationToPlay = radioStations.find(s => getLogoName(s) === stationLogoFromUrl);
+        if (stationToPlay) {
+            playStation(stationToPlay);
+        }
+    }
+    
     nextStationBtn.disabled = false;
     prevStationBtn.disabled = false;
     updatePlayerUI();
@@ -439,6 +461,11 @@ export function cleanup() {
     eventListeners.forEach(({ element, event, handler }) => {
         element.removeEventListener(event, handler);
     });
+    
+    // ***ИЗМЕНЕНИЕ***: Очищаем хеш в URL при выходе из приложения
+    // Это предотвращает автоматический запуск при следующем входе на страницу
+    history.pushState("", document.title, window.location.pathname + window.location.search);
+
     eventListeners = [];
     currentStation = null;
     isFavoritesFilterActive = false;
