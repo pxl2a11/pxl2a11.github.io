@@ -33,7 +33,8 @@ const appModules = [
     'metronome',
     'habitTracker',
     'jsonFormatter',
-    'solitaire'
+    'solitaire',
+    'mahjongSolitaire
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
