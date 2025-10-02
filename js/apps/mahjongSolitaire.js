@@ -1,4 +1,4 @@
-//40 js/apps/mahjongSolitaire.js
+//48 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -148,7 +148,15 @@ export function getHtml() {
             .mahjong-tile.wind .symbol { color: #1e293b; }
             .mahjong-tile.dragon-red .symbol { color: #dc2626; }
             .mahjong-tile.dragon-green .symbol { color: #16a34a; }
-            .mahjong-tile.dragon-white .symbol { width: 50%; height: 70%; border: 2px solid #3b82f6; border-radius: 4px; }
+            /* ИСПРАВЛЕНО: Улучшен дизайн "Белого Дракона", чтобы он выглядел более завершенным. */
+            .mahjong-tile.dragon-white .symbol { 
+                width: 50%; 
+                height: 70%; 
+                border: 2px solid #60a5fa; 
+                border-radius: 4px;
+                box-shadow: inset 0 0 0 2px #1e40af;
+                background-color: rgba(239, 246, 255, 0.7);
+            }
             .mahjong-tile.flower .symbol { color: #db2777; }
             .mahjong-tile.season .symbol { color: #ca8a04; }
         </style>
@@ -271,37 +279,32 @@ function createCardElement(card) {
     return el;
 }
 
-// ИСПРАВЛЕНО: Логика определения блокировки фишки была полностью скорректирована.
-// Вместо неверного размера "2" теперь используется "1", что соответствует реальной раскладке фишек.
 function isTileBlocked(tile, currentBoard = board) {
-    const TILE_SIZE = 1; // Устанавливаем правильный размер фишки в координатах раскладки.
+    const TILE_WIDTH = 1; 
+    const TILE_HEIGHT = 1;
 
-    // Проверка, покрыта ли фишка другой сверху.
     const isCovered = currentBoard.some(other => 
         !other.isRemoved && 
         other.z > tile.z && 
-        Math.abs(other.x - tile.x) < TILE_SIZE && 
-        Math.abs(other.y - tile.y) < TILE_SIZE
+        Math.abs(other.x - tile.x) < TILE_WIDTH && 
+        Math.abs(other.y - tile.y) < TILE_HEIGHT
     );
     if (isCovered) return true;
 
-    // Проверка, заблокирована ли фишка слева.
     const isBlockedOnLeft = currentBoard.some(other =>
         !other.isRemoved &&
         other.z === tile.z &&
-        other.x === tile.x - TILE_SIZE &&
-        Math.abs(other.y - tile.y) < TILE_SIZE
+        other.x === tile.x - TILE_WIDTH &&
+        Math.abs(other.y - tile.y) < TILE_HEIGHT
     );
     
-    // Проверка, заблокирована ли фишка справа.
     const isBlockedOnRight = currentBoard.some(other =>
         !other.isRemoved &&
         other.z === tile.z &&
-        other.x === tile.x + TILE_SIZE &&
-        Math.abs(other.y - tile.y) < TILE_SIZE
+        other.x === tile.x + TILE_WIDTH &&
+        Math.abs(other.y - tile.y) < TILE_HEIGHT
     );
 
-    // Фишка заблокирована, если у нее есть соседи с обеих сторон (и слева, и справа).
     return isBlockedOnLeft && isBlockedOnRight;
 }
 
@@ -347,6 +350,13 @@ function handleTileClick(tileEl) {
         if (isMatch) {
             selectedTile.isRemoved = true;
             clickedTileData.isRemoved = true;
+            
+            // Удаляем подсветку подсказки, если убираемые фишки были подсвечены
+            if (selectedTile.element.classList.contains('hint')) {
+                 clearTimeout(hintTimeout);
+                 document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
+            }
+
             selectedTile.element.remove();
             clickedTileData.element.remove();
             tilesLeft -= 2;
@@ -375,6 +385,7 @@ function showOverlay(title, text) {
     document.getElementById('mahjong-overlay').style.display = 'flex';
 }
 
+// ИСПРАВЛЕНО: Механизм таймера подсказки переработан для большей надежности.
 function findHint() {
     clearTimeout(hintTimeout);
     document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
@@ -393,9 +404,17 @@ function findHint() {
                 tile1.element.classList.add('hint');
                 tile2.element.classList.add('hint');
                 
+                // Запоминаем ID фишек, а не сами элементы.
+                const tile1Id = tile1.id;
+                const tile2Id = tile2.id;
+                
                 hintTimeout = setTimeout(() => {
-                    if (tile1.element) tile1.element.classList.remove('hint');
-                    if (tile2.element) tile2.element.classList.remove('hint');
+                    // Ищем элементы по ID перед тем, как убрать класс.
+                    // Это защищает от ошибок, если элементы были удалены.
+                    const el1 = document.querySelector(`.mahjong-tile[data-id="${tile1Id}"]`);
+                    const el2 = document.querySelector(`.mahjong-tile[data-id="${tile2Id}"]`);
+                    if (el1) el1.classList.remove('hint');
+                    if (el2) el2.classList.remove('hint');
                 }, 2000);
                 return;
             }
