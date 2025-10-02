@@ -1,4 +1,4 @@
-//56 js/apps/mahjongSolitaire.js
+//57 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
