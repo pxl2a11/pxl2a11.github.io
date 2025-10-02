@@ -1,4 +1,4 @@
-//27 js/apps/mahjongSolitaire.js
+//32 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -48,8 +48,8 @@ const LAYOUT = [
 ];
 
 // --- HTML и CSS (без изменений) ---
-
 export function getHtml() {
+    /* ... код HTML и CSS без изменений ... */
     return `
         <style>
             .mahjong-board-container {
@@ -199,9 +199,8 @@ export function getHtml() {
 
 // --- Логика игры ---
 
-// НОВОЕ: Функция для генерации гарантированно решаемого поля
+// ИЗМЕНЕНИЕ: Функция теперь возвращает null в случае неудачи
 function generateSolvableBoard() {
-    // 1. Создаем полную колоду костей
     let deck = [];
     TILE_DEFINITIONS.forEach(def => {
         if (def.category === 'season' || def.category === 'flower') {
@@ -213,26 +212,28 @@ function generateSolvableBoard() {
         }
     });
 
-    // 2. Перемешиваем колоду
     for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
     }
 
-    // 3. Создаем "пустое" поле на основе раскладки
     let boardModel = LAYOUT.map(pos => ({ z: pos[0], y: pos[1], x: pos[2], tile: null }));
     let finalBoard = [];
 
-    // 4. "Играем в обратном порядке": берем пару из колоды и ставим на две свободные ячейки
     while (deck.length > 0) {
         const tile1Data = deck.pop();
         const tile2Data = deck.pop();
 
-        // Находим все доступные для размещения ячейки
         const openSlots = boardModel.filter(slot => {
-            if (slot.tile) return false; // Ячейка уже занята
+            if (slot.tile) return false;
             
-            // Проверяем, не заблокирует ли кость в этой ячейке другие
+            const isCovered = boardModel.some(other => 
+                other.tile && other.z > slot.z && 
+                Math.abs(other.x - slot.x) < 1 && 
+                Math.abs(other.y - slot.y) < 1
+            );
+            if (isCovered) return false;
+
             const isBlockedOnLeft = boardModel.some(other => other.tile && other.z === slot.z && other.x === slot.x - 1 && Math.abs(other.y - slot.y) < 1);
             const isBlockedOnRight = boardModel.some(other => other.tile && other.z === slot.z && other.x === slot.x + 1 && Math.abs(other.y - slot.y) < 1);
             
@@ -240,25 +241,20 @@ function generateSolvableBoard() {
         });
 
         if (openSlots.length < 2) {
-             // Эта ситуация очень маловероятна, но служит защитой от бесконечного цикла.
-             // Если свободных мест для пары не нашлось, генерируем поле заново.
-            console.warn("Не удалось найти место для пары, перезапускаем генерацию...");
-            return generateSolvableBoard();
+             console.warn(`Попытка генерации не удалась: на шаге с ${deck.length + 2} оставшимися костями доступно только ${openSlots.length} слотов.`);
+             // ИЗМЕНЕНИЕ: Возвращаем null вместо рекурсивного вызова
+            return null;
         }
 
-        // Выбираем два случайных свободных места
         const slot1Index = Math.floor(Math.random() * openSlots.length);
         const [slot1] = openSlots.splice(slot1Index, 1);
-
         const slot2Index = Math.floor(Math.random() * openSlots.length);
         const [slot2] = openSlots.splice(slot2Index, 1);
 
-        // "Ставим" кости на эти места
         slot1.tile = tile1Data;
         slot2.tile = tile2Data;
     }
 
-    // 5. Формируем финальный массив доски
     boardModel.forEach(slot => {
         finalBoard.push({ ...slot.tile, z: slot.z, y: slot.y, x: slot.x, isRemoved: false });
     });
@@ -266,15 +262,32 @@ function generateSolvableBoard() {
     return finalBoard;
 }
 
-
+// ИЗМЕНЕНИЕ: Функция теперь в цикле пытается сгенерировать поле
 function startGame() {
     clearAllHints();
-    board = generateSolvableBoard();
+    
+    let newBoard = null;
+    let attempts = 0;
+    // Используем цикл, чтобы избежать переполнения стека при неудачной генерации
+    do {
+        newBoard = generateSolvableBoard();
+        attempts++;
+    } while (!newBoard && attempts < 100); // Повторяем, пока не сгенерируется поле (с защитой от вечного цикла)
+
+    // Если после 100 попыток поле так и не создано, показываем ошибку
+    if (!newBoard) {
+        console.error("Не удалось сгенерировать решаемое поле после 100 попыток.");
+        showOverlay("Ошибка генерации", "Не удалось создать игровое поле. Пожалуйста, обновите страницу или попробуйте позже.");
+        return;
+    }
+
+    board = newBoard;
     selectedTile = null;
     document.getElementById('mahjong-overlay').style.display = 'none';
     tilesLeft = board.length;
-    renderBoard(); // Полная отрисовка только в начале игры
+    renderBoard();
 }
+
 
 function renderBoard() {
     const boardEl = document.getElementById('mahjong-board');
@@ -293,7 +306,7 @@ function renderBoard() {
         tileEl.style.zIndex = tile.z * 10 + tile.y;
 
         boardEl.appendChild(tileEl);
-        tile.element = tileEl; // Сохраняем ссылку на DOM-элемент
+        tile.element = tileEl;
     });
     
     tilesLeftEl.textContent = tilesLeft;
@@ -312,7 +325,6 @@ function isTileBlocked(tile, currentBoard = board) {
     const TILE_WIDTH = 1;
     const TILE_HEIGHT = 1;
 
-    // Проверка, есть ли кость НАД текущей
     const isCovered = currentBoard.some(other => 
         !other.isRemoved && 
         other.z > tile.z && 
@@ -321,7 +333,6 @@ function isTileBlocked(tile, currentBoard = board) {
     );
     if (isCovered) return true;
 
-    // Проверка, заблокирована ли кость с обеих сторон (слева и справа)
     const isBlockedOnLeft = currentBoard.some(other =>
         !other.isRemoved &&
         other.z === tile.z &&
@@ -351,7 +362,6 @@ function updateSelectableTiles() {
             tile.element.classList.add('blocked');
         }
     });
-    // Небольшая задержка, чтобы дать DOM обновиться перед проверкой
     setTimeout(checkForAvailableMoves, 50);
 }
 
@@ -359,12 +369,11 @@ function hasAvailableMoves(currentBoard) {
     const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
     if (selectableTiles.length < 2) return false;
 
-    // Группируем доступные кости по символу или группе
     const counts = {};
     for (const tile of selectableTiles) {
         const key = tile.group || tile.symbol;
         if (counts[key]) {
-            return true; // Нашли пару, дальнейшая проверка не нужна
+            return true;
         }
         counts[key] = 1;
     }
@@ -410,7 +419,6 @@ function handleTileClick(tileEl) {
             
             clearAllHints();
 
-            // ИЗМЕНЕНИЕ: Вместо полной перерисовки, просто удаляем элементы
             selectedTile.element?.remove();
             clickedTileData.element?.remove();
             
@@ -419,14 +427,13 @@ function handleTileClick(tileEl) {
 
             selectedTile = null;
             
-            // ИЗМЕНЕНИЕ: И обновляем статусы соседних костей
             updateSelectableTiles();
             
             if (tilesLeft === 0) {
                 showOverlay("Победа!", "Вы очистили всё поле!");
             }
         } else {
-            selectedTile.element?.classList.remove('selected'); // ИЗМЕНЕНИЕ: Безопасное обращение
+            selectedTile.element?.classList.remove('selected');
             selectedTile = clickedTileData;
             selectedTile.element.classList.add('selected');
         }
@@ -475,30 +482,25 @@ function findHint() {
 function shuffleBoard() {
     clearAllHints();
     
-    // Собираем только данные оставшихся костей
     const remainingTiles = board.filter(t => !t.isRemoved);
     const tilesDataToShuffle = remainingTiles.map(t => ({ 
         symbol: t.symbol, id: t.id, group: t.group, category: t.category 
     }));
 
-    // Перемешиваем данные
     for (let i = tilesDataToShuffle.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [tilesDataToShuffle[i], tilesDataToShuffle[j]] = [tilesDataToShuffle[j], tilesDataToShuffle[i]];
     }
 
-    // ИЗМЕНЕНИЕ: Обновляем существующие кости новыми данными, не перерисовывая поле
     remainingTiles.forEach((tile, index) => {
         const newTileData = tilesDataToShuffle[index];
-        // Обновляем данные в основном массиве
         tile.symbol = newTileData.symbol;
         tile.id = newTileData.id;
         tile.group = newTileData.group;
         tile.category = newTileData.category;
         
-        // Обновляем соответствующий DOM-элемент
         if (tile.element) {
-            tile.element.className = `mahjong-tile ${tile.category || ''}`; // Сбрасываем классы
+            tile.element.className = `mahjong-tile ${tile.category || ''}`;
             tile.element.dataset.id = tile.id;
             tile.element.innerHTML = tile.category === 'dragon-white' 
                 ? `<span class="symbol"></span>` 
@@ -512,7 +514,6 @@ function shuffleBoard() {
         selectedTile = null;
     }
     
-    // Обновляем классы selectable/blocked для новой раскладки
     updateSelectableTiles();
 }
 
