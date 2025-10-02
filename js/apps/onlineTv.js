@@ -1,4 +1,4 @@
-// 25js/apps/onlineTv.js
+// 28js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -24,8 +24,10 @@ function addListener(element, event, handler) {
 function adjustChannelListHeight() {
     if (playerContainer && rightColumn) {
         const playerHeight = playerContainer.offsetHeight;
-        // Устанавливаем высоту всего блока правой колонки
-        rightColumn.style.height = `${playerHeight}px`;
+        // Проверяем, что высота больше нуля, прежде чем применять
+        if (playerHeight > 0) {
+            rightColumn.style.height = `${playerHeight}px`;
+        }
     }
 }
 
@@ -172,8 +174,9 @@ async function init() {
     favoritesFilterBtn = document.getElementById('favorites-filter-btn');
     rightColumn = document.getElementById('right-column');
 
-    // Настраиваем высоту и добавляем слушатель изменения размера окна
-    adjustChannelListHeight();
+    // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+    // Вызываем расчет высоты через setTimeout, чтобы браузер успел отрисовать плеер
+    setTimeout(adjustChannelListHeight, 0); 
     addListener(window, 'resize', adjustChannelListHeight);
 
     await loadFavorites();
