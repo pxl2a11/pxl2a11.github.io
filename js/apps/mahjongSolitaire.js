@@ -1,4 +1,4 @@
-//19 js/apps/mahjongSolitaire.js
+//27 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -6,9 +6,12 @@ let selectedTile = null;
 let tilesLeft = 0;
 let hintTimeout;
 
-// НОВОЕ: Добавляем звуковые эффекты
+// НОВОЕ: Добавляем звуковые эффекты с обработкой ошибок
 const clickSound = new Audio('sounds/games/mahjong/click.mp3');
 const matchSound = new Audio('sounds/games/mahjong/double.mp3');
+clickSound.onerror = () => console.warn("Не удалось загрузить звук клика.");
+matchSound.onerror = () => console.warn("Не удалось загрузить звук совпадения.");
+
 
 // --- Определение костей и их категорий для стилизации ---
 const TILE_DEFINITIONS = [
@@ -44,7 +47,7 @@ const LAYOUT = [
     [0,3.5,13],[0,3.5,14],[0,3.5,15]
 ];
 
-// --- HTML и CSS ---
+// --- HTML и CSS (без изменений) ---
 
 export function getHtml() {
     return `
@@ -102,7 +105,6 @@ export function getHtml() {
                     8px 8px 15px rgba(0, 0, 0, 0.5);
             }
 
-            /* ИСПРАВЛЕНИЕ: Стили для заблокированных костей */
             .mahjong-tile.blocked {
                 filter: brightness(0.7);
                 cursor: default;
@@ -129,7 +131,7 @@ export function getHtml() {
                     5px 5px #065f46, 6px 6px #065f46, 7px 7px #065f46, 8px 8px #065f46,
                     12px 16px 25px rgba(0,0,0,0.4);
                 z-index: 100 !important;
-                filter: none; /* Убираем фильтр, если кость выбрана */
+                filter: none;
             }
             
             .mahjong-tile.hint { animation: hint-pulse 0.8s infinite alternate; }
@@ -197,66 +199,82 @@ export function getHtml() {
 
 // --- Логика игры ---
 
-function hasAvailableMoves(currentBoard, requiredPairs = 1) {
-    const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
-    if (selectableTiles.length < requiredPairs * 2) return false;
-
-    const counts = {};
-    selectableTiles.forEach(tile => {
-        const key = tile.group || tile.symbol;
-        counts[key] = (counts[key] || 0) + 1;
+// НОВОЕ: Функция для генерации гарантированно решаемого поля
+function generateSolvableBoard() {
+    // 1. Создаем полную колоду костей
+    let deck = [];
+    TILE_DEFINITIONS.forEach(def => {
+        if (def.category === 'season' || def.category === 'flower') {
+            deck.push({ ...def, id: def.symbol, group: def.category });
+        } else {
+            for (let i = 0; i < 4; i++) {
+                deck.push({ ...def, id: `${def.symbol}_${i}` });
+            }
+        }
     });
 
-    let availablePairs = 0;
-    for (const count of Object.values(counts)) {
-        availablePairs += Math.floor(count / 2);
+    // 2. Перемешиваем колоду
+    for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
     }
-    
-    return availablePairs >= requiredPairs;
+
+    // 3. Создаем "пустое" поле на основе раскладки
+    let boardModel = LAYOUT.map(pos => ({ z: pos[0], y: pos[1], x: pos[2], tile: null }));
+    let finalBoard = [];
+
+    // 4. "Играем в обратном порядке": берем пару из колоды и ставим на две свободные ячейки
+    while (deck.length > 0) {
+        const tile1Data = deck.pop();
+        const tile2Data = deck.pop();
+
+        // Находим все доступные для размещения ячейки
+        const openSlots = boardModel.filter(slot => {
+            if (slot.tile) return false; // Ячейка уже занята
+            
+            // Проверяем, не заблокирует ли кость в этой ячейке другие
+            const isBlockedOnLeft = boardModel.some(other => other.tile && other.z === slot.z && other.x === slot.x - 1 && Math.abs(other.y - slot.y) < 1);
+            const isBlockedOnRight = boardModel.some(other => other.tile && other.z === slot.z && other.x === slot.x + 1 && Math.abs(other.y - slot.y) < 1);
+            
+            return !isBlockedOnLeft || !isBlockedOnRight;
+        });
+
+        if (openSlots.length < 2) {
+             // Эта ситуация очень маловероятна, но служит защитой от бесконечного цикла.
+             // Если свободных мест для пары не нашлось, генерируем поле заново.
+            console.warn("Не удалось найти место для пары, перезапускаем генерацию...");
+            return generateSolvableBoard();
+        }
+
+        // Выбираем два случайных свободных места
+        const slot1Index = Math.floor(Math.random() * openSlots.length);
+        const [slot1] = openSlots.splice(slot1Index, 1);
+
+        const slot2Index = Math.floor(Math.random() * openSlots.length);
+        const [slot2] = openSlots.splice(slot2Index, 1);
+
+        // "Ставим" кости на эти места
+        slot1.tile = tile1Data;
+        slot2.tile = tile2Data;
+    }
+
+    // 5. Формируем финальный массив доски
+    boardModel.forEach(slot => {
+        finalBoard.push({ ...slot.tile, z: slot.z, y: slot.y, x: slot.x, isRemoved: false });
+    });
+
+    return finalBoard;
 }
 
+
 function startGame() {
-    let deck;
-    let attempts = 0;
-
-    do {
-        deck = [];
-        TILE_DEFINITIONS.forEach(def => {
-            if (def.category === 'season' || def.category === 'flower') {
-                deck.push({ ...def, id: def.symbol, group: def.category });
-            } else {
-                for (let i = 0; i < 4; i++) {
-                    deck.push({ ...def, id: `${def.symbol}_${i}` });
-                }
-            }
-        });
-
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
-        }
-        
-        board = [];
-        LAYOUT.forEach((pos, index) => {
-            if(deck[index]) {
-                board.push({ ...deck[index], z: pos[0], y: pos[1], x: pos[2], isRemoved: false });
-            }
-        });
-
-        attempts++;
-        if (attempts > 100) {
-            console.error("Не удалось сгенерировать решаемое поле.");
-            break;
-        }
-
-    } while (!hasAvailableMoves(board, 3));
-
+    clearAllHints();
+    board = generateSolvableBoard();
     selectedTile = null;
     document.getElementById('mahjong-overlay').style.display = 'none';
     tilesLeft = board.length;
-    renderBoard();
+    renderBoard(); // Полная отрисовка только в начале игры
 }
-
 
 function renderBoard() {
     const boardEl = document.getElementById('mahjong-board');
@@ -275,7 +293,7 @@ function renderBoard() {
         tileEl.style.zIndex = tile.z * 10 + tile.y;
 
         boardEl.appendChild(tileEl);
-        tile.element = tileEl;
+        tile.element = tileEl; // Сохраняем ссылку на DOM-элемент
     });
     
     tilesLeftEl.textContent = tilesLeft;
@@ -291,9 +309,10 @@ function createCardElement(card) {
 }
 
 function isTileBlocked(tile, currentBoard = board) {
-    const TILE_WIDTH = 1; 
+    const TILE_WIDTH = 1;
     const TILE_HEIGHT = 1;
 
+    // Проверка, есть ли кость НАД текущей
     const isCovered = currentBoard.some(other => 
         !other.isRemoved && 
         other.z > tile.z && 
@@ -302,6 +321,7 @@ function isTileBlocked(tile, currentBoard = board) {
     );
     if (isCovered) return true;
 
+    // Проверка, заблокирована ли кость с обеих сторон (слева и справа)
     const isBlockedOnLeft = currentBoard.some(other =>
         !other.isRemoved &&
         other.z === tile.z &&
@@ -323,7 +343,6 @@ function updateSelectableTiles() {
     board.forEach(tile => {
         if (tile.isRemoved || !tile.element) return;
         
-        // ИСПРАВЛЕНИЕ: Чётко разделяем стили для доступных и заблокированных костей
         if (!isTileBlocked(tile)) {
             tile.element.classList.add('selectable');
             tile.element.classList.remove('blocked');
@@ -332,12 +351,31 @@ function updateSelectableTiles() {
             tile.element.classList.add('blocked');
         }
     });
-    setTimeout(checkForAvailableMoves, 10);
+    // Небольшая задержка, чтобы дать DOM обновиться перед проверкой
+    setTimeout(checkForAvailableMoves, 50);
+}
+
+function hasAvailableMoves(currentBoard) {
+    const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
+    if (selectableTiles.length < 2) return false;
+
+    // Группируем доступные кости по символу или группе
+    const counts = {};
+    for (const tile of selectableTiles) {
+        const key = tile.group || tile.symbol;
+        if (counts[key]) {
+            return true; // Нашли пару, дальнейшая проверка не нужна
+        }
+        counts[key] = 1;
+    }
+    
+    return false;
 }
 
 function checkForAvailableMoves() {
     const shuffleBtn = document.getElementById('mahjong-shuffle-btn');
     const hasMoves = hasAvailableMoves(board);
+
     if (!hasMoves && tilesLeft > 0) {
         shuffleBtn.disabled = false;
         showOverlay("Нет ходов!", "Нажмите 'Перемешать' или 'Новая игра'.");
@@ -350,7 +388,7 @@ function checkForAvailableMoves() {
 function handleTileClick(tileEl) {
     if (!tileEl.classList.contains('selectable')) return;
     
-    clickSound.play();
+    clickSound.play().catch(e => console.error("Ошибка воспроизведения звука:", e));
     
     const clickedTileData = board.find(t => t.id === tileEl.dataset.id);
 
@@ -365,28 +403,30 @@ function handleTileClick(tileEl) {
                         (selectedTile.group && selectedTile.group === clickedTileData.group);
 
         if (isMatch) {
-            matchSound.play();
+            matchSound.play().catch(e => console.error("Ошибка воспроизведения звука:", e));
 
             selectedTile.isRemoved = true;
             clickedTileData.isRemoved = true;
             
-            // ИСПРАВЛЕНИЕ: Используем единую функцию для очистки подсказки
-            if (selectedTile.element.classList.contains('hint') || clickedTileData.element.classList.contains('hint')) {
-                 clearAllHints();
-            }
+            clearAllHints();
 
-            selectedTile.element.remove();
-            clickedTileData.element.remove();
+            // ИЗМЕНЕНИЕ: Вместо полной перерисовки, просто удаляем элементы
+            selectedTile.element?.remove();
+            clickedTileData.element?.remove();
+            
             tilesLeft -= 2;
+            document.getElementById('mahjong-tiles-left').textContent = tilesLeft;
 
             selectedTile = null;
-            renderBoard();
+            
+            // ИЗМЕНЕНИЕ: И обновляем статусы соседних костей
+            updateSelectableTiles();
             
             if (tilesLeft === 0) {
                 showOverlay("Победа!", "Вы очистили всё поле!");
             }
         } else {
-            selectedTile.element.classList.remove('selected');
+            selectedTile.element?.classList.remove('selected'); // ИЗМЕНЕНИЕ: Безопасное обращение
             selectedTile = clickedTileData;
             selectedTile.element.classList.add('selected');
         }
@@ -403,35 +443,29 @@ function showOverlay(title, text) {
     document.getElementById('mahjong-overlay').style.display = 'flex';
 }
 
-// ИСПРАВЛЕНИЕ: Новая единая функция для очистки всех подсказок
 function clearAllHints() {
     clearTimeout(hintTimeout);
     document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
 }
 
-// ИСПРАВЛЕНИЕ: Переработанная функция поиска подсказок
 function findHint() {
-    clearAllHints(); // Всегда начинаем с очистки
+    clearAllHints();
 
     const selectableTiles = board.filter(t => !t.isRemoved && !isTileBlocked(t));
     
     for (let i = 0; i < selectableTiles.length; i++) {
         const tile1 = selectableTiles[i];
-        
         for (let j = i + 1; j < selectableTiles.length; j++) {
             const tile2 = selectableTiles[j];
             
             const isMatch = (tile1.symbol === tile2.symbol) || (tile1.group && tile1.group === tile2.group);
             
             if (isMatch) {
-                // Проверяем, что оба элемента всё ещё существуют в DOM
                 if (tile1.element && tile2.element) {
                     tile1.element.classList.add('hint');
                     tile2.element.classList.add('hint');
-                    
-                    // Таймер теперь просто вызывает глобальную функцию очистки
                     hintTimeout = setTimeout(clearAllHints, 2000);
-                    return; // Выходим, как только нашли пару
+                    return;
                 }
             }
         }
@@ -439,40 +473,49 @@ function findHint() {
 }
 
 function shuffleBoard() {
-    clearAllHints(); // Очищаем подсказки перед перемешиванием
+    clearAllHints();
+    
+    // Собираем только данные оставшихся костей
     const remainingTiles = board.filter(t => !t.isRemoved);
-    const tilesToShuffle = remainingTiles.map(t => ({ symbol: t.symbol, id: t.id, group: t.group, category: t.category }));
-    let attempts = 0;
+    const tilesDataToShuffle = remainingTiles.map(t => ({ 
+        symbol: t.symbol, id: t.id, group: t.group, category: t.category 
+    }));
 
-    do {
-        for (let i = tilesToShuffle.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [tilesToShuffle[i], tilesToShuffle[j]] = [tilesToShuffle[j], tilesToShuffle[i]];
+    // Перемешиваем данные
+    for (let i = tilesDataToShuffle.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tilesDataToShuffle[i], tilesDataToShuffle[j]] = [tilesDataToShuffle[j], tilesDataToShuffle[i]];
+    }
+
+    // ИЗМЕНЕНИЕ: Обновляем существующие кости новыми данными, не перерисовывая поле
+    remainingTiles.forEach((tile, index) => {
+        const newTileData = tilesDataToShuffle[index];
+        // Обновляем данные в основном массиве
+        tile.symbol = newTileData.symbol;
+        tile.id = newTileData.id;
+        tile.group = newTileData.group;
+        tile.category = newTileData.category;
+        
+        // Обновляем соответствующий DOM-элемент
+        if (tile.element) {
+            tile.element.className = `mahjong-tile ${tile.category || ''}`; // Сбрасываем классы
+            tile.element.dataset.id = tile.id;
+            tile.element.innerHTML = tile.category === 'dragon-white' 
+                ? `<span class="symbol"></span>` 
+                : `<span class="symbol">${tile.symbol}</span>`;
         }
-
-        remainingTiles.forEach((tile, index) => {
-            const newTileData = tilesToShuffle[index];
-            tile.symbol = newTileData.symbol;
-            tile.id = newTileData.id;
-            tile.group = newTileData.group;
-            tile.category = newTileData.category;
-        });
-
-        attempts++;
-        if (attempts > 100) {
-            console.error("Не удалось найти доступный ход после 100 перемешиваний.");
-            break; 
-        }
-
-    } while (!hasAvailableMoves(board));
+    });
     
     document.getElementById('mahjong-overlay').style.display = 'none';
     if(selectedTile) {
         selectedTile.element?.classList.remove('selected');
         selectedTile = null;
     }
-    renderBoard();
+    
+    // Обновляем классы selectable/blocked для новой раскладки
+    updateSelectableTiles();
 }
+
 
 export function init() {
     const boardEl = document.getElementById('mahjong-board');
