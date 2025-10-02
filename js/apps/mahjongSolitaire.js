@@ -105,8 +105,6 @@ const TILE_SYMBOLS = [
     '🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡' // Символы из Юникода
 ];
 
-// Классическая раскладка "Черепаха"
-// [z, y, x] - слой, строка, столбец
 const LAYOUT = [
     [0,3,0],[0,3,1],[0,3,2],[0,3,3],[0,3,4],[0,3,5],[0,3,6],[0,3,7],[0,3,8],[0,3,9],[0,3,10],[0,3,11],
     [0,4,0],[0,4,1],[0,4,2],[0,4,3],[0,4,4],[0,4,5],[0,4,6],[0,4,7],[0,4,8],[0,4,9],[0,4,10],[0,4,11],
@@ -123,54 +121,68 @@ const LAYOUT = [
     [2,3,4],[2,3,5],[2,3,6],[2,3,7],
     [2,4,4],[2,4,5],[2,4,6],[2,4,7],
     [3,3.5,5.5],
-    [0,3.5,13],[0,3.5,14],[0,3.5,15] // Правое крыло (15я - особая)
+    [0,3.5,13],[0,3.5,14],[0,3.5,15]
 ];
 
+// ИЗМЕНЕНИЕ №1: Добавлена функция, которая проверяет наличие ходов и возвращает true/false
+function hasAvailableMoves(currentBoard) {
+    const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
+    const counts = {};
+    selectableTiles.forEach(tile => {
+        const key = tile.group || tile.symbol;
+        counts[key] = (counts[key] || 0) + 1;
+    });
+    return Object.values(counts).some(count => count >= 2);
+}
+
+// ИЗМЕНЕНИЕ №2: Функция startGame теперь будет пересоздавать поле, если нет ходов
 function startGame() {
-    // 1. Создание и тасование колоды
-    let deck = [];
-    for (let i = 0; i < TILE_SYMBOLS.length; i++) {
-        for (let j = 0; j < 4; j++) {
-            deck.push({ symbol: TILE_SYMBOLS[i], id: `${TILE_SYMBOLS[i]}_${j}` });
+    let deck;
+    let attempts = 0;
+
+    do {
+        // Создание и тасование колоды
+        deck = [];
+        for (let i = 0; i < TILE_SYMBOLS.length; i++) {
+            for (let j = 0; j < 4; j++) {
+                deck.push({ symbol: TILE_SYMBOLS[i], id: `${TILE_SYMBOLS[i]}_${j}` });
+            }
         }
-    }
-    // Добавляем 4 кости сезона и 4 кости цветов (они могут сочетаться друг с другом)
-    ['🌸','🌼','🍂','❄️'].forEach(s => deck.push({ symbol: s, id: s, group: 'season' }));
-    ['🌺','🌻','🍁','🍃'].forEach(f => deck.push({ symbol: f, id: f, group: 'flower' }));
+        ['🌸','🌼','🍂','❄️'].forEach(s => deck.push({ symbol: s, id: s, group: 'season' }));
+        ['🌺','🌻','🍁','🍃'].forEach(f => deck.push({ symbol: f, id: f, group: 'flower' }));
 
-    // Тасование
-    for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        
+        // Сброс и раздача
+        board = [];
+        LAYOUT.forEach((pos, index) => {
+            const cardData = deck[index];
+            board.push({ ...cardData, z: pos[0], y: pos[1], x: pos[2], isRemoved: false });
+        });
 
-    // 2. Сброс состояния
-    board = [];
+        attempts++;
+        if (attempts > 100) { // Защита от бесконечного цикла
+            console.error("Не удалось сгенерировать поле с доступными ходами.");
+            break;
+        }
+
+    } while (!hasAvailableMoves(board)); // Повторяем, пока не получим поле с ходами
+
     selectedTile = null;
     document.getElementById('mahjong-overlay').style.display = 'none';
-
-    // 3. Раздача костей по раскладке
-    LAYOUT.forEach((pos, index) => {
-        const cardData = deck[index];
-        board.push({
-            ...cardData,
-            z: pos[0],
-            y: pos[1],
-            x: pos[2],
-            isRemoved: false,
-        });
-    });
-
     tilesLeft = board.length;
     renderBoard();
 }
+
 
 function renderBoard() {
     const boardEl = document.getElementById('mahjong-board');
     const tilesLeftEl = document.getElementById('mahjong-tiles-left');
     boardEl.innerHTML = '';
     
-    // Сортируем по Z-индексу, чтобы правильно отрисовать тени
     const sortedBoard = [...board].sort((a,b) => a.z - b.z);
 
     sortedBoard.forEach(tile => {
@@ -181,22 +193,21 @@ function renderBoard() {
         tileEl.textContent = tile.symbol;
         tileEl.dataset.id = tile.id;
         
-        // Позиционирование кости
         tileEl.style.left = `calc(${tile.x * (100 / 15)}% + ${tile.z * -4}px)`;
         tileEl.style.top = `calc(${tile.y * (100 / 10)}% + ${tile.z * -4}px)`;
         tileEl.style.zIndex = tile.z * 10 + tile.y;
 
         boardEl.appendChild(tileEl);
-        tile.element = tileEl; // Сохраняем ссылку на DOM-элемент
+        tile.element = tileEl;
     });
     
     tilesLeftEl.textContent = tilesLeft;
     updateSelectableTiles();
 }
 
-function isTileBlocked(tile) {
-    // Проверка, есть ли что-то сверху
-    const isCovered = board.some(other => 
+// ИЗМЕНЕНИЕ: Функция теперь может принимать доску как аргумент для проверки
+function isTileBlocked(tile, currentBoard = board) {
+    const isCovered = currentBoard.some(other => 
         !other.isRemoved && 
         other.z > tile.z && 
         Math.abs(other.x - tile.x) < 2 && 
@@ -204,14 +215,13 @@ function isTileBlocked(tile) {
     );
     if (isCovered) return true;
 
-    // Проверка боков
-    const isBlockedOnLeft = board.some(other =>
+    const isBlockedOnLeft = currentBoard.some(other =>
         !other.isRemoved &&
         other.z === tile.z &&
         other.x === tile.x - 2 &&
         Math.abs(other.y - tile.y) < 2
     );
-    const isBlockedOnRight = board.some(other =>
+    const isBlockedOnRight = currentBoard.some(other =>
         !other.isRemoved &&
         other.z === tile.z &&
         other.x === tile.x + 2 &&
@@ -233,28 +243,18 @@ function updateSelectableTiles() {
         }
     });
     
-    // После обновления проверяем, есть ли ходы
     setTimeout(checkForAvailableMoves, 10);
 }
 
 function checkForAvailableMoves() {
-    const selectableTiles = board.filter(t => !t.isRemoved && t.element.classList.contains('selectable'));
-    const counts = {};
-    selectableTiles.forEach(tile => {
-        const key = tile.group || tile.symbol;
-        counts[key] = (counts[key] || 0) + 1;
-    });
-
-    const hasMoves = Object.values(counts).some(count => count >= 2);
     const shuffleBtn = document.getElementById('mahjong-shuffle-btn');
-
-    if (!hasMoves && tilesLeft > 0) {
+    if (!hasAvailableMoves(board) && tilesLeft > 0) {
         shuffleBtn.disabled = false;
         showOverlay("Нет ходов!", "Нажмите 'Перемешать' или 'Новая игра'.");
     } else {
         shuffleBtn.disabled = true;
     }
-    document.getElementById('mahjong-hint-btn').disabled = !hasMoves;
+    document.getElementById('mahjong-hint-btn').disabled = !hasAvailableMoves(board);
 }
 
 function handleTileClick(tileEl) {
@@ -262,19 +262,17 @@ function handleTileClick(tileEl) {
     
     const clickedTileData = board.find(t => t.id === tileEl.dataset.id);
 
-    if (selectedTile) { // Вторая кость в паре
-        if (selectedTile.id === clickedTileData.id) { // Кликнули на ту же самую
+    if (selectedTile) {
+        if (selectedTile.id === clickedTileData.id) {
             selectedTile.element.classList.remove('selected');
             selectedTile = null;
             return;
         }
 
-        // Проверка совпадения
         const isMatch = (selectedTile.symbol === clickedTileData.symbol) || 
                         (selectedTile.group && selectedTile.group === clickedTileData.group);
 
         if (isMatch) {
-            // Удаляем кости
             selectedTile.isRemoved = true;
             clickedTileData.isRemoved = true;
             selectedTile.element.remove();
@@ -288,13 +286,12 @@ function handleTileClick(tileEl) {
                 showOverlay("Победа!", "Вы очистили всё поле!");
             }
         } else {
-            // Не совпали, выбираем новую
             selectedTile.element.classList.remove('selected');
             selectedTile = clickedTileData;
             selectedTile.element.classList.add('selected');
         }
 
-    } else { // Первая кость в паре
+    } else {
         selectedTile = clickedTileData;
         selectedTile.element.classList.add('selected');
     }
@@ -334,22 +331,24 @@ function findHint() {
     }
 }
 
+// ИЗМЕНЕНИЕ №3: Улучшенная функция перемешивания
 function shuffleBoard() {
     const remainingTiles = board.filter(t => !t.isRemoved);
-    const symbolsToShuffle = remainingTiles.map(t => ({ symbol: t.symbol, id: t.id, group: t.group }));
+    // Собираем не просто символы, а целые объекты костей
+    const tilesToShuffle = remainingTiles.map(t => ({ symbol: t.symbol, id: t.id, group: t.group }));
 
-    // Тасуем символы
-    for (let i = symbolsToShuffle.length - 1; i > 0; i--) {
+    // Тасуем их
+    for (let i = tilesToShuffle.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [symbolsToShuffle[i], symbolsToShuffle[j]] = [symbolsToShuffle[j], symbolsToShuffle[i]];
+        [tilesToShuffle[i], tilesToShuffle[j]] = [tilesToShuffle[j], tilesToShuffle[i]];
     }
 
-    // Присваиваем новые символы оставшимся костям
+    // Присваиваем новые данные оставшимся костям
     remainingTiles.forEach((tile, index) => {
-        const newSymbolData = symbolsToShuffle[index];
-        tile.symbol = newSymbolData.symbol;
-        tile.id = newSymbolData.id;
-        tile.group = newSymbolData.group;
+        const newTileData = tilesToShuffle[index];
+        tile.symbol = newTileData.symbol;
+        tile.id = newTileData.id;
+        tile.group = newTileData.group;
     });
     
     document.getElementById('mahjong-overlay').style.display = 'none';
