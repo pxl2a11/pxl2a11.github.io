@@ -3,6 +3,7 @@
 export const tvChannels = [
 
     {
+        id: "otr",
         name: "ОТР",
         logoUrl: "img/tv/otr.png",
         embedHtml: `
@@ -16,6 +17,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "tv_centr",
         name: "ТВ Центр",
         logoUrl: "img/tv/tv_centr.png",
         embedHtml: `
@@ -29,6 +31,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "spas_tv",
         name: "Спас ТВ",
         logoUrl: "img/tv/spas_tv.png",
         embedHtml: `
@@ -42,6 +45,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "sts",
         name: "СТС",
         logoUrl: "img/tv/sts.png",
         embedHtml: `
@@ -55,6 +59,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "domashniy",
         name: "Домашний",
         logoUrl: "img/tv/domashnij.png",
         embedHtml: `
@@ -68,6 +73,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "tv-3",
         name: "ТВ-3",
         logoUrl: "img/tv/tv-3.png",
         embedHtml: `
@@ -84,6 +90,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "pyatnica",
         name: "Пятница!",
         logoUrl: "img/tv/pyatnica!.png",
         embedHtml: `
@@ -100,6 +107,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "zvezda",
         name: "Звезда",
         logoUrl: "img/tv/zvezda.png",
         embedHtml: `
@@ -113,6 +121,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "muz-tv",
         name: "МУЗ-ТВ",
         logoUrl: "img/tv/muz-tv.png",
         embedHtml: `
@@ -126,6 +135,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "sankt-peterburg",
         name: "Санкт-Петербург",
         logoUrl: "img/tv/sankt-peterburg.png",
         embedHtml: `
@@ -139,6 +149,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "lentv_24",
         name: "ЛенТВ 24",
         logoUrl: "img/tv/lentv_24.png",
         embedHtml: `
@@ -152,6 +163,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "78",
         name: "78",
         logoUrl: "img/tv/78.png",
         embedHtml: `
@@ -165,6 +177,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "rbk",
         name: "РБК",
         logoUrl: "img/tv/rbk.png",
         embedHtml: `
@@ -178,6 +191,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "che",
         name: "Че!",
         logoUrl: "img/tv/che!.png",
         embedHtml: `
@@ -191,6 +205,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "subbota",
         name: "Суббота!",
         logoUrl: "img/tv/subbota!.png",
         embedHtml: `
@@ -204,6 +219,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "sts_love",
         name: "СТС Love",
         logoUrl: "img/tv/sts_love.png",
         embedHtml: `
@@ -217,6 +233,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "krasnaya_liniya",
         name: "Красная линия",
         logoUrl: "img/tv/krasnaya_liniya.png",
         embedHtml: `
@@ -230,6 +247,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "2x2",
         name: "2х2",
         logoUrl: "img/tv/2x2.png",
         embedHtml: `
@@ -243,6 +261,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "solnce",
         name: "Солнце",
         logoUrl: "img/tv/solnce.png",
         embedHtml: `
@@ -256,6 +275,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "izvestiya",
         name: "Известия",
         logoUrl: "img/tv/izvestiya.png",
         embedHtml: `
@@ -269,6 +289,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "yu",
         name: "Ю",
         logoUrl: "img/tv/yu.png",
         embedHtml: `
@@ -282,6 +303,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "tnt_music",
         name: "ТНТ Music",
         logoUrl: "img/tv/tnt_music.png",
         embedHtml: `
@@ -295,6 +317,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "vmeste-rf",
         name: "Вместе-РФ",
         logoUrl: "img/tv/vmeste-rf.png",
         embedHtml: `
@@ -308,6 +331,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "tnt4",
         name: "ТНТ4",
         logoUrl: "img/tv/tnt4.png",
         embedHtml: `
@@ -321,6 +345,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "ru_tv",
         name: "RU.TV",
         logoUrl: "img/tv/ru.tv.png",
         embedHtml: `
@@ -334,6 +359,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "duma_tv",
         name: "Дума ТВ",
         logoUrl: "img/tv/duma_tv.png",
         embedHtml: `
@@ -347,6 +373,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "world_fashion_channel",
         name: "World Fashion Channel",
         logoUrl: "img/tv/world_fashion_channel.png",
         embedHtml: `
@@ -360,6 +387,7 @@ export const tvChannels = [
             ></iframe>`
     },
     {
+        id: "mir_24",
         name: "МИР 24",
         logoUrl: "img/tv/mir_24.png",
         embedHtml: `
