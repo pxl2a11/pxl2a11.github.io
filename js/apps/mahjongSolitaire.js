@@ -1,4 +1,4 @@
-//54 js/apps/mahjongSolitaire.js
+//56 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -79,6 +79,10 @@ export function getHtml() {
                 user-select: none;
             }
             
+            /* =============================================================== */
+            /* ============ ИЗМЕНЕНИЕ: Улучшенный дизайн фишек ================ */
+            /* =============================================================== */
+
             .mahjong-tile {
                 position: absolute;
                 width: calc(100% / 15);
@@ -90,68 +94,73 @@ export function getHtml() {
                 font-size: clamp(12px, 4vmin, 24px);
                 font-family: 'Noto Sans', sans-serif;
                 cursor: pointer;
-                transition: all 0.15s ease-in-out;
                 border-radius: 4px;
-                
                 background: linear-gradient(145deg, #FEFBF0, #F8F2E0);
                 border: 1px solid #C8C0B0;
-                box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                    1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46, 
-                    5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                    8px 8px 15px rgba(0, 0, 0, 0.4);
+
+                /* Более плавная и быстрая анимация */
+                transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, filter 0.2s ease-out;
+
+                /* Внутренняя тень для символа остается, она создает эффект гравировки */
+                 box-shadow: inset 0 0 5px 2px rgba(185, 105, 40, 0.35);
             }
             
-            .dark .mahjong-tile {
-                box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                    1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46, 
-                    5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                    8px 8px 15px rgba(0, 0, 0, 0.5);
+            /* --- Состояние: ЗАБЛОКИРОВАНА --- */
+            /* Выглядит "вдавленной", тусклая, с минимальной тенью */
+            .mahjong-tile.blocked {
+                filter: brightness(0.85) saturate(0.6);
+                cursor: default;
+                /* Маленькая, четкая тень, будто фишка лежит на поле */
+                box-shadow: inset 0 0 5px 2px rgba(185, 105, 40, 0.2), 
+                            2px 2px 4px rgba(0,0,0,0.3);
+            }
+            
+            /* --- Состояние: АКТИВНА (можно выбрать) --- */
+            /* Выглядит "парящей" над полем, готова к нажатию */
+            .mahjong-tile.selectable {
+                /* Слегка приподнимаем фишку */
+                transform: translateY(-2px);
+                /* Тень становится больше и мягче, создавая ощущение высоты */
+                box-shadow: inset 0 0 5px 2px rgba(185, 105, 40, 0.35), 
+                            5px 5px 12px rgba(0, 0, 0, 0.3);
             }
 
-            .mahjong-tile.blocked {
-                /* ИЗМЕНЕНИЕ: Затемнение уменьшено с 0.7 до 0.85 */
-                filter: brightness(0.85);
-                cursor: default;
-            }
-            
+            /* --- Состояние: НАВЕДЕНИЕ на активную фишку --- */
+            /* Приподнимается еще выше, тень усиливается */
             .mahjong-tile.selectable:hover {
                 background: linear-gradient(145deg, #fff, #fef4e5);
                 border-color: #a8a29e;
-                transform: translateY(-2px);
-                box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                    1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46,
-                    5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                    10px 10px 18px rgba(0, 0, 0, 0.45);
+                transform: translateY(-5px) scale(1.03);
+                box-shadow: inset 0 0 5px 2px rgba(185, 105, 40, 0.35), 
+                            8px 8px 18px rgba(0, 0, 0, 0.35);
             }
 
+            /* --- Состояние: ВЫБРАНА --- */
+            /* Максимально выделяется, яркая рамка и большая тень */
             .mahjong-tile.selected {
                 background: linear-gradient(145deg, #dcfce7, #bbf7d0);
                 border-color: #4ade80;
-                transform: scale(1.08) translate(-4px, -4px);
-                box-shadow: 
-                    inset 0 0 4px 1px rgba(74, 222, 128, 0.5),
-                    1px 1px #069564, 2px 2px #057a55, 3px 3px #046c4e, 4px 4px #065f46, 
-                    5px 5px #065f46, 6px 6px #065f46, 7px 7px #065f46, 8px 8px #065f46,
-                    12px 16px 25px rgba(0,0,0,0.4);
-                filter: none;
+                transform: scale(1.08) translateY(-4px);
+                box-shadow: inset 0 0 4px 1px rgba(74, 222, 128, 0.5),
+                            12px 16px 25px rgba(0,0,0,0.4);
+                filter: none; /* Сбрасываем фильтры, если они были */
             }
-            
+
+            /* --- Состояние: ПОДСКАЗКА --- */
             .mahjong-tile.hint { animation: hint-pulse 0.8s infinite alternate; }
             @keyframes hint-pulse {
                 to { 
                     background: linear-gradient(145deg, #fef3c7, #fde68a);
                     border-color: #f59e0b;
-                    transform: translateY(-2px) scale(1.02);
-                    box-shadow: 
-                        inset 0 0 5px 2px rgba(245, 158, 11, 0.4),
-                        1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46,
-                        5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                        9px 9px 16px rgba(0,0,0,0.4);
+                    transform: translateY(-4px) scale(1.02); /* Адаптируем transform */
+                    box-shadow: inset 0 0 5px 2px rgba(245, 158, 11, 0.4),
+                                9px 9px 16px rgba(0,0,0,0.3); /* Адаптируем тень */
                 }
             }
+
+            /* =============================================================== */
+            /* ================= Конец изменений в дизайне =================== */
+            /* =============================================================== */
 
             .mahjong-overlay {
                 position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none;
@@ -324,8 +333,12 @@ function renderBoard() {
         
         const tileEl = createCardElement(tile);
         
-        tileEl.style.top = `calc(${tile.y * (100 / 8)}% - ${tile.z * 7}px)`;
-        tileEl.style.left = `calc(${tile.x * (100 / 15)}% - ${tile.z * 7}px)`;
+        // Смещаем каждую фишку в зависимости от слоя для создания 3D-эффекта
+        const xOffset = -tile.z * 6;
+        const yOffset = -tile.z * 6;
+
+        tileEl.style.top = `calc(${tile.y * (100 / 8)}% + ${yOffset}px)`;
+        tileEl.style.left = `calc(${tile.x * (100 / 15)}% + ${xOffset}px)`;
         tileEl.style.zIndex = tile.z * 10 + Math.floor(tile.y);
 
         boardEl.appendChild(tileEl);
