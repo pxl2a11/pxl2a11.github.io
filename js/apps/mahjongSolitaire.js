@@ -1,4 +1,4 @@
-//57 js/apps/mahjongSolitaire.js
+//06 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -232,6 +232,14 @@ function generateSolvableBoard() {
     const flowers = TILE_DEFINITIONS.filter(t => t.group === 'flower').map((t, i) => ({ ...t, id: `flower_${i}`}));
     const seasons = TILE_DEFINITIONS.filter(t => t.group === 'season').map((t, i) => ({ ...t, id: `season_${i}`}));
     
+    // ИЗМЕНЕНИЕ: Перемешиваем цветы и сезоны, чтобы пары были случайными
+    // Это приводит логику генерации в соответствие с логикой игры (любой цветок/сезон с любым другим)
+    for (let i = flowers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [flowers[i], flowers[j]] = [flowers[j], flowers[i]];
+        [seasons[i], seasons[j]] = [seasons[j], seasons[i]];
+    }
+
     // Создаем из них случайные пары
     pairs.push([flowers[0], flowers[1]], [flowers[2], flowers[3]]);
     pairs.push([seasons[0], seasons[1]], [seasons[2], seasons[3]]);
