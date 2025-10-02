@@ -1,4 +1,4 @@
-//17 js/apps/mahjongSolitaire.js
+//24 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -240,9 +240,9 @@ function renderBoard() {
         
         const tileEl = createCardElement(tile);
         
-        // ИСПРАВЛЕНО: Увеличен отступ сверху до 12%
-        tileEl.style.top = `calc(12% + ${tile.y * (100 / 10)}% + ${tile.z * -5}px)`;
-        tileEl.style.left = `calc(${tile.x * (100 / 15)}% + ${tile.z * -5}px)`;
+        // ИСПРАВЛЕНО: Смещение для верхних фишек увеличено с -5px до -7px для лучшего эффекта глубины.
+        tileEl.style.top = `calc(12% + ${tile.y * (100 / 10)}% + ${tile.z * -7}px)`;
+        tileEl.style.left = `calc(${tile.x * (100 / 15)}% + ${tile.z * -7}px)`;
         tileEl.style.zIndex = tile.z * 10 + tile.y;
 
         boardEl.appendChild(tileEl);
@@ -356,30 +356,36 @@ function showOverlay(title, text) {
     document.getElementById('mahjong-overlay').style.display = 'flex';
 }
 
+// ИСПРАВЛЕНО: Логика поиска подсказок переписана для большей надежности,
+// чтобы избежать потенциального подсвечивания только одной фишки.
 function findHint() {
     clearTimeout(hintTimeout);
     document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
 
     const selectableTiles = board.filter(t => !t.isRemoved && t.element.classList.contains('selectable'));
-    const groups = {};
-    for (const tile of selectableTiles) {
-        const key = tile.group || tile.symbol;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(tile);
-    }
     
-    for (const key in groups) {
-        if (groups[key].length >= 2) {
-            const tile1 = groups[key][0];
-            const tile2 = groups[key][1];
-            tile1.element.classList.add('hint');
-            tile2.element.classList.add('hint');
+    // Ищем первую фишку, у которой есть доступная для выбора пара
+    for (let i = 0; i < selectableTiles.length; i++) {
+        const tile1 = selectableTiles[i];
+        
+        // Ищем совпадающую фишку дальше по списку, чтобы гарантировать, что это два разных элемента
+        for (let j = i + 1; j < selectableTiles.length; j++) {
+            const tile2 = selectableTiles[j];
             
-            hintTimeout = setTimeout(() => {
-                tile1.element.classList.remove('hint');
-                tile2.element.classList.remove('hint');
-            }, 2000);
-            return;
+            // Проверяем совпадение по символу или по группе (для Цветов/Сезонов)
+            const isMatch = (tile1.symbol === tile2.symbol) || (tile1.group && tile1.group === tile2.group);
+            
+            if (isMatch) {
+                // Пара найдена, подсвечиваем оба элемента
+                tile1.element.classList.add('hint');
+                tile2.element.classList.add('hint');
+                
+                hintTimeout = setTimeout(() => {
+                    if (tile1.element) tile1.element.classList.remove('hint');
+                    if (tile2.element) tile2.element.classList.remove('hint');
+                }, 2000);
+                return; // Выходим после нахождения первой пары
+            }
         }
     }
 }
