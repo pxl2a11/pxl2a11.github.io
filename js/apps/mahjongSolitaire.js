@@ -1,4 +1,4 @@
-//59 js/apps/mahjongSolitaire.js
+//12 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -409,19 +409,22 @@ function findHint() {
             const isMatch = (tile1.symbol === tile2.symbol) || (tile1.group && tile1.group === tile2.group);
             
             if (isMatch) {
-                tile1.element.classList.add('hint');
-                tile2.element.classList.add('hint');
-                
-                const tile1Id = tile1.id;
-                const tile2Id = tile2.id;
-                
-                hintTimeout = setTimeout(() => {
-                    const el1 = document.querySelector(`.mahjong-tile[data-id="${tile1Id}"]`);
-                    const el2 = document.querySelector(`.mahjong-tile[data-id="${tile2Id}"]`);
-                    if (el1) el1.classList.remove('hint');
-                    if (el2) el2.classList.remove('hint');
-                }, 2000);
-                return;
+                // ИСПРАВЛЕНИЕ: Убедимся, что оба элемента существуют в DOM перед подсветкой
+                if (tile1.element && tile2.element) {
+                    tile1.element.classList.add('hint');
+                    tile2.element.classList.add('hint');
+                    
+                    const tile1Id = tile1.id;
+                    const tile2Id = tile2.id;
+                    
+                    hintTimeout = setTimeout(() => {
+                        const el1 = document.querySelector(`.mahjong-tile[data-id="${tile1Id}"]`);
+                        const el2 = document.querySelector(`.mahjong-tile[data-id="${tile2Id}"]`);
+                        if (el1) el1.classList.remove('hint');
+                        if (el2) el2.classList.remove('hint');
+                    }, 2000);
+                    return; // Выходим, как только нашли валидную пару
+                }
             }
         }
     }
