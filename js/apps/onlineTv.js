@@ -1,4 +1,4 @@
-// 18js/apps/onlineTv.js
+// 22js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -84,8 +84,12 @@ function selectChannel(channel) {
     channelCards.forEach(card => {
         card.classList.toggle('active', card.dataset.channelId === channel.id);
     });
-    // Устанавливаем хэш в URL для сохранения состояния
-    window.location.hash = channel.id;
+    
+    // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+    // Используем history.replaceState, чтобы изменить URL без перезагрузки страницы.
+    // Это заменяет текущий URL на новый с хэшем.
+    const newUrl = window.location.pathname + window.location.search + '#' + channel.id;
+    history.replaceState(null, '', newUrl);
 }
 
 async function loadFavorites() {
@@ -187,8 +191,10 @@ function cleanup() {
     });
     eventListeners = [];
     isFavoritesFilterActive = false;
-    // Опционально: очищаем хэш при выходе из раздела
-    // window.location.hash = '';
+
+    // Очищаем хэш при выходе из раздела, чтобы URL был чистым
+    const cleanUrl = window.location.pathname + window.location.search;
+    history.replaceState(null, '', cleanUrl);
 }
 
 export { getHtml, init, cleanup };
