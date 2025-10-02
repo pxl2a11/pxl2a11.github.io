@@ -1,4 +1,4 @@
-//34 js/apps/mahjongSolitaire.js
+//40 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -84,10 +84,10 @@ export function getHtml() {
                 background: linear-gradient(145deg, #FEFBF0, #F8F2E0);
                 border: 1px solid #C8C0B0;
                 box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35), /* Ржавый градиент */
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
                     1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46, 
-                    5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46, /* Толщина сбоку и снизу */
-                    8px 8px 15px rgba(0, 0, 0, 0.4); /* Основная тень */
+                    5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
+                    8px 8px 15px rgba(0, 0, 0, 0.4);
             }
             
             .dark .mahjong-tile {
@@ -110,11 +110,11 @@ export function getHtml() {
             }
 
             .mahjong-tile.selected {
-                background: linear-gradient(145deg, #dcfce7, #bbf7d0); /* Светло-зеленый фон */
-                border-color: #4ade80; /* Яркая зеленая рамка */
+                background: linear-gradient(145deg, #dcfce7, #bbf7d0);
+                border-color: #4ade80;
                 transform: scale(1.08) translate(-4px, -4px);
                 box-shadow: 
-                    inset 0 0 4px 1px rgba(74, 222, 128, 0.5), /* Внутреннее свечение в тон */
+                    inset 0 0 4px 1px rgba(74, 222, 128, 0.5),
                     1px 1px #069564, 2px 2px #057a55, 3px 3px #046c4e, 4px 4px #065f46, 
                     5px 5px #065f46, 6px 6px #065f46, 7px 7px #065f46, 8px 8px #065f46,
                     12px 16px 25px rgba(0,0,0,0.4);
@@ -178,14 +178,22 @@ export function getHtml() {
 
 // --- Логика игры ---
 
-function hasAvailableMoves(currentBoard) {
+function hasAvailableMoves(currentBoard, requiredPairs = 1) {
     const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
+    if (selectableTiles.length < requiredPairs * 2) return false;
+
     const counts = {};
     selectableTiles.forEach(tile => {
         const key = tile.group || tile.symbol;
         counts[key] = (counts[key] || 0) + 1;
     });
-    return Object.values(counts).some(count => count >= 2);
+
+    let availablePairs = 0;
+    for (const count of Object.values(counts)) {
+        availablePairs += Math.floor(count / 2);
+    }
+    
+    return availablePairs >= requiredPairs;
 }
 
 function startGame() {
@@ -218,11 +226,11 @@ function startGame() {
 
         attempts++;
         if (attempts > 100) {
-            console.error("Не удалось сгенерировать поле с доступными ходами.");
+            console.error("Не удалось сгенерировать решаемое поле.");
             break;
         }
 
-    } while (!hasAvailableMoves(board));
+    } while (!hasAvailableMoves(board, 3));
 
     selectedTile = null;
     document.getElementById('mahjong-overlay').style.display = 'none';
@@ -263,28 +271,37 @@ function createCardElement(card) {
     return el;
 }
 
+// ИСПРАВЛЕНО: Логика определения блокировки фишки была полностью скорректирована.
+// Вместо неверного размера "2" теперь используется "1", что соответствует реальной раскладке фишек.
 function isTileBlocked(tile, currentBoard = board) {
+    const TILE_SIZE = 1; // Устанавливаем правильный размер фишки в координатах раскладки.
+
+    // Проверка, покрыта ли фишка другой сверху.
     const isCovered = currentBoard.some(other => 
         !other.isRemoved && 
         other.z > tile.z && 
-        Math.abs(other.x - tile.x) < 2 && 
-        Math.abs(other.y - tile.y) < 2
+        Math.abs(other.x - tile.x) < TILE_SIZE && 
+        Math.abs(other.y - tile.y) < TILE_SIZE
     );
     if (isCovered) return true;
 
+    // Проверка, заблокирована ли фишка слева.
     const isBlockedOnLeft = currentBoard.some(other =>
         !other.isRemoved &&
         other.z === tile.z &&
-        other.x === tile.x - 2 &&
-        Math.abs(other.y - tile.y) < 2
+        other.x === tile.x - TILE_SIZE &&
+        Math.abs(other.y - tile.y) < TILE_SIZE
     );
+    
+    // Проверка, заблокирована ли фишка справа.
     const isBlockedOnRight = currentBoard.some(other =>
         !other.isRemoved &&
         other.z === tile.z &&
-        other.x === tile.x + 2 &&
-        Math.abs(other.y - tile.y) < 2
+        other.x === tile.x + TILE_SIZE &&
+        Math.abs(other.y - tile.y) < TILE_SIZE
     );
 
+    // Фишка заблокирована, если у нее есть соседи с обеих сторон (и слева, и справа).
     return isBlockedOnLeft && isBlockedOnRight;
 }
 
@@ -358,13 +375,10 @@ function showOverlay(title, text) {
     document.getElementById('mahjong-overlay').style.display = 'flex';
 }
 
-// ИСПРАВЛЕНО: Логика подсказки теперь напрямую использует функцию isTileBlocked,
-// чтобы избежать рассинхронизации состояния и гарантировать корректный поиск пары.
 function findHint() {
     clearTimeout(hintTimeout);
     document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
 
-    // Получаем доступные фишки, основываясь на той же логике, что и проверка наличия ходов.
     const selectableTiles = board.filter(t => !t.isRemoved && !isTileBlocked(t));
     
     for (let i = 0; i < selectableTiles.length; i++) {
@@ -376,7 +390,6 @@ function findHint() {
             const isMatch = (tile1.symbol === tile2.symbol) || (tile1.group && tile1.group === tile2.group);
             
             if (isMatch) {
-                // Пара найдена, подсвечиваем оба элемента.
                 tile1.element.classList.add('hint');
                 tile2.element.classList.add('hint');
                 
@@ -384,7 +397,7 @@ function findHint() {
                     if (tile1.element) tile1.element.classList.remove('hint');
                     if (tile2.element) tile2.element.classList.remove('hint');
                 }, 2000);
-                return; // Выходим после нахождения первой же пары.
+                return;
             }
         }
     }
@@ -393,21 +406,35 @@ function findHint() {
 function shuffleBoard() {
     const remainingTiles = board.filter(t => !t.isRemoved);
     const tilesToShuffle = remainingTiles.map(t => ({ symbol: t.symbol, id: t.id, group: t.group, category: t.category }));
+    let attempts = 0;
 
-    for (let i = tilesToShuffle.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [tilesToShuffle[i], tilesToShuffle[j]] = [tilesToShuffle[j], tilesToShuffle[i]];
-    }
+    do {
+        for (let i = tilesToShuffle.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [tilesToShuffle[i], tilesToShuffle[j]] = [tilesToShuffle[j], tilesToShuffle[i]];
+        }
 
-    remainingTiles.forEach((tile, index) => {
-        const newTileData = tilesToShuffle[index];
-        tile.symbol = newTileData.symbol;
-        tile.id = newTileData.id;
-        tile.group = newTileData.group;
-        tile.category = newTileData.category;
-    });
+        remainingTiles.forEach((tile, index) => {
+            const newTileData = tilesToShuffle[index];
+            tile.symbol = newTileData.symbol;
+            tile.id = newTileData.id;
+            tile.group = newTileData.group;
+            tile.category = newTileData.category;
+        });
+
+        attempts++;
+        if (attempts > 100) {
+            console.error("Не удалось найти доступный ход после 100 перемешиваний.");
+            break; 
+        }
+
+    } while (!hasAvailableMoves(board));
     
     document.getElementById('mahjong-overlay').style.display = 'none';
+    if(selectedTile) {
+        selectedTile.element?.classList.remove('selected');
+        selectedTile = null;
+    }
     renderBoard();
 }
 
