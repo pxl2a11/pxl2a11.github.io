@@ -1,4 +1,4 @@
-// js/apps/markdownEditor.js
+//32 js/apps/markdownEditor.js
 
 // Переменные для хранения ссылок на элементы и обработчики
 let textarea, preview, toolbar;
@@ -41,6 +41,11 @@ export function getHtml() {
                 <button data-md="quote" class="md-toolbar-btn text-gray-500">“ ”</button>
                 <button data-md="code" class="md-toolbar-btn text-sm font-mono">&lt;/&gt;</button>
                 <button data-md="ul" class="md-toolbar-btn">- Список</button>
+                
+                <!-- НОВЫЕ КНОПКИ ЭКСПОРТА -->
+                <div class="flex-grow"></div> <!-- Распорка для выравнивания кнопок по правому краю -->
+                <button id="md-export-md" class="md-toolbar-btn text-sm">Скачать .md</button>
+                <button id="md-export-html" class="md-toolbar-btn text-sm">Копировать HTML</button>
             </div>
             <!-- Редактор и превью -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-[50vh] min-h-[400px]">
@@ -124,6 +129,42 @@ function insertMarkdown(tag) {
 }
 
 /**
+ * Запускает скачивание содержимого textarea как .md файла.
+ */
+function exportMarkdown() {
+    const text = textarea.value;
+    const blob = new Blob([text], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'document.md';
+    document.body.appendChild(a); // Требуется для Firefox
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * Копирует сгенерированный HTML в буфер обмена.
+ */
+function copyHtmlToClipboard() {
+    const htmlToCopy = preview.innerHTML;
+    navigator.clipboard.writeText(htmlToCopy).then(() => {
+        const button = document.getElementById('md-export-html');
+        if(button) {
+            const originalText = button.textContent;
+            button.textContent = 'Скопировано!';
+            setTimeout(() => {
+                button.textContent = originalText;
+            }, 2000);
+        }
+    }).catch(err => {
+        console.error('Не удалось скопировать HTML: ', err);
+        alert('Ошибка при копировании HTML.');
+    });
+}
+
+/**
  * Инициализация приложения.
  */
 export function init() {
@@ -136,10 +177,17 @@ export function init() {
         preview.innerHTML = parsedHtml;
     });
     
+    // ОБНОВЛЕННЫЙ ОБРАБОТЧИК КЛИКОВ
     addListener(toolbar, 'click', (e) => {
         const button = e.target.closest('button');
-        if (button && button.dataset.md) {
+        if (!button) return; // Выход, если клик был не по кнопке
+
+        if (button.dataset.md) {
             insertMarkdown(button.dataset.md);
+        } else if (button.id === 'md-export-md') {
+            exportMarkdown();
+        } else if (button.id === 'md-export-html') {
+            copyHtmlToClipboard();
         }
     });
 
