@@ -1,4 +1,4 @@
-//12 js/apps/mahjongSolitaire.js
+//19 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -101,6 +101,12 @@ export function getHtml() {
                     5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
                     8px 8px 15px rgba(0, 0, 0, 0.5);
             }
+
+            /* ИСПРАВЛЕНИЕ: Стили для заблокированных костей */
+            .mahjong-tile.blocked {
+                filter: brightness(0.7);
+                cursor: default;
+            }
             
             .mahjong-tile.selectable:hover {
                 background: linear-gradient(145deg, #fff, #fef4e5);
@@ -123,6 +129,7 @@ export function getHtml() {
                     5px 5px #065f46, 6px 6px #065f46, 7px 7px #065f46, 8px 8px #065f46,
                     12px 16px 25px rgba(0,0,0,0.4);
                 z-index: 100 !important;
+                filter: none; /* Убираем фильтр, если кость выбрана */
             }
             
             .mahjong-tile.hint { animation: hint-pulse 0.8s infinite alternate; }
@@ -130,11 +137,12 @@ export function getHtml() {
                 to { 
                     background: linear-gradient(145deg, #fef3c7, #fde68a);
                     border-color: #f59e0b;
+                    transform: translateY(-2px) scale(1.02);
                     box-shadow: 
-                        inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
+                        inset 0 0 5px 2px rgba(245, 158, 11, 0.4),
                         1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46,
                         5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                        8px 8px 15px rgba(0,0,0,0.35);
+                        9px 9px 16px rgba(0,0,0,0.4);
                 }
             }
 
@@ -313,11 +321,15 @@ function isTileBlocked(tile, currentBoard = board) {
 
 function updateSelectableTiles() {
     board.forEach(tile => {
-        if (tile.isRemoved) return;
+        if (tile.isRemoved || !tile.element) return;
+        
+        // ИСПРАВЛЕНИЕ: Чётко разделяем стили для доступных и заблокированных костей
         if (!isTileBlocked(tile)) {
             tile.element.classList.add('selectable');
+            tile.element.classList.remove('blocked');
         } else {
             tile.element.classList.remove('selectable');
+            tile.element.classList.add('blocked');
         }
     });
     setTimeout(checkForAvailableMoves, 10);
@@ -338,7 +350,6 @@ function checkForAvailableMoves() {
 function handleTileClick(tileEl) {
     if (!tileEl.classList.contains('selectable')) return;
     
-    // НОВОЕ: Воспроизводим звук клика
     clickSound.play();
     
     const clickedTileData = board.find(t => t.id === tileEl.dataset.id);
@@ -354,16 +365,14 @@ function handleTileClick(tileEl) {
                         (selectedTile.group && selectedTile.group === clickedTileData.group);
 
         if (isMatch) {
-            // НОВОЕ: Воспроизводим звук совпадения пары
             matchSound.play();
 
             selectedTile.isRemoved = true;
             clickedTileData.isRemoved = true;
             
-            // ИСПРАВЛЕНО: Проверяем оба тайла на наличие подсветки, чтобы гарантированно очистить подсказку.
+            // ИСПРАВЛЕНИЕ: Используем единую функцию для очистки подсказки
             if (selectedTile.element.classList.contains('hint') || clickedTileData.element.classList.contains('hint')) {
-                 clearTimeout(hintTimeout);
-                 document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
+                 clearAllHints();
             }
 
             selectedTile.element.remove();
@@ -394,9 +403,15 @@ function showOverlay(title, text) {
     document.getElementById('mahjong-overlay').style.display = 'flex';
 }
 
-function findHint() {
+// ИСПРАВЛЕНИЕ: Новая единая функция для очистки всех подсказок
+function clearAllHints() {
     clearTimeout(hintTimeout);
     document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
+}
+
+// ИСПРАВЛЕНИЕ: Переработанная функция поиска подсказок
+function findHint() {
+    clearAllHints(); // Всегда начинаем с очистки
 
     const selectableTiles = board.filter(t => !t.isRemoved && !isTileBlocked(t));
     
@@ -409,21 +424,14 @@ function findHint() {
             const isMatch = (tile1.symbol === tile2.symbol) || (tile1.group && tile1.group === tile2.group);
             
             if (isMatch) {
-                // ИСПРАВЛЕНИЕ: Убедимся, что оба элемента существуют в DOM перед подсветкой
+                // Проверяем, что оба элемента всё ещё существуют в DOM
                 if (tile1.element && tile2.element) {
                     tile1.element.classList.add('hint');
                     tile2.element.classList.add('hint');
                     
-                    const tile1Id = tile1.id;
-                    const tile2Id = tile2.id;
-                    
-                    hintTimeout = setTimeout(() => {
-                        const el1 = document.querySelector(`.mahjong-tile[data-id="${tile1Id}"]`);
-                        const el2 = document.querySelector(`.mahjong-tile[data-id="${tile2Id}"]`);
-                        if (el1) el1.classList.remove('hint');
-                        if (el2) el2.classList.remove('hint');
-                    }, 2000);
-                    return; // Выходим, как только нашли валидную пару
+                    // Таймер теперь просто вызывает глобальную функцию очистки
+                    hintTimeout = setTimeout(clearAllHints, 2000);
+                    return; // Выходим, как только нашли пару
                 }
             }
         }
@@ -431,6 +439,7 @@ function findHint() {
 }
 
 function shuffleBoard() {
+    clearAllHints(); // Очищаем подсказки перед перемешиванием
     const remainingTiles = board.filter(t => !t.isRemoved);
     const tilesToShuffle = remainingTiles.map(t => ({ symbol: t.symbol, id: t.id, group: t.group, category: t.category }));
     let attempts = 0;
@@ -484,7 +493,7 @@ export function init() {
 }
 
 export function cleanup() {
-    clearTimeout(hintTimeout);
+    clearAllHints();
     board = [];
     selectedTile = null;
 }
