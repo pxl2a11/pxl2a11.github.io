@@ -1,4 +1,4 @@
-// js/apps/mahjongSolitaire.js
+// 09js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -24,41 +24,51 @@ export function getHtml() {
                 height: 100%;
                 user-select: none;
             }
+
+            /* --- ИЗМЕНЕНИЕ: Улучшенный 3D-эффект для костей --- */
             .mahjong-tile {
                 position: absolute;
-                width: calc(100% / 15); /* Ширина кости относительно ширины доски */
-                height: calc(100% / 10); /* Высота кости */
-                background-color: #f7fafc; /* gray-50 */
-                border: 1px solid #a0aec0; /* gray-400 */
-                border-radius: 4px;
-                box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+                width: calc(100% / 15);
+                height: calc(100% / 10);
                 box-sizing: border-box;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                font-size: clamp(12px, 4vmin, 24px); /* Адаптивный размер шрифта */
+                font-size: clamp(12px, 4vmin, 24px);
                 font-weight: bold;
                 cursor: pointer;
                 transition: all 0.15s ease-in-out;
+                border-radius: 4px;
+                
+                /* Светлая тема: 3D-эффект */
+                background-color: #f7fafc; /* gray-50 */
+                border-width: 1px 2px 2px 1px; /* top, right, bottom, left */
+                border-style: solid;
+                border-color: #ffffff #a0aec0 #a0aec0 #ffffff; /* Светлые грани сверху/слева, темные снизу/справа */
+                box-shadow: 3px 3px 5px rgba(0,0,0,0.25);
             }
+            
+            /* Темная тема: 3D-эффект */
             .dark .mahjong-tile {
                 background-color: #2d3748; /* gray-800 */
-                border-color: #4a5568; /* gray-600 */
+                border-color: #4a5568 #1a202c #1a202c #4a5568;
                 color: #e2e8f0; /* gray-200 */
+                box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
             }
+
             .mahjong-tile.selectable {
-                border-color: #3b82f6; /* blue-500 */
+                /* Эффект свечения для доступных костей */
                 box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
             }
+
             .mahjong-tile.selected {
-                transform: scale(1.05);
-                background-color: #dbeafe; /* blue-100 */
-                border-color: #2563eb; /* blue-600 */
+                /* Эффект "приподнятости" для выбранной кости */
+                transform: scale(1.08) translate(-1px, -1px);
+                box-shadow: 5px 5px 15px rgba(0,0,0,0.4);
+                z-index: 100 !important; /* Всегда поверх других при выборе */
             }
-            .dark .mahjong-tile.selected {
-                 background-color: #1e3a8a; /* blue-900 */
-                 border-color: #60a5fa; /* blue-400 */
-            }
+            /* --- КОНЕЦ ИЗМЕНЕНИЙ --- */
+
             .mahjong-tile.hint {
                 animation: hint-pulse 0.8s infinite;
             }
@@ -71,6 +81,26 @@ export function getHtml() {
                 position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none;
                 justify-content: center; align-items: center; text-align: center;
                 border-radius: 0.5rem; z-index: 100;
+            }
+            
+            /* Стили для пустых ячеек подложки (без изменений) */
+            .pile { 
+                width: 100px; 
+                height: 145px; 
+                border: 2px solid transparent; 
+                border-radius: 8px; 
+                position: relative; 
+                flex-shrink: 0;
+            }
+            .pile:empty::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border: 2px solid rgba(0,0,0,0.2);
+                border-radius: 8px;
+            }
+            .dark .pile:empty::before {
+                border-color: rgba(255,255,255,0.2);
             }
         </style>
         <div class="flex flex-col items-center gap-4">
@@ -96,13 +126,13 @@ export function getHtml() {
     `;
 }
 
-// --- Логика игры ---
+// --- Логика игры (остается без изменений) ---
 
 const TILE_SYMBOLS = [
-    '龍','風','竹','菊','蘭','梅','春','夏','秋','冬', // Драконы, Ветры, Растения, Сезоны
-    '一','二','三','四','五','六','七','八','九', // Китайские цифры
-    '東','南','西','北','中','發','白', // Стороны света и доп. драконы
-    '🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡' // Символы из Юникода
+    '龍','風','竹','菊','蘭','梅','春','夏','秋','冬',
+    '一','二','三','四','五','六','七','八','九',
+    '東','南','西','北','中','發','白',
+    '🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡'
 ];
 
 const LAYOUT = [
@@ -124,7 +154,6 @@ const LAYOUT = [
     [0,3.5,13],[0,3.5,14],[0,3.5,15]
 ];
 
-// ИЗМЕНЕНИЕ №1: Добавлена функция, которая проверяет наличие ходов и возвращает true/false
 function hasAvailableMoves(currentBoard) {
     const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
     const counts = {};
@@ -135,13 +164,11 @@ function hasAvailableMoves(currentBoard) {
     return Object.values(counts).some(count => count >= 2);
 }
 
-// ИЗМЕНЕНИЕ №2: Функция startGame теперь будет пересоздавать поле, если нет ходов
 function startGame() {
     let deck;
     let attempts = 0;
 
     do {
-        // Создание и тасование колоды
         deck = [];
         for (let i = 0; i < TILE_SYMBOLS.length; i++) {
             for (let j = 0; j < 4; j++) {
@@ -156,7 +183,6 @@ function startGame() {
             [deck[i], deck[j]] = [deck[j], deck[i]];
         }
         
-        // Сброс и раздача
         board = [];
         LAYOUT.forEach((pos, index) => {
             const cardData = deck[index];
@@ -164,12 +190,12 @@ function startGame() {
         });
 
         attempts++;
-        if (attempts > 100) { // Защита от бесконечного цикла
+        if (attempts > 100) {
             console.error("Не удалось сгенерировать поле с доступными ходами.");
             break;
         }
 
-    } while (!hasAvailableMoves(board)); // Повторяем, пока не получим поле с ходами
+    } while (!hasAvailableMoves(board));
 
     selectedTile = null;
     document.getElementById('mahjong-overlay').style.display = 'none';
@@ -205,7 +231,6 @@ function renderBoard() {
     updateSelectableTiles();
 }
 
-// ИЗМЕНЕНИЕ: Функция теперь может принимать доску как аргумент для проверки
 function isTileBlocked(tile, currentBoard = board) {
     const isCovered = currentBoard.some(other => 
         !other.isRemoved && 
@@ -331,19 +356,15 @@ function findHint() {
     }
 }
 
-// ИЗМЕНЕНИЕ №3: Улучшенная функция перемешивания
 function shuffleBoard() {
     const remainingTiles = board.filter(t => !t.isRemoved);
-    // Собираем не просто символы, а целые объекты костей
     const tilesToShuffle = remainingTiles.map(t => ({ symbol: t.symbol, id: t.id, group: t.group }));
 
-    // Тасуем их
     for (let i = tilesToShuffle.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [tilesToShuffle[i], tilesToShuffle[j]] = [tilesToShuffle[j], tilesToShuffle[i]];
     }
 
-    // Присваиваем новые данные оставшимся костям
     remainingTiles.forEach((tile, index) => {
         const newTileData = tilesToShuffle[index];
         tile.symbol = newTileData.symbol;
