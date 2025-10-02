@@ -1,4 +1,4 @@
-//38 js/apps/mahjongSolitaire.js
+//43 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -79,32 +79,50 @@ export function getHtml() {
                 transition: all 0.15s ease-in-out;
                 border-radius: 4px;
                 
-                /* 3D эффект цвета слоновой кости */
-                background: linear-gradient(to bottom, #FDFBF5, #E9E4D8);
-                border-top: 1px solid #FFF;
-                border-left: 1px solid #FFF;
-                border-bottom: 2px solid #B4AF9F;
-                border-right: 2px solid #B4AF9F;
-                box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+                /* ИСПРАВЛЕНО: Цвет слоновой кости и улучшенный 3D-эффект */
+                background: linear-gradient(145deg, #fdfdf5, #f5f2e9);
+                box-shadow: 
+                    inset 1px 1px 2px rgba(255, 255, 255, 0.8), /* Внутренний блик сверху-слева */
+                    3px 3px 5px rgba(0, 0, 0, 0.25); /* Внешняя тень снизу-справа */
+                border: 1px solid #dcd8c8;
             }
             .dark .mahjong-tile {
-                background: linear-gradient(to bottom, #4a5568, #2d3748);
-                border-color: #718096 #1a202c #1a202c #718096;
-                box-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+                background: linear-gradient(145deg, #5a5245, #4a4235);
+                box-shadow: 
+                    inset 1px 1px 2px rgba(255, 255, 255, 0.1),
+                    3px 3px 6px rgba(0, 0, 0, 0.5);
+                border: 1px solid #3a3225;
             }
-            .mahjong-tile.selectable {
-                box-shadow: 0 0 10px 3px #0ea5e9;
+            /* ИСПРАВЛЕНО: Подсветка только при наведении на доступную кость */
+            .mahjong-tile.selectable:hover {
+                box-shadow: 
+                    inset 1px 1px 2px rgba(255, 255, 255, 0.8),
+                    0 0 10px 3px #0ea5e9, /* Голубое свечение */
+                    3px 3px 5px rgba(0,0,0,0.25);
+            }
+            .dark .mahjong-tile.selectable:hover {
+                 box-shadow: 
+                    inset 1px 1px 2px rgba(255, 255, 255, 0.1),
+                    0 0 10px 3px #0ea5e9,
+                    3px 3px 6px rgba(0,0,0,0.5);
             }
             .mahjong-tile.selected {
-                transform: scale(1.08) translate(-1px, -1px);
-                box-shadow: 5px 5px 15px rgba(0,0,0,0.4);
+                transform: scale(1.08) translate(-2px, -2px);
+                box-shadow: 
+                    inset 1px 1px 2px rgba(255, 255, 255, 0.8),
+                    5px 5px 15px rgba(0,0,0,0.4);
                 z-index: 100 !important;
             }
             .mahjong-tile.hint {
                 animation: hint-pulse 0.8s infinite alternate;
             }
             @keyframes hint-pulse {
-                to { box-shadow: 0 0 12px 4px #f59e0b; }
+                to { 
+                    box-shadow: 
+                        inset 1px 1px 2px rgba(255, 255, 255, 0.8),
+                        0 0 12px 4px #f59e0b,
+                        3px 3px 5px rgba(0,0,0,0.25);
+                }
             }
             .mahjong-overlay {
                 position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none;
@@ -120,7 +138,7 @@ export function getHtml() {
             .mahjong-tile.wind .symbol { color: #1e293b; }   /* Черный */
             .mahjong-tile.dragon-red .symbol { color: #dc2626; }
             .mahjong-tile.dragon-green .symbol { color: #16a34a; }
-            .mahjong-tile.dragon-white { border: 2px dashed #3b82f6; }
+            .mahjong-tile.dragon-white { border: 2px dashed #3b82f6; background: #eff6ff; }
             .mahjong-tile.flower .symbol { color: #db2777; } /* Розовый */
             .mahjong-tile.season .symbol { color: #ca8a04; } /* Янтарный */
 
@@ -133,7 +151,7 @@ export function getHtml() {
 
             .dark .mahjong-tile.dragon-red .symbol { color: #f87171; }
             .dark .mahjong-tile.dragon-green .symbol { color: #4ade80; }
-            .dark .mahjong-tile.dragon-white { border-color: #60a5fa; }
+            .dark .mahjong-tile.dragon-white { border-color: #60a5fa; background: #1e3a8a; }
         </style>
 
         <div class="flex flex-col items-center gap-4">
@@ -159,7 +177,7 @@ export function getHtml() {
     `;
 }
 
-// --- Логика игры ---
+// --- Логика игры (остается без изменений) ---
 
 function hasAvailableMoves(currentBoard) {
     const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
