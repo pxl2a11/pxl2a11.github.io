@@ -1,4 +1,4 @@
-// 27js/apps/onlineTv.js
+// 18js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
@@ -80,9 +80,12 @@ function getHtml() {
 function selectChannel(channel) {
     playerContainer.innerHTML = channel.embedHtml;
     playerPlaceholder.classList.add('hidden');
+    // Обновляем активную карточку, используя ID канала
     channelCards.forEach(card => {
-        card.classList.toggle('active', card.dataset.channelName === channel.name);
+        card.classList.toggle('active', card.dataset.channelId === channel.id);
     });
+    // Устанавливаем хэш в URL для сохранения состояния
+    window.location.hash = channel.id;
 }
 
 async function loadFavorites() {
@@ -117,7 +120,8 @@ function createChannelCards() {
         const isFavorite = favorites.includes(channel.name);
         const card = document.createElement('div');
         card.className = 'channel-card';
-        card.dataset.channelName = channel.name;
+        card.dataset.channelName = channel.name; // Для поиска и избранного
+        card.dataset.channelId = channel.id;   // Для выбора и установки хэша
         card.innerHTML = `
             <div class="play-area">
                 <img src="${channel.logoUrl}" alt="Логотип ${channel.name}">
@@ -163,6 +167,15 @@ async function init() {
         favoritesFilterBtn.classList.toggle('active', isFavoritesFilterActive);
         filterChannels();
     });
+
+    // Проверяем URL на наличие хэша при загрузке страницы
+    const channelIdFromHash = decodeURIComponent(window.location.hash.slice(1));
+    if (channelIdFromHash) {
+        const channelToLoad = tvChannels.find(c => c.id === channelIdFromHash);
+        if (channelToLoad) {
+            selectChannel(channelToLoad);
+        }
+    }
 }
 
 function cleanup() {
@@ -174,6 +187,8 @@ function cleanup() {
     });
     eventListeners = [];
     isFavoritesFilterActive = false;
+    // Опционально: очищаем хэш при выходе из раздела
+    // window.location.hash = '';
 }
 
 export { getHtml, init, cleanup };
