@@ -1,10 +1,14 @@
-//48 js/apps/mahjongSolitaire.js
+//59 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
 let selectedTile = null;
 let tilesLeft = 0;
 let hintTimeout;
+
+// НОВОЕ: Добавляем звуковые эффекты
+const clickSound = new Audio('sounds/games/mahjong/click.mp3');
+const matchSound = new Audio('sounds/games/mahjong/double.mp3');
 
 // --- Определение костей и их категорий для стилизации ---
 const TILE_DEFINITIONS = [
@@ -148,7 +152,6 @@ export function getHtml() {
             .mahjong-tile.wind .symbol { color: #1e293b; }
             .mahjong-tile.dragon-red .symbol { color: #dc2626; }
             .mahjong-tile.dragon-green .symbol { color: #16a34a; }
-            /* ИСПРАВЛЕНО: Улучшен дизайн "Белого Дракона", чтобы он выглядел более завершенным. */
             .mahjong-tile.dragon-white .symbol { 
                 width: 50%; 
                 height: 70%; 
@@ -335,6 +338,9 @@ function checkForAvailableMoves() {
 function handleTileClick(tileEl) {
     if (!tileEl.classList.contains('selectable')) return;
     
+    // НОВОЕ: Воспроизводим звук клика
+    clickSound.play();
+    
     const clickedTileData = board.find(t => t.id === tileEl.dataset.id);
 
     if (selectedTile) {
@@ -348,11 +354,14 @@ function handleTileClick(tileEl) {
                         (selectedTile.group && selectedTile.group === clickedTileData.group);
 
         if (isMatch) {
+            // НОВОЕ: Воспроизводим звук совпадения пары
+            matchSound.play();
+
             selectedTile.isRemoved = true;
             clickedTileData.isRemoved = true;
             
-            // Удаляем подсветку подсказки, если убираемые фишки были подсвечены
-            if (selectedTile.element.classList.contains('hint')) {
+            // ИСПРАВЛЕНО: Проверяем оба тайла на наличие подсветки, чтобы гарантированно очистить подсказку.
+            if (selectedTile.element.classList.contains('hint') || clickedTileData.element.classList.contains('hint')) {
                  clearTimeout(hintTimeout);
                  document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
             }
@@ -385,7 +394,6 @@ function showOverlay(title, text) {
     document.getElementById('mahjong-overlay').style.display = 'flex';
 }
 
-// ИСПРАВЛЕНО: Механизм таймера подсказки переработан для большей надежности.
 function findHint() {
     clearTimeout(hintTimeout);
     document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
@@ -404,13 +412,10 @@ function findHint() {
                 tile1.element.classList.add('hint');
                 tile2.element.classList.add('hint');
                 
-                // Запоминаем ID фишек, а не сами элементы.
                 const tile1Id = tile1.id;
                 const tile2Id = tile2.id;
                 
                 hintTimeout = setTimeout(() => {
-                    // Ищем элементы по ID перед тем, как убрать класс.
-                    // Это защищает от ошибок, если элементы были удалены.
                     const el1 = document.querySelector(`.mahjong-tile[data-id="${tile1Id}"]`);
                     const el2 = document.querySelector(`.mahjong-tile[data-id="${tile2Id}"]`);
                     if (el1) el1.classList.remove('hint');
