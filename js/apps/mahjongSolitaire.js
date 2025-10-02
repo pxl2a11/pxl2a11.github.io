@@ -1,4 +1,4 @@
-//24 js/apps/mahjongSolitaire.js
+//28 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -10,8 +10,9 @@ let hintTimeout;
 const TILE_DEFINITIONS = [
     // Масти (по 9 костей, каждая 4 раза)
     ...Array.from({ length: 9 }, (_, i) => ({ symbol: ['一','二','三','四','五','六','七','八','九'][i], category: 'character' })),
-    ...Array.from({ length: 9 }, (_, i) => ({ symbol: ['🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡'][i], category: 'bamboo' })),
-    ...Array.from({ length: 9 }, (_, i) => ({ symbol: ['🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀘','🀙'][i], category: 'circle' })),
+    // ИСПРАВЛЕНО: Заменены наборы символов для 'bamboo' и 'circle' на правильные, чтобы избежать ложных совпадений.
+    ...Array.from({ length: 9 }, (_, i) => ({ symbol: ['🀐','🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀘'][i], category: 'bamboo' })),
+    ...Array.from({ length: 9 }, (_, i) => ({ symbol: ['🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡'][i], category: 'circle' })),
     // Ветры и Драконы (Козыри)
     { symbol: '東', category: 'wind' }, { symbol: '南', category: 'wind' }, { symbol: '西', category: 'wind' }, { symbol: '北', category: 'wind' },
     { symbol: '中', category: 'dragon-red' }, { symbol: '發', category: 'dragon-green' }, { symbol: '白', category: 'dragon-white' },
@@ -81,7 +82,6 @@ export function getHtml() {
                 transition: all 0.15s ease-in-out;
                 border-radius: 4px;
                 
-                /* ИСПРАВЛЕНО: Эффект толстой фишки с видимой правой стороной */
                 background: linear-gradient(145deg, #FEFBF0, #F8F2E0);
                 border: 1px solid #C8C0B0;
                 box-shadow: 
@@ -91,7 +91,6 @@ export function getHtml() {
                     8px 8px 15px rgba(0, 0, 0, 0.4); /* Основная тень */
             }
             
-            /* Стиль для темной темы - идентичен светлой */
             .dark .mahjong-tile {
                 box-shadow: 
                     inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
@@ -100,33 +99,40 @@ export function getHtml() {
                     8px 8px 15px rgba(0, 0, 0, 0.5); /* Тень чуть темнее */
             }
             
+            /* ИСПРАВЛЕНО: Выделение при наведении теперь подсвечивает всю фишку, а не только края. */
             .mahjong-tile.selectable:hover {
+                background: linear-gradient(145deg, #fff, #fef4e5); /* Слегка осветляем фон */
+                border-color: #a8a29e; /* Делаем рамку заметнее */
+                transform: translateY(-2px); /* Небольшой подъем для обратной связи */
                 box-shadow: 
                     inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
                     1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46,
                     5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                    0 0 12px 4px #0ea5e9, /* Голубое свечение */
-                    8px 8px 15px rgba(0,0,0,0.4);
+                    10px 10px 18px rgba(0, 0, 0, 0.45); /* Усиливаем тень при наведении */
             }
 
+            /* ИСПРАВЛЕНО: Выбранная фишка теперь полностью меняет цвет для наглядности. */
             .mahjong-tile.selected {
-                transform: scale(1.08) translate(-4px, -4px); /* Увеличиваем смещение */
+                background: linear-gradient(145deg, #e0f2fe, #bae6fd); /* Яркий синеватый фон */
+                border-color: #38bdf8; /* Яркая синяя рамка */
+                transform: scale(1.08) translate(-4px, -4px); /* Увеличиваем и смещаем */
                 box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.2),
+                    inset 0 0 4px 1px rgba(56, 189, 248, 0.5), /* Внутреннее свечение в тон */
                     1px 1px #069564, 2px 2px #057a55, 3px 3px #046c4e, 4px 4px #065f46, 
-                    5px 5px #065f46, 6px 6px #065f46, 7px 7px #065f46, 8px 8px #065f46, /* Увеличиваем толщину */
-                    12px 16px 25px rgba(0,0,0,0.4); /* Усиливаем тень */
+                    5px 5px #065f46, 6px 6px #065f46, 7px 7px #065f46, 8px 8px #065f46,
+                    12px 16px 25px rgba(0,0,0,0.4); /* Усиленная тень */
                 z-index: 100 !important;
             }
             
             .mahjong-tile.hint { animation: hint-pulse 0.8s infinite alternate; }
             @keyframes hint-pulse {
                 to { 
+                    background: linear-gradient(145deg, #fef3c7, #fde68a); /* Янтарный фон для подсказки */
+                    border-color: #f59e0b;
                     box-shadow: 
                         inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
                         1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46,
                         5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                        0 0 14px 5px #f59e0b, /* Янтарное свечение */
                         8px 8px 15px rgba(0,0,0,0.35);
                 }
             }
@@ -240,7 +246,6 @@ function renderBoard() {
         
         const tileEl = createCardElement(tile);
         
-        // ИСПРАВЛЕНО: Смещение для верхних фишек увеличено с -5px до -7px для лучшего эффекта глубины.
         tileEl.style.top = `calc(12% + ${tile.y * (100 / 10)}% + ${tile.z * -7}px)`;
         tileEl.style.left = `calc(${tile.x * (100 / 15)}% + ${tile.z * -7}px)`;
         tileEl.style.zIndex = tile.z * 10 + tile.y;
@@ -356,27 +361,21 @@ function showOverlay(title, text) {
     document.getElementById('mahjong-overlay').style.display = 'flex';
 }
 
-// ИСПРАВЛЕНО: Логика поиска подсказок переписана для большей надежности,
-// чтобы избежать потенциального подсвечивания только одной фишки.
 function findHint() {
     clearTimeout(hintTimeout);
     document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
 
     const selectableTiles = board.filter(t => !t.isRemoved && t.element.classList.contains('selectable'));
     
-    // Ищем первую фишку, у которой есть доступная для выбора пара
     for (let i = 0; i < selectableTiles.length; i++) {
         const tile1 = selectableTiles[i];
         
-        // Ищем совпадающую фишку дальше по списку, чтобы гарантировать, что это два разных элемента
         for (let j = i + 1; j < selectableTiles.length; j++) {
             const tile2 = selectableTiles[j];
             
-            // Проверяем совпадение по символу или по группе (для Цветов/Сезонов)
             const isMatch = (tile1.symbol === tile2.symbol) || (tile1.group && tile1.group === tile2.group);
             
             if (isMatch) {
-                // Пара найдена, подсвечиваем оба элемента
                 tile1.element.classList.add('hint');
                 tile2.element.classList.add('hint');
                 
@@ -384,7 +383,7 @@ function findHint() {
                     if (tile1.element) tile1.element.classList.remove('hint');
                     if (tile2.element) tile2.element.classList.remove('hint');
                 }, 2000);
-                return; // Выходим после нахождения первой пары
+                return;
             }
         }
     }
