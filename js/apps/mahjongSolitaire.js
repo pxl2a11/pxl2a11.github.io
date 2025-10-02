@@ -1,4 +1,4 @@
-//37 js/apps/mahjongSolitaire.js
+//48 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -23,12 +23,13 @@ const TILE_DEFINITIONS = [
     { symbol: '東', category: 'wind' }, { symbol: '南', category: 'wind' }, { symbol: '西', category: 'wind' }, { symbol: '北', category: 'wind' },
     { symbol: '中', category: 'dragon-red' }, { symbol: '發', category: 'dragon-green' }, { symbol: '白', category: 'dragon-white' },
     // Цветы и Сезоны (по 1 кости)
-    { symbol: '梅', category: 'flower' }, { symbol: '蘭', category: 'flower' }, { symbol: '菊', category: 'flower' }, { symbol: '竹', category: 'flower' },
-    { symbol: '春', category: 'season' }, { symbol: '夏', category: 'season' }, { symbol: '秋', category: 'season' }, { symbol: '冬', category: 'season' }
+    { symbol: '梅', category: 'flower', group: 'flower' }, { symbol: '蘭', category: 'flower', group: 'flower' }, { symbol: '菊', category: 'flower', group: 'flower' }, { symbol: '竹', category: 'flower', group: 'flower' },
+    { symbol: '春', category: 'season', group: 'season' }, { symbol: '夏', category: 'season', group: 'season' }, { symbol: '秋', category: 'season', group: 'season' }, { symbol: '冬', category: 'season', group: 'season' }
 ];
 
 // Раскладка "Черепаха"
 const LAYOUT = [
+    // z=0
     [0,3,0],[0,3,1],[0,3,2],[0,3,3],[0,3,4],[0,3,5],[0,3,6],[0,3,7],[0,3,8],[0,3,9],[0,3,10],[0,3,11],
     [0,4,0],[0,4,1],[0,4,2],[0,4,3],[0,4,4],[0,4,5],[0,4,6],[0,4,7],[0,4,8],[0,4,9],[0,4,10],[0,4,11],
     [0,2,1],[0,2,2],[0,2,3],[0,2,4],[0,2,5],[0,2,6],[0,2,7],[0,2,8],[0,2,9],[0,2,10],
@@ -37,15 +38,20 @@ const LAYOUT = [
     [0,6,2],[0,6,3],[0,6,4],[0,6,5],[0,6,6],[0,6,7],[0,6,8],[0,6,9],
     [0,0,3],[0,0,4],[0,0,5],[0,0,6],[0,0,7],[0,0,8],
     [0,7,3],[0,7,4],[0,7,5],[0,7,6],[0,7,7],[0,7,8],
+    [0,3.5,12],[0,3.5,13], // Special two on the far right
+    [0,0.5,0.5], // Special tile on the far left
+    // z=1
     [1,3,2],[1,3,3],[1,3,4],[1,3,5],[1,3,6],[1,3,7],[1,3,8],[1,3,9],
     [1,4,2],[1,4,3],[1,4,4],[1,4,5],[1,4,6],[1,4,7],[1,4,8],[1,4,9],
     [1,2,3],[1,2,4],[1,2,5],[1,2,6],[1,2,7],[1,2,8],
     [1,5,3],[1,5,4],[1,5,5],[1,5,6],[1,5,7],[1,5,8],
+    // z=2
     [2,3,4],[2,3,5],[2,3,6],[2,3,7],
     [2,4,4],[2,4,5],[2,4,6],[2,4,7],
-    [3,3.5,5.5],
-    [0,3.5,13],[0,3.5,14],[0,3.5,15]
-];
+    // z=3
+    [3,3.5,5.5] // Top tile
+].map((pos, index) => ({ id: index, z: pos[0], y: pos[1], x: pos[2] }));
+
 
 // --- HTML и CSS ---
 export function getHtml() {
@@ -129,7 +135,7 @@ export function getHtml() {
                     1px 1px #069564, 2px 2px #057a55, 3px 3px #046c4e, 4px 4px #065f46, 
                     5px 5px #065f46, 6px 6px #065f46, 7px 7px #065f46, 8px 8px #065f46,
                     12px 16px 25px rgba(0,0,0,0.4);
-                z-index: 100 !important;
+                /* ИСПРАВЛЕНИЕ: z-index убран, чтобы не нарушать визуальную иерархию слоев */
                 filter: none;
             }
             
@@ -150,7 +156,7 @@ export function getHtml() {
             .mahjong-overlay {
                 position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none;
                 justify-content: center; align-items: center; text-align: center;
-                border-radius: 0.5rem; z-index: 100;
+                border-radius: 0.5rem; z-index: 200;
             }
 
             /* --- Цветные символы --- */
@@ -198,95 +204,110 @@ export function getHtml() {
 
 // --- Логика игры ---
 
-// ИСПРАВЛЕНИЕ: Полностью переписанная функция для гарантированно решаемого поля.
+/**
+ * ИСПРАВЛЕНИЕ: Полностью переписанная функция для гарантированно решаемого поля.
+ * Алгоритм работает "в обратном порядке":
+ * 1. Создает полный набор пар костей (всего 72 пары).
+ * 2. Перемешивает эти пары.
+ * 3. Создает копию всех позиций из раскладки.
+ * 4. В цикле, пока есть свободные позиции:
+ *    a. Находит все позиции, которые в данный момент доступны для снятия (не заблокированы сверху или с боков другими ОСТАВШИМИСЯ позициями).
+ *    b. Если доступных позиций меньше двух, это означает, что раскладка не может быть разобрана до конца. Генерация перезапускается.
+ *    c. Берет одну пару костей из перемешанного списка.
+ *    d. Выбирает две случайные доступные позиции.
+ *    e. Размещает две кости из пары на эти две позиции.
+ *    f. Удаляет эти две позиции из списка доступных.
+ * 5. Этот процесс гарантирует, что на каждом шаге разбора поля у игрока будет хотя бы одна доступная пара для снятия.
+ */
 function generateSolvableBoard() {
-    // 1. Создаем и перемешиваем колоду костей
-    let deck = [];
+    // 1. Создаем колоду пар
+    const pairs = [];
     TILE_DEFINITIONS.forEach(def => {
-        if (def.category === 'season' || def.category === 'flower') {
-            deck.push({ ...def, id: def.symbol, group: def.category });
+        if (def.group) { // Цветы и сезоны
+            // Они не образуют строгие пары, их нужно обработать отдельно
         } else {
-            for (let i = 0; i < 4; i++) {
-                deck.push({ ...def, id: `${def.symbol}_${i}` });
-            }
+            // Обычные кости образуют 2 пары (всего 4 одинаковых)
+            const tileData = { ...def };
+            delete tileData.group;
+            pairs.push([ { ...tileData, id: `${def.symbol}_0` }, { ...tileData, id: `${def.symbol}_1` } ]);
+            pairs.push([ { ...tileData, id: `${def.symbol}_2` }, { ...tileData, id: `${def.symbol}_3` } ]);
         }
     });
-    for (let i = deck.length - 1; i > 0; i--) {
+
+    // Добавляем цветы и сезоны как группы, которые могут сочетаться друг с другом
+    const flowers = TILE_DEFINITIONS.filter(t => t.group === 'flower').map((t, i) => ({ ...t, id: `flower_${i}`}));
+    const seasons = TILE_DEFINITIONS.filter(t => t.group === 'season').map((t, i) => ({ ...t, id: `season_${i}`}));
+    
+    // Создаем из них случайные пары
+    pairs.push([flowers[0], flowers[1]], [flowers[2], flowers[3]]);
+    pairs.push([seasons[0], seasons[1]], [seasons[2], seasons[3]]);
+
+    // 2. Перемешиваем пары
+    for (let i = pairs.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
+        [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
     }
 
-    // 2. Создаем список всех позиций из раскладки, добавляя уникальный ID
-    let layoutPositions = LAYOUT.map((pos, id) => ({ id, z: pos[0], y: pos[1], x: pos[2] }));
+    let remainingPositions = [...LAYOUT];
     const finalBoard = [];
 
     // 3. "Разбираем" поле в обратном порядке
-    while (layoutPositions.length > 0) {
+    while (remainingPositions.length > 0) {
+        if (pairs.length === 0) {
+            console.error("Закончились пары костей, а места еще есть. Проверьте раскладку и количество костей.");
+            return null; // Ошибка
+        }
+
         // a. Находим все "свободные" позиции в текущем списке
-        const removablePositions = layoutPositions.filter(p1 => {
-            // Проверяем, не покрыта ли позиция p1 другой позицией p2 из ОСТАВШИХСЯ на поле
-            const isCovered = layoutPositions.some(p2 =>
-                p1.id !== p2.id &&
-                p2.z > p1.z &&
-                Math.abs(p2.x - p1.x) < 1 &&
-                Math.abs(p2.y - p1.y) < 1
+        const openPositions = remainingPositions.filter(p1 => {
+            const isCovered = remainingPositions.some(p2 =>
+                p1.id !== p2.id && p2.z > p1.z && Math.abs(p2.x - p1.x) < 1 && Math.abs(p2.y - p1.y) < 1
             );
             if (isCovered) return false;
 
-            // Проверяем, не заблокирована ли позиция p1 с обеих сторон другими ОСТАВШИМИСЯ позициями
-            const isBlockedOnLeft = layoutPositions.some(p2 =>
-                p1.id !== p2.id &&
-                p2.z === p1.z &&
-                p2.x === p1.x - 1 &&
-                Math.abs(p2.y - p1.y) < 1
+            const isBlockedOnLeft = remainingPositions.some(p2 =>
+                p1.id !== p2.id && p2.z === p1.z && p2.x === p1.x - 1 && Math.abs(p2.y - p1.y) < 1
             );
-            const isBlockedOnRight = layoutPositions.some(p2 =>
-                p1.id !== p2.id &&
-                p2.z === p1.z &&
-                p2.x === p1.x + 1 &&
-                Math.abs(p2.y - p1.y) < 1
+            const isBlockedOnRight = remainingPositions.some(p2 =>
+                p1.id !== p2.id && p2.z === p1.z && p2.x === p1.x + 1 && Math.abs(p2.y - p1.y) < 1
             );
             return !(isBlockedOnLeft && isBlockedOnRight);
         });
 
         // b. Если свободных позиций для создания пары не нашлось, генерация считается неуспешной
-        if (removablePositions.length < 2) {
-            console.warn("Попытка генерации не удалась: не нашлось двух свободных мест. Повтор...");
+        if (openPositions.length < 2) {
+            console.warn("Попытка генерации не удалась: не нашлось двух свободных мест для размещения пары. Повтор...");
             return null; // Сигнал для startGame, чтобы попробовать снова
         }
 
-        // c. Выбираем две случайные свободные позиции
-        const pos1Index = Math.floor(Math.random() * removablePositions.length);
-        const [pos1] = removablePositions.splice(pos1Index, 1);
+        // c. Берем пару костей из колоды
+        const [tile1Data, tile2Data] = pairs.pop();
 
-        const pos2Index = Math.floor(Math.random() * removablePositions.length);
-        const [pos2] = removablePositions.splice(pos2Index, 1);
-
-        // d. Берем пару костей из колоды
-        if (deck.length < 2) {
-             console.error("В колоде закончились кости раньше, чем в раскладке. Проверьте количество костей.");
-             return null;
-        }
-        const tile1Data = deck.pop();
-        const tile2Data = deck.pop();
+        // d. Выбираем две случайные свободные позиции
+        const pos1Index = Math.floor(Math.random() * openPositions.length);
+        const [pos1] = openPositions.splice(pos1Index, 1);
+        
+        const pos2Index = Math.floor(Math.random() * openPositions.length);
+        const [pos2] = openPositions.splice(pos2Index, 1);
 
         // e. Присваиваем кости этим позициям и добавляем в финальный массив
         finalBoard.push({ ...tile1Data, z: pos1.z, y: pos1.y, x: pos1.x, isRemoved: false });
         finalBoard.push({ ...tile2Data, z: pos2.z, y: pos2.y, x: pos2.x, isRemoved: false });
 
         // f. Удаляем выбранные позиции из основного списка для следующей итерации
-        layoutPositions = layoutPositions.filter(p => p.id !== pos1.id && p.id !== pos2.id);
+        remainingPositions = remainingPositions.filter(p => p.id !== pos1.id && p.id !== pos2.id);
     }
 
     return finalBoard;
 }
+
 
 function startGame() {
     clearAllHints();
     
     let newBoard = null;
     let attempts = 0;
-    // Используем цикл, чтобы избежать переполнения стека при неудачной генерации
+    // Используем цикл, чтобы избежать переполнения стека при рекурсии
     do {
         newBoard = generateSolvableBoard();
         attempts++;
@@ -295,7 +316,7 @@ function startGame() {
     // Если после 100 попыток поле так и не создано, показываем ошибку
     if (!newBoard) {
         console.error("Не удалось сгенерировать решаемое поле после 100 попыток.");
-        showOverlay("Ошибка генерации", "Не удалось создать игровое поле. Пожалуйста, обновите страницу или попробуйте позже.");
+        showOverlay("Ошибка генерации", "Не удалось создать игровое поле. Пожалуйста, обновите страницу.");
         return;
     }
 
@@ -318,9 +339,9 @@ function renderBoard() {
         
         const tileEl = createCardElement(tile);
         
-        tileEl.style.top = `calc(12% + ${tile.y * (100 / 10)}% + ${tile.z * -7}px)`;
-        tileEl.style.left = `calc(${tile.x * (100 / 15)}% + ${tile.z * -7}px)`;
-        tileEl.style.zIndex = tile.z * 10 + tile.y;
+        tileEl.style.top = `calc(${tile.y * (100 / 8)}% - ${tile.z * 7}px)`;
+        tileEl.style.left = `calc(${tile.x * (100 / 15)}% - ${tile.z * 7}px)`;
+        tileEl.style.zIndex = tile.z * 10 + Math.floor(tile.y);
 
         boardEl.appendChild(tileEl);
         tile.element = tileEl; // Сохраняем ссылку на DOM-элемент
@@ -385,22 +406,32 @@ function updateSelectableTiles() {
     setTimeout(checkForAvailableMoves, 50);
 }
 
+
+/**
+ * ИСПРАВЛЕНИЕ: Переписанная функция для корректной проверки наличия ходов.
+ * Группирует все доступные кости по ключу (символ или группа "flower"/"season")
+ * и проверяет, есть ли в какой-либо группе 2 или более костей.
+ */
 function hasAvailableMoves(currentBoard) {
     const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
     if (selectableTiles.length < 2) return false;
 
-    // Группируем доступные кости по символу или группе
-    const counts = {};
+    const counts = new Map();
     for (const tile of selectableTiles) {
-        const key = tile.group || tile.symbol;
-        if (counts[key]) {
-            return true; // Нашли пару, дальнейшая проверка не нужна
+        const key = tile.group || tile.symbol; // Группируем по "flower"/"season" или по символу
+        const currentCount = counts.get(key) || 0;
+        counts.set(key, currentCount + 1);
+    }
+    
+    for (const count of counts.values()) {
+        if (count >= 2) {
+            return true; // Нашли как минимум одну возможную пару
         }
-        counts[key] = 1;
     }
     
     return false;
 }
+
 
 function checkForAvailableMoves() {
     const shuffleBtn = document.getElementById('mahjong-shuffle-btn');
@@ -418,7 +449,7 @@ function checkForAvailableMoves() {
 function handleTileClick(tileEl) {
     if (!tileEl.classList.contains('selectable')) return;
     
-    clickSound.play().catch(e => console.error("Ошибка воспроизведения звука:", e));
+    clickSound.play().catch(e => console.warn("Ошибка воспроизведения звука:", e));
     
     const clickedTileData = board.find(t => t.id === tileEl.dataset.id);
 
@@ -433,14 +464,13 @@ function handleTileClick(tileEl) {
                         (selectedTile.group && selectedTile.group === clickedTileData.group);
 
         if (isMatch) {
-            matchSound.play().catch(e => console.error("Ошибка воспроизведения звука:", e));
+            matchSound.play().catch(e => console.warn("Ошибка воспроизведения звука:", e));
 
             selectedTile.isRemoved = true;
             clickedTileData.isRemoved = true;
             
             clearAllHints();
 
-            // Вместо полной перерисовки, просто удаляем элементы
             selectedTile.element?.remove();
             clickedTileData.element?.remove();
             
@@ -449,7 +479,6 @@ function handleTileClick(tileEl) {
 
             selectedTile = null;
             
-            // И обновляем статусы соседних костей
             updateSelectableTiles();
             
             if (tilesLeft === 0) {
@@ -483,21 +512,24 @@ function findHint() {
 
     const selectableTiles = board.filter(t => !t.isRemoved && !isTileBlocked(t));
     
-    for (let i = 0; i < selectableTiles.length; i++) {
-        const tile1 = selectableTiles[i];
-        for (let j = i + 1; j < selectableTiles.length; j++) {
-            const tile2 = selectableTiles[j];
+    // Группируем доступные кости по ключу
+    const groups = {};
+    for (const tile of selectableTiles) {
+        const key = tile.group || tile.symbol;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(tile);
+    }
+
+    // Ищем первую группу, в которой есть пара
+    for (const key in groups) {
+        if (groups[key].length >= 2) {
+            const tile1 = groups[key][0];
+            const tile2 = groups[key][1];
             
-            const isMatch = (tile1.symbol === tile2.symbol) || (tile1.group && tile1.group === tile2.group);
-            
-            if (isMatch) {
-                if (tile1.element && tile2.element) {
-                    tile1.element.classList.add('hint');
-                    tile2.element.classList.add('hint');
-                    hintTimeout = setTimeout(clearAllHints, 2000);
-                    return;
-                }
-            }
+            tile1.element?.classList.add('hint');
+            tile2.element?.classList.add('hint');
+            hintTimeout = setTimeout(clearAllHints, 2000);
+            return;
         }
     }
 }
@@ -505,30 +537,25 @@ function findHint() {
 function shuffleBoard() {
     clearAllHints();
     
-    // Собираем только данные оставшихся костей
     const remainingTiles = board.filter(t => !t.isRemoved);
     const tilesDataToShuffle = remainingTiles.map(t => ({ 
         symbol: t.symbol, id: t.id, group: t.group, category: t.category 
     }));
 
-    // Перемешиваем данные
     for (let i = tilesDataToShuffle.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [tilesDataToShuffle[i], tilesDataToShuffle[j]] = [tilesDataToShuffle[j], tilesDataToShuffle[i]];
     }
 
-    // Обновляем существующие кости новыми данными, не перерисовывая поле
     remainingTiles.forEach((tile, index) => {
         const newTileData = tilesDataToShuffle[index];
-        // Обновляем данные в основном массиве
         tile.symbol = newTileData.symbol;
         tile.id = newTileData.id;
         tile.group = newTileData.group;
         tile.category = newTileData.category;
         
-        // Обновляем соответствующий DOM-элемент
         if (tile.element) {
-            tile.element.className = `mahjong-tile ${tile.category || ''}`; // Сбрасываем классы
+            tile.element.className = `mahjong-tile ${tile.category || ''}`;
             tile.element.dataset.id = tile.id;
             tile.element.innerHTML = tile.category === 'dragon-white' 
                 ? `<span class="symbol"></span>` 
@@ -542,7 +569,6 @@ function shuffleBoard() {
         selectedTile = null;
     }
     
-    // Обновляем классы selectable/blocked для новой раскладки
     updateSelectableTiles();
 }
 
@@ -561,6 +587,13 @@ export function init() {
     newGameBtn.addEventListener('click', startGame);
     hintBtn.addEventListener('click', findHint);
     shuffleBtn.addEventListener('click', shuffleBoard);
+    
+    // Проверяем, достаточно ли костей для раскладки
+    if (TILE_DEFINITIONS.reduce((acc, def) => acc + (def.group ? 1 : 4), 0) < LAYOUT.length) {
+         console.error(`Ошибка конфигурации: В раскладке (${LAYOUT.length}) больше мест, чем доступно костей.`);
+         showOverlay("Ошибка", "В раскладке больше мест, чем костей. Игра не может быть запущена.");
+         return;
+    }
     
     startGame();
 }
