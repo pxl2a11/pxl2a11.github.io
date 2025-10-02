@@ -1,4 +1,4 @@
-//48 js/apps/mahjongSolitaire.js
+//54 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -45,26 +45,30 @@ const LAYOUT = [
 export function getHtml() {
     return `
         <style>
+            /* ИСПРАВЛЕНО: Поле во всю ширину, а фишки по центру */
             .mahjong-board-container {
                 position: relative;
                 width: 100%;
-                max-width: 800px;
-                margin: 0 auto;
-                aspect-ratio: 1.5 / 1;
                 padding: 10px;
-                background-color: #056642; /* Темно-зеленый фон стола */
+                background-color: #056642;
                 background-image: radial-gradient(rgba(255, 255, 255, 0.05) 10%, transparent 10%);
                 background-size: 15px 15px;
                 border-radius: 12px;
                 box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
             .dark .mahjong-board-container { background-color: #064e3b; }
             #mahjong-board {
                 position: relative;
                 width: 100%;
-                height: 100%;
+                max-width: 800px; /* Ограничитель для очень больших экранов */
+                aspect-ratio: 1.5 / 1;
                 user-select: none;
             }
+            
+            /* ИСПРАВЛЕНО: Новый стиль фишек */
             .mahjong-tile {
                 position: absolute;
                 width: calc(100% / 15);
@@ -79,40 +83,44 @@ export function getHtml() {
                 transition: all 0.15s ease-in-out;
                 border-radius: 4px;
                 
-                /* ИСПРАВЛЕНО: Новый стиль костей (слоновая кость + ржавчина) */
-                background: linear-gradient(145deg, #FEFBF0, #F8F2E0); /* Желто-рыже-белый */
-                border: 1px solid #B4A98F; /* Темная рамка */
+                /* Цвет слоновой кости, ржавый градиент и зеленая тень-основа */
+                background: linear-gradient(145deg, #FEFBF0, #F8F2E0);
+                border: 1px solid #C8C0B0;
                 box-shadow: 
-                    inset 0 0 5px 3px rgba(185, 105, 40, 0.35), /* Ржавый градиент внутри */
-                    3px 3px 6px rgba(0, 0, 0, 0.3); /* Внешняя тень */
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35), /* Ржавый градиент */
+                    0 4px 0px #047857, /* Зеленая основа */
+                    4px 5px 8px rgba(0, 0, 0, 0.35); /* Основная тень */
             }
+            /* ИСПРАВЛЕНО: Темная тема использует тот же стиль, что и светлая */
             .dark .mahjong-tile {
-                /* Темная версия костей */
-                background: linear-gradient(145deg, #7a6e5a, #6a5e4a);
-                border: 1px solid #4a4235;
+                background: linear-gradient(145deg, #FEFBF0, #F8F2E0);
+                border: 1px solid #C8C0B0;
                 box-shadow: 
-                    inset 0 0 5px 3px rgba(217, 137, 74, 0.3),
-                    4px 4px 8px rgba(0, 0, 0, 0.6);
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
+                    0 4px 0px #059669, /* Чуть светлее зеленая основа для темной темы */
+                    4px 5px 8px rgba(0, 0, 0, 0.5);
             }
+            /* ИСПРАВЛЕНО: Подсветка только при наведении */
             .mahjong-tile.selectable:hover {
-                /* Подсветка доступной кости ПРИ НАВЕДЕНИИ */
                 box-shadow: 
-                    inset 0 0 5px 3px rgba(185, 105, 40, 0.35),
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
+                    0 4px 0px #047857,
                     0 0 12px 4px #0ea5e9, /* Голубое свечение */
-                    3px 3px 6px rgba(0,0,0,0.3);
+                    4px 5px 8px rgba(0,0,0,0.35);
             }
             .dark .mahjong-tile.selectable:hover {
                  box-shadow: 
-                    inset 0 0 5px 3px rgba(217, 137, 74, 0.3),
+                    inset 0 0 5px 2px rgba(217, 137, 74, 0.3),
+                    0 4px 0px #059669,
                     0 0 12px 4px #0ea5e9,
-                    4px 4px 8px rgba(0,0,0,0.6);
+                    4px 5px 8px rgba(0,0,0,0.6);
             }
             .mahjong-tile.selected {
-                /* Эффект "приподнятости" для выбранной кости */
-                transform: scale(1.08) translate(-2px, -2px);
+                transform: scale(1.1) translate(-3px, -3px);
                 box-shadow: 
-                    inset 0 0 5px 3px rgba(185, 105, 40, 0.2),
-                    6px 6px 18px rgba(0,0,0,0.4);
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.2),
+                    0 4px 0px #047857,
+                    8px 8px 20px rgba(0,0,0,0.4);
                 z-index: 100 !important;
             }
             .mahjong-tile.hint {
@@ -121,9 +129,10 @@ export function getHtml() {
             @keyframes hint-pulse {
                 to { 
                     box-shadow: 
-                        inset 0 0 5px 3px rgba(185, 105, 40, 0.35),
-                        0 0 14px 5px #f59e0b, /* Янтарное свечение для подсказки */
-                        3px 3px 6px rgba(0,0,0,0.3);
+                        inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
+                        0 4px 0px #047857,
+                        0 0 14px 5px #f59e0b, /* Янтарное свечение */
+                        4px 5px 8px rgba(0,0,0,0.35);
                 }
             }
             .mahjong-overlay {
@@ -141,18 +150,12 @@ export function getHtml() {
             .mahjong-tile.dragon-red .symbol { color: #dc2626; }
             .mahjong-tile.dragon-green .symbol { color: #16a34a; }
             .mahjong-tile.dragon-white .symbol {
-                 /* У белого дракона рамка вместо символа */
                 width: 50%; height: 70%;
                 border: 2px solid #3b82f6;
                 border-radius: 4px;
             }
             .mahjong-tile.flower .symbol { color: #db2777; } /* Розовый */
             .mahjong-tile.season .symbol { color: #ca8a04; } /* Янтарный */
-
-            .dark .mahjong-tile .symbol { color: #e2e8f0; } /* Общий цвет символов в темной теме */
-            .dark .mahjong-tile.dragon-red .symbol { color: #f87171; }
-            .dark .mahjong-tile.dragon-green .symbol { color: #4ade80; }
-            .dark .mahjong-tile.dragon-white .symbol { border-color: #60a5fa; }
         </style>
 
         <div class="flex flex-col items-center gap-4">
@@ -261,7 +264,6 @@ function createCardElement(card) {
     const el = document.createElement('div');
     el.className = `mahjong-tile ${card.category || ''}`;
     el.dataset.id = card.id;
-    // Для "Белого Дракона" символ не нужен, рамка рисуется через CSS
     el.innerHTML = card.category === 'dragon-white' ? `<span class="symbol"></span>` : `<span class="symbol">${card.symbol}</span>`;
     return el;
 }
