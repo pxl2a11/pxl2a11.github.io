@@ -1,4 +1,4 @@
-//59 js/apps/mahjongSolitaire.js
+//08 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -65,10 +65,9 @@ export function getHtml() {
                 max-width: 800px;
                 aspect-ratio: 1.5 / 1;
                 user-select: none;
-                /* ИЗМЕНЕНИЕ: Добавляем перспективу для 3D-эффекта */
-                perspective: 1200px;
-                transform-style: preserve-3d;
             }
+            
+            /* ИСПРАВЛЕНО: Новый стиль фишек с эффектом толщины */
             .mahjong-tile {
                 position: absolute;
                 width: calc(100% / 15);
@@ -80,48 +79,55 @@ export function getHtml() {
                 font-size: clamp(12px, 4vmin, 24px);
                 font-family: 'Noto Sans', sans-serif;
                 cursor: pointer;
-                transition: all 0.2s ease-out;
+                transition: all 0.15s ease-in-out;
                 border-radius: 4px;
                 
-                /* ИЗМЕНЕНИЕ: Наклон фишки влево */
-                transform: rotateY(25deg);
-
-                background: linear-gradient(145deg, #FEFBF0, #F8F2E0);
+                background: linear-gradient(145deg, #FEFBF0, #F8F2E0); /* Цвет слоновой кости */
                 border: 1px solid #C8C0B0;
+                
+                /* Многослойная тень для создания толщины и объема */
                 box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                    0 4px 0px #047857,
-                    4px 5px 8px rgba(0, 0, 0, 0.35);
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35), /* Внутренний "ржавый" градиент */
+                    0 1px 0 #069564, /* Начало градиента толщины */
+                    0 2px 0 #057a55,
+                    0 3px 0 #046c4e,
+                    0 4px 0 #065f46,
+                    0 5px 0 #065f46,
+                    0 6px 0 #065f46,
+                    0 7px 0 #065f46,
+                    0 8px 0 #065f46, /* Основная толщина */
+                    5px 12px 12px rgba(0, 0, 0, 0.4); /* Основная тень */
             }
+            
+            /* Стиль для темной темы - теперь идентичен светлой */
             .dark .mahjong-tile {
                 background: linear-gradient(145deg, #FEFBF0, #F8F2E0);
                 border: 1px solid #C8C0B0;
-                box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                    0 4px 0px #059669,
-                    4px 5px 8px rgba(0, 0, 0, 0.5);
-            }
-            .mahjong-tile.selectable:hover {
-                transform: rotateY(25deg) scale(1.05); /* Комбинируем наклон и увеличение */
-                box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                    0 4px 0px #047857,
-                    0 0 12px 4px #0ea5e9,
-                    4px 5px 8px rgba(0,0,0,0.35);
-            }
-            .dark .mahjong-tile.selectable:hover {
                  box-shadow: 
-                    inset 0 0 5px 2px rgba(217, 137, 74, 0.3),
-                    0 4px 0px #059669,
-                    0 0 12px 4px #0ea5e9,
-                    4px 5px 8px rgba(0,0,0,0.6);
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
+                    0 1px 0 #069564, 0 2px 0 #057a55, 0 3px 0 #046c4e,
+                    0 4px 0 #065f46, 0 5px 0 #065f46, 0 6px 0 #065f46,
+                    0 7px 0 #065f46, 0 8px 0 #065f46,
+                    5px 12px 12px rgba(0, 0, 0, 0.5); /* Тень чуть темнее */
+            }
+            
+            .mahjong-tile.selectable:hover {
+                box-shadow: 
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
+                    0 1px 0 #069564, 0 2px 0 #057a55, 0 3px 0 #046c4e,
+                    0 4px 0 #065f46, 0 5px 0 #065f46, 0 6px 0 #065f46,
+                    0 7px 0 #065f46, 0 8px 0 #065f46,
+                    0 0 12px 4px #0ea5e9, /* Голубое свечение */
+                    5px 12px 12px rgba(0,0,0,0.4);
             }
             .mahjong-tile.selected {
-                transform: rotateY(25deg) scale(1.1) translateZ(10px); /* Комбинируем наклон, увеличение и выдвижение вперед */
+                transform: scale(1.08) translate(-3px, -3px);
                 box-shadow: 
                     inset 0 0 5px 2px rgba(185, 105, 40, 0.2),
-                    0 4px 0px #047857,
-                    8px 8px 20px rgba(0,0,0,0.4);
+                    0 1px 0 #069564, 0 2px 0 #057a55, 0 3px 0 #046c4e,
+                    0 4px 0 #065f46, 0 5px 0 #065f46, 0 6px 0 #065f46,
+                    0 7px 0 #065f46, 0 8px 0 #065f46,
+                    10px 15px 25px rgba(0,0,0,0.4); /* Усиленная тень */
                 z-index: 100 !important;
             }
             .mahjong-tile.hint {
@@ -131,9 +137,11 @@ export function getHtml() {
                 to { 
                     box-shadow: 
                         inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                        0 4px 0px #047857,
-                        0 0 14px 5px #f59e0b,
-                        4px 5px 8px rgba(0,0,0,0.35);
+                        0 1px 0 #069564, 0 2px 0 #057a55, 0 3px 0 #046c4e,
+                        0 4px 0 #065f46, 0 5px 0 #065f46, 0 6px 0 #065f46,
+                        0 7px 0 #065f46, 0 8px 0 #065f46,
+                        0 0 14px 5px #f59e0b, /* Янтарное свечение */
+                        5px 12px 12px rgba(0,0,0,0.35);
                 }
             }
             .mahjong-overlay {
@@ -142,6 +150,7 @@ export function getHtml() {
                 border-radius: 0.5rem; z-index: 100;
             }
 
+            /* --- Цветные символы --- */
             .mahjong-tile .symbol { font-weight: bold; }
             .mahjong-tile.character .symbol { color: #1e3a8a; }
             .mahjong-tile.bamboo .symbol { color: #065f46; }
