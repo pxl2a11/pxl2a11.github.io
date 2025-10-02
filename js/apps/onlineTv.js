@@ -1,9 +1,9 @@
-// 22js/apps/onlineTv.js
+// 25js/apps/onlineTv.js
 import { tvChannels } from '../tvChannelsData.js';
 import { getUserData, saveUserData } from '../dataManager.js';
 
 // --- Глобальные переменные модуля ---
-let channelListContainer, playerContainer, playerPlaceholder, searchInput, favoritesFilterBtn;
+let channelListContainer, playerContainer, playerPlaceholder, searchInput, favoritesFilterBtn, rightColumn;
 let channelCards = [];
 let eventListeners = [];
 let favorites = [];
@@ -16,6 +16,17 @@ const FAVORITES_KEY = 'favoriteTvChannels';
 function addListener(element, event, handler) {
     element.addEventListener(event, handler);
     eventListeners.push({ element, event, handler });
+}
+
+/**
+ * Устанавливает высоту правой колонки равной высоте плеера.
+ */
+function adjustChannelListHeight() {
+    if (playerContainer && rightColumn) {
+        const playerHeight = playerContainer.offsetHeight;
+        // Устанавливаем высоту всего блока правой колонки
+        rightColumn.style.height = `${playerHeight}px`;
+    }
 }
 
 function getHtml() {
@@ -55,8 +66,8 @@ function getHtml() {
                         <p id="tv-player-placeholder" class="text-gray-400">Выберите канал для просмотра</p>
                     </div>
                 </div>
-                <!-- Правая колонка с фиксированной высотой 400px -->
-                <div class="lg:col-span-1 flex flex-col h-[410px]">
+                <!-- Правая колонка, высота которой будет подстраиваться под плеер -->
+                <div id="right-column" class="lg:col-span-1 flex flex-col">
                     <!-- Панель поиска не будет сжиматься -->
                     <div class="flex items-center gap-3 mb-4 flex-shrink-0">
                         <div class="relative flex-grow">
@@ -80,14 +91,11 @@ function getHtml() {
 function selectChannel(channel) {
     playerContainer.innerHTML = channel.embedHtml;
     playerPlaceholder.classList.add('hidden');
-    // Обновляем активную карточку, используя ID канала
+    
     channelCards.forEach(card => {
         card.classList.toggle('active', card.dataset.channelId === channel.id);
     });
     
-    // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
-    // Используем history.replaceState, чтобы изменить URL без перезагрузки страницы.
-    // Это заменяет текущий URL на новый с хэшем.
     const newUrl = window.location.pathname + window.location.search + '#' + channel.id;
     history.replaceState(null, '', newUrl);
 }
@@ -124,8 +132,8 @@ function createChannelCards() {
         const isFavorite = favorites.includes(channel.name);
         const card = document.createElement('div');
         card.className = 'channel-card';
-        card.dataset.channelName = channel.name; // Для поиска и избранного
-        card.dataset.channelId = channel.id;   // Для выбора и установки хэша
+        card.dataset.channelName = channel.name;
+        card.dataset.channelId = channel.id;
         card.innerHTML = `
             <div class="play-area">
                 <img src="${channel.logoUrl}" alt="Логотип ${channel.name}">
@@ -156,11 +164,17 @@ function filterChannels() {
 }
 
 async function init() {
+    // Получаем ссылки на DOM-элементы
     channelListContainer = document.getElementById('channel-list-container');
     playerContainer = document.getElementById('tv-player-container');
     playerPlaceholder = document.getElementById('tv-player-placeholder');
     searchInput = document.getElementById('channel-search-input');
     favoritesFilterBtn = document.getElementById('favorites-filter-btn');
+    rightColumn = document.getElementById('right-column');
+
+    // Настраиваем высоту и добавляем слушатель изменения размера окна
+    adjustChannelListHeight();
+    addListener(window, 'resize', adjustChannelListHeight);
 
     await loadFavorites();
     createChannelCards();
@@ -172,7 +186,6 @@ async function init() {
         filterChannels();
     });
 
-    // Проверяем URL на наличие хэша при загрузке страницы
     const channelIdFromHash = decodeURIComponent(window.location.hash.slice(1));
     if (channelIdFromHash) {
         const channelToLoad = tvChannels.find(c => c.id === channelIdFromHash);
@@ -192,7 +205,6 @@ function cleanup() {
     eventListeners = [];
     isFavoritesFilterActive = false;
 
-    // Очищаем хэш при выходе из раздела, чтобы URL был чистым
     const cleanUrl = window.location.pathname + window.location.search;
     history.replaceState(null, '', cleanUrl);
 }
