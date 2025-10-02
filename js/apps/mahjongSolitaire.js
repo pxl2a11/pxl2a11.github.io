@@ -1,4 +1,4 @@
-//32 js/apps/mahjongSolitaire.js
+//34 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -109,7 +109,6 @@ export function getHtml() {
                     10px 10px 18px rgba(0, 0, 0, 0.45);
             }
 
-            /* ИСПРАВЛЕНО: Выбранная фишка теперь окрашивается в светло-зеленый цвет. */
             .mahjong-tile.selected {
                 background: linear-gradient(145deg, #dcfce7, #bbf7d0); /* Светло-зеленый фон */
                 border-color: #4ade80; /* Яркая зеленая рамка */
@@ -359,11 +358,14 @@ function showOverlay(title, text) {
     document.getElementById('mahjong-overlay').style.display = 'flex';
 }
 
+// ИСПРАВЛЕНО: Логика подсказки теперь напрямую использует функцию isTileBlocked,
+// чтобы избежать рассинхронизации состояния и гарантировать корректный поиск пары.
 function findHint() {
     clearTimeout(hintTimeout);
     document.querySelectorAll('.hint').forEach(el => el.classList.remove('hint'));
 
-    const selectableTiles = board.filter(t => !t.isRemoved && t.element.classList.contains('selectable'));
+    // Получаем доступные фишки, основываясь на той же логике, что и проверка наличия ходов.
+    const selectableTiles = board.filter(t => !t.isRemoved && !isTileBlocked(t));
     
     for (let i = 0; i < selectableTiles.length; i++) {
         const tile1 = selectableTiles[i];
@@ -374,6 +376,7 @@ function findHint() {
             const isMatch = (tile1.symbol === tile2.symbol) || (tile1.group && tile1.group === tile2.group);
             
             if (isMatch) {
+                // Пара найдена, подсвечиваем оба элемента.
                 tile1.element.classList.add('hint');
                 tile2.element.classList.add('hint');
                 
@@ -381,7 +384,7 @@ function findHint() {
                     if (tile1.element) tile1.element.classList.remove('hint');
                     if (tile2.element) tile2.element.classList.remove('hint');
                 }, 2000);
-                return;
+                return; // Выходим после нахождения первой же пары.
             }
         }
     }
