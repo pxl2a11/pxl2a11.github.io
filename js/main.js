@@ -36,6 +36,7 @@ const appNameToModuleFile = {
     'Трекер привычек': 'habitTracker',
     'Форматировщик JSON': 'jsonFormatter',
     'Пасьянс «Косынка»': 'solitaire',
+    'Пасьянс Маджонг': 'mahjongSolitaire',
 };
 const appPopularity = {
     'speedTest': 95, 'radio': 88, 'notesAndTasks': 92, 'qrCodeGenerator': 94, 'passwordGenerator': 85, 'unitConverter': 89, 'myIp': 80, 'soundAndMicTest': 78, 'bmiCalculator': 75, 'timer': 70, 'stopwatch': 68, 
@@ -66,6 +67,7 @@ const appPopularity = {
     'habitTracker': 85,
     'jsonFormatter': 87,
     'solitaire': 91,
+    'mahjongSolitaire': 89,
 };
 const appSearchMetadata = {
     'speedTest': { keywords: ['интернет', 'скорость', 'speed', 'test', 'пинг', 'ping'], hashtags: ['#internet', '#tools'] }, 
@@ -132,6 +134,8 @@ const appSearchMetadata = {
     'habitTracker': { keywords: ['привычки', 'трекер', 'цели', 'ежедневно', 'рутина', 'трекинг', 'streak', 'серия'], hashtags: ['#organizer', '#tools', '#health'] },
     'jsonFormatter': { keywords: ['json', 'формат', 'валидатор', 'проверка', 'сжать', 'минимизировать', 'formatter', 'validator', 'minify'], hashtags: ['#tools', '#webdev', '#text'] },
     'solitaire': { keywords: ['игра', 'карты', 'пасьянс', 'косынка', 'солитер', 'klondike'], hashtags: ['#game', '#fun', '#logic'] },
+    'mahjongSolitaire': { keywords: ['игра', 'маджонг', 'пасьянс', 'кости', 'головоломка', 'логика', 'mahjong', 'solitaire'], hashtags: ['#game', '#fun', '#logic'] 
+    },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
