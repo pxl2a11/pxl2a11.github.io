@@ -1,4 +1,4 @@
-//28 js/apps/mahjongSolitaire.js
+//17 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -10,7 +10,6 @@ let hintTimeout;
 const TILE_DEFINITIONS = [
     // Масти (по 9 костей, каждая 4 раза)
     ...Array.from({ length: 9 }, (_, i) => ({ symbol: ['一','二','三','四','五','六','七','八','九'][i], category: 'character' })),
-    // ИСПРАВЛЕНО: Заменены наборы символов для 'bamboo' и 'circle' на правильные, чтобы избежать ложных совпадений.
     ...Array.from({ length: 9 }, (_, i) => ({ symbol: ['🀐','🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀘'][i], category: 'bamboo' })),
     ...Array.from({ length: 9 }, (_, i) => ({ symbol: ['🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡'][i], category: 'circle' })),
     // Ветры и Драконы (Козыри)
@@ -96,38 +95,37 @@ export function getHtml() {
                     inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
                     1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46, 
                     5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                    8px 8px 15px rgba(0, 0, 0, 0.5); /* Тень чуть темнее */
+                    8px 8px 15px rgba(0, 0, 0, 0.5);
             }
             
-            /* ИСПРАВЛЕНО: Выделение при наведении теперь подсвечивает всю фишку, а не только края. */
             .mahjong-tile.selectable:hover {
-                background: linear-gradient(145deg, #fff, #fef4e5); /* Слегка осветляем фон */
-                border-color: #a8a29e; /* Делаем рамку заметнее */
-                transform: translateY(-2px); /* Небольшой подъем для обратной связи */
+                background: linear-gradient(145deg, #fff, #fef4e5);
+                border-color: #a8a29e;
+                transform: translateY(-2px);
                 box-shadow: 
                     inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
                     1px 1px 0 #069564, 2px 2px 0 #057a55, 3px 3px 0 #046c4e, 4px 4px 0 #065f46,
                     5px 5px 0 #065f46, 6px 6px 0 #065f46, 7px 7px 0 #065f46,
-                    10px 10px 18px rgba(0, 0, 0, 0.45); /* Усиливаем тень при наведении */
+                    10px 10px 18px rgba(0, 0, 0, 0.45);
             }
 
-            /* ИСПРАВЛЕНО: Выбранная фишка теперь полностью меняет цвет для наглядности. */
+            /* ИСПРАВЛЕНО: Выбранная фишка теперь окрашивается в светло-зеленый цвет. */
             .mahjong-tile.selected {
-                background: linear-gradient(145deg, #e0f2fe, #bae6fd); /* Яркий синеватый фон */
-                border-color: #38bdf8; /* Яркая синяя рамка */
-                transform: scale(1.08) translate(-4px, -4px); /* Увеличиваем и смещаем */
+                background: linear-gradient(145deg, #dcfce7, #bbf7d0); /* Светло-зеленый фон */
+                border-color: #4ade80; /* Яркая зеленая рамка */
+                transform: scale(1.08) translate(-4px, -4px);
                 box-shadow: 
-                    inset 0 0 4px 1px rgba(56, 189, 248, 0.5), /* Внутреннее свечение в тон */
+                    inset 0 0 4px 1px rgba(74, 222, 128, 0.5), /* Внутреннее свечение в тон */
                     1px 1px #069564, 2px 2px #057a55, 3px 3px #046c4e, 4px 4px #065f46, 
                     5px 5px #065f46, 6px 6px #065f46, 7px 7px #065f46, 8px 8px #065f46,
-                    12px 16px 25px rgba(0,0,0,0.4); /* Усиленная тень */
+                    12px 16px 25px rgba(0,0,0,0.4);
                 z-index: 100 !important;
             }
             
             .mahjong-tile.hint { animation: hint-pulse 0.8s infinite alternate; }
             @keyframes hint-pulse {
                 to { 
-                    background: linear-gradient(145deg, #fef3c7, #fde68a); /* Янтарный фон для подсказки */
+                    background: linear-gradient(145deg, #fef3c7, #fde68a);
                     border-color: #f59e0b;
                     box-shadow: 
                         inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
@@ -179,7 +177,7 @@ export function getHtml() {
     `;
 }
 
-// --- Логика игры (остается без изменений) ---
+// --- Логика игры ---
 
 function hasAvailableMoves(currentBoard) {
     const selectableTiles = currentBoard.filter(t => !t.isRemoved && !isTileBlocked(t, currentBoard));
