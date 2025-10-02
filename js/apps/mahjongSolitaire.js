@@ -1,4 +1,4 @@
-//08 js/apps/mahjongSolitaire.js
+//12 js/apps/mahjongSolitaire.js
 
 // --- Глобальные переменные модуля ---
 let board = []; // Массив всех костей на поле { id, symbol, x, y, z, element }
@@ -67,7 +67,6 @@ export function getHtml() {
                 user-select: none;
             }
             
-            /* ИСПРАВЛЕНО: Новый стиль фишек с эффектом толщины */
             .mahjong-tile {
                 position: absolute;
                 width: calc(100% / 15);
@@ -82,68 +81,58 @@ export function getHtml() {
                 transition: all 0.15s ease-in-out;
                 border-radius: 4px;
                 
+                /* ИСПРАВЛЕНО: Эффект толстой фишки с видимой правой стороной */
                 background: linear-gradient(145deg, #FEFBF0, #F8F2E0); /* Цвет слоновой кости */
                 border: 1px solid #C8C0B0;
-                
-                /* Многослойная тень для создания толщины и объема */
                 box-shadow: 
-                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35), /* Внутренний "ржавый" градиент */
-                    0 1px 0 #069564, /* Начало градиента толщины */
-                    0 2px 0 #057a55,
-                    0 3px 0 #046c4e,
-                    0 4px 0 #065f46,
-                    0 5px 0 #065f46,
-                    0 6px 0 #065f46,
-                    0 7px 0 #065f46,
-                    0 8px 0 #065f46, /* Основная толщина */
+                    inset 0 0 5px 2px rgba(185, 105, 40, 0.35), /* Ржавый градиент */
+                    1px 1px #DCD6C7, 2px 2px #DCD6C7, 3px 3px #DCD6C7, 4px 4px #DCD6C7, /* Диагональная сторона */
+                    0 5px 0 #047857, 0 6px 0 #057a55, 0 7px 0 #046c4e, /* Зеленая основа */
                     5px 12px 12px rgba(0, 0, 0, 0.4); /* Основная тень */
             }
             
-            /* Стиль для темной темы - теперь идентичен светлой */
+            /* Стиль для темной темы - идентичен светлой */
             .dark .mahjong-tile {
                 background: linear-gradient(145deg, #FEFBF0, #F8F2E0);
                 border: 1px solid #C8C0B0;
-                 box-shadow: 
+                box-shadow: 
                     inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                    0 1px 0 #069564, 0 2px 0 #057a55, 0 3px 0 #046c4e,
-                    0 4px 0 #065f46, 0 5px 0 #065f46, 0 6px 0 #065f46,
-                    0 7px 0 #065f46, 0 8px 0 #065f46,
-                    5px 12px 12px rgba(0, 0, 0, 0.5); /* Тень чуть темнее */
+                    1px 1px #DCD6C7, 2px 2px #DCD6C7, 3px 3px #DCD6C7, 4px 4px #DCD6C7,
+                    0 5px 0 #059669, 0 6px 0 #069564, 0 7px 0 #057a55,
+                    5px 12px 12px rgba(0, 0, 0, 0.5);
             }
             
             .mahjong-tile.selectable:hover {
-                box-shadow: 
+                 box-shadow: 
                     inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                    0 1px 0 #069564, 0 2px 0 #057a55, 0 3px 0 #046c4e,
-                    0 4px 0 #065f46, 0 5px 0 #065f46, 0 6px 0 #065f46,
-                    0 7px 0 #065f46, 0 8px 0 #065f46,
+                    1px 1px #DCD6C7, 2px 2px #DCD6C7, 3px 3px #DCD6C7, 4px 4px #DCD6C7,
+                    0 5px 0 #047857, 0 6px 0 #057a55, 0 7px 0 #046c4e,
                     0 0 12px 4px #0ea5e9, /* Голубое свечение */
                     5px 12px 12px rgba(0,0,0,0.4);
             }
+
             .mahjong-tile.selected {
                 transform: scale(1.08) translate(-3px, -3px);
                 box-shadow: 
                     inset 0 0 5px 2px rgba(185, 105, 40, 0.2),
-                    0 1px 0 #069564, 0 2px 0 #057a55, 0 3px 0 #046c4e,
-                    0 4px 0 #065f46, 0 5px 0 #065f46, 0 6px 0 #065f46,
-                    0 7px 0 #065f46, 0 8px 0 #065f46,
-                    10px 15px 25px rgba(0,0,0,0.4); /* Усиленная тень */
+                    1px 1px #DCD6C7, 2px 2px #DCD6C7, 3px 3px #DCD6C7, 4px 4px #DCD6C7, 5px 5px #DCD6C7, 6px 6px #DCD6C7,
+                    0 7px 0 #047857, 0 8px 0 #057a55, 0 9px 0 #046c4e,
+                    10px 18px 25px rgba(0,0,0,0.4); /* Усиленная тень */
                 z-index: 100 !important;
             }
-            .mahjong-tile.hint {
-                animation: hint-pulse 0.8s infinite alternate;
-            }
+            
+            .mahjong-tile.hint { animation: hint-pulse 0.8s infinite alternate; }
             @keyframes hint-pulse {
                 to { 
                     box-shadow: 
                         inset 0 0 5px 2px rgba(185, 105, 40, 0.35),
-                        0 1px 0 #069564, 0 2px 0 #057a55, 0 3px 0 #046c4e,
-                        0 4px 0 #065f46, 0 5px 0 #065f46, 0 6px 0 #065f46,
-                        0 7px 0 #065f46, 0 8px 0 #065f46,
+                        1px 1px #DCD6C7, 2px 2px #DCD6C7, 3px 3px #DCD6C7, 4px 4px #DCD6C7,
+                        0 5px 0 #047857, 0 6px 0 #057a55, 0 7px 0 #046c4e,
                         0 0 14px 5px #f59e0b, /* Янтарное свечение */
                         5px 12px 12px rgba(0,0,0,0.35);
                 }
             }
+
             .mahjong-overlay {
                 position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none;
                 justify-content: center; align-items: center; text-align: center;
@@ -158,11 +147,7 @@ export function getHtml() {
             .mahjong-tile.wind .symbol { color: #1e293b; }
             .mahjong-tile.dragon-red .symbol { color: #dc2626; }
             .mahjong-tile.dragon-green .symbol { color: #16a34a; }
-            .mahjong-tile.dragon-white .symbol {
-                width: 50%; height: 70%;
-                border: 2px solid #3b82f6;
-                border-radius: 4px;
-            }
+            .mahjong-tile.dragon-white .symbol { width: 50%; height: 70%; border: 2px solid #3b82f6; border-radius: 4px; }
             .mahjong-tile.flower .symbol { color: #db2777; }
             .mahjong-tile.season .symbol { color: #ca8a04; }
         </style>
@@ -257,8 +242,9 @@ function renderBoard() {
         
         const tileEl = createCardElement(tile);
         
+        // ИСПРАВЛЕНО: Добавлен отступ сверху в 5%
+        tileEl.style.top = `calc(5% + ${tile.y * (100 / 10)}% + ${tile.z * -5}px)`;
         tileEl.style.left = `calc(${tile.x * (100 / 15)}% + ${tile.z * -5}px)`;
-        tileEl.style.top = `calc(${tile.y * (100 / 10)}% + ${tile.z * -5}px)`;
         tileEl.style.zIndex = tile.z * 10 + tile.y;
 
         boardEl.appendChild(tileEl);
