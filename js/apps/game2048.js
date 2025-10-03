@@ -1,4 +1,4 @@
-// 4js/apps/game2048.js
+// 27js/apps/game2048.js
 
 let grid = [];
 let score = 0;
@@ -10,6 +10,12 @@ let timerInterval = null; // ID интервала для его последу�
 let timeLeft = 0; // Оставшееся время в секундах
 const TIME_ATTACK_DURATION = 120; // Длительность игры в секундах (2 минуты)
 let isTimeAttackMode = false; // Флаг, указывающий на активный режим "игры на время"
+// --- КОНЕЦ НОВОГО ---
+
+// --- НОВОЕ: Переменные для звуков ---
+let mergeHappened = false; // Флаг для отслеживания слияния плиток за один ход
+const slideSound = new Audio('sounds/games/2048/slide.mp3');
+const associationSound = new Audio('sounds/games/2048/association.mp3');
 // --- КОНЕЦ НОВОГО ---
 
 // Переменные для обработки свайпов
@@ -182,9 +188,13 @@ function renderBoard() {
     }
 }
 
+/**
+ * ИЗМЕНЕНО: Добавлен сброс флага слияния и вызов общей функции postMoveActions.
+ */
 function handleKeydown(e) {
     if (isGameOver) return;
     let moved = false;
+    mergeHappened = false; // Сбрасываем флаг перед каждым ходом
     switch (e.key) {
         case 'ArrowUp': e.preventDefault(); moved = moveUp(); break;
         case 'ArrowDown': e.preventDefault(); moved = moveDown(); break;
@@ -192,11 +202,7 @@ function handleKeydown(e) {
         case 'ArrowRight': e.preventDefault(); moved = moveRight(); break;
         default: return;
     }
-    if (moved) {
-        addRandomTile();
-        renderBoard();
-        checkGameOver();
-    }
+    postMoveActions(moved); // Общая логика после хода
 }
 
 // --- Функции для управления свайпом (без изменений) ---
@@ -212,34 +218,58 @@ function handleTouchEnd(e) {
     touchEndY = e.changedTouches[0].clientY;
     handleSwipe();
 }
+
+/**
+ * ИЗМЕНЕНО: Добавлен сброс флага слияния и вызов общей функции postMoveActions.
+ */
 function handleSwipe() {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
     const minSwipeDistance = 30;
     let moved = false;
+    mergeHappened = false; // Сбрасываем флаг перед каждым ходом
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
         if (Math.abs(deltaX) > minSwipeDistance) moved = (deltaX > 0) ? moveRight() : moveLeft();
     } else {
         if (Math.abs(deltaY) > minSwipeDistance) moved = (deltaY > 0) ? moveDown() : moveUp();
     }
+    postMoveActions(moved); // Общая логика после хода
+}
+
+/**
+ * НОВАЯ ФУНКЦИЯ: Обрабатывает все действия после совершения хода.
+ * Воспроизводит нужный звук и обновляет игровое поле.
+ */
+function postMoveActions(moved) {
     if (moved) {
+        if (mergeHappened) {
+            associationSound.play().catch(e => console.error("Ошибка воспроизведения звука:", e));
+        } else {
+            slideSound.play().catch(e => console.error("Ошибка воспроизведения звука:", e));
+        }
         addRandomTile();
         renderBoard();
         checkGameOver();
     }
 }
 
-// --- Основная логика игры (без изменений) ---
+
+// --- Основная логика игры (с минимальными изменениями) ---
 function slide(row) {
     let arr = row.filter(val => val);
     return arr.concat(Array(gridSize - arr.length).fill(0));
 }
+
+/**
+ * ИЗМЕНЕНО: Устанавливает флаг mergeHappened при слиянии плиток.
+ */
 function combine(row) {
     for (let i = 0; i < gridSize - 1; i++) {
         if (row[i] !== 0 && row[i] === row[i + 1]) {
             row[i] *= 2;
             score += row[i];
             row[i + 1] = 0;
+            mergeHappened = true; // Устанавливаем флаг, что слияние произошло
         }
     }
     updateScore();
