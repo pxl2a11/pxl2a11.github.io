@@ -1,8 +1,6 @@
 // 12js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
-// ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
-
 export function getHtml() {
     return `
         <style>
