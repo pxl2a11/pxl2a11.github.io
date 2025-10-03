@@ -1,4 +1,4 @@
-// 22js/apps/notesAndTasks.js
+// 12js/apps/notesAndTasks.js
 import { getUserData, saveUserData } from '/js/dataManager.js';
 
 // ПРЕДПОЛОЖЕНИЕ: Библиотека SortableJS загружена и доступна глобально как 'Sortable'.
@@ -61,32 +61,44 @@ export function getHtml() {
             .list-header {
                 cursor: pointer;
             }
+            /* Скрытие элемента для скринридеров */
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border-width: 0;
+            }
         </style>
         <div class="p-4">
             <!-- Верхняя панель управления -->
-            <div class="flex justify-between items-center mb-4 relative">
+            <header class="flex justify-between items-center mb-4 relative">
                 <!-- Кнопка Создать и выпадающее меню -->
                 <div class="relative">
-                    <button id="create-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 flex items-center gap-2">
+                    <button id="create-btn" aria-haspopup="true" aria-expanded="false" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"></path></svg>
                         Создать
                     </button>
-                    <div id="create-choice-box" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-48">
-                        <button data-type="task" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Список задач</button>
-                        <button data-type="note" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Заметку</button>
+                    <div id="create-choice-box" role="menu" class="hidden absolute top-full left-0 mt-2 bg-white dark:bg-gray-700 shadow-lg rounded-lg p-2 z-20 w-48">
+                        <button role="menuitem" data-type="task" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Список задач</button>
+                        <button role="menuitem" data-type="note" class="create-type-btn w-full text-left p-2 rounded hover:bg-blue-500 hover:text-white">Заметку</button>
                     </div>
                 </div>
 
                 <!-- Фильтры -->
-                <div id="filter-buttons" class="flex gap-2 p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                    <button data-filter="all" class="filter-btn active px-3 py-1 text-sm font-semibold rounded-md">Все</button>
-                    <button data-filter="task" class="filter-btn px-3 py-1 text-sm font-semibold rounded-md">Задачи</button>
-                    <button data-filter="note" class="filter-btn px-3 py-1 text-sm font-semibold rounded-md">Заметки</button>
+                <div id="filter-buttons" role="tablist" aria-label="Фильтр контента" class="flex gap-2 p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                    <button role="tab" aria-selected="true" data-filter="all" class="filter-btn active px-3 py-1 text-sm font-semibold rounded-md">Все</button>
+                    <button role="tab" aria-selected="false" data-filter="task" class="filter-btn px-3 py-1 text-sm font-semibold rounded-md">Задачи</button>
+                    <button role="tab" aria-selected="false" data-filter="note" class="filter-btn px-3 py-1 text-sm font-semibold rounded-md">Заметки</button>
                 </div>
-            </div>
+            </header>
 
             <!-- Контейнер для списков -->
-            <div id="lists-container" class="space-y-4"></div>
+            <main id="lists-container" class="space-y-4"></main>
         </div>
     `;
 }
@@ -133,61 +145,63 @@ export async function init() {
         listsContainer.innerHTML = filteredLists.map((list) => {
             const originalIndex = lists.indexOf(list);
             let contentHtml = '';
+            const listId = `list-${list.id}`;
 
             if (list.type === 'task') {
                 const sortedItems = [...list.items].sort((a, b) => a.completed - b.completed);
                 const tasksHtml = sortedItems.map((task) => {
                     const taskIndex = lists[originalIndex].items.indexOf(task);
                     return `
-                    <div class="task-item-container flex items-center justify-between p-1 rounded-md">
+                    <li class="task-item-container flex items-center justify-between p-1 rounded-md" role="listitem">
                         <div class="flex items-center flex-grow mr-2">
-                            <input type="checkbox" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
-                            <span data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-text editable-element ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
+                            <input type="checkbox" id="task-${list.id}-${taskIndex}" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="task-checkbox h-5 w-5 rounded-full flex-shrink-0" ${task.completed ? 'checked' : ''}>
+                            <label for="task-${list.id}-${taskIndex}" data-list-index="${originalIndex}" data-task-index="${taskIndex}" role="textbox" contenteditable="false" class="task-text editable-element ml-3 break-all focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</label>
                         </div>
-                        <button data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="delete-task-btn p-1 text-gray-400 hover:text-red-500 flex-shrink-0">
-                            <svg class="w-5 h-5" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                        <button aria-label="Удалить задачу" data-list-index="${originalIndex}" data-task-index="${taskIndex}" class="delete-task-btn p-1 text-gray-400 hover:text-red-500 flex-shrink-0">
+                            <svg class="w-5 h-5" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path fill="currentColor" d="M160 256H96a32 32 0 0 1 0-64h256V95.936a32 32 0 0 1 32-32h256a32 32 0 0 1 32-32V192h256a32 32 0 1 1 0 64h-64v672a32 32 0 0 1-32-32H192a32 32 0 0 1-32-32V256zm448-64v-64H416v64h192zM224 896h576V256H224v640zm192-128a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32-32zm192 0a32 32 0 0 1-32-32V416a32 32 0 0 1 64 0v320a32 32 0 0 1-32-32z"/>
                             </svg>
                         </button>
-                    </div>
+                    </li>
                 `}).join('');
                 
-                contentHtml = `${tasksHtml}
+                contentHtml = `<ul role="list" aria-labelledby="${listId}-title" class="space-y-1">${tasksHtml}</ul>
                     <div class="mt-2">
-                        <div contenteditable="true" data-list-index="${originalIndex}" class="new-task-input p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded" data-placeholder="Новая задача..."></div>
+                        <div role="textbox" contenteditable="true" data-list-index="${originalIndex}" class="new-task-input p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded" data-placeholder="Новая задача..." aria-label="Поле для ввода новой задачи"></div>
                     </div>`;
 
             } else { // note
-                contentHtml = `<div data-list-index="${originalIndex}" data-field="content" class="editable-element whitespace-pre-wrap break-words p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded">${list.content}</div>`;
+                contentHtml = `<div data-list-index="${originalIndex}" data-field="content" role="textbox" aria-multiline="true" contenteditable="false" class="editable-element whitespace-pre-wrap break-words p-1 focus:outline-none focus:bg-white dark:focus:bg-gray-600 rounded">${list.content}</div>`;
             }
 
             const isCollapsed = list.collapsed ?? false;
 
             return `
-                <div class="list-card bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow">
-                    <div class="list-header flex justify-between items-start mb-2" data-list-index="${originalIndex}">
-                        <h4 data-list-index="${originalIndex}" data-field="title" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
+                <section class="list-card bg-gray-100 dark:bg-gray-800 rounded-lg p-4 shadow" aria-labelledby="${listId}-title">
+                    <header class="list-header flex justify-between items-start mb-2" data-list-index="${originalIndex}">
+                        <h4 id="${listId}-title" data-list-index="${originalIndex}" data-field="title" role="textbox" contenteditable="false" class="editable-element font-bold text-lg break-all mr-4 focus:outline-none focus:bg-white dark:focus:bg-gray-600 p-1 rounded">${list.title}</h4>
                         
                         <div class="flex items-center flex-shrink-0">
-                            <button class="collapse-btn p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ${isCollapsed ? 'collapsed' : ''}" tabindex="-1">
-                               <svg class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            <button aria-label="${isCollapsed ? 'Развернуть' : 'Свернуть'} список" class="collapse-btn p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ${isCollapsed ? 'collapsed' : ''}" tabindex="-1" aria-expanded="${!isCollapsed}">
+                               <svg class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                             </button>
-                            <div class="drag-handle text-gray-400 p-1 hover:text-gray-600 dark:hover:text-gray-200">
-                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <div class="drag-handle text-gray-400 p-1 hover:text-gray-600 dark:hover:text-gray-200" role="button" aria-label="Перетащить список" aria-describedby="drag-instructions">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                     <path d="M22 6C22.5523 6 23 6.44772 23 7C23 7.55229 22.5523 8 22 8H2C1.44772 8 1 7.55228 1 7C1 6.44772 1.44772 6 2 6L22 6Z" fill="currentColor"/>
                                     <path d="M22 11C22.5523 11 23 11.4477 23 12C23 12.5523 22.5523 13 22 13H2C1.44772 13 1 12.5523 1 12C1 11.4477 1.44772 11 2 11H22Z" fill="currentColor"/>
                                     <path d="M23 17C23 16.4477 22.5523 16 22 16H2C1.44772 16 1 16.4477 1 17C1 17.5523 1.44772 18 2 18H22C22.5523 18 23 17.5523 23 17Z" fill="currentColor"/>
                                 </svg>
                             </div>
-                            <button data-list-index="${originalIndex}" class="list-delete-btn p-1 text-red-500 hover:text-red-700 ml-1">
-                               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                            <button data-list-index="${originalIndex}" class="list-delete-btn p-1 text-red-500 hover:text-red-700 ml-1" aria-label="Удалить список">
+                               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                     <path d="M697.4 759.2l61.8-61.8L573.8 512l185.4-185.4-61.8-61.8L512 450.2 326.6 264.8l-61.8 61.8L450.2 512 264.8 697.4l61.8 61.8L512 573.8z"></path>
                                </svg>
                             </button>
                         </div>
-                    </div>
+                    </header>
                     <div class="list-content space-y-1 ${isCollapsed ? 'collapsed' : ''}">${contentHtml}</div>
-                </div>
+                </section>
+                <p id="drag-instructions" class="sr-only">Для изменения порядка используйте перетаскивание мышью.</p>
             `;
         }).join('');
         
@@ -219,16 +233,22 @@ export async function init() {
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
     createBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        const isExpanded = createBtn.getAttribute('aria-expanded') === 'true';
+        createBtn.setAttribute('aria-expanded', !isExpanded);
         createChoiceBox.classList.toggle('hidden');
     });
 
-    document.addEventListener('click', () => createChoiceBox.classList.add('hidden'));
+    document.addEventListener('click', () => {
+        createBtn.setAttribute('aria-expanded', 'false');
+        createChoiceBox.classList.add('hidden');
+    });
 
     createChoiceBox.addEventListener('click', (e) => {
         const btn = e.target.closest('.create-type-btn');
         if (btn) {
             e.stopPropagation();
             createChoiceBox.classList.add('hidden');
+            createBtn.setAttribute('aria-expanded', 'false');
             createNewList(btn.dataset.type);
         }
     });
@@ -236,8 +256,11 @@ export async function init() {
     filterButtonsContainer.addEventListener('click', e => {
         const filterBtn = e.target.closest('.filter-btn');
         if (filterBtn) {
+            filterButtonsContainer.querySelector('[aria-selected="true"]').setAttribute('aria-selected', 'false');
             filterButtonsContainer.querySelector('.active').classList.remove('active');
+            
             filterBtn.classList.add('active');
+            filterBtn.setAttribute('aria-selected', 'true');
             currentFilter = filterBtn.dataset.filter;
             renderLists();
         }
@@ -255,7 +278,7 @@ export async function init() {
             const selection = window.getSelection();
             const range = document.createRange();
             range.selectNodeContents(editableTarget);
-            range.collapse(false);
+            range.collapse(false); // установить курсор в конец
             selection.removeAllRanges();
             selection.addRange(range);
             return; 
