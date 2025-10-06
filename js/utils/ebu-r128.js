@@ -287,10 +287,23 @@ var EBU_R128 = (function () {
           this.gated_loudness = meanSquare(gated_results.gated_loudness);
           this.relative_threshold = -10 + this.gated_loudness;
 
+          // --- ИСПРАВЛЕНИЕ ---
+          // Обработка случая, когда аудиофайл содержит тишину.
+          // Если после фильтрации по порогу не осталось блоков, громкость
+          // по стандарту EBU R128 считается равной -Infinity.
           if (gated_results.gated_loudness.length > 0) {
               const above_gate = gated_results.gated_loudness.filter((val) => val > this.relative_threshold);
-              this.lufs = meanSquare(above_gate);
+              
+              if (above_gate.length > 0) {
+                  this.lufs = meanSquare(above_gate);
+              } else {
+                  this.lufs = -Infinity;
+              }
+          } else {
+               this.lufs = -Infinity;
           }
+          // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
           this.true_peak = truePeak(gated_results.audio).max_sample;
       }
       getIntegratedLoudness() {
