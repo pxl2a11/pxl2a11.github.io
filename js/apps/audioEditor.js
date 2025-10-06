@@ -1,9 +1,9 @@
-// ---11 START OF FILE apps/audioCompressor.js ---
+// ---14 START OF FILE apps/audioCompressor.js ---
 
 // --- УЛУЧШЕНИЕ: Переменные, вынесенные в область видимости модуля для управления состоянием ---
 let audioFile = null;
 let detectedInputFormat = null; // 'mp3' или 'wav'
-let audioPlayer;
+let audioPlayer; // Старый плеер больше не используется для предпрослушивания
 let processButton;
 let statusMessage;
 let originalSizeEl;
@@ -12,99 +12,132 @@ let audioContext;
 let eventListenersController; // Контроллер для управления всеми обработчиками событий
 const SCRIPT_PROMISES = {}; // Объект для хранения промисов загрузки скриптов
 
-// Элементы управления (остаются без изменений)
+// --- НОВОЕ: Переменные для WaveSurfer и обрезки ---
+let wavesurfer;
+let activeRegion = null;
+let originalAudioBuffer = null; // Храним оригинальный AudioBuffer
+let isProcessing = false;
+
+// Элементы управления
 let normalizeToggle, normalizeOptions, lufsInput, compressToggle, compressToggleLabel;
 let compressOptionsContainer, compressOptionsMp3, compressOptionsWav, bitrateSelector;
 let wavSamplerateSelector, outputFormatContainer, outputFormatMp3, outputFormatWav;
 
-// Функция для получения HTML-разметки приложения (без изменений)
+// --- ПОЛНОЕ ОБНОВЛЕНИЕ ДИЗАЙНА: Новая HTML-разметка ---
 export function getHtml() {
     return `
-        <div class="space-y-6 max-w-4xl mx-auto">
-            
-            <!-- Основной контейнер с сеткой для настроек и результата -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <!-- Левая колонка: Настройки -->
-                <div class="space-y-4 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">1. Настройки обработки</h2>
-
-                    <!-- Блок загрузки файла -->
-                    <div>
-                        <label for="audio-input" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Выберите аудиофайл:</label>
-                        <div class="flex items-center justify-center w-full">
-                            <label for="audio-input" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-100 dark:bg-gray-700 hover:dark:bg-gray-600 dark:border-gray-600 dark:hover:border-gray-500 transition-colors">
-                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                    <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
-                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Нажмите для выбора</span> или перетащите</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">MP3 или WAV</p>
-                                </div>
-                                <input id="audio-input" type="file" class="hidden" accept=".mp3,.wav,audio/mpeg,audio/wav" />
-                            </label>
-                        </div> 
-                    </div>
-
-                     <!-- БЛОК: Выбор формата сохранения -->
-                    <div id="output-format-container" class="hidden pt-4 space-y-2">
-                        <label class="block text-sm font-medium text-gray-900 dark:text-white">Формат сохранения:</label>
-                        <div class="flex items-center space-x-6">
-                            <div class="flex items-center">
-                                <input id="output-format-mp3" type="radio" value="mp3" name="output-format" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600">
-                                <label for="output-format-mp3" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">MP3</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input id="output-format-wav" type="radio" value="wav" name="output-format" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600">
-                                <label for="output-format-wav" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">WAV</label>
-                            </div>
+        <div class="space-y-4 max-w-5xl mx-auto">
+            <!-- Блок загрузки файла -->
+            <div id="upload-container" class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">1. Выберите аудиофайл</h2>
+                <div class="flex items-center justify-center w-full">
+                    <label for="audio-input" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-100 dark:bg-gray-700 hover:dark:bg-gray-600 dark:border-gray-600 dark:hover:border-gray-500 transition-colors">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
+                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Нажмите для выбора</span> или перетащите</p>
+                            <p id="file-name-display" class="text-xs text-gray-500 dark:text-gray-400">MP3 или WAV</p>
                         </div>
-                    </div>
+                        <input id="audio-input" type="file" class="hidden" accept=".mp3,.wav,audio/mpeg,audio/wav" />
+                    </label>
+                </div> 
+            </div>
 
-
-                    <!-- Опция Нормализации -->
-                    <div class="pt-4 space-y-3">
-                         <label class="flex items-center space-x-3 cursor-pointer">
-                            <input type="checkbox" id="normalize-toggle" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600">
-                            <span class="text-md font-medium text-gray-900 dark:text-white">Нормализовать громкость</span>
-                         </label>
-                         <div id="normalize-options" class="hidden pl-8 space-y-2">
-                            <label for="lufs-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Целевая громкость (LUFS):</label>
-                            <input type="number" id="lufs-input" value="-16" step="0.5" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" placeholder="-16">
-                            <p class="text-xs text-gray-500 dark:text-gray-400">-14 (музыка), -16 (стриминг), -23 (ТВ).</p>
+            <!-- Контейнер для редактора (появится после загрузки файла) -->
+            <div id="editor-container" class="hidden space-y-4">
+                
+                <!-- Блок визуализатора и обрезки -->
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">2. Обрезка и предпрослушивание</h2>
+                    <div id="waveform" class="w-full h-28 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                    <div id="waveform-loading" class="text-center py-10">Загрузка волны...</div>
+                    <div class="flex items-center justify-between mt-4 space-x-4">
+                         <div class="flex items-center space-x-2">
+                            <button id="play-pause-btn" class="px-4 py-2 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 w-28">Воспр.</button>
+                            <button id="play-selection-btn" disabled class="px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400">Выделение</button>
                          </div>
-                    </div>
-                    
-                    <!-- Опция Сжатия -->
-                     <div class="pt-4 space-y-3">
-                         <label id="compress-toggle-label" class="flex items-center space-x-3 cursor-pointer">
-                            <input type="checkbox" id="compress-toggle" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600">
-                            <span class="text-md font-medium text-gray-900 dark:text-white">Сжать аудиофайл</span>
-                         </label>
-                         <div id="compress-options-container" class="hidden pl-8 space-y-2">
-                            <!-- Настройки для MP3 -->
-                            <div id="compress-options-mp3">
-                                <label for="bitrate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Битрейт MP3:</label>
-                                <select id="bitrate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
-                                    <option value="192">192 kbps (Высокое качество)</option>
-                                    <option value="128" selected>128 kbps (Стандартное)</option>
-                                    <option value="96">96 kbps (Экономия места)</option>
-                                </select>
-                            </div>
-                             <!-- Настройки для WAV -->
-                            <div id="compress-options-wav">
-                                 <label for="wav-samplerate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Частота дискретизации WAV:</label>
-                                 <select id="wav-samplerate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
-                                    <option value="44100">44100 Гц (CD качество)</option>
-                                    <option value="22050" selected>22050 Гц (Радио)</option>
-                                    <option value="16000">16000 Гц (Речь)</option>
-                                </select>
-                            </div>
+                         <div class="flex items-center text-sm font-mono text-gray-700 dark:text-gray-300 space-x-4">
+                            <span>Начало: <span id="start-time">00:00.000</span></span>
+                            <span>Конец: <span id="end-time">00:00.000</span></span>
                          </div>
                     </div>
                 </div>
 
-                <!-- Правая колонка: Результат -->
-                <div id="result-container" class="space-y-4 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hidden">
-                     <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">2. Результат</h2>
+                <!-- Блок настроек обработки -->
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">3. Настройки обработки</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Левая колонка настроек -->
+                        <div class="space-y-4">
+                            <!-- Формат сохранения -->
+                             <div id="output-format-container" class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-900 dark:text-white">Формат сохранения:</label>
+                                <div class="flex items-center space-x-6">
+                                    <div class="flex items-center">
+                                        <input id="output-format-mp3" type="radio" value="mp3" name="output-format" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                                        <label for="output-format-mp3" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">MP3</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input id="output-format-wav" type="radio" value="wav" name="output-format" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                                        <label for="output-format-wav" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">WAV</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Нормализация -->
+                            <div class="pt-2 space-y-3">
+                                <label class="flex items-center space-x-3 cursor-pointer">
+                                    <input type="checkbox" id="normalize-toggle" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                    <span class="text-md font-medium text-gray-900 dark:text-white">Нормализовать громкость</span>
+                                </label>
+                                <div id="normalize-options" class="hidden pl-8 space-y-2">
+                                    <label for="lufs-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Целевая громкость (LUFS):</label>
+                                    <input type="number" id="lufs-input" value="-16" step="0.5" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 block w-full p-2.5 dark:bg-gray-700">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Правая колонка настроек -->
+                        <div class="space-y-4">
+                            <!-- Сжатие -->
+                             <div class="space-y-3">
+                                 <label id="compress-toggle-label" class="flex items-center space-x-3 cursor-pointer">
+                                    <input type="checkbox" id="compress-toggle" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                    <span class="text-md font-medium text-gray-900 dark:text-white">Настроить сжатие</span>
+                                 </label>
+                                 <div id="compress-options-container" class="hidden pl-8 space-y-2">
+                                    <!-- MP3 -->
+                                    <div id="compress-options-mp3">
+                                        <label for="bitrate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Битрейт MP3:</label>
+                                        <select id="bitrate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700">
+                                            <option value="192">192 kbps (Высокое качество)</option>
+                                            <option value="128" selected>128 kbps (Стандартное)</option>
+                                            <option value="96">96 kbps (Экономия места)</option>
+                                        </select>
+                                    </div>
+                                     <!-- WAV -->
+                                    <div id="compress-options-wav">
+                                         <label for="wav-samplerate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Частота дискретизации WAV:</label>
+                                         <select id="wav-samplerate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700">
+                                            <option value="44100">44100 Гц (CD качество)</option>
+                                            <option value="22050">22050 Гц (Радио)</option>
+                                            <option value="16000">16000 Гц (Речь)</option>
+                                        </select>
+                                    </div>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопка обработки и статус -->
+                <div class="space-y-2 pt-2">
+                    <div id="status-message" class="text-center text-gray-700 dark:text-gray-300 h-5"></div>
+                    <button id="process-button" disabled class="w-full px-4 py-3 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        Выберите файл
+                    </button>
+                </div>
+
+                <!-- Контейнер результата -->
+                 <div id="result-container" class="space-y-4 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hidden">
+                     <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">4. Результат</h2>
                      <div class="grid grid-cols-2 gap-4 text-center pt-2">
                         <div>
                             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Исходный размер</p>
@@ -116,7 +149,7 @@ export function getHtml() {
                         </div>
                     </div>
                     <div>
-                        <p class="text-sm font-medium mb-2 text-center">Предпрослушивание:</p>
+                        <p class="text-sm font-medium mb-2 text-center">Прослушивание результата:</p>
                         <audio id="audio-player" controls class="w-full"></audio>
                     </div>
                     <a id="download-link" class="block w-full text-center px-4 py-2.5 font-bold text-white bg-green-600 rounded-lg hover:bg-green-700">
@@ -124,33 +157,23 @@ export function getHtml() {
                     </a>
                 </div>
             </div>
-
-            <!-- Статус и кнопка обработки -->
-            <div class="space-y-2">
-                 <div id="status-message" class="text-center text-gray-700 dark:text-gray-300 h-5"></div>
-                 <button id="process-button" disabled class="w-full px-4 py-3 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                    Выберите файл
-                </button>
-            </div>
         </div>
     `;
 }
 
-// --- ИЗМЕНЕНО: Функция для обновления UI настроек сжатия в зависимости от выбранного формата ---
+
 function updateCompressOptionsUI(selectedFormat) {
     const compressSpan = compressToggleLabel.querySelector('span');
     if (!compressSpan) return;
 
     if (selectedFormat === 'mp3') {
-        compressToggle.checked = true; // Сжатие для MP3 всегда активно по своей природе
-        compressToggleLabel.classList.remove('hidden');
-        compressSpan.textContent = 'Настроить качество MP3'; // Меняем текст для ясности
+        compressToggle.checked = true;
+        compressSpan.textContent = 'Настроить качество MP3';
         compressOptionsContainer.classList.remove('hidden');
         compressOptionsMp3.classList.remove('hidden');
         compressOptionsWav.classList.add('hidden');
     } else if (selectedFormat === 'wav') {
-        compressToggleLabel.classList.remove('hidden');
-        compressSpan.textContent = 'Сжать аудиофайл'; // Возвращаем стандартный текст
+        compressSpan.textContent = 'Сжать аудиофайл ( понизить sample rate )';
         compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
         compressOptionsWav.classList.remove('hidden');
         compressOptionsMp3.classList.add('hidden');
@@ -158,14 +181,15 @@ function updateCompressOptionsUI(selectedFormat) {
 }
 
 
-// Функция инициализации
 export function init() {
-    // --- ИСПРАВЛЕНИЕ: Инициализация контроллера для всех обработчиков ---
     eventListenersController = new AbortController();
     const { signal } = eventListenersController;
 
-    // Получаем все элементы
     const fileInput = document.getElementById('audio-input');
+    const dropArea = document.querySelector('label[for="audio-input"]');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const editorContainer = document.getElementById('editor-container');
+
     processButton = document.getElementById('process-button');
     statusMessage = document.getElementById('status-message');
     audioPlayer = document.getElementById('audio-player');
@@ -188,138 +212,186 @@ export function init() {
     outputFormatMp3 = document.getElementById('output-format-mp3');
     outputFormatWav = document.getElementById('output-format-wav');
 
-    const dropArea = document.querySelector('label[for="audio-input"]');
-
-    if (!dropArea) {
-        console.error("Ошибка инициализации Редактора Аудио: не найден элемент 'label[for=\"audio-input\"]'.");
-        return;
-    }
-    const fileLabel = dropArea.querySelector('.font-semibold');
-    if (!fileLabel) {
-        console.error("Ошибка инициализации Редактора Аудио: не найден элемент '.font-semibold' внутри области загрузки.");
-        return;
-    }
-    
-    const originalFileLabelText = fileLabel.textContent;
-
+    // --- НОВОЕ: Элементы управления плеером ---
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const playSelectionBtn = document.getElementById('play-selection-btn');
+    const startTimeEl = document.getElementById('start-time');
+    const endTimeEl = document.getElementById('end-time');
+    const waveformEl = document.getElementById('waveform');
+    const waveformLoadingEl = document.getElementById('waveform-loading');
 
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
-    
-    // --- ИСПРАВЛЕНИЕ: Добавляем signal к обработчикам для возможности их удаления ---
+
+    // --- Обработчики Drag-n-Drop ---
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, { signal });
         document.body.addEventListener(eventName, preventDefaults, { signal });
     });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-gray-100', 'dark:bg-gray-600'), { signal });
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-gray-100', 'dark:bg-gray-600'), { signal });
-    });
-
-    dropArea.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        if (dt.files.length > 0) {
-            fileInput.files = dt.files;
-            const event = new Event('change', { bubbles: true });
-            fileInput.dispatchEvent(event);
+    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+    ['dragenter', 'dragover'].forEach(eventName => dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-gray-100', 'dark:bg-gray-600'), { signal }));
+    ['dragleave', 'drop'].forEach(eventName => dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-gray-100', 'dark:bg-gray-600'), { signal }));
+    dropArea.addEventListener('drop', e => {
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
     }, { signal });
 
-
-    // Добавляем signal к остальным обработчикам
-    normalizeToggle.addEventListener('change', () => {
-        normalizeOptions.classList.toggle('hidden', !normalizeToggle.checked);
-    }, { signal });
-
+    // --- Обработчики настроек ---
+    normalizeToggle.addEventListener('change', () => normalizeOptions.classList.toggle('hidden', !normalizeToggle.checked), { signal });
     compressToggle.addEventListener('change', () => {
-        // Логика для WAV управляется здесь, для MP3 - в updateCompressOptionsUI
         const selectedFormat = document.querySelector('input[name="output-format"]:checked').value;
         if (selectedFormat === 'wav') {
             compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
         }
     }, { signal });
-    
     outputFormatMp3.addEventListener('change', () => updateCompressOptionsUI('mp3'), { signal });
     outputFormatWav.addEventListener('change', () => updateCompressOptionsUI('wav'), { signal });
 
-    fileInput.addEventListener('change', (event) => {
+    // --- Главный обработчик выбора файла ---
+    fileInput.addEventListener('change', async (event) => {
         const file = event.target.files[0];
-        resultContainer.classList.add('hidden');
-        outputFormatContainer.classList.add('hidden');
-        processButton.disabled = true;
-        statusMessage.textContent = '';
-        fileLabel.textContent = originalFileLabelText;
-        
-        if (!file) {
-            audioFile = null;
-            detectedInputFormat = null;
-            processButton.textContent = 'Выберите файл';
+        cleanup(true); // Мягкая очистка без удаления контроллера
+
+        if (!file) return;
+
+        const fileName = file.name.toLowerCase();
+        if (!fileName.endsWith('.mp3') && !fileName.endsWith('.wav')) {
+            statusMessage.textContent = 'Ошибка: Поддерживаются только .mp3 и .wav';
             return;
         }
 
         audioFile = file;
-        const fileName = file.name.toLowerCase();
-        fileLabel.textContent = file.name;
+        detectedInputFormat = fileName.endsWith('.mp3') ? 'mp3' : 'wav';
+        fileNameDisplay.textContent = file.name;
 
-        if (fileName.endsWith('.mp3')) {
-            detectedInputFormat = 'mp3';
-        } else if (fileName.endsWith('.wav')) {
-            detectedInputFormat = 'wav';
-        } else {
-            detectedInputFormat = null;
-            statusMessage.textContent = 'Ошибка: Поддерживаются только .mp3 и .wav';
-            processButton.textContent = 'Неверный формат';
-            fileLabel.textContent = originalFileLabelText;
-            return;
-        }
-        
-        outputFormatContainer.classList.remove('hidden');
+        editorContainer.classList.remove('hidden');
         outputFormatMp3.checked = (detectedInputFormat === 'mp3');
         outputFormatWav.checked = (detectedInputFormat === 'wav');
         updateCompressOptionsUI(detectedInputFormat);
-
         processButton.disabled = false;
-        processButton.textContent = 'Обработать файл';
+        processButton.textContent = 'Обработать и скачать';
+
+        try {
+            waveformEl.classList.add('hidden');
+            waveformLoadingEl.classList.remove('hidden');
+            
+            await setupWaveSurfer();
+            
+            const arrayBuffer = await audioFile.arrayBuffer();
+            // Декодируем для Web Audio API и сохраняем оригинальный буфер
+            originalAudioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0)); 
+            
+            // Загружаем файл в WaveSurfer
+            wavesurfer.load(URL.createObjectURL(audioFile));
+
+        } catch (error) {
+            console.error('Ошибка при инициализации WaveSurfer или декодировании аудио:', error);
+            handleProcessingError(error, statusMessage);
+        }
+    }, { signal });
+    
+    // --- НОВОЕ: Настройка WaveSurfer ---
+    async function setupWaveSurfer() {
+        await loadScript('https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js');
+        await loadScript('https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js');
+
+        wavesurfer = WaveSurfer.create({
+            container: '#waveform',
+            waveColor: 'rgb(200, 200, 200)',
+            progressColor: 'rgb(100, 100, 100)',
+            height: 112,
+            barWidth: 2,
+            barGap: 1,
+            barRadius: 2,
+            responsive: true,
+        });
+
+        const wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
+
+        wavesurfer.on('ready', () => {
+            waveformLoadingEl.classList.add('hidden');
+            waveformEl.classList.remove('hidden');
+            playPauseBtn.disabled = false;
+            const duration = wavesurfer.getDuration();
+            endTimeEl.textContent = formatTime(duration);
+            
+            // Создание региона для обрезки
+            wsRegions.addRegion({
+                start: 0,
+                end: duration,
+                color: 'rgba(0, 100, 255, 0.1)',
+                drag: true,
+                resize: true,
+            }).then(region => {
+                activeRegion = region;
+                 // Обновляем время при создании
+                startTimeEl.textContent = formatTime(activeRegion.start);
+                endTimeEl.textContent = formatTime(activeRegion.end);
+            });
+        });
+
+        wsRegions.on('region-updated', (region) => {
+            activeRegion = region;
+            startTimeEl.textContent = formatTime(region.start);
+            endTimeEl.textContent = formatTime(region.end);
+            playSelectionBtn.disabled = false;
+        });
+
+        wavesurfer.on('play', () => { playPauseBtn.textContent = 'Пауза'; });
+        wavesurfer.on('pause', () => { playPauseBtn.textContent = 'Воспр.'; });
+        wavesurfer.on('finish', () => { playPauseBtn.textContent = 'Воспр.'; });
+    }
+    
+    // --- НОВОЕ: Обработчики кнопок плеера ---
+    playPauseBtn.addEventListener('click', () => {
+        if (wavesurfer && !isProcessing) wavesurfer.playPause();
     }, { signal });
 
-    processButton.addEventListener('click', async () => {
-        if (!audioFile) return;
+    playSelectionBtn.addEventListener('click', () => {
+        if (activeRegion && !isProcessing) {
+            activeRegion.play();
+        }
+    }, { signal });
 
+
+    // --- Главный обработчик кнопки "Обработать" ---
+    processButton.addEventListener('click', async () => {
+        if (!audioFile || !originalAudioBuffer || isProcessing) return;
+
+        isProcessing = true;
         processButton.disabled = true;
-        statusMessage.textContent = 'Чтение файла...';
+        statusMessage.textContent = 'Начало обработки...';
         resultContainer.classList.add('hidden');
         let finalStatusMessage = 'Обработка завершена!';
 
         try {
-            const arrayBuffer = await audioFile.arrayBuffer();
-            let audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            let audioBufferToProcess = originalAudioBuffer;
+
+            // --- НОВЫЙ ШАГ: Обрезка аудио, если есть выделение ---
+            if (activeRegion && (activeRegion.start > 0 || activeRegion.end < wavesurfer.getDuration())) {
+                 statusMessage.textContent = 'Обрезка аудио...';
+                 audioBufferToProcess = await trimAudioBuffer(originalAudioBuffer, activeRegion.start, activeRegion.end);
+            }
             
             if (normalizeToggle.checked) {
                 statusMessage.textContent = 'Измерение громкости (LUFS)...';
                 const targetLufs = parseFloat(lufsInput.value);
-                const measuredLufs = await measureIntegratedLoudness(audioBuffer);
+                const measuredLufs = await measureIntegratedLoudness(audioBufferToProcess);
                 
                 statusMessage.textContent = 'Нормализация громкости...';
                 const gainDb = targetLufs - measuredLufs;
                 const gainLinear = Math.pow(10, gainDb / 20);
 
-                const peak = findPeak(audioBuffer);
+                const peak = findPeak(audioBufferToProcess);
                 if (peak * gainLinear > 1.0) {
                     const newGain = 1.0 / peak;
-                    applyGain(audioBuffer, newGain);
+                    applyGain(audioBufferToProcess, newGain);
                     finalStatusMessage = 'Громкость увеличена до макс. безопасного уровня (цель вызвала бы искажения).';
                 } else {
-                    applyGain(audioBuffer, gainLinear);
+                    applyGain(audioBufferToProcess, gainLinear);
                 }
             }
 
@@ -331,20 +403,20 @@ export function init() {
             if (selectedOutputFormat === 'mp3') {
                 statusMessage.textContent = 'Сжатие в MP3...';
                 const bitrate = parseInt(bitrateSelector.value, 10); 
-                outputBlob = await compressToMp3(audioBuffer, bitrate);
-                outputFileName = `${originalFileName}(miniapps).mp3`;
+                outputBlob = await compressToMp3(audioBufferToProcess, bitrate);
+                outputFileName = `${originalFileName}(edited).mp3`;
 
             } else if (selectedOutputFormat === 'wav') {
                 statusMessage.textContent = 'Обработка в WAV...';
                 if (compressToggle.checked) {
                     const targetSampleRate = parseInt(wavSamplerateSelector.value, 10);
-                    if (targetSampleRate < audioBuffer.sampleRate) {
+                    if (targetSampleRate < audioBufferToProcess.sampleRate) {
                         statusMessage.textContent = 'Изменение частоты дискретизации...';
-                        audioBuffer = await resampleAudioBuffer(audioBuffer, targetSampleRate);
+                        audioBufferToProcess = await resampleAudioBuffer(audioBufferToProcess, targetSampleRate);
                     }
                 }
-                outputBlob = bufferToWav(audioBuffer);
-                outputFileName = `${originalFileName}(miniapps).wav`;
+                outputBlob = bufferToWav(audioBufferToProcess);
+                outputFileName = `${originalFileName}(edited).wav`;
             }
 
             if (audioPlayer.src && audioPlayer.src.startsWith('blob:')) {
@@ -365,9 +437,9 @@ export function init() {
 
         } catch (error) {
             console.error('Ошибка обработки аудио:', error);
-            // --- УЛУЧШЕНИЕ: Вывод понятных пользователю ошибок ---
             handleProcessingError(error, statusMessage);
         } finally {
+            isProcessing = false;
             processButton.disabled = false;
         }
     }, { signal });
@@ -375,91 +447,54 @@ export function init() {
 
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
-// --- УЛУЧШЕНИЕ: Надежная функция для динамической загрузки скриптов ---
-// Предотвращает гонку состояний и повторную загрузку одного и того же скрипта.
 function loadScript(src) {
-    if (SCRIPT_PROMISES[src]) {
-        return SCRIPT_PROMISES[src];
-    }
-    
+    if (SCRIPT_PROMISES[src]) return SCRIPT_PROMISES[src];
     SCRIPT_PROMISES[src] = new Promise((resolve, reject) => {
-        // Проверяем, не был ли скрипт уже добавлен на страницу другим способом
         const existingScript = document.querySelector(`script[src="${src}"]`);
-        if (existingScript) {
-            // Если скрипт уже загружен (например, имеет специальный атрибут)
-            if (existingScript.dataset.loaded) return resolve();
-            // Если он еще грузится, добавляем обработчики к существующему элементу
-            existingScript.addEventListener('load', () => resolve());
-            existingScript.addEventListener('error', () => reject(new Error(`Не удалось загрузить скрипт: ${src}`)));
-            return;
-        }
-
+        if (existingScript) return resolve();
         const script = document.createElement('script');
         script.src = src;
-        script.onload = () => {
-            script.dataset.loaded = 'true';
-            resolve();
-        };
+        script.onload = resolve;
         script.onerror = () => {
-            // Удаляем промис в случае ошибки, чтобы можно было попробовать загрузить снова
-            delete SCRIPT_PROMISES[src]; 
+            delete SCRIPT_PROMISES[src];
             reject(new Error(`Не удалось загрузить скрипт: ${src}`));
         };
         document.head.appendChild(script);
     });
-
     return SCRIPT_PROMISES[src];
 }
 
-// Динамически загружает и использует библиотеку для измерения LUFS
 async function measureIntegratedLoudness(audioBuffer) {
     try {
         await loadScript('https://cdn.jsdelivr.net/npm/ebu-r128-webaudio@1.0.3/dist/ebu-r128.min.js');
-
         const meter = new window.EBU_R128(audioBuffer.sampleRate);
-        const offlineContext = new OfflineAudioContext(
-            audioBuffer.numberOfChannels,
-            audioBuffer.length,
-            audioBuffer.sampleRate
-        );
+        const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate);
         const source = offlineContext.createBufferSource();
         source.buffer = audioBuffer;
-
         const processor = offlineContext.createScriptProcessor(4096, audioBuffer.numberOfChannels, audioBuffer.numberOfChannels);
         processor.onaudioprocess = (e) => {
             const inputBuffer = e.inputBuffer;
-            const leftChannel = inputBuffer.getChannelData(0);
-            const rightChannel = inputBuffer.numberOfChannels > 1 ? inputBuffer.getChannelData(1) : undefined;
-            meter.process(leftChannel, rightChannel);
+            meter.process(inputBuffer.getChannelData(0), inputBuffer.numberOfChannels > 1 ? inputBuffer.getChannelData(1) : undefined);
         };
-
         source.connect(processor);
         processor.connect(offlineContext.destination);
         source.start(0);
-
         await offlineContext.startRendering();
         const lufs = meter.getIntegratedLoudness();
-
         if (lufs === null || isNaN(lufs) || lufs === -Infinity) {
              throw new Error('Не удалось измерить громкость. Возможно, в файле тишина.');
         }
         return lufs;
-
     } catch (e) {
-        console.error('Ошибка в measureIntegratedLoudness:', e);
-        // Пробрасываем ошибку дальше для обработки в основном блоке
         throw new Error(`Измерение громкости не удалось: ${e.message}`);
     }
 }
 
-// Динамически загружает библиотеку lamejs и сжимает аудио в MP3
 async function compressToMp3(audioBuffer, bitrate = 128) {
     try {
         await loadScript('https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js');
-
         const channels = audioBuffer.numberOfChannels;
         if (channels > 2) throw new Error('Поддерживаются только моно и стерео файлы.');
-        
         const mp3encoder = new window.lamejs.Mp3Encoder(channels, audioBuffer.sampleRate, bitrate);
         const pcmInt16Channels = [];
         for (let i = 0; i < channels; i++) {
@@ -470,54 +505,69 @@ async function compressToMp3(audioBuffer, bitrate = 128) {
             }
             pcmInt16Channels.push(int16Data);
         }
-        
-        const mp3Data = [], bufferSize = 1152; // Стандартный размер блока для lamejs
+        const mp3Data = [], bufferSize = 1152;
         for (let i = 0; i < pcmInt16Channels[0].length; i += bufferSize) {
             const leftChunk = pcmInt16Channels[0].subarray(i, i + bufferSize);
             const rightChunk = channels > 1 ? pcmInt16Channels[1].subarray(i, i + bufferSize) : undefined;
             const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
             if (mp3buf.length > 0) mp3Data.push(mp3buf);
         }
-        
         const finalMp3buf = mp3encoder.flush();
         if (finalMp3buf.length > 0) mp3Data.push(finalMp3buf);
-        
         return new Blob(mp3Data.map(buf => new Uint8Array(buf)), { type: 'audio/mpeg' });
-
     } catch(e) {
-        console.error('Ошибка в compressToMp3:', e);
         throw new Error(`Сжатие в MP3 не удалось: ${e.message}`);
     }
 }
 
+// --- НОВАЯ ФУНКЦИЯ: Обрезка AudioBuffer ---
+async function trimAudioBuffer(originalBuffer, startTime, endTime) {
+    const sampleRate = originalBuffer.sampleRate;
+    const startOffset = Math.round(startTime * sampleRate);
+    const endOffset = Math.round(endTime * sampleRate);
+    const frameCount = endOffset - startOffset;
 
-// --- УЛУЧШЕНИЕ: Функция для вывода понятных пользователю ошибок ---
-function handleProcessingError(error, statusElement) {
-    let userMessage = 'Произошла непредвиденная ошибка.';
-    const errorMessage = error.message.toLowerCase();
-
-    if (errorMessage.includes('decodeaudiodata') || errorMessage.includes('unsupported format')) {
-        userMessage = 'Не удалось прочитать файл. Возможно, он поврежден или имеет нестандартный формат.';
-    } else if (errorMessage.includes('измерить громкость')) {
-        userMessage = 'Не удалось проанализировать громкость. Попробуйте без нормализации.';
-    } else if (errorMessage.includes('lamejs') || errorMessage.includes('сжатие в mp3')) {
-        userMessage = 'Произошла ошибка при сжатии в MP3.';
-    } else if (errorMessage.includes('resample') || errorMessage.includes('изменение частоты')) {
-         userMessage = 'Произошла ошибка при изменении частоты дискретизации.';
+    if (frameCount <= 0) {
+        throw new Error("Длительность обрезки должна быть положительной.");
     }
 
-    statusElement.textContent = `Ошибка: ${userMessage}`;
+    const newBuffer = audioContext.createBuffer(
+        originalBuffer.numberOfChannels,
+        frameCount,
+        sampleRate
+    );
+
+    for (let i = 0; i < originalBuffer.numberOfChannels; i++) {
+        const channelData = originalBuffer.getChannelData(i);
+        const newChannelData = newBuffer.getChannelData(i);
+        newChannelData.set(channelData.subarray(startOffset, endOffset));
+    }
+
+    return newBuffer;
 }
 
 
-// Функции findPeak, applyGain, resampleAudioBuffer, bufferToWav, formatBytes (без изменений)
+function handleProcessingError(error, statusElement) {
+    let userMessage = 'Произошла непредвиденная ошибка.';
+    const errorMessage = error.message.toLowerCase();
+    if (errorMessage.includes('decodeaudiodata') || errorMessage.includes('unsupported format')) {
+        userMessage = 'Не удалось прочитать файл. Возможно, он поврежден.';
+    } else if (errorMessage.includes('измерить громкость')) {
+        userMessage = 'Не удалось проанализировать громкость. Попробуйте без нормализации.';
+    } else if (errorMessage.includes('сжатие в mp3')) {
+        userMessage = 'Произошла ошибка при сжатии в MP3.';
+    } else if (errorMessage.includes('обрезка')) {
+         userMessage = 'Произошла ошибка при обрезке файла.';
+    }
+    statusElement.textContent = `Ошибка: ${userMessage}`;
+}
+
 function findPeak(audioBuffer) {
     let peak = 0;
     for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
         const channelData = audioBuffer.getChannelData(i);
         for (let j = 0; j < channelData.length; j++) {
-            const absSample = Math.abs(channelData[j]);
-            if (absSample > peak) peak = absSample;
+            peak = Math.max(peak, Math.abs(channelData[j]));
         }
     }
     return peak;
@@ -535,11 +585,7 @@ function applyGain(audioBuffer, gain) {
 function resampleAudioBuffer(audioBuffer, targetSampleRate) {
     return new Promise((resolve, reject) => {
         try {
-            const offlineContext = new OfflineAudioContext(
-                audioBuffer.numberOfChannels,
-                audioBuffer.duration * targetSampleRate,
-                targetSampleRate
-            );
+            const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.duration * targetSampleRate, targetSampleRate);
             const bufferSource = offlineContext.createBufferSource();
             bufferSource.buffer = audioBuffer;
             bufferSource.connect(offlineContext.destination);
@@ -550,12 +596,7 @@ function resampleAudioBuffer(audioBuffer, targetSampleRate) {
 }
 
 function bufferToWav(buffer) {
-    const numOfChan = buffer.numberOfChannels,
-        length = buffer.length * numOfChan * 2 + 44,
-        bufferArr = new ArrayBuffer(length),
-        view = new DataView(bufferArr),
-        channels = [],
-        sampleRate = buffer.sampleRate;
+    const numOfChan = buffer.numberOfChannels, length = buffer.length * numOfChan * 2 + 44, bufferArr = new ArrayBuffer(length), view = new DataView(bufferArr), channels = [], sampleRate = buffer.sampleRate;
     let pos = 0;
     const setUint16 = data => { view.setUint16(pos, data, true); pos += 2; };
     const setUint32 = data => { view.setUint32(pos, data, true); pos += 4; };
@@ -569,7 +610,7 @@ function bufferToWav(buffer) {
     while (pos < length) {
         for (let i = 0; i < numOfChan; i++) {
             let sample = Math.max(-1, Math.min(1, channels[i][offset] || 0));
-            view.setInt16(pos, (sample < 0 ? sample * 32768 : sample * 32767), true);
+            view.setInt16(pos, sample < 0 ? sample * 32768 : sample * 32767, true);
             pos += 2;
         }
         offset++;
@@ -579,57 +620,52 @@ function bufferToWav(buffer) {
 
 function formatBytes(bytes, decimals = 2) {
     if (!+bytes) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i = Math.floor(Math.log(bytes) / Math.log(k))]}`;
+}
+
+// --- НОВОЕ: Форматирование времени ---
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
 }
 
 
 // --- ИЗМЕНЕНО: Расширенная функция очистки с полным сбросом UI ---
-export function cleanup() {
-    // 1. Отменяем все обработчики событий, добавленные в init()
-    if (eventListenersController) {
+export function cleanup(softCleanup = false) {
+    if (!softCleanup && eventListenersController) {
         eventListenersController.abort();
     }
-
-    // 2. Освобождаем память от созданного Blob URL
-    if (audioPlayer && audioPlayer.src && audioPlayer.src.startsWith('blob:')) {
+    if (wavesurfer) {
+        wavesurfer.destroy();
+        wavesurfer = null;
+    }
+    if (audioPlayer && audioPlayer.src.startsWith('blob:')) {
         URL.revokeObjectURL(audioPlayer.src);
     }
     
-    // 3. Сбрасываем глобальные переменные состояния
     audioFile = null;
     detectedInputFormat = null;
+    originalAudioBuffer = null;
+    activeRegion = null;
+    isProcessing = false;
     
-    // 4. Сбрасываем UI к исходному состоянию (если элементы еще существуют)
     const audioInput = document.getElementById('audio-input');
     if (audioInput) {
-        audioInput.value = ''; // Сбрасываем сам input[type=file]
-        
-        // Сброс переключателей и опций
-        if (normalizeToggle) {
-            normalizeToggle.checked = false;
-            normalizeOptions.classList.add('hidden');
-        }
-        if (compressToggle) {
-            compressToggle.checked = false;
-            compressOptionsContainer.classList.add('hidden');
-        }
-        if (lufsInput) {
-            lufsInput.value = '-16'; // Возвращаем значение по умолчанию
-        }
-
-        // Сброс информационных блоков
-        const fileLabel = document.querySelector('label[for="audio-input"] .font-semibold');
-        if (fileLabel) fileLabel.textContent = 'Нажмите для выбора';
-        
+        audioInput.value = '';
+        document.getElementById('editor-container').classList.add('hidden');
         document.getElementById('result-container').classList.add('hidden');
-        document.getElementById('output-format-container').classList.add('hidden');
         document.getElementById('status-message').textContent = '';
+        document.getElementById('file-name-display').textContent = 'MP3 или WAV';
         
-        // Сброс кнопки и плеера
+        if (normalizeToggle) { normalizeToggle.checked = false; }
+        if (normalizeOptions) { normalizeOptions.classList.add('hidden'); }
+        if (compressToggle) { compressToggle.checked = false; }
+        if (compressOptionsContainer) { compressOptionsContainer.classList.add('hidden'); }
+        if (lufsInput) { lufsInput.value = '-16'; }
+        
         const pButton = document.getElementById('process-button');
         if (pButton) {
             pButton.disabled = true;
@@ -639,5 +675,10 @@ export function cleanup() {
         if (audioPlayer) audioPlayer.src = '';
         if (originalSizeEl) originalSizeEl.textContent = '-';
         if (compressedSizeEl) compressedSizeEl.textContent = '-';
+        
+        const startTimeEl = document.getElementById('start-time');
+        const endTimeEl = document.getElementById('end-time');
+        if (startTimeEl) startTimeEl.textContent = '00:00.000';
+        if (endTimeEl) endTimeEl.textContent = '00:00.000';
     }
 }
