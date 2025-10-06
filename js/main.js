@@ -136,7 +136,7 @@ const appSearchMetadata = {
     'habitTracker': { keywords: ['привычки', 'трекер', 'цели', 'ежедневно', 'рутина', 'трекинг', 'streak', 'серия'], hashtags: ['#organizer', '#tools', '#health'] },
     'jsonFormatter': { keywords: ['json', 'формат', 'валидатор', 'проверка', 'сжать', 'минимизировать', 'formatter', 'validator', 'minify'], hashtags: ['#tools', '#webdev', '#text'] },
     'solitaire': { keywords: ['игра', 'карты', 'пасьянс', 'косынка', 'солитер', 'klondike'], hashtags: ['#game', '#fun', '#logic'] },
-    'mahjongSolitaire': { keywords: ['игра', 'маджонг', 'пасьянс', 'кости', 'головоломка', 'логика', 'mahjong', 'solitaire'], hashtags: ['#game', '#fun', '#logic'] 
+    'mahjongSolitaire': { keywords: ['игра', 'маджонг', 'пасьянс', 'кости', 'головоломка', 'логика', 'mahjong', 'solitaire'], hashtags: ['#game', '#fun', '#logic'] },
     'tabataTimer': { keywords: ['табата', 'интервальный', 'таймер', 'тренировка', 'фитнес', 'спорт', 'работа', 'отдых'], hashtags: ['#time', '#tools', '#health', '#sport'] },
     },
 };
