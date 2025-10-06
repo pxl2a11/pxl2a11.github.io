@@ -67,6 +67,7 @@ export const appNameToModuleFile = {
     'Форматировщик JSON': 'jsonFormatter',
     'Пасьянс «Косынка»': 'solitaire',
     'Пасьянс Маджонг': 'mahjongSolitaire',
+    'Табата-таймер': 'tabataTimer',
     'Общее': null,
 };
 
@@ -82,6 +83,7 @@ const getRussianDate = (dateString) => {
 };
 
 const changelogData = [
+    { date: getRussianDate('2025-10-06T10:00:00Z'), appName: 'Табата-таймер', description: 'добавлено новое приложение для интервальных тренировок с настраиваемыми фазами работы, отдыха и количеством раундов.' },
     { date: getRussianDate('2025-10-03T09:00:00Z'), appName: 'Заметки и задачи', description: 'улучшена доступность (accessibility): обновлена семантическая структура HTML и добавлены ARIA-роли для корректной работы с программами чтения с экрана.' },
     { date: getRussianDate('2025-10-02T09:00:00Z'), appName: 'Пасьянс Маджонг', description: 'добавлена новая игра-головоломка «Пасьянс Маджонг» с классической раскладкой, подсказками и перемешиванием.' },
     { date: getRussianDate('2025-10-02T08:00:00Z'), appName: 'Markdown Редактор', description: 'добавлена функция экспорта текста в виде файла .md. Теперь можно легко сохранить свою работу локально.' },
