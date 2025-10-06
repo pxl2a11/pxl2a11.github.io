@@ -15,6 +15,8 @@ let normalizeToggle;
 let normalizeOptions;
 let lufsInput;
 let compressToggle;
+let compressToggleLabel; // Добавлена ссылка на label
+let compressOptionsContainer;
 let compressOptionsMp3;
 let compressOptionsWav;
 let bitrateSelector;
@@ -81,27 +83,27 @@ export function getHtml() {
                     
                     <!-- Опция Сжатия -->
                      <div class="pt-4 space-y-3">
-                         <label class="flex items-center space-x-3 cursor-pointer">
+                         <label id="compress-toggle-label" class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="compress-toggle" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600">
                             <span class="text-md font-medium text-gray-900 dark:text-white">Сжать аудиофайл</span>
                          </label>
                          <div id="compress-options-container" class="hidden pl-8 space-y-2">
                             <!-- Настройки для MP3 -->
-                            <div id="compress-options-mp3" class="hidden">
+                            <div id="compress-options-mp3">
                                 <label for="bitrate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Битрейт MP3:</label>
                                 <select id="bitrate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
-                                    <option value="192">192 kbps</option>
-                                    <option value="128" selected>128 kbps</option>
-                                    <option value="96">96 kbps</option>
+                                    <option value="192">192 kbps (Высокое качество)</option>
+                                    <option value="128" selected>128 kbps (Стандартное)</option>
+                                    <option value="96">96 kbps (Экономия места)</option>
                                 </select>
                             </div>
                              <!-- Настройки для WAV -->
-                            <div id="compress-options-wav" class="hidden">
+                            <div id="compress-options-wav">
                                  <label for="wav-samplerate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Частота дискретизации WAV:</label>
                                  <select id="wav-samplerate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
-                                    <option value="44100">44100 Гц</option>
-                                    <option value="22050" selected>22050 Гц</option>
-                                    <option value="16000">16000 Гц</option>
+                                    <option value="44100">44100 Гц (CD качество)</option>
+                                    <option value="22050" selected>22050 Гц (Радио)</option>
+                                    <option value="16000">16000 Гц (Речь)</option>
                                 </select>
                             </div>
                          </div>
@@ -145,14 +147,17 @@ export function getHtml() {
 // Функция для обновления UI настроек сжатия в зависимости от выбранного формата
 function updateCompressOptionsUI(selectedFormat) {
     if (selectedFormat === 'mp3') {
-        compressOptionsMp3.classList.remove('hidden');
-        compressOptionsWav.classList.add('hidden');
+        // Для MP3 сжатие (выбор битрейта) - это основная опция.
+        compressToggleLabel.classList.add('hidden'); // Скрываем общий переключатель
+        compressOptionsContainer.classList.remove('hidden'); // Всегда показываем контейнер
+        compressOptionsMp3.classList.remove('hidden'); // Показываем опции MP3
+        compressOptionsWav.classList.add('hidden'); // Скрываем опции WAV
     } else if (selectedFormat === 'wav') {
-        compressOptionsWav.classList.remove('hidden');
-        compressOptionsMp3.classList.add('hidden');
-    } else {
-        compressOptionsMp3.classList.add('hidden');
-        compressOptionsWav.classList.add('hidden');
+        // Для WAV сжатие (понижение частоты) - опционально.
+        compressToggleLabel.classList.remove('hidden'); // Показываем общий переключатель
+        compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked); // Показываем/скрываем в зависимости от него
+        compressOptionsWav.classList.remove('hidden'); // Показываем опции WAV
+        compressOptionsMp3.classList.add('hidden'); // Скрываем опции MP3
     }
 }
 
@@ -174,7 +179,8 @@ export function init() {
     normalizeOptions = document.getElementById('normalize-options');
     lufsInput = document.getElementById('lufs-input');
     compressToggle = document.getElementById('compress-toggle');
-    const compressOptionsContainer = document.getElementById('compress-options-container');
+    compressToggleLabel = document.getElementById('compress-toggle-label');
+    compressOptionsContainer = document.getElementById('compress-options-container');
     compressOptionsMp3 = document.getElementById('compress-options-mp3');
     compressOptionsWav = document.getElementById('compress-options-wav');
     bitrateSelector = document.getElementById('bitrate-selector');
@@ -193,7 +199,11 @@ export function init() {
     });
 
     compressToggle.addEventListener('change', () => {
-        compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
+        // Этот переключатель теперь влияет только на режим WAV
+        const selectedFormat = document.querySelector('input[name="output-format"]:checked').value;
+        if (selectedFormat === 'wav') {
+            compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
+        }
     });
     
     // Обработчики для выбора формата сохранения
@@ -249,6 +259,7 @@ export function init() {
         processButton.disabled = true;
         statusMessage.textContent = 'Чтение файла...';
         resultContainer.classList.add('hidden');
+        let finalStatusMessage = 'Обработка завершена!'; // Сообщение по умолчанию
 
         try {
             const arrayBuffer = await audioFile.arrayBuffer();
@@ -256,9 +267,15 @@ export function init() {
             
             // Шаг 1: (Опционально) Нормализация
             if (normalizeToggle.checked) {
-                statusMessage.textContent = 'Нормализация громкости...';
+                statusMessage.textContent = 'Измерение громкости (LUFS)...';
                 const targetLufs = parseFloat(lufsInput.value);
                 const measuredLufs = await measureIntegratedLoudness(audioBuffer);
+                
+                if (measuredLufs === null || isNaN(measuredLufs)) {
+                    throw new Error('Не удалось измерить громкость.');
+                }
+                
+                statusMessage.textContent = 'Нормализация громкости...';
                 const gainDb = targetLufs - measuredLufs;
                 const gainLinear = Math.pow(10, gainDb / 20);
 
@@ -266,7 +283,7 @@ export function init() {
                 if (peak * gainLinear > 1.0) {
                     const newGain = 1.0 / peak;
                     applyGain(audioBuffer, newGain);
-                    console.warn(`Риск клиппинга! Громкость увеличена до максимума.`);
+                    finalStatusMessage = 'Громкость увеличена до макс. безопасного уровня (цель вызвала бы искажения).';
                 } else {
                     applyGain(audioBuffer, gainLinear);
                 }
@@ -279,15 +296,15 @@ export function init() {
             
             // Шаг 2: Обработка на основе ВЫБРАННОГО формата
             if (selectedOutputFormat === 'mp3') {
-                statusMessage.textContent = 'Обработка в MP3...';
-                const bitrate = compressToggle.checked 
-                    ? parseInt(bitrateSelector.value, 10) 
-                    : 192; // Качественный битрейт по умолчанию для конвертации
+                statusMessage.textContent = 'Сжатие в MP3...';
+                // Битрейт теперь берется напрямую, без проверки флага
+                const bitrate = parseInt(bitrateSelector.value, 10); 
                 outputBlob = await compressToMp3(audioBuffer, bitrate);
                 outputFileName = `${originalFileName}(miniapps).mp3`;
 
             } else if (selectedOutputFormat === 'wav') {
                 statusMessage.textContent = 'Обработка в WAV...';
+                // Сжатие для WAV - это ресемплинг
                 if (compressToggle.checked) {
                     const targetSampleRate = parseInt(wavSamplerateSelector.value, 10);
                     if (targetSampleRate < audioBuffer.sampleRate) {
@@ -309,7 +326,7 @@ export function init() {
             originalSizeEl.textContent = formatBytes(audioFile.size);
             compressedSizeEl.textContent = formatBytes(outputBlob.size);
             
-            statusMessage.textContent = 'Обработка завершена!';
+            statusMessage.textContent = finalStatusMessage;
             resultContainer.classList.remove('hidden');
 
         } catch (error) {
@@ -321,21 +338,66 @@ export function init() {
     });
 }
 
-// --- Вспомогательные функции (без изменений) ---
 
+// --- ИЗМЕНЕННАЯ ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ---
+
+// Динамически загружает и использует библиотеку для измерения LUFS по стандарту EBU R 128
 function measureIntegratedLoudness(audioBuffer) {
-    return new Promise(resolve => {
-        const channelData = audioBuffer.getChannelData(0);
-        let sumOfSquares = 0;
-        for (let i = 0; i < channelData.length; i++) {
-            sumOfSquares += channelData[i] ** 2;
+    return new Promise((resolve, reject) => {
+        try {
+            // Загружаем библиотеку, если она еще не загружена
+            if (typeof EBU_R128 === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/ebu-r128-webaudio@1.0.3/dist/ebu-r128.min.js';
+                script.onload = () => {
+                    runMeasurement(audioBuffer).then(resolve).catch(reject);
+                };
+                script.onerror = () => reject(new Error('Не удалось загрузить библиотеку для измерения LUFS.'));
+                document.head.appendChild(script);
+            } else {
+                runMeasurement(audioBuffer).then(resolve).catch(reject);
+            }
+
+            async function runMeasurement(buffer) {
+                try {
+                    const meter = new EBU_R128(buffer.sampleRate);
+                    // EBU R128 требует полного анализа файла, что может занять время.
+                    // Для WebAudio API проще всего использовать OfflineAudioContext.
+                    const offlineContext = new OfflineAudioContext(
+                        buffer.numberOfChannels,
+                        buffer.length,
+                        buffer.sampleRate
+                    );
+                    const source = offlineContext.createBufferSource();
+                    source.buffer = buffer;
+
+                    const processor = offlineContext.createScriptProcessor(4096, buffer.numberOfChannels, buffer.numberOfChannels);
+                    processor.onaudioprocess = (e) => {
+                        // Передаем данные в измеритель
+                        const inputBuffer = e.inputBuffer;
+                        meter.process(inputBuffer.getChannelData(0), inputBuffer.getChannelData(1));
+                    };
+
+                    source.connect(processor);
+                    processor.connect(offlineContext.destination);
+                    source.start(0);
+
+                    await offlineContext.startRendering();
+                    const lufs = meter.getIntegratedLoudness();
+                    resolve(lufs);
+
+                } catch (e) {
+                    reject(e);
+                }
+            }
+        } catch (e) {
+            reject(e);
         }
-        const rms = Math.sqrt(sumOfSquares / channelData.length);
-        const db = 20 * Math.log10(rms || 1e-6); // Добавлена защита от log(0)
-        const lufs = db - 3; 
-        setTimeout(() => resolve(lufs), 50); 
     });
 }
+
+
+// --- Остальные вспомогательные функции (без изменений) ---
 
 function findPeak(audioBuffer) {
     let peak = 0;
