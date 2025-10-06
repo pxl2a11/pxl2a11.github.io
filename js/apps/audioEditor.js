@@ -1,4 +1,4 @@
-// ---48 START OF FILE apps/audioCompressor.js ---
+// ---51 START OF FILE apps/audioCompressor.js ---
 
 // Переменные для хранения состояния и ссылок на элементы
 let audioFile = null;
@@ -190,7 +190,20 @@ export function init() {
     outputFormatWav = document.getElementById('output-format-wav');
 
     const dropArea = document.querySelector('label[for="audio-input"]');
+
+    // --- ИСПРАВЛЕНИЕ: Добавляем проверку на наличие ключевых элементов ---
+    // Это предотвратит сбой, если init() вызывается до того, как HTML полностью отрисован.
+    if (!dropArea) {
+        console.error("Ошибка инициализации Редактора Аудио: не найден элемент 'label[for=\"audio-input\"]'.");
+        return; // Прерываем выполнение, чтобы избежать дальнейших ошибок.
+    }
     const fileLabel = dropArea.querySelector('.font-semibold');
+    if (!fileLabel) {
+        console.error("Ошибка инициализации Редактора Аудио: не найден элемент '.font-semibold' внутри области загрузки.");
+        return; // Прерываем выполнение.
+    }
+    
+    // Теперь эта строка безопасна, так как мы убедились, что fileLabel не null
     const originalFileLabelText = fileLabel.textContent;
 
 
@@ -233,7 +246,6 @@ export function init() {
     });
 
     compressToggle.addEventListener('change', () => {
-        // Этот переключатель теперь влияет только на режим WAV
         const selectedFormat = document.querySelector('input[name="output-format"]:checked').value;
         if (selectedFormat === 'wav') {
             compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
@@ -247,7 +259,6 @@ export function init() {
     // Обновленный обработчик выбора файла
     fileInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
-        // Сброс UI
         resultContainer.classList.add('hidden');
         outputFormatContainer.classList.add('hidden');
         processButton.disabled = true;
@@ -273,11 +284,10 @@ export function init() {
             detectedInputFormat = null;
             statusMessage.textContent = 'Ошибка: Поддерживаются только .mp3 и .wav';
             processButton.textContent = 'Неверный формат';
-            fileLabel.textContent = originalFileLabelText; // Сброс имени файла
+            fileLabel.textContent = originalFileLabelText;
             return;
         }
         
-        // Показываем выбор формата и устанавливаем значение по умолчанию
         outputFormatContainer.classList.remove('hidden');
         outputFormatMp3.checked = (detectedInputFormat === 'mp3');
         outputFormatWav.checked = (detectedInputFormat === 'wav');
@@ -294,13 +304,12 @@ export function init() {
         processButton.disabled = true;
         statusMessage.textContent = 'Чтение файла...';
         resultContainer.classList.add('hidden');
-        let finalStatusMessage = 'Обработка завершена!'; // Сообщение по умолчанию
+        let finalStatusMessage = 'Обработка завершена!';
 
         try {
             const arrayBuffer = await audioFile.arrayBuffer();
             let audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
             
-            // Шаг 1: (Опционально) Нормализация
             if (normalizeToggle.checked) {
                 statusMessage.textContent = 'Измерение громкости (LUFS)...';
                 const targetLufs = parseFloat(lufsInput.value);
@@ -329,17 +338,14 @@ export function init() {
             const originalFileName = audioFile.name.substring(0, audioFile.name.lastIndexOf('.'));
             const selectedOutputFormat = document.querySelector('input[name="output-format"]:checked').value;
             
-            // Шаг 2: Обработка на основе ВЫБРАННОГО формата
             if (selectedOutputFormat === 'mp3') {
                 statusMessage.textContent = 'Сжатие в MP3...';
-                // Битрейт теперь берется напрямую, без проверки флага
                 const bitrate = parseInt(bitrateSelector.value, 10); 
                 outputBlob = await compressToMp3(audioBuffer, bitrate);
                 outputFileName = `${originalFileName}(miniapps).mp3`;
 
             } else if (selectedOutputFormat === 'wav') {
                 statusMessage.textContent = 'Обработка в WAV...';
-                // Сжатие для WAV - это ресемплинг
                 if (compressToggle.checked) {
                     const targetSampleRate = parseInt(wavSamplerateSelector.value, 10);
                     if (targetSampleRate < audioBuffer.sampleRate) {
@@ -351,12 +357,10 @@ export function init() {
                 outputFileName = `${originalFileName}(miniapps).wav`;
             }
 
-            // --- УЛУЧШЕНИЕ: Освобождаем память от предыдущего файла ---
             if (audioPlayer.src && audioPlayer.src.startsWith('blob:')) {
                 URL.revokeObjectURL(audioPlayer.src);
             }
 
-            // Шаг 3: Отображение результата
             const objectURL = URL.createObjectURL(outputBlob);
             audioPlayer.src = objectURL;
             downloadLink.href = objectURL;
@@ -378,33 +382,42 @@ export function init() {
     });
 }
 
-// --- НОВАЯ ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ---
+// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+
 // Динамически и безопасно загружает скрипт
 function loadScript(src) {
     return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) {
-            return resolve(); // Уже загружен
+        const existingScript = document.querySelector(`script[src="${src}"]`);
+        if (existingScript) {
+            // Если скрипт уже есть, но мог не успеть загрузиться, добавляем обработчики
+            if (existingScript.dataset.loaded) {
+                return resolve();
+            }
+            existingScript.addEventListener('load', () => resolve());
+            existingScript.addEventListener('error', () => reject(new Error(`Не удалось загрузить скрипт: ${src}`)));
+            return;
         }
+        
         const script = document.createElement('script');
         script.src = src;
-        script.onload = () => resolve();
+        script.onload = () => {
+            script.dataset.loaded = 'true';
+            resolve();
+        };
         script.onerror = () => reject(new Error(`Не удалось загрузить скрипт: ${src}`));
         document.head.appendChild(script);
     });
 }
 
-
-// --- ИЗМЕНЕННАЯ ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ---
-// Динамически загружает и использует библиотеку для измерения LUFS по стандарту EBU R 128
+// Динамически загружает и использует библиотеку для измерения LUFS
 function measureIntegratedLoudness(audioBuffer) {
     return new Promise((resolve, reject) => {
         const run = () => runMeasurement(audioBuffer).then(resolve).catch(reject);
         
-        // --- УЛУЧШЕНИЕ: Более надежная проверка и загрузка ---
         if (!window.EBU_R128) {
             loadScript('https://cdn.jsdelivr.net/npm/ebu-r128-webaudio@1.0.3/dist/ebu-r128.min.js')
                 .then(run)
-                .catch(() => reject(new Error('Не удалось загрузить библиотеку для измерения LUFS.')));
+                .catch(reject);
         } else {
             run();
         }
@@ -423,7 +436,6 @@ function measureIntegratedLoudness(audioBuffer) {
                 const processor = offlineContext.createScriptProcessor(4096, buffer.numberOfChannels, buffer.numberOfChannels);
                 processor.onaudioprocess = (e) => {
                     const inputBuffer = e.inputBuffer;
-                    // --- ИСПРАВЛЕНИЕ: Корректная обработка моно и стерео ---
                     const leftChannel = inputBuffer.getChannelData(0);
                     const rightChannel = inputBuffer.numberOfChannels > 1 ? inputBuffer.getChannelData(1) : undefined;
                     meter.process(leftChannel, rightChannel);
@@ -443,9 +455,6 @@ function measureIntegratedLoudness(audioBuffer) {
         }
     });
 }
-
-
-// --- Остальные вспомогательные функции (с одним изменением) ---
 
 function findPeak(audioBuffer) {
     let peak = 0;
@@ -489,11 +498,10 @@ function compressToMp3(audioBuffer, bitrate = 128) {
     return new Promise((resolve, reject) => {
         const doEncode = () => resolve(encode(audioBuffer, bitrate));
 
-        // --- УЛУЧШЕНИЕ: Более надежная проверка и загрузка ---
         if (!window.lamejs) {
             loadScript('https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js')
                 .then(doEncode)
-                .catch(() => reject(new Error('Не удалось загрузить библиотеку lamejs.')));
+                .catch(reject);
         } else {
              doEncode();
         }
