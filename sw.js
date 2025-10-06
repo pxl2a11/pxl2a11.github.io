@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mini-apps-cache-v71'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
+const CACHE_NAME = 'mini-apps-cache-v72'; // ВЕРСИЯ КЭША ОБНОВЛЕНА!
 const APP_SHELL_URL = '/index.html';
 const OFFLINE_URL = '/offline.html';
 
@@ -34,7 +34,8 @@ const appModules = [
     'habitTracker',
     'jsonFormatter',
     'solitaire',
-    'mahjongSolitaire
+    'mahjongSolitaire',
+    'tabataTimer'
 ];
 
 // Автоматически генерируем пути к файлам на основе списка модулей
@@ -87,6 +88,8 @@ const urlsToCache = [
   '/sounds/notification2.mp3',
   '/sounds/notification3.mp3',
   '/sounds/notification4.mp3',
+  '/sounds/tabata-countdown.mp3',
+  '/sounds/tabata-whistle.mp3',
   
   // Автоматически добавленные JS-файлы приложений и их иконки
   ...appJsFiles,
