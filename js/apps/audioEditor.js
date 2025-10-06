@@ -241,7 +241,6 @@ export function init() {
 
     // --- Обработчики настроек ---
     normalizeToggle.addEventListener('change', () => normalizeOptions.classList.toggle('hidden', !normalizeToggle.checked), { signal });
-    // УЛУЧШЕНИЕ: Единая точка обновления UI для сжатия
     compressToggle.addEventListener('change', updateCompressOptionsUI, { signal });
     outputFormatMp3.addEventListener('change', updateCompressOptionsUI, { signal });
     outputFormatWav.addEventListener('change', updateCompressOptionsUI, { signal });
@@ -314,17 +313,20 @@ export function init() {
             const duration = wavesurfer.getDuration();
             endTimeEl.textContent = formatTime(duration);
 
-            wsRegions.addRegion({
+            // ================== ИСПРАВЛЕНИЕ ЗДЕСЬ ==================
+            // Метод addRegion возвращает объект региона синхронно, а не как Promise.
+            // Убираем `.then()` и присваиваем результат напрямую.
+            const region = wsRegions.addRegion({
                 start: 0,
                 end: duration,
                 color: 'rgba(0, 100, 255, 0.1)',
                 drag: true,
                 resize: true,
-            }).then(region => {
-                activeRegion = region;
-                startTimeEl.textContent = formatTime(activeRegion.start);
-                endTimeEl.textContent = formatTime(activeRegion.end);
             });
+            activeRegion = region;
+            startTimeEl.textContent = formatTime(activeRegion.start);
+            endTimeEl.textContent = formatTime(activeRegion.end);
+            // =======================================================
         });
 
         wsRegions.on('region-updated', (region) => {
@@ -440,8 +442,6 @@ export function init() {
 
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
-// УДАЛЕНО: функция loadScript больше не нужна
-
 async function measureIntegratedLoudness(audioBuffer) {
     if (!window.EBU_R128) {
         throw new Error("Библиотека EBU_R128 не загружена.");
@@ -452,9 +452,6 @@ async function measureIntegratedLoudness(audioBuffer) {
         const source = offlineContext.createBufferSource();
         source.buffer = audioBuffer;
 
-        // РЕКОМЕНДАЦИЯ: Использование createScriptProcessor остаётся, так как переход на AudioWorklet
-        // требует значительной переработки и отдельного файла для ворлета.
-        // Для данного приложения производительности этого метода достаточно.
         const processor = offlineContext.createScriptProcessor(4096, audioBuffer.numberOfChannels, audioBuffer.numberOfChannels);
         processor.onaudioprocess = (e) => {
             const inputBuffer = e.inputBuffer;
@@ -475,12 +472,7 @@ async function measureIntegratedLoudness(audioBuffer) {
 }
 
 async function compressToMp3(audioBuffer, bitrate = 128) {
-    // Эта функция могла бы тоже использовать локальный скрипт,
-    // но для LameJS нет официального ES-модуля, и его подключение сложнее.
-    // Оставляем загрузку с CDN как компромисс или предполагаем, что lamejs
-    // также будет подключен глобально через тег <script>.
     if (!window.lamejs) {
-         // Простая загрузка скрипта по требованию
          await new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js';
@@ -614,10 +606,6 @@ function bufferToWav(buffer) {
     return new Blob([view], { type: 'audio/wav' });
 }
 
-/**
- * ИСПРАВЛЕНИЕ: Критическая ошибка в этой функции исправлена.
- * Переменная 'i' теперь корректно объявляется и вычисляется до использования.
- */
 function formatBytes(bytes, decimals = 2) {
     if (!+bytes) return '0 Bytes';
     const k = 1024;
