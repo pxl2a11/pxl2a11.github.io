@@ -447,7 +447,7 @@ async function measureIntegratedLoudness(audioBuffer) {
         throw new Error("Библиотека EBU_R128 не загружена.");
     }
     try {
-        const meter = new window.EBU_R128(audioBuffer.sampleRate);
+        const meter = new window.EBU_R128(audioBuffer.sampleRate, audioBuffer.numberOfChannels);
         const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate);
         const source = offlineContext.createBufferSource();
         source.buffer = audioBuffer;
