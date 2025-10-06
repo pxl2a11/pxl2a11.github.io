@@ -1,4 +1,4 @@
-// ---05 START OF FILE apps/audioCompressor.js ---
+// ---08 START OF FILE apps/audioCompressor.js ---
 
 // --- УЛУЧШЕНИЕ: Переменные, вынесенные в область видимости модуля для управления состоянием ---
 let audioFile = null;
@@ -246,13 +246,20 @@ export function init() {
     outputFormatWav.addEventListener('change', () => updateCompressOptionsUI('wav'), { signal });
 
     fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
+        // Сброс UI перед обработкой нового файла
         resultContainer.classList.add('hidden');
         outputFormatContainer.classList.add('hidden');
         processButton.disabled = true;
         statusMessage.textContent = '';
         fileLabel.textContent = originalFileLabelText;
         
+        // --- ИСПРАВЛЕНО: Полный сброс всех элементов управления при выборе нового файла ---
+        normalizeToggle.checked = false;
+        normalizeOptions.classList.add('hidden');
+        compressToggle.checked = false;
+        compressOptionsContainer.classList.add('hidden');
+        
+        const file = event.target.files[0];
         if (!file) {
             audioFile = null;
             detectedInputFormat = null;
@@ -408,6 +415,11 @@ function loadScript(src) {
 async function measureIntegratedLoudness(audioBuffer) {
     try {
         await loadScript('https://cdn.jsdelivr.net/npm/ebu-r128-webaudio@1.0.3/dist/ebu-r128.min.js');
+        
+        // --- ДОБАВЛЕНО: Проверка успешной загрузки библиотеки ---
+        if (!window.EBU_R128) {
+            throw new Error('Библиотека для измерения громкости (EBU_R128) не загрузилась корректно.');
+        }
 
         const meter = new window.EBU_R128(audioBuffer.sampleRate);
         const offlineContext = new OfflineAudioContext(
@@ -449,6 +461,11 @@ async function measureIntegratedLoudness(audioBuffer) {
 async function compressToMp3(audioBuffer, bitrate = 128) {
     try {
         await loadScript('https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js');
+
+        // --- ДОБАВЛЕНО: Проверка успешной загрузки библиотеки ---
+        if (!window.lamejs) {
+            throw new Error('Библиотека для MP3-сжатия (lamejs) не загрузилась корректно.');
+        }
 
         const channels = audioBuffer.numberOfChannels;
         if (channels > 2) throw new Error('Поддерживаются только моно и стерео файлы.');
