@@ -1,4 +1,4 @@
-// 57--- НАЧАЛО ФАЙЛА js/apps/audioEditor.js ---
+// 06--- НАЧАЛО ФАЙЛА js/apps/audioEditor.js ---
 
 let audioFile = null;
 let detectedInputFormat = null;
@@ -442,6 +442,12 @@ const toBlobURL = async (url, type) => {
 
 // --- ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ ДЛЯ ИЗМЕРЕНИЯ ГРОМКОСТИ С FFMPEG.WASM ---
 async function measureIntegratedLoudness(audioBuffer) {
+    // --- ИЗМЕНЕНИЕ: Проверяем, загружена ли библиотека ---
+    if (!window.FFmpeg || !window.FFmpeg.FFmpeg) {
+        throw new Error("Библиотека FFmpeg не загружена. Проверьте подключение скрипта в index.html.");
+    }
+    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
     // Деструктурируем FFmpeg из глобального объекта window, куда его добавил скрипт.
     const { FFmpeg, fetchFile } = window.FFmpeg;
     const ffmpeg = new FFmpeg();
