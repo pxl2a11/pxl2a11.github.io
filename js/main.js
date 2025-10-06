@@ -138,7 +138,6 @@ const appSearchMetadata = {
     'solitaire': { keywords: ['игра', 'карты', 'пасьянс', 'косынка', 'солитер', 'klondike'], hashtags: ['#game', '#fun', '#logic'] },
     'mahjongSolitaire': { keywords: ['игра', 'маджонг', 'пасьянс', 'кости', 'головоломка', 'логика', 'mahjong', 'solitaire'], hashtags: ['#game', '#fun', '#logic'] },
     'tabataTimer': { keywords: ['табата', 'интервальный', 'таймер', 'тренировка', 'фитнес', 'спорт', 'работа', 'отдых'], hashtags: ['#time', '#tools', '#health', '#sport'] },
-    },
 };
 const moduleFileToAppName = Object.fromEntries(
   Object.entries(appNameToModuleFile).map(([name, file]) => [file, name])
