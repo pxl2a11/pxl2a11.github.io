@@ -1,4 +1,4 @@
-// --- START OF FILE audioEditor.js ---
+//42 --- START OF FILE audioEditor.js ---
 
 // --- УЛУЧШЕНИЕ: Переменные, вынесенные в область видимости модуля для управления состоянием ---
 let audioFile = null;
