@@ -1,16 +1,15 @@
-// ---14 START OF FILE apps/audioCompressor.js ---
+// --- START OF FILE audioEditor.js ---
 
 // --- УЛУЧШЕНИЕ: Переменные, вынесенные в область видимости модуля для управления состоянием ---
 let audioFile = null;
 let detectedInputFormat = null; // 'mp3' или 'wav'
-let audioPlayer; // Старый плеер больше не используется для предпрослушивания
+let audioPlayer;
 let processButton;
 let statusMessage;
 let originalSizeEl;
 let compressedSizeEl;
 let audioContext;
 let eventListenersController; // Контроллер для управления всеми обработчиками событий
-const SCRIPT_PROMISES = {}; // Объект для хранения промисов загрузки скриптов
 
 // --- НОВОЕ: Переменные для WaveSurfer и обрезки ---
 let wavesurfer;
@@ -21,7 +20,7 @@ let isProcessing = false;
 // Элементы управления
 let normalizeToggle, normalizeOptions, lufsInput, compressToggle, compressToggleLabel;
 let compressOptionsContainer, compressOptionsMp3, compressOptionsWav, bitrateSelector;
-let wavSamplerateSelector, outputFormatContainer, outputFormatMp3, outputFormatWav;
+let wavSamplerateSelector, outputFormatMp3, outputFormatWav;
 
 // --- ПОЛНОЕ ОБНОВЛЕНИЕ ДИЗАЙНА: Новая HTML-разметка ---
 export function getHtml() {
@@ -39,12 +38,12 @@ export function getHtml() {
                         </div>
                         <input id="audio-input" type="file" class="hidden" accept=".mp3,.wav,audio/mpeg,audio/wav" />
                     </label>
-                </div> 
+                </div>
             </div>
 
             <!-- Контейнер для редактора (появится после загрузки файла) -->
             <div id="editor-container" class="hidden space-y-4">
-                
+
                 <!-- Блок визуализатора и обрезки -->
                 <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">2. Обрезка и предпрослушивание</h2>
@@ -69,7 +68,7 @@ export function getHtml() {
                         <!-- Левая колонка настроек -->
                         <div class="space-y-4">
                             <!-- Формат сохранения -->
-                             <div id="output-format-container" class="space-y-2">
+                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-900 dark:text-white">Формат сохранения:</label>
                                 <div class="flex items-center space-x-6">
                                     <div class="flex items-center">
@@ -162,18 +161,21 @@ export function getHtml() {
 }
 
 
-function updateCompressOptionsUI(selectedFormat) {
+function updateCompressOptionsUI() {
+    const selectedFormat = document.querySelector('input[name="output-format"]:checked').value;
     const compressSpan = compressToggleLabel.querySelector('span');
     if (!compressSpan) return;
 
     if (selectedFormat === 'mp3') {
-        compressToggle.checked = true;
+        compressToggle.checked = true; // MP3 всегда сжимается
+        compressToggle.disabled = true; // Не даем отключить сжатие для MP3
         compressSpan.textContent = 'Настроить качество MP3';
         compressOptionsContainer.classList.remove('hidden');
         compressOptionsMp3.classList.remove('hidden');
         compressOptionsWav.classList.add('hidden');
     } else if (selectedFormat === 'wav') {
-        compressSpan.textContent = 'Сжать аудиофайл ( понизить sample rate )';
+        compressToggle.disabled = false; // Разрешаем включать/выключать сжатие для WAV
+        compressSpan.textContent = 'Сжать аудиофайл (понизить sample rate)';
         compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
         compressOptionsWav.classList.remove('hidden');
         compressOptionsMp3.classList.add('hidden');
@@ -197,7 +199,7 @@ export function init() {
     originalSizeEl = document.getElementById('original-size');
     compressedSizeEl = document.getElementById('compressed-size');
     const resultContainer = document.getElementById('result-container');
-    
+
     normalizeToggle = document.getElementById('normalize-toggle');
     normalizeOptions = document.getElementById('normalize-options');
     lufsInput = document.getElementById('lufs-input');
@@ -208,11 +210,9 @@ export function init() {
     compressOptionsWav = document.getElementById('compress-options-wav');
     bitrateSelector = document.getElementById('bitrate-selector');
     wavSamplerateSelector = document.getElementById('wav-samplerate-selector');
-    outputFormatContainer = document.getElementById('output-format-container');
     outputFormatMp3 = document.getElementById('output-format-mp3');
     outputFormatWav = document.getElementById('output-format-wav');
 
-    // --- НОВОЕ: Элементы управления плеером ---
     const playPauseBtn = document.getElementById('play-pause-btn');
     const playSelectionBtn = document.getElementById('play-selection-btn');
     const startTimeEl = document.getElementById('start-time');
@@ -241,14 +241,10 @@ export function init() {
 
     // --- Обработчики настроек ---
     normalizeToggle.addEventListener('change', () => normalizeOptions.classList.toggle('hidden', !normalizeToggle.checked), { signal });
-    compressToggle.addEventListener('change', () => {
-        const selectedFormat = document.querySelector('input[name="output-format"]:checked').value;
-        if (selectedFormat === 'wav') {
-            compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
-        }
-    }, { signal });
-    outputFormatMp3.addEventListener('change', () => updateCompressOptionsUI('mp3'), { signal });
-    outputFormatWav.addEventListener('change', () => updateCompressOptionsUI('wav'), { signal });
+    // УЛУЧШЕНИЕ: Единая точка обновления UI для сжатия
+    compressToggle.addEventListener('change', updateCompressOptionsUI, { signal });
+    outputFormatMp3.addEventListener('change', updateCompressOptionsUI, { signal });
+    outputFormatWav.addEventListener('change', updateCompressOptionsUI, { signal });
 
     // --- Главный обработчик выбора файла ---
     fileInput.addEventListener('change', async (event) => {
@@ -270,21 +266,19 @@ export function init() {
         editorContainer.classList.remove('hidden');
         outputFormatMp3.checked = (detectedInputFormat === 'mp3');
         outputFormatWav.checked = (detectedInputFormat === 'wav');
-        updateCompressOptionsUI(detectedInputFormat);
+        updateCompressOptionsUI(); // Инициализация UI сжатия
         processButton.disabled = false;
         processButton.textContent = 'Обработать и скачать';
 
         try {
             waveformEl.classList.add('hidden');
             waveformLoadingEl.classList.remove('hidden');
-            
-            await setupWaveSurfer();
-            
+
+            setupWaveSurfer();
+
             const arrayBuffer = await audioFile.arrayBuffer();
-            // Декодируем для Web Audio API и сохраняем оригинальный буфер
-            originalAudioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0)); 
-            
-            // Загружаем файл в WaveSurfer
+            originalAudioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+
             wavesurfer.load(URL.createObjectURL(audioFile));
 
         } catch (error) {
@@ -292,11 +286,13 @@ export function init() {
             handleProcessingError(error, statusMessage);
         }
     }, { signal });
-    
-    // --- НОВОЕ: Настройка WaveSurfer ---
-    async function setupWaveSurfer() {
-        await loadScript('https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js');
-        await loadScript('https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js');
+
+    // --- Настройка WaveSurfer ---
+    function setupWaveSurfer() {
+        if (!window.WaveSurfer) {
+            handleProcessingError(new Error("Библиотека WaveSurfer не загружена."), statusMessage);
+            return;
+        }
 
         wavesurfer = WaveSurfer.create({
             container: '#waveform',
@@ -317,8 +313,7 @@ export function init() {
             playPauseBtn.disabled = false;
             const duration = wavesurfer.getDuration();
             endTimeEl.textContent = formatTime(duration);
-            
-            // Создание региона для обрезки
+
             wsRegions.addRegion({
                 start: 0,
                 end: duration,
@@ -327,7 +322,6 @@ export function init() {
                 resize: true,
             }).then(region => {
                 activeRegion = region;
-                 // Обновляем время при создании
                 startTimeEl.textContent = formatTime(activeRegion.start);
                 endTimeEl.textContent = formatTime(activeRegion.end);
             });
@@ -344,8 +338,8 @@ export function init() {
         wavesurfer.on('pause', () => { playPauseBtn.textContent = 'Воспр.'; });
         wavesurfer.on('finish', () => { playPauseBtn.textContent = 'Воспр.'; });
     }
-    
-    // --- НОВОЕ: Обработчики кнопок плеера ---
+
+    // --- Обработчики кнопок плеера ---
     playPauseBtn.addEventListener('click', () => {
         if (wavesurfer && !isProcessing) wavesurfer.playPause();
     }, { signal });
@@ -370,17 +364,16 @@ export function init() {
         try {
             let audioBufferToProcess = originalAudioBuffer;
 
-            // --- НОВЫЙ ШАГ: Обрезка аудио, если есть выделение ---
             if (activeRegion && (activeRegion.start > 0 || activeRegion.end < wavesurfer.getDuration())) {
                  statusMessage.textContent = 'Обрезка аудио...';
                  audioBufferToProcess = await trimAudioBuffer(originalAudioBuffer, activeRegion.start, activeRegion.end);
             }
-            
+
             if (normalizeToggle.checked) {
                 statusMessage.textContent = 'Измерение громкости (LUFS)...';
                 const targetLufs = parseFloat(lufsInput.value);
                 const measuredLufs = await measureIntegratedLoudness(audioBufferToProcess);
-                
+
                 statusMessage.textContent = 'Нормализация громкости...';
                 const gainDb = targetLufs - measuredLufs;
                 const gainLinear = Math.pow(10, gainDb / 20);
@@ -399,10 +392,10 @@ export function init() {
             let outputFileName;
             const originalFileName = audioFile.name.substring(0, audioFile.name.lastIndexOf('.'));
             const selectedOutputFormat = document.querySelector('input[name="output-format"]:checked').value;
-            
+
             if (selectedOutputFormat === 'mp3') {
                 statusMessage.textContent = 'Сжатие в MP3...';
-                const bitrate = parseInt(bitrateSelector.value, 10); 
+                const bitrate = parseInt(bitrateSelector.value, 10);
                 outputBlob = await compressToMp3(audioBufferToProcess, bitrate);
                 outputFileName = `${originalFileName}(edited).mp3`;
 
@@ -431,7 +424,7 @@ export function init() {
 
             originalSizeEl.textContent = formatBytes(audioFile.size);
             compressedSizeEl.textContent = formatBytes(outputBlob.size);
-            
+
             statusMessage.textContent = finalStatusMessage;
             resultContainer.classList.remove('hidden');
 
@@ -447,30 +440,21 @@ export function init() {
 
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
-function loadScript(src) {
-    if (SCRIPT_PROMISES[src]) return SCRIPT_PROMISES[src];
-    SCRIPT_PROMISES[src] = new Promise((resolve, reject) => {
-        const existingScript = document.querySelector(`script[src="${src}"]`);
-        if (existingScript) return resolve();
-        const script = document.createElement('script');
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = () => {
-            delete SCRIPT_PROMISES[src];
-            reject(new Error(`Не удалось загрузить скрипт: ${src}`));
-        };
-        document.head.appendChild(script);
-    });
-    return SCRIPT_PROMISES[src];
-}
+// УДАЛЕНО: функция loadScript больше не нужна
 
 async function measureIntegratedLoudness(audioBuffer) {
+    if (!window.EBU_R128) {
+        throw new Error("Библиотека EBU_R128 не загружена.");
+    }
     try {
-        await loadScript('https://cdn.jsdelivr.net/npm/ebu-r128-webaudio@1.0.3/dist/ebu-r128.min.js');
         const meter = new window.EBU_R128(audioBuffer.sampleRate);
         const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate);
         const source = offlineContext.createBufferSource();
         source.buffer = audioBuffer;
+
+        // РЕКОМЕНДАЦИЯ: Использование createScriptProcessor остаётся, так как переход на AudioWorklet
+        // требует значительной переработки и отдельного файла для ворлета.
+        // Для данного приложения производительности этого метода достаточно.
         const processor = offlineContext.createScriptProcessor(4096, audioBuffer.numberOfChannels, audioBuffer.numberOfChannels);
         processor.onaudioprocess = (e) => {
             const inputBuffer = e.inputBuffer;
@@ -491,8 +475,22 @@ async function measureIntegratedLoudness(audioBuffer) {
 }
 
 async function compressToMp3(audioBuffer, bitrate = 128) {
+    // Эта функция могла бы тоже использовать локальный скрипт,
+    // но для LameJS нет официального ES-модуля, и его подключение сложнее.
+    // Оставляем загрузку с CDN как компромисс или предполагаем, что lamejs
+    // также будет подключен глобально через тег <script>.
+    if (!window.lamejs) {
+         // Простая загрузка скрипта по требованию
+         await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
     try {
-        await loadScript('https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js');
         const channels = audioBuffer.numberOfChannels;
         if (channels > 2) throw new Error('Поддерживаются только моно и стерео файлы.');
         const mp3encoder = new window.lamejs.Mp3Encoder(channels, audioBuffer.sampleRate, bitrate);
@@ -520,7 +518,6 @@ async function compressToMp3(audioBuffer, bitrate = 128) {
     }
 }
 
-// --- НОВАЯ ФУНКЦИЯ: Обрезка AudioBuffer ---
 async function trimAudioBuffer(originalBuffer, startTime, endTime) {
     const sampleRate = originalBuffer.sampleRate;
     const startOffset = Math.round(startTime * sampleRate);
@@ -545,7 +542,6 @@ async function trimAudioBuffer(originalBuffer, startTime, endTime) {
 
     return newBuffer;
 }
-
 
 function handleProcessingError(error, statusElement) {
     let userMessage = 'Произошла непредвиденная ошибка.';
@@ -618,13 +614,20 @@ function bufferToWav(buffer) {
     return new Blob([view], { type: 'audio/wav' });
 }
 
+/**
+ * ИСПРАВЛЕНИЕ: Критическая ошибка в этой функции исправлена.
+ * Переменная 'i' теперь корректно объявляется и вычисляется до использования.
+ */
 function formatBytes(bytes, decimals = 2) {
     if (!+bytes) return '0 Bytes';
-    const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i = Math.floor(Math.log(bytes) / Math.log(k))]}`;
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-// --- НОВОЕ: Форматирование времени ---
+
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -633,7 +636,6 @@ function formatTime(seconds) {
 }
 
 
-// --- ИЗМЕНЕНО: Расширенная функция очистки с полным сбросом UI ---
 export function cleanup(softCleanup = false) {
     if (!softCleanup && eventListenersController) {
         eventListenersController.abort();
@@ -645,13 +647,13 @@ export function cleanup(softCleanup = false) {
     if (audioPlayer && audioPlayer.src.startsWith('blob:')) {
         URL.revokeObjectURL(audioPlayer.src);
     }
-    
+
     audioFile = null;
     detectedInputFormat = null;
     originalAudioBuffer = null;
     activeRegion = null;
     isProcessing = false;
-    
+
     const audioInput = document.getElementById('audio-input');
     if (audioInput) {
         audioInput.value = '';
@@ -659,13 +661,16 @@ export function cleanup(softCleanup = false) {
         document.getElementById('result-container').classList.add('hidden');
         document.getElementById('status-message').textContent = '';
         document.getElementById('file-name-display').textContent = 'MP3 или WAV';
-        
+
         if (normalizeToggle) { normalizeToggle.checked = false; }
         if (normalizeOptions) { normalizeOptions.classList.add('hidden'); }
-        if (compressToggle) { compressToggle.checked = false; }
+        if (compressToggle) {
+            compressToggle.checked = false;
+            compressToggle.disabled = false;
+        }
         if (compressOptionsContainer) { compressOptionsContainer.classList.add('hidden'); }
         if (lufsInput) { lufsInput.value = '-16'; }
-        
+
         const pButton = document.getElementById('process-button');
         if (pButton) {
             pButton.disabled = true;
@@ -675,7 +680,7 @@ export function cleanup(softCleanup = false) {
         if (audioPlayer) audioPlayer.src = '';
         if (originalSizeEl) originalSizeEl.textContent = '-';
         if (compressedSizeEl) compressedSizeEl.textContent = '-';
-        
+
         const startTimeEl = document.getElementById('start-time');
         const endTimeEl = document.getElementById('end-time');
         if (startTimeEl) startTimeEl.textContent = '00:00.000';
