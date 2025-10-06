@@ -1,4 +1,4 @@
-// ---11 START OF FILE apps/audioCompressor.js ---
+// ---48 START OF FILE apps/audioCompressor.js ---
 
 // Переменные для хранения состояния и ссылок на элементы
 let audioFile = null;
@@ -41,7 +41,7 @@ export function getHtml() {
                     <div>
                         <label for="audio-input" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Выберите аудиофайл:</label>
                         <div class="flex items-center justify-center w-full">
-                            <label for="audio-input" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-100 dark:bg-gray-700 hover:dark:bg-gray-600 dark:border-gray-600 dark:hover:border-gray-500">
+                            <label for="audio-input" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-100 dark:bg-gray-700 hover:dark:bg-gray-600 dark:border-gray-600 dark:hover:border-gray-500 transition-colors">
                                 <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                     <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
                                     <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Нажмите для выбора</span> или перетащите</p>
@@ -189,9 +189,43 @@ export function init() {
     outputFormatMp3 = document.getElementById('output-format-mp3');
     outputFormatWav = document.getElementById('output-format-wav');
 
+    const dropArea = document.querySelector('label[for="audio-input"]');
+    const fileLabel = dropArea.querySelector('.font-semibold');
+    const originalFileLabelText = fileLabel.textContent;
+
+
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
+
+    // --- УЛУЧШЕНИЕ: Обработчики Drag and Drop ---
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-gray-100', 'dark:bg-gray-600'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-gray-100', 'dark:bg-gray-600'), false);
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt.files.length > 0) {
+            fileInput.files = dt.files;
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        }
+    }, false);
+
 
     // Обработчики для переключателей
     normalizeToggle.addEventListener('change', () => {
@@ -218,6 +252,7 @@ export function init() {
         outputFormatContainer.classList.add('hidden');
         processButton.disabled = true;
         statusMessage.textContent = '';
+        fileLabel.textContent = originalFileLabelText;
         
         if (!file) {
             audioFile = null;
@@ -228,7 +263,6 @@ export function init() {
 
         audioFile = file;
         const fileName = file.name.toLowerCase();
-        const fileLabel = document.querySelector('p.font-semibold');
         fileLabel.textContent = file.name;
 
         if (fileName.endsWith('.mp3')) {
@@ -239,6 +273,7 @@ export function init() {
             detectedInputFormat = null;
             statusMessage.textContent = 'Ошибка: Поддерживаются только .mp3 и .wav';
             processButton.textContent = 'Неверный формат';
+            fileLabel.textContent = originalFileLabelText; // Сброс имени файла
             return;
         }
         
@@ -316,6 +351,11 @@ export function init() {
                 outputFileName = `${originalFileName}(miniapps).wav`;
             }
 
+            // --- УЛУЧШЕНИЕ: Освобождаем память от предыдущего файла ---
+            if (audioPlayer.src && audioPlayer.src.startsWith('blob:')) {
+                URL.revokeObjectURL(audioPlayer.src);
+            }
+
             // Шаг 3: Отображение результата
             const objectURL = URL.createObjectURL(outputBlob);
             audioPlayer.src = objectURL;
@@ -338,66 +378,74 @@ export function init() {
     });
 }
 
+// --- НОВАЯ ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ---
+// Динамически и безопасно загружает скрипт
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) {
+            return resolve(); // Уже загружен
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Не удалось загрузить скрипт: ${src}`));
+        document.head.appendChild(script);
+    });
+}
+
 
 // --- ИЗМЕНЕННАЯ ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ---
-
 // Динамически загружает и использует библиотеку для измерения LUFS по стандарту EBU R 128
 function measureIntegratedLoudness(audioBuffer) {
     return new Promise((resolve, reject) => {
-        try {
-            // Загружаем библиотеку, если она еще не загружена
-            if (typeof EBU_R128 === 'undefined') {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/ebu-r128-webaudio@1.0.3/dist/ebu-r128.min.js';
-                script.onload = () => {
-                    runMeasurement(audioBuffer).then(resolve).catch(reject);
+        const run = () => runMeasurement(audioBuffer).then(resolve).catch(reject);
+        
+        // --- УЛУЧШЕНИЕ: Более надежная проверка и загрузка ---
+        if (!window.EBU_R128) {
+            loadScript('https://cdn.jsdelivr.net/npm/ebu-r128-webaudio@1.0.3/dist/ebu-r128.min.js')
+                .then(run)
+                .catch(() => reject(new Error('Не удалось загрузить библиотеку для измерения LUFS.')));
+        } else {
+            run();
+        }
+
+        async function runMeasurement(buffer) {
+            try {
+                const meter = new EBU_R128(buffer.sampleRate);
+                const offlineContext = new OfflineAudioContext(
+                    buffer.numberOfChannels,
+                    buffer.length,
+                    buffer.sampleRate
+                );
+                const source = offlineContext.createBufferSource();
+                source.buffer = buffer;
+
+                const processor = offlineContext.createScriptProcessor(4096, buffer.numberOfChannels, buffer.numberOfChannels);
+                processor.onaudioprocess = (e) => {
+                    const inputBuffer = e.inputBuffer;
+                    // --- ИСПРАВЛЕНИЕ: Корректная обработка моно и стерео ---
+                    const leftChannel = inputBuffer.getChannelData(0);
+                    const rightChannel = inputBuffer.numberOfChannels > 1 ? inputBuffer.getChannelData(1) : undefined;
+                    meter.process(leftChannel, rightChannel);
                 };
-                script.onerror = () => reject(new Error('Не удалось загрузить библиотеку для измерения LUFS.'));
-                document.head.appendChild(script);
-            } else {
-                runMeasurement(audioBuffer).then(resolve).catch(reject);
+
+                source.connect(processor);
+                processor.connect(offlineContext.destination);
+                source.start(0);
+
+                await offlineContext.startRendering();
+                const lufs = meter.getIntegratedLoudness();
+                resolve(lufs);
+
+            } catch (e) {
+                reject(e);
             }
-
-            async function runMeasurement(buffer) {
-                try {
-                    const meter = new EBU_R128(buffer.sampleRate);
-                    // EBU R128 требует полного анализа файла, что может занять время.
-                    // Для WebAudio API проще всего использовать OfflineAudioContext.
-                    const offlineContext = new OfflineAudioContext(
-                        buffer.numberOfChannels,
-                        buffer.length,
-                        buffer.sampleRate
-                    );
-                    const source = offlineContext.createBufferSource();
-                    source.buffer = buffer;
-
-                    const processor = offlineContext.createScriptProcessor(4096, buffer.numberOfChannels, buffer.numberOfChannels);
-                    processor.onaudioprocess = (e) => {
-                        // Передаем данные в измеритель
-                        const inputBuffer = e.inputBuffer;
-                        meter.process(inputBuffer.getChannelData(0), inputBuffer.getChannelData(1));
-                    };
-
-                    source.connect(processor);
-                    processor.connect(offlineContext.destination);
-                    source.start(0);
-
-                    await offlineContext.startRendering();
-                    const lufs = meter.getIntegratedLoudness();
-                    resolve(lufs);
-
-                } catch (e) {
-                    reject(e);
-                }
-            }
-        } catch (e) {
-            reject(e);
         }
     });
 }
 
 
-// --- Остальные вспомогательные функции (без изменений) ---
+// --- Остальные вспомогательные функции (с одним изменением) ---
 
 function findPeak(audioBuffer) {
     let peak = 0;
@@ -439,47 +487,44 @@ function resampleAudioBuffer(audioBuffer, targetSampleRate) {
 
 function compressToMp3(audioBuffer, bitrate = 128) {
     return new Promise((resolve, reject) => {
-        try {
-            // Загружаем lamejs динамически, если он еще не загружен
-            if (typeof lamejs === 'undefined') {
-                 // Предполагается, что lame.min.js находится в доступном месте
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js';
-                script.onload = () => resolve(encode(audioBuffer, bitrate));
-                script.onerror = () => reject(new Error('Не удалось загрузить библиотеку lamejs.'));
-                document.head.appendChild(script);
-            } else {
-                 resolve(encode(audioBuffer, bitrate));
-            }
+        const doEncode = () => resolve(encode(audioBuffer, bitrate));
 
-            function encode(audioBuffer, bitrate) {
-                const channels = audioBuffer.numberOfChannels;
-                if (channels > 2) return reject(new Error('Поддерживаются только моно и стерео файлы.'));
-                
-                const mp3encoder = new lamejs.Mp3Encoder(channels, audioBuffer.sampleRate, bitrate);
-                const pcmInt16Channels = [];
-                for (let i = 0; i < channels; i++) {
-                    const channelData = audioBuffer.getChannelData(i);
-                    const int16Data = new Int16Array(channelData.length);
-                    for (let j = 0; j < channelData.length; j++) {
-                        int16Data[j] = Math.max(-1, Math.min(1, channelData[j])) * 32767;
-                    }
-                    pcmInt16Channels.push(int16Data);
+        // --- УЛУЧШЕНИЕ: Более надежная проверка и загрузка ---
+        if (!window.lamejs) {
+            loadScript('https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js')
+                .then(doEncode)
+                .catch(() => reject(new Error('Не удалось загрузить библиотеку lamejs.')));
+        } else {
+             doEncode();
+        }
+
+        function encode(audioBuffer, bitrate) {
+            const channels = audioBuffer.numberOfChannels;
+            if (channels > 2) return reject(new Error('Поддерживаются только моно и стерео файлы.'));
+            
+            const mp3encoder = new lamejs.Mp3Encoder(channels, audioBuffer.sampleRate, bitrate);
+            const pcmInt16Channels = [];
+            for (let i = 0; i < channels; i++) {
+                const channelData = audioBuffer.getChannelData(i);
+                const int16Data = new Int16Array(channelData.length);
+                for (let j = 0; j < channelData.length; j++) {
+                    int16Data[j] = Math.max(-1, Math.min(1, channelData[j])) * 32767;
                 }
-                
-                const mp3Data = [], bufferSize = 1152;
-                for (let i = 0; i < pcmInt16Channels[0].length; i += bufferSize) {
-                    const leftChunk = pcmInt16Channels[0].subarray(i, i + bufferSize);
-                    const rightChunk = channels > 1 ? pcmInt16Channels[1].subarray(i, i + bufferSize) : undefined;
-                    const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
-                    if (mp3buf.length > 0) mp3Data.push(mp3buf);
-                }
-                
-                const finalMp3buf = mp3encoder.flush();
-                if (finalMp3buf.length > 0) mp3Data.push(finalMp3buf);
-                return new Blob(mp3Data.map(buf => new Uint8Array(buf)), { type: 'audio/mpeg' });
+                pcmInt16Channels.push(int16Data);
             }
-        } catch (e) { reject(e); }
+            
+            const mp3Data = [], bufferSize = 1152;
+            for (let i = 0; i < pcmInt16Channels[0].length; i += bufferSize) {
+                const leftChunk = pcmInt16Channels[0].subarray(i, i + bufferSize);
+                const rightChunk = channels > 1 ? pcmInt16Channels[1].subarray(i, i + bufferSize) : undefined;
+                const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+                if (mp3buf.length > 0) mp3Data.push(mp3buf);
+            }
+            
+            const finalMp3buf = mp3encoder.flush();
+            if (finalMp3buf.length > 0) mp3Data.push(finalMp3buf);
+            return new Blob(mp3Data.map(buf => new Uint8Array(buf)), { type: 'audio/mpeg' });
+        }
     });
 }
 
