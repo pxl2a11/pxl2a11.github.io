@@ -1,4 +1,4 @@
-// 58--- НАЧАЛО ФАЙЛА js/apps/audioEditor.js ---
+// 57--- НАЧАЛО ФАЙЛА js/apps/audioEditor.js ---
 
 let audioFile = null;
 let detectedInputFormat = null;
@@ -449,14 +449,15 @@ async function measureIntegratedLoudness(audioBuffer) {
     try {
         statusMessage.textContent = 'Загрузка модуля обработки...';
 
-        // --- ИСПОЛЬЗУЕМ АБСОЛЮТНЫЙ ПУТЬ ОТ КОРНЯ САЙТА ---
-        const baseURL = "/js/utils/";
-        
-        // Указываем пути к основным файлам. `workerURL` больше не нужен.
+        // --- ИЗМЕНЕНИЕ: Загружаем ядро и wasm-файл из GitHub Releases ---
+        const coreJsUrl = 'https://github.com/pxl2a11/pxl2a11.github.io/releases/download/v1.0.0-assets/ffmpeg-core.js';
+        const wasmUrl = 'https://github.com/pxl2a11/pxl2a11.github.io/releases/download/v1.0.0-assets/ffmpeg-core.wasm';
+
         await ffmpeg.load({
-            coreURL:   await toBlobURL(`${baseURL}ffmpeg-core.js`, 'text/javascript'),
-            wasmURL:   await toBlobURL(`${baseURL}ffmpeg-core.wasm`, 'application/wasm')
+            coreURL: await toBlobURL(coreJsUrl, 'text/javascript'),
+            wasmURL: await toBlobURL(wasmUrl, 'application/wasm')
         });
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
         statusMessage.textContent = 'Подготовка файла для анализа...';
         const wavBlob = bufferToWav(audioBuffer);
@@ -476,7 +477,7 @@ async function measureIntegratedLoudness(audioBuffer) {
         await ffmpeg.terminate(); 
 
         // Ищем результат в текстовом выводе
-        const match = output.match(/I:\s+(-?\d+\.\d+)\s+LUFS/);
+        const match = output.match(/I:\\s+(-?\\d+\\.\\d+)\\s+LUFS/);
 
         if (match && match[1]) {
             return parseFloat(match[1]);
