@@ -21,8 +21,9 @@ var EBU_R128 = (function () {
       this.y = new Float32Array(y_hist_len);
   }
 
+  // ================== ИСПРАВЛЕННАЯ ФУНКЦИЯ ==================
   Filter.prototype.process = function (input) {
-      let out, i, j, s;
+      let i, j, s;
       const A = this.A;
       const B = this.B;
       const x = this.x;
@@ -39,12 +40,11 @@ var EBU_R128 = (function () {
           }
           x[0] = input[i];
           y[0] = s;
-          // this is inefficient...
-          for (j = 0; j < input.length; j++) {
-              input[i] = s;
-          }
+          // Результат присваивается правильно, без лишнего цикла
+          input[i] = s;
       }
   };
+  // ==========================================================
 
   const K_FILTER_MAX_RATE = 192000;
 
