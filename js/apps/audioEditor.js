@@ -1,28 +1,24 @@
-//42 --- START OF FILE audioEditor.js ---
+// 48 НАЧАЛО ФАЙЛА audioEditor.js ---
 
-// --- УЛУЧШЕНИЕ: Переменные, вынесенные в область видимости модуля для управления состоянием ---
 let audioFile = null;
-let detectedInputFormat = null; // 'mp3' или 'wav'
+let detectedInputFormat = null;
 let audioPlayer;
 let processButton;
 let statusMessage;
 let originalSizeEl;
 let compressedSizeEl;
 let audioContext;
-let eventListenersController; // Контроллер для управления всеми обработчиками событий
+let eventListenersController;
 
-// --- НОВОЕ: Переменные для WaveSurfer и обрезки ---
 let wavesurfer;
 let activeRegion = null;
-let originalAudioBuffer = null; // Храним оригинальный AudioBuffer
+let originalAudioBuffer = null;
 let isProcessing = false;
 
-// Элементы управления
 let normalizeToggle, normalizeOptions, lufsInput, compressToggle, compressToggleLabel;
 let compressOptionsContainer, compressOptionsMp3, compressOptionsWav, bitrateSelector;
 let wavSamplerateSelector, outputFormatMp3, outputFormatWav;
 
-// --- ПОЛНОЕ ОБНОВЛЕНИЕ ДИЗАЙНА: Новая HTML-разметка ---
 export function getHtml() {
     return `
         <div class="space-y-4 max-w-5xl mx-auto">
@@ -167,14 +163,14 @@ function updateCompressOptionsUI() {
     if (!compressSpan) return;
 
     if (selectedFormat === 'mp3') {
-        compressToggle.checked = true; // MP3 всегда сжимается
-        compressToggle.disabled = true; // Не даем отключить сжатие для MP3
+        compressToggle.checked = true;
+        compressToggle.disabled = true;
         compressSpan.textContent = 'Настроить качество MP3';
         compressOptionsContainer.classList.remove('hidden');
         compressOptionsMp3.classList.remove('hidden');
         compressOptionsWav.classList.add('hidden');
     } else if (selectedFormat === 'wav') {
-        compressToggle.disabled = false; // Разрешаем включать/выключать сжатие для WAV
+        compressToggle.disabled = false;
         compressSpan.textContent = 'Сжать аудиофайл (понизить sample rate)';
         compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
         compressOptionsWav.classList.remove('hidden');
@@ -224,7 +220,6 @@ export function init() {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    // --- Обработчики Drag-n-Drop ---
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, { signal });
         document.body.addEventListener(eventName, preventDefaults, { signal });
@@ -239,16 +234,14 @@ export function init() {
         }
     }, { signal });
 
-    // --- Обработчики настроек ---
     normalizeToggle.addEventListener('change', () => normalizeOptions.classList.toggle('hidden', !normalizeToggle.checked), { signal });
     compressToggle.addEventListener('change', updateCompressOptionsUI, { signal });
     outputFormatMp3.addEventListener('change', updateCompressOptionsUI, { signal });
     outputFormatWav.addEventListener('change', updateCompressOptionsUI, { signal });
 
-    // --- Главный обработчик выбора файла ---
     fileInput.addEventListener('change', async (event) => {
         const file = event.target.files[0];
-        cleanup(true); // Мягкая очистка без удаления контроллера
+        cleanup(true);
 
         if (!file) return;
 
@@ -265,7 +258,7 @@ export function init() {
         editorContainer.classList.remove('hidden');
         outputFormatMp3.checked = (detectedInputFormat === 'mp3');
         outputFormatWav.checked = (detectedInputFormat === 'wav');
-        updateCompressOptionsUI(); // Инициализация UI сжатия
+        updateCompressOptionsUI();
         processButton.disabled = false;
         processButton.textContent = 'Обработать и скачать';
 
@@ -286,7 +279,6 @@ export function init() {
         }
     }, { signal });
 
-    // --- Настройка WaveSurfer ---
     function setupWaveSurfer() {
         if (!window.WaveSurfer) {
             handleProcessingError(new Error("Библиотека WaveSurfer не загружена."), statusMessage);
@@ -313,9 +305,6 @@ export function init() {
             const duration = wavesurfer.getDuration();
             endTimeEl.textContent = formatTime(duration);
 
-            // ================== ИСПРАВЛЕНИЕ ЗДЕСЬ ==================
-            // Метод addRegion возвращает объект региона синхронно, а не как Promise.
-            // Убираем `.then()` и присваиваем результат напрямую.
             const region = wsRegions.addRegion({
                 start: 0,
                 end: duration,
@@ -326,7 +315,6 @@ export function init() {
             activeRegion = region;
             startTimeEl.textContent = formatTime(activeRegion.start);
             endTimeEl.textContent = formatTime(activeRegion.end);
-            // =======================================================
         });
 
         wsRegions.on('region-updated', (region) => {
@@ -341,7 +329,6 @@ export function init() {
         wavesurfer.on('finish', () => { playPauseBtn.textContent = 'Воспр.'; });
     }
 
-    // --- Обработчики кнопок плеера ---
     playPauseBtn.addEventListener('click', () => {
         if (wavesurfer && !isProcessing) wavesurfer.playPause();
     }, { signal });
@@ -353,7 +340,6 @@ export function init() {
     }, { signal });
 
 
-    // --- Главный обработчик кнопки "Обработать" ---
     processButton.addEventListener('click', async () => {
         if (!audioFile || !originalAudioBuffer || isProcessing) return;
 
@@ -376,17 +362,23 @@ export function init() {
                 const targetLufs = parseFloat(lufsInput.value);
                 const measuredLufs = await measureIntegratedLoudness(audioBufferToProcess);
 
-                statusMessage.textContent = 'Нормализация громкости...';
-                const gainDb = targetLufs - measuredLufs;
-                const gainLinear = Math.pow(10, gainDb / 20);
+                if (measuredLufs === null) {
+                    finalStatusMessage = 'Не удалось измерить громкость, нормализация пропущена.';
+                } else if (measuredLufs > -Infinity) {
+                    statusMessage.textContent = 'Нормализация громкости...';
+                    const gainDb = targetLufs - measuredLufs;
+                    const gainLinear = Math.pow(10, gainDb / 20);
 
-                const peak = findPeak(audioBufferToProcess);
-                if (peak * gainLinear > 1.0) {
-                    const newGain = 1.0 / peak;
-                    applyGain(audioBufferToProcess, newGain);
-                    finalStatusMessage = 'Громкость увеличена до макс. безопасного уровня (цель вызвала бы искажения).';
+                    const peak = findPeak(audioBufferToProcess);
+                    if (peak * gainLinear > 1.0) {
+                        const newGain = 1.0 / peak;
+                        applyGain(audioBufferToProcess, newGain);
+                        finalStatusMessage = 'Громкость увеличена до макс. безопасного уровня (цель вызвала бы искажения).';
+                    } else {
+                        applyGain(audioBufferToProcess, gainLinear);
+                    }
                 } else {
-                    applyGain(audioBufferToProcess, gainLinear);
+                    finalStatusMessage = 'Файл содержит тишину, нормализация громкости пропущена.';
                 }
             }
 
@@ -440,34 +432,67 @@ export function init() {
     }, { signal });
 }
 
+// ==================================================================
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+// ==================================================================
+
+// --- ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ ДЛЯ ИЗМЕРЕНИЯ ГРОМКОСТИ С FFMPEG.WASM ---
+
+// Вспомогательная функция для безопасной загрузки Wasm локально.
+const toBlobURL = async (url, type) => {
+    const data = await fetch(url).then((res) => res.blob());
+    return URL.createObjectURL(data, { type });
+};
 
 async function measureIntegratedLoudness(audioBuffer) {
-    if (!window.EBU_R128) {
-        throw new Error("Библиотека EBU_R128 не загружена.");
-    }
-    try {
-        const meter = new window.EBU_R128(audioBuffer.sampleRate, audioBuffer.numberOfChannels);
-        const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate);
-        const source = offlineContext.createBufferSource();
-        source.buffer = audioBuffer;
+    // Деструктурируем FFmpeg из глобального объекта window, куда его добавил скрипт.
+    const { FFmpeg, fetchFile } = window.FFmpeg;
+    const ffmpeg = new FFmpeg();
 
-        const processor = offlineContext.createScriptProcessor(4096, audioBuffer.numberOfChannels, audioBuffer.numberOfChannels);
-        processor.onaudioprocess = (e) => {
-            const inputBuffer = e.inputBuffer;
-            meter.process(inputBuffer.getChannelData(0), inputBuffer.numberOfChannels > 1 ? inputBuffer.getChannelData(1) : undefined);
-        };
-        source.connect(processor);
-        processor.connect(offlineContext.destination);
-        source.start(0);
-        await offlineContext.startRendering();
-        const lufs = meter.getIntegratedLoudness();
-        if (lufs === null || isNaN(lufs) || lufs === -Infinity) {
-             throw new Error('Не удалось измерить громкость. Возможно, в файле тишина.');
+    try {
+        statusMessage.textContent = 'Загрузка модуля обработки...';
+
+        const baseURL = "js/utils/"; // Путь к вашей папке с файлами ffmpeg
+        
+        // Указываем пути к основным файлам. `workerURL` больше не нужен.
+        await ffmpeg.load({
+            coreURL:   await toBlobURL(`${baseURL}ffmpeg-core.js`, 'text/javascript'),
+            wasmURL:   await toBlobURL(`${baseURL}ffmpeg-core.wasm`, 'application/wasm')
+        });
+
+        statusMessage.textContent = 'Подготовка файла для анализа...';
+        const wavBlob = bufferToWav(audioBuffer);
+        await ffmpeg.writeFile('input.wav', await fetchFile(wavBlob));
+
+        statusMessage.textContent = 'Анализ громкости (может занять время)...';
+        
+        let output = '';
+        ffmpeg.on('log', ({ message }) => {
+             output += message + '\n';
+        });
+
+        // Запускаем команду анализа
+        await ffmpeg.exec(['-i', 'input.wav', '-af', 'ebur128', '-f', 'null', '-']);
+
+        // Завершаем сессию для освобождения памяти
+        await ffmpeg.terminate(); 
+
+        // Ищем результат в текстовом выводе
+        const match = output.match(/I:\s+(-?\d+\.\d+)\s+LUFS/);
+
+        if (match && match[1]) {
+            return parseFloat(match[1]);
+        } else {
+            console.warn('Не удалось найти результат EBU R128 в выводе FFmpeg.', output);
+            return -Infinity; // Возвращаем -Infinity, если анализ не дал результата (например, тишина)
         }
-        return lufs;
-    } catch (e) {
-        throw new Error(`Измерение громкости не удалось: ${e.message}`);
+    } catch (error) {
+        console.error('Критическая ошибка при работе с ffmpeg.wasm:', error);
+        // Попробуем завершить сессию, даже если была ошибка
+        if (ffmpeg.loaded) {
+            await ffmpeg.terminate();
+        }
+        return null; // Сигнализируем о сбое
     }
 }
 
