@@ -1,693 +1,528 @@
-let audioFile = null;
-let detectedInputFormat = null;
-let audioPlayer;
-let processButton;
-let statusMessage;
-let originalSizeEl;
-let compressedSizeEl;
-let audioContext;
-let eventListenersController;
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Mini Apps</title>
 
-let wavesurfer;
-let activeRegion = null;
-let originalAudioBuffer = null;
-let isProcessing = false;
+    <!-- Основная иконка сайта (Favicon) -->
+    <link rel="icon" href="img/logo.svg" type="image/svg+xml">
 
-let normalizeToggle, normalizeOptions, lufsInput, compressToggle, compressToggleLabel;
-let compressOptionsContainer, compressOptionsMp3, compressOptionsWav, bitrateSelector;
-let wavSamplerateSelector, outputFormatMp3, outputFormatWav;
+    <!-- PWA Мета-теги -->
+    <meta name="description" content="Коллекция полезных мини-приложений и инструментов прямо в вашем браузере.">
+    <!-- ИЗМЕНЕНИЕ: Добавлена версия для сброса кэша -->
+    <link rel="manifest" href="manifest.json?v=3">
+    <meta name="theme-color" content="#3b82f6"/>
+    <!-- Иконка для Apple-устройств (важен PNG) -->
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-export function getHtml() {
-    return `
-        <div class="space-y-4 max-w-5xl mx-auto">
-            <!-- Блок загрузки файла -->
-            <div id="upload-container" class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">1. Выберите аудиофайл</h2>
-                <div class="flex items-center justify-center w-full">
-                    <label for="audio-input" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-100 dark:bg-gray-700 hover:dark:bg-gray-600 dark:border-gray-600 dark:hover:border-gray-500 transition-colors">
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
-                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Нажмите для выбора</span> или перетащите</p>
-                            <p id="file-name-display" class="text-xs text-gray-500 dark:text-gray-400">MP3 или WAV</p>
-                        </div>
-                        <input id="audio-input" type="file" class="hidden" accept=".mp3,.wav,audio/mpeg,audio/wav" />
-                    </label>
-                </div>
+    <!-- Подсказки для ускорения соединения -->
+    <link rel="preconnect" href="https://accounts.google.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://mini-apps-2c0ad.firebaseapp.com">
+
+    <!-- Tailwind CSS -->
+    <script src="js/utils/tailwind.js"></script>
+
+    <!-- Внешние библиотеки -->
+    <script src="js/utils/hls.js@latest"></script>
+    <script src="js/utils/lame.min.js"></script>
+    <script src="js/utils/jsQR.min.js"></script>
+    <link rel="stylesheet" href="css/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="js/utils/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/utils/qrcode.min.js"></script>
+    <script src="js/utils/jszip.min.js"></script>
+    <script src="js/utils/chart.js"></script>
+    <script src="https://github.com/pxl2a11/pxl2a11.github.io/releases/download/v1.0.0-assets/ffmpeg.js"></script>
+    <script src="js/utils/wavesurfer.js"></script>
+    <script src="js/utils/regions.min.js"></script>
+    
+    <!-- Библиотека для сортировки -->
+    <script src="js/utils/Sortable.min.js"></script>
+    
+    <script src="js/utils/JsBarcode.all.min.js" defer></script>
+    
+    <!-- Библиотека Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Наши собственные стили -->
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
+    <script>
+        // Add inline in `head` to avoid FOUC (Flash of Unstyled Content)
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        .filter-blue {
+            filter: invert(48%) sepia(85%) saturate(1577%) hue-rotate(187deg) brightness(98%) contrast(98%);
+        }
+    </style>
+    
+    <!-- Главный скрипт -->
+    <script type="module" src="js/main.js"></script>
+</head>
+<body class="bg-gradient-to-b from-gray-100 to-gray-200 text-gray-900 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-gray-200 font-sans">
+
+    <!-- Оверлей для первоначальной загрузки -->
+    <div id="initial-loading-overlay" class="fixed inset-0 bg-gray-100 dark:bg-gray-800 flex flex-col justify-center items-center gap-6 z-[9999]">
+        <h1 class="text-5xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+            Mini Apps
+        </h1>
+        <img src="img/loading.svg" alt="Загрузка..." class="w-16 h-16">
+    </div>
+
+    <!-- Оверлей для загрузки при авторизации (по умолчанию скрыт) -->
+    <div id="auth-loading-overlay" class="fixed inset-0 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm flex flex-col justify-center items-center gap-6 z-[9998] hidden">
+        <h1 class="text-5xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+            Mini Apps
+        </h1>
+        <img src="img/loading.svg" alt="Вход..." class="w-16 h-16">
+    </div>
+
+    <!-- Flex контейнер для сайдбара и контента -->
+    <div class="flex min-h-screen">
+
+        <!-- САЙДБАР -->
+        <aside id="sidebar" class="hidden fixed top-0 w-80 h-full bg-white dark:bg-slate-900/70 backdrop-blur-lg border-slate-200/50 dark:border-slate-700/50 z-40 p-4 flex flex-col transition-all duration-300 ease-in-out">
+            
+            <h1 class="text-3xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+                <a href="/" id="sidebar-home-link">Mini Apps</a>
+            </h1>
+
+            <div class="relative mb-4">
+                <input id="sidebar-search-input" type="text" placeholder="Поиск..." class="w-full p-2 pl-10 pr-4 rounded-full border border-gray-300/80 dark:border-gray-700/80 bg-white/60 dark:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
-
-            <!-- Контейнер для редактора (появится после загрузки файла) -->
-            <div id="editor-container" class="hidden space-y-4">
-
-                <!-- Блок визуализатора и обрезки -->
-                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">2. Обрезка и предпрослушивание</h2>
-                    <div id="waveform" class="w-full h-28 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                    <div id="waveform-loading" class="text-center py-10">Загрузка волны...</div>
-                    <div class="flex items-center justify-between mt-4 space-x-4">
-                         <div class="flex items-center space-x-2">
-                            <button id="play-pause-btn" class="px-4 py-2 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 w-28">Воспр.</button>
-                            <button id="play-selection-btn" disabled class="px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400">Выделение</button>
-                         </div>
-                         <div class="flex items-center text-sm font-mono text-gray-700 dark:text-gray-300 space-x-4">
-                            <span>Начало: <span id="start-time">00:00.000</span></span>
-                            <span>Конец: <span id="end-time">00:00.000</span></span>
-                         </div>
-                    </div>
-                </div>
-
-                <!-- Блок настроек обработки -->
-                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">3. Настройки обработки</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Левая колонка настроек -->
-                        <div class="space-y-4">
-                            <!-- Формат сохранения -->
-                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-900 dark:text-white">Формат сохранения:</label>
-                                <div class="flex items-center space-x-6">
-                                    <div class="flex items-center">
-                                        <input id="output-format-mp3" type="radio" value="mp3" name="output-format" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
-                                        <label for="output-format-mp3" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">MP3</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input id="output-format-wav" type="radio" value="wav" name="output-format" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
-                                        <label for="output-format-wav" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">WAV</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Нормализация -->
-                            <div class="pt-2 space-y-3">
-                                <label class="flex items-center space-x-3 cursor-pointer">
-                                    <input type="checkbox" id="normalize-toggle" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                                    <span class="text-md font-medium text-gray-900 dark:text-white">Нормализовать громкость</span>
-                                </label>
-                                <div id="normalize-options" class="hidden pl-8 space-y-2">
-                                    <label for="lufs-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Целевая громкость (LUFS):</label>
-                                    <input type="number" id="lufs-input" value="-16" step="0.5" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 block w-full p-2.5 dark:bg-gray-700">
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Правая колонка настроек -->
-                        <div class="space-y-4">
-                            <!-- Сжатие -->
-                             <div class="space-y-3">
-                                 <label id="compress-toggle-label" class="flex items-center space-x-3 cursor-pointer">
-                                    <input type="checkbox" id="compress-toggle" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                                    <span class="text-md font-medium text-gray-900 dark:text-white">Настроить сжатие</span>
-                                 </label>
-                                 <div id="compress-options-container" class="hidden pl-8 space-y-2">
-                                    <!-- MP3 -->
-                                    <div id="compress-options-mp3">
-                                        <label for="bitrate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Битрейт MP3:</label>
-                                        <select id="bitrate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700">
-                                            <option value="192">192 kbps (Высокое качество)</option>
-                                            <option value="128" selected>128 kbps (Стандартное)</option>
-                                            <option value="96">96 kbps (Экономия места)</option>
-                                        </select>
-                                    </div>
-                                     <!-- WAV -->
-                                    <div id="compress-options-wav">
-                                         <label for="wav-samplerate-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Частота дискретизации WAV:</label>
-                                         <select id="wav-samplerate-selector" class="bg-gray-50 border border-gray-300 text-gray-900 dark:text-white text-sm rounded-lg w-full p-2.5 dark:bg-gray-700">
-                                            <option value="44100">44100 Гц (CD качество)</option>
-                                            <option value="22050">22050 Гц (Радио)</option>
-                                            <option value="16000">16000 Гц (Речь)</option>
-                                        </select>
-                                    </div>
-                                 </div>
-                            </div>
+            
+            <!-- Контейнер для аккордеона с категориями. Будет заполнен через JS -->
+            <nav id="sidebar-app-list" class="flex-grow overflow-y-auto space-y-2 pr-2"></nav>
+            
+            <div class="mt-auto pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                 <div id="sidebar-user-controls" class="flex items-center justify-between gap-2">
+                    <div id="sidebar-auth-container" class="min-w-0 flex-1"></div>
+                    
+                    <div id="settings-container" class="relative">
+                        <button id="settings-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Настройки">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </button>
+                        <div id="settings-menu" class="hidden absolute bottom-full right-0 mb-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border border-slate-200/50 dark:border-slate-700/50 p-2 z-50">
+                             <button id="sidebar-theme-toggle" class="w-full flex items-center gap-3 px-3 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg class="sun-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                <svg class="moon-icon h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                                <span>Тема</span>
+                            </button>
+                            <button id="toggle-sidebar-position-btn" class="w-full flex items-center gap-3 px-3 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                               <span>Положение меню</span>
+                            </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Кнопка обработки и статус -->
-                <div class="space-y-2 pt-2">
-                    <div id="status-message" class="text-center text-gray-700 dark:text-gray-300 h-5"></div>
-                    <button id="process-button" disabled class="w-full px-4 py-3 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                        Выберите файл
+                 </div>
+            </div>
+        </aside>
+        
+        <button id="sidebar-toggle-btn" class="hidden fixed top-1/2 -translate-y-1/2 z-30 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-r-lg shadow-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 ease-in-out">
+        </button>
+
+        <!-- ОСНОВНОЙ КОНТЕНТ -->
+        <main id="main-content-wrapper" class="flex-grow transition-all duration-300 ease-in-out p-4 flex flex-col">
+            
+            <div id="top-right-controls" class="fixed top-4 right-4 flex items-center gap-4 z-50">
+                <div id="google-signin-top-right-container"></div>
+                <div id="user-profile" class="hidden flex items-center gap-3 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md">
+                    <img id="user-avatar" class="h-8 w-8 rounded-full" src="" alt="User Avatar">
+                    <span id="user-name" class="font-semibold text-sm mr-2"></span>
+                    <button id="sign-out-btn" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" aria-label="Sign out">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                     </button>
                 </div>
-
-                <!-- Контейнер результата -->
-                 <div id="result-container" class="space-y-4 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hidden">
-                     <h2 class="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">4. Результат</h2>
-                     <div class="grid grid-cols-2 gap-4 text-center pt-2">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Исходный размер</p>
-                            <p id="original-size" class="text-lg font-semibold">-</p>
-                        </div>
-                         <div>
-                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Размер на выходе</p>
-                            <p id="compressed-size" class="text-lg font-semibold">-</p>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium mb-2 text-center">Прослушивание результата:</p>
-                        <audio id="audio-player" controls class="w-full"></audio>
-                    </div>
-                    <a id="download-link" class="block w-full text-center px-4 py-2.5 font-bold text-white bg-green-600 rounded-lg hover:bg-green-700">
-                        Скачать файл
-                    </a>
+                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors shadow-md">
+                    <svg id="sun-icon" class="h-6 w-6 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <svg id="moon-icon" class="h-6 w-6 text-gray-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                </button>
+            </div>
+        
+            <div id="home-header-content" class="w-full max-w-4xl mx-auto p-6 text-center">
+                 <h1 class="text-5xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+                    <a href="/" id="home-link">Mini Apps</a>
+                </h1>
+                <div class="relative mb-6">
+                    <input id="search-input" type="text" placeholder="Поиск приложений..." class="w-full p-4 pl-12 pr-4 rounded-full border border-gray-300/80 dark:border-gray-700/80 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <div id="suggestions-container" class="absolute w-full mt-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-lg hidden z-40"></div>
+                </div>
+                <div id="filter-container" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-6">
+                    <button data-sort="my-apps" class="filter-btn hidden">Мои приложения</button>
+                    <button data-sort="default" class="filter-btn active">Все</button>
+                    <button data-sort="popular" class="filter-btn">Популярные</button>
+                    <button data-sort="new" class="filter-btn">Новые</button>
                 </div>
             </div>
+
+            <div id="dynamic-content-area" class="w-full max-w-6xl mx-auto"></div>
+
+            <div id="changelog-container" class="w-full max-w-6xl mx-auto p-6 mt-8 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-lg transition-colors"></div>
+        </main>
+    </div>
+    
+    <!-- Шаблон для профиля пользователя в сайдбаре -->
+    <template id="sidebar-user-profile-template">
+        <div class="flex items-center gap-3 min-w-0">
+            <img class="user-avatar h-10 w-10 rounded-full" src="" alt="User Avatar">
+            <div class="flex flex-col min-w-0">
+                <span class="user-name font-semibold text-sm truncate"></span>
+                <button class="sign-out-btn text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white text-left">Выйти</button>
+            </div>
         </div>
-    `;
-}
-
-function updateCompressOptionsUI() {
-    const selectedFormat = document.querySelector('input[name="output-format"]:checked').value;
-    const compressSpan = compressToggleLabel.querySelector('span');
-    if (!compressSpan) return;
-
-    if (selectedFormat === 'mp3') {
-        compressToggle.checked = true;
-        compressToggle.disabled = true;
-        compressSpan.textContent = 'Настроить качество MP3';
-        compressOptionsContainer.classList.remove('hidden');
-        compressOptionsMp3.classList.remove('hidden');
-        compressOptionsWav.classList.add('hidden');
-    } else if (selectedFormat === 'wav') {
-        compressToggle.disabled = false;
-        compressSpan.textContent = 'Сжать аудиофайл (понизить sample rate)';
-        compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
-        compressOptionsWav.classList.remove('hidden');
-        compressOptionsMp3.classList.add('hidden');
-    }
-}
-
-export function init() {
-    eventListenersController = new AbortController();
-    const { signal } = eventListenersController;
-
-    const fileInput = document.getElementById('audio-input');
-    const dropArea = document.querySelector('label[for="audio-input"]');
-    const fileNameDisplay = document.getElementById('file-name-display');
-    const editorContainer = document.getElementById('editor-container');
-
-    processButton = document.getElementById('process-button');
-    statusMessage = document.getElementById('status-message');
-    audioPlayer = document.getElementById('audio-player');
-    const downloadLink = document.getElementById('download-link');
-    originalSizeEl = document.getElementById('original-size');
-    compressedSizeEl = document.getElementById('compressed-size');
-    const resultContainer = document.getElementById('result-container');
-
-    normalizeToggle = document.getElementById('normalize-toggle');
-    normalizeOptions = document.getElementById('normalize-options');
-    lufsInput = document.getElementById('lufs-input');
-    compressToggle = document.getElementById('compress-toggle');
-    compressToggleLabel = document.getElementById('compress-toggle-label');
-    compressOptionsContainer = document.getElementById('compress-options-container');
-    compressOptionsMp3 = document.getElementById('compress-options-mp3');
-    compressOptionsWav = document.getElementById('compress-options-wav');
-    bitrateSelector = document.getElementById('bitrate-selector');
-    wavSamplerateSelector = document.getElementById('wav-samplerate-selector');
-    outputFormatMp3 = document.getElementById('output-format-mp3');
-    outputFormatWav = document.getElementById('output-format-wav');
-
-    const playPauseBtn = document.getElementById('play-pause-btn');
-    const playSelectionBtn = document.getElementById('play-selection-btn');
-    const startTimeEl = document.getElementById('start-time');
-    const endTimeEl = document.getElementById('end-time');
-    const waveformEl = document.getElementById('waveform');
-    const waveformLoadingEl = document.getElementById('waveform-loading');
-
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, { signal });
-        document.body.addEventListener(eventName, preventDefaults, { signal });
-    });
-    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-    ['dragenter', 'dragover'].forEach(eventName => dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-gray-100', 'dark:bg-gray-600'), { signal }));
-    ['dragleave', 'drop'].forEach(eventName => dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-gray-100', 'dark:bg-gray-600'), { signal }));
-    dropArea.addEventListener('drop', e => {
-        if (e.dataTransfer.files.length > 0) {
-            fileInput.files = e.dataTransfer.files;
-            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-    }, { signal });
-
-    normalizeToggle.addEventListener('change', () => normalizeOptions.classList.toggle('hidden', !normalizeToggle.checked), { signal });
-    compressToggle.addEventListener('change', updateCompressOptionsUI, { signal });
-    outputFormatMp3.addEventListener('change', updateCompressOptionsUI, { signal });
-    outputFormatWav.addEventListener('change', updateCompressOptionsUI, { signal });
-
-    fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        cleanup(true);
-
-        if (!file) return;
-
-        const fileName = file.name.toLowerCase();
-        if (!fileName.endsWith('.mp3') && !fileName.endsWith('.wav')) {
-            statusMessage.textContent = 'Ошибка: Поддерживаются только .mp3 и .wav';
-            return;
-        }
-
-        audioFile = file;
-        detectedInputFormat = fileName.endsWith('.mp3') ? 'mp3' : 'wav';
-        fileNameDisplay.textContent = file.name;
-
-        editorContainer.classList.remove('hidden');
-        outputFormatMp3.checked = (detectedInputFormat === 'mp3');
-        outputFormatWav.checked = (detectedInputFormat === 'wav');
-        updateCompressOptionsUI();
-        processButton.disabled = false;
-        processButton.textContent = 'Обработать и скачать';
-
-        try {
-            waveformEl.classList.add('hidden');
-            waveformLoadingEl.classList.remove('hidden');
-
-            setupWaveSurfer();
-
-            const arrayBuffer = await audioFile.arrayBuffer();
-            originalAudioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
-
-            wavesurfer.load(URL.createObjectURL(audioFile));
-
-        } catch (error) {
-            console.error('Ошибка при инициализации WaveSurfer или декодировании аудио:', error);
-            handleProcessingError(error, statusMessage);
-        }
-    }, { signal });
-
-    function setupWaveSurfer() {
-        if (!window.WaveSurfer) {
-            handleProcessingError(new Error("Библиотека WaveSurfer не загружена."), statusMessage);
-            return;
-        }
-
-        wavesurfer = WaveSurfer.create({
-            container: '#waveform',
-            waveColor: 'rgb(200, 200, 200)',
-            progressColor: 'rgb(100, 100, 100)',
-            height: 112,
-            barWidth: 2,
-            barGap: 1,
-            barRadius: 2,
-            responsive: true,
-        });
-
-        const wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
-
-        wavesurfer.on('ready', () => {
-            waveformLoadingEl.classList.add('hidden');
-            waveformEl.classList.remove('hidden');
-            playPauseBtn.disabled = false;
-            const duration = wavesurfer.getDuration();
-            endTimeEl.textContent = formatTime(duration);
-
-            const region = wsRegions.addRegion({
-                start: 0,
-                end: duration,
-                color: 'rgba(0, 100, 255, 0.1)',
-                drag: true,
-                resize: true,
-            });
-            activeRegion = region;
-            startTimeEl.textContent = formatTime(activeRegion.start);
-            endTimeEl.textContent = formatTime(activeRegion.end);
-        });
-
-        wsRegions.on('region-updated', (region) => {
-            activeRegion = region;
-            startTimeEl.textContent = formatTime(region.start);
-            endTimeEl.textContent = formatTime(region.end);
-            playSelectionBtn.disabled = false;
-        });
-
-        wavesurfer.on('play', () => { playPauseBtn.textContent = 'Пауза'; });
-        wavesurfer.on('pause', () => { playPauseBtn.textContent = 'Воспр.'; });
-        wavesurfer.on('finish', () => { playPauseBtn.textContent = 'Воспр.'; });
-    }
-
-    playPauseBtn.addEventListener('click', () => {
-        if (wavesurfer && !isProcessing) wavesurfer.playPause();
-    }, { signal });
-
-    playSelectionBtn.addEventListener('click', () => {
-        if (activeRegion && !isProcessing) {
-            activeRegion.play();
-        }
-    }, { signal });
-
-
-    processButton.addEventListener('click', async () => {
-        if (!audioFile || !originalAudioBuffer || isProcessing) return;
-
-        isProcessing = true;
-        processButton.disabled = true;
-        statusMessage.textContent = 'Начало обработки...';
-        resultContainer.classList.add('hidden');
-        let finalStatusMessage = 'Обработка завершена!';
-
-        try {
-            let audioBufferToProcess = originalAudioBuffer;
-
-            if (activeRegion && (activeRegion.start > 0 || activeRegion.end < wavesurfer.getDuration())) {
-                 statusMessage.textContent = 'Обрезка аудио...';
-                 audioBufferToProcess = await trimAudioBuffer(originalAudioBuffer, activeRegion.start, activeRegion.end);
-            }
-
-            if (normalizeToggle.checked) {
-                statusMessage.textContent = 'Измерение громкости (LUFS)...';
-                const targetLufs = parseFloat(lufsInput.value);
-                const measuredLufs = await measureIntegratedLoudness(audioBufferToProcess);
-
-                if (measuredLufs === null) {
-                    finalStatusMessage = 'Не удалось измерить громкость, нормализация пропущена.';
-                } else if (measuredLufs > -Infinity) {
-                    statusMessage.textContent = 'Нормализация громкости...';
-                    const gainDb = targetLufs - measuredLufs;
-                    const gainLinear = Math.pow(10, gainDb / 20);
-
-                    const peak = findPeak(audioBufferToProcess);
-                    if (peak * gainLinear > 1.0) {
-                        const newGain = 1.0 / peak;
-                        applyGain(audioBufferToProcess, newGain);
-                        finalStatusMessage = 'Громкость увеличена до макс. безопасного уровня (цель вызвала бы искажения).';
-                    } else {
-                        applyGain(audioBufferToProcess, gainLinear);
-                    }
-                } else {
-                    finalStatusMessage = 'Файл содержит тишину, нормализация громкости пропущена.';
-                }
-            }
-
-            let outputBlob;
-            let outputFileName;
-            const originalFileName = audioFile.name.substring(0, audioFile.name.lastIndexOf('.'));
-            const selectedOutputFormat = document.querySelector('input[name="output-format"]:checked').value;
-
-            if (selectedOutputFormat === 'mp3') {
-                statusMessage.textContent = 'Сжатие в MP3...';
-                const bitrate = parseInt(bitrateSelector.value, 10);
-                outputBlob = await compressToMp3(audioBufferToProcess, bitrate);
-                outputFileName = `${originalFileName}(edited).mp3`;
-
-            } else if (selectedOutputFormat === 'wav') {
-                statusMessage.textContent = 'Обработка в WAV...';
-                if (compressToggle.checked) {
-                    const targetSampleRate = parseInt(wavSamplerateSelector.value, 10);
-                    if (targetSampleRate < audioBufferToProcess.sampleRate) {
-                        statusMessage.textContent = 'Изменение частоты дискретизации...';
-                        audioBufferToProcess = await resampleAudioBuffer(audioBufferToProcess, targetSampleRate);
-                    }
-                }
-                outputBlob = bufferToWav(audioBufferToProcess);
-                outputFileName = `${originalFileName}(edited).wav`;
-            }
-
-            if (audioPlayer.src && audioPlayer.src.startsWith('blob:')) {
-                URL.revokeObjectURL(audioPlayer.src);
-            }
-
-            const objectURL = URL.createObjectURL(outputBlob);
-            audioPlayer.src = objectURL;
-            downloadLink.href = objectURL;
-            downloadLink.download = outputFileName;
-            downloadLink.textContent = `Скачать ${outputFileName}`;
-
-            originalSizeEl.textContent = formatBytes(audioFile.size);
-            compressedSizeEl.textContent = formatBytes(outputBlob.size);
-
-            statusMessage.textContent = finalStatusMessage;
-            resultContainer.classList.remove('hidden');
-
-        } catch (error) {
-            console.error('Ошибка обработки аудио:', error);
-            handleProcessingError(error, statusMessage);
-        } finally {
-            isProcessing = false;
-            processButton.disabled = false;
-        }
-    }, { signal });
-}
-
-// ==================================================================
-// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-// ==================================================================
-
-// Вспомогательная функция для безопасной загрузки Wasm локально.
-const toBlobURL = async (url, type) => {
-    const data = await fetch(url).then((res) => res.blob());
-    return URL.createObjectURL(data, { type });
-};
-
-// --- ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ ДЛЯ ИЗМЕРЕНИЯ ГРОМКОСТИ С FFMPEG.WASM ---
-async function measureIntegratedLoudness(audioBuffer) {
-    // Деструктурируем FFmpeg из глобального объекта window, куда его добавил скрипт.
-    const { FFmpeg, fetchFile } = window.FFmpeg;
-    const ffmpeg = new FFmpeg();
-
-    try {
-        statusMessage.textContent = 'Загрузка модуля обработки...';
-
-        // --- ИЗМЕНЕНИЕ: Загружаем ядро и wasm-файл из GitHub Releases ---
-        const coreJsUrl = 'https://github.com/pxl2a11/pxl2a11.github.io/releases/download/v1.0.0-assets/ffmpeg-core.js';
-        const wasmUrl = 'https://github.com/pxl2a11/pxl2a11.github.io/releases/download/v1.0.0-assets/ffmpeg-core.wasm';
-
-        await ffmpeg.load({
-            coreURL: await toBlobURL(coreJsUrl, 'text/javascript'),
-            wasmURL: await toBlobURL(wasmUrl, 'application/wasm')
-        });
-        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-
-        statusMessage.textContent = 'Подготовка файла для анализа...';
-        const wavBlob = bufferToWav(audioBuffer);
-        await ffmpeg.writeFile('input.wav', await fetchFile(wavBlob));
-
-        statusMessage.textContent = 'Анализ громкости (может занять время)...';
-        
-        let output = '';
-        ffmpeg.on('log', ({ message }) => {
-             output += message + '\n';
-        });
-
-        // Запускаем команду анализа
-        await ffmpeg.exec(['-i', 'input.wav', '-af', 'ebur128', '-f', 'null', '-']);
-
-        // Завершаем сессию для освобождения памяти
-        await ffmpeg.terminate(); 
-
-        // Ищем результат в текстовом выводе
-        const match = output.match(/I:\\s+(-?\\d+\\.\\d+)\\s+LUFS/);
-
-        if (match && match[1]) {
-            return parseFloat(match[1]);
-        } else {
-            console.warn('Не удалось найти результат EBU R128 в выводе FFmpeg.', output);
-            return -Infinity; // Возвращаем -Infinity, если анализ не дал результата (например, тишина)
-        }
-    } catch (error) {
-        console.error('Критическая ошибка при работе с ffmpeg.wasm:', error);
-        // Попробуем завершить сессию, даже если была ошибка
-        if (ffmpeg.loaded) {
-            await ffmpeg.terminate();
-        }
-        return null; // Сигнализируем о сбое
-    }
-}
-
-async function compressToMp3(audioBuffer, bitrate = 128) {
-    // lamejs уже подключен в index.html, так что динамическая загрузка не нужна.
-    // Проверяем на всякий случай.
-    if (!window.lamejs) {
-        throw new Error("Библиотека lame.min.js не загружена.");
-    }
-
-    try {
-        const channels = audioBuffer.numberOfChannels;
-        if (channels > 2) throw new Error('Поддерживаются только моно и стерео файлы.');
-        const mp3encoder = new window.lamejs.Mp3Encoder(channels, audioBuffer.sampleRate, bitrate);
-        const pcmInt16Channels = [];
-        for (let i = 0; i < channels; i++) {
-            const channelData = audioBuffer.getChannelData(i);
-            const int16Data = new Int16Array(channelData.length);
-            for (let j = 0; j < channelData.length; j++) {
-                int16Data[j] = Math.max(-1, Math.min(1, channelData[j])) * 32767;
-            }
-            pcmInt16Channels.push(int16Data);
-        }
-        const mp3Data = [], bufferSize = 1152;
-        for (let i = 0; i < pcmInt16Channels[0].length; i += bufferSize) {
-            const leftChunk = pcmInt16Channels[0].subarray(i, i + bufferSize);
-            const rightChunk = channels > 1 ? pcmInt16Channels[1].subarray(i, i + bufferSize) : undefined;
-            const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
-            if (mp3buf.length > 0) mp3Data.push(mp3buf);
-        }
-        const finalMp3buf = mp3encoder.flush();
-        if (finalMp3buf.length > 0) mp3Data.push(finalMp3buf);
-        return new Blob(mp3Data.map(buf => new Uint8Array(buf)), { type: 'audio/mpeg' });
-    } catch(e) {
-        throw new Error(`Сжатие в MP3 не удалось: ${e.message}`);
-    }
-}
-
-async function trimAudioBuffer(originalBuffer, startTime, endTime) {
-    const sampleRate = originalBuffer.sampleRate;
-    const startOffset = Math.round(startTime * sampleRate);
-    const endOffset = Math.round(endTime * sampleRate);
-    const frameCount = endOffset - startOffset;
-
-    if (frameCount <= 0) {
-        throw new Error("Длительность обрезки должна быть положительной.");
-    }
-
-    const newBuffer = audioContext.createBuffer(
-        originalBuffer.numberOfChannels,
-        frameCount,
-        sampleRate
-    );
-
-    for (let i = 0; i < originalBuffer.numberOfChannels; i++) {
-        const channelData = originalBuffer.getChannelData(i);
-        const newChannelData = newBuffer.getChannelData(i);
-        newChannelData.set(channelData.subarray(startOffset, endOffset));
-    }
-
-    return newBuffer;
-}
-
-function handleProcessingError(error, statusElement) {
-    let userMessage = 'Произошла непредвиденная ошибка.';
-    const errorMessage = error.message.toLowerCase();
-    if (errorMessage.includes('decodeaudiodata') || errorMessage.includes('unsupported format')) {
-        userMessage = 'Не удалось прочитать файл. Возможно, он поврежден.';
-    } else if (errorMessage.includes('измерить громкость')) {
-        userMessage = 'Не удалось проанализировать громкость. Попробуйте без нормализации.';
-    } else if (errorMessage.includes('сжатие в mp3')) {
-        userMessage = 'Произошла ошибка при сжатии в MP3.';
-    } else if (errorMessage.includes('обрезка')) {
-         userMessage = 'Произошла ошибка при обрезке файла.';
-    }
-    statusElement.textContent = `Ошибка: ${userMessage}`;
-}
-
-function findPeak(audioBuffer) {
-    let peak = 0;
-    for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-        const channelData = audioBuffer.getChannelData(i);
-        for (let j = 0; j < channelData.length; j++) {
-            peak = Math.max(peak, Math.abs(channelData[j]));
-        }
-    }
-    return peak;
-}
-
-function applyGain(audioBuffer, gain) {
-    for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-        const channelData = audioBuffer.getChannelData(i);
-        for (let j = 0; j < channelData.length; j++) {
-            channelData[j] *= gain;
-        }
-    }
-}
-
-function resampleAudioBuffer(audioBuffer, targetSampleRate) {
-    return new Promise((resolve, reject) => {
-        try {
-            const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.duration * targetSampleRate, targetSampleRate);
-            const bufferSource = offlineContext.createBufferSource();
-            bufferSource.buffer = audioBuffer;
-            bufferSource.connect(offlineContext.destination);
-            bufferSource.start(0);
-            offlineContext.startRendering().then(resolve).catch(reject);
-        } catch (e) { reject(e); }
-    });
-}
-
-function bufferToWav(buffer) {
-    const numOfChan = buffer.numberOfChannels, length = buffer.length * numOfChan * 2 + 44, bufferArr = new ArrayBuffer(length), view = new DataView(bufferArr), channels = [], sampleRate = buffer.sampleRate;
-    let pos = 0;
-    const setUint16 = data => { view.setUint16(pos, data, true); pos += 2; };
-    const setUint32 = data => { view.setUint32(pos, data, true); pos += 4; };
-    setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157);
-    setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
-    setUint32(sampleRate); setUint32(sampleRate * 2 * numOfChan);
-    setUint16(numOfChan * 2); setUint16(16); setUint32(0x61746164);
-    setUint32(length - pos - 4);
-    for (let i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
-    let offset = 0;
-    while (pos < length) {
-        for (let i = 0; i < numOfChan; i++) {
-            let sample = Math.max(-1, Math.min(1, channels[i][offset] || 0));
-            view.setInt16(pos, sample < 0 ? sample * 32768 : sample * 32767, true);
-            pos += 2;
-        }
-        offset++;
-    }
-    return new Blob([view], { type: 'audio/wav' });
-}
-
-function formatBytes(bytes, decimals = 2) {
-    if (!+bytes) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-}
-
-function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
-    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
-}
-
-export function cleanup(softCleanup = false) {
-    if (!softCleanup && eventListenersController) {
-        eventListenersController.abort();
-    }
-    if (wavesurfer) {
-        wavesurfer.destroy();
-        wavesurfer = null;
-    }
-    if (audioPlayer && audioPlayer.src.startsWith('blob:')) {
-        URL.revokeObjectURL(audioPlayer.src);
-    }
-
-    audioFile = null;
-    detectedInputFormat = null;
-    originalAudioBuffer = null;
-    activeRegion = null;
-    isProcessing = false;
-
-    const audioInput = document.getElementById('audio-input');
-    if (audioInput) {
-        audioInput.value = '';
-        document.getElementById('editor-container').classList.add('hidden');
-        document.getElementById('result-container').classList.add('hidden');
-        document.getElementById('status-message').textContent = '';
-        document.getElementById('file-name-display').textContent = 'MP3 или WAV';
-
-        if (normalizeToggle) { normalizeToggle.checked = false; }
-        if (normalizeOptions) { normalizeOptions.classList.add('hidden'); }
-        if (compressToggle) {
-            compressToggle.checked = false;
-            compressToggle.disabled = false;
-        }
-        if (compressOptionsContainer) { compressOptionsContainer.classList.add('hidden'); }
-        if (lufsInput) { lufsInput.value = '-16'; }
-
-        const pButton = document.getElementById('process-button');
-        if (pButton) {
-            pButton.disabled = true;
-            pButton.textContent = 'Выберите файл';
-        }
-
-        if (audioPlayer) audioPlayer.src = '';
-        if (originalSizeEl) originalSizeEl.textContent = '-';
-        if (compressedSizeEl) compressedSizeEl.textContent = '-';
-
-        const startTimeEl = document.getElementById('start-time');
-        const endTimeEl = document.getElementById('end-time');
-        if (startTimeEl) startTimeEl.textContent = '00:00.000';
-        if (endTimeEl) endTimeEl.textContent = '00:00.000';
-    }
-}
+    </template>
+    
+    <!-- Шаблон для кнопки входа в сайдбаре -->
+    <template id="sidebar-google-signin-template">
+         <div id="google-signin-sidebar-container"></div>
+    </template>
+
+    <!-- ИСПРАВЛЕНИЕ: ПОЛНОЕ СОДЕРЖИМОЕ ШАБЛОНА -->
+    <template id="all-apps-template">
+        <a href="?app=speedTest" class="app-item" style="--app-color: #06b6d4;" data-name="Скорость интернета" data-module="speedTest">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/speedTest.svg" alt="Скорость интернета"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Скорость интернета</span></div>
+        </a>
+        <a href="?app=radio" class="app-item" style="--app-color: #6366f1;" data-name="Радио" data-module="radio">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/radio.svg" alt="Радио"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Радио</span></div>
+        </a>
+        <a href="?app=notesAndTasks" class="app-item" style="--app-color: #f59e0b;" data-name="Заметки и задачи" data-module="notesAndTasks">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/notesAndTasks.svg" alt="Заметки и задачи"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Заметки и задачи</span></div>
+        </a>
+        <a href="?app=soundAndMicTest" class="app-item" style="--app-color: #ec4899;" data-name="Тест звука и микрофона" data-module="soundAndMicTest">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/soundAndMicTest.svg" alt="Тест звука и микрофона"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тест звука и микрофона</span></div>
+        </a>
+        <a href="?app=audioEditor" class="app-item" style="--app-color: #3b82f6;" data-name="Редактор аудио" data-module="audioEditor">
+    <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+    <div class="app-icon-wrapper"><img src="img/audioEditor.svg" alt="Редактор аудио"></div>
+    <div class="app-name-wrapper"><span class="app-name-text">Редактор аудио</span></div>
+        </a>
+        <a href="?app=myIp" class="app-item" style="--app-color: #6b7280;" data-name="Мой IP" data-module="myIp">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/myIp.svg" alt="Мой IP"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Мой IP</span></div>
+        </a>
+        <a href="?app=passwordGenerator" class="app-item" style="--app-color: #3b82f6;" data-name="Генератор паролей" data-module="passwordGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/passwordGenerator.svg" alt="Генератор паролей"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор паролей</span></div>
+        </a>
+        <a href="?app=percentageCalculator" class="app-item" style="--app-color: #d946ef;" data-name="Процентный калькулятор" data-module="percentageCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/percentageCalculator.svg" alt="Процентный калькулятор"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Процентный калькулятор</span></div>
+        </a>
+        <a href="?app=timer" class="app-item" style="--app-color: #fb923c;" data-name="Таймер" data-module="timer">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/timer.svg" alt="Таймер"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Таймер</span></div>
+        </a>
+        <a href="?app=fortuneWheel" class="app-item" style="--app-color: #a855f7;" data-name="Колесо фортуны" data-module="fortuneWheel">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/fortuneWheel.svg" alt="Колесо фортуны"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Колесо фортуны</span></div>
+        </a>
+        <a href="?app=magicBall" class="app-item" style="--app-color: #374151;" data-name="Шар предсказаний" data-module="magicBall">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/magicBall.svg" alt="Шар предсказаний"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Шар предсказаний</span></div>
+        </a>
+        <a href="?app=ticTacToe" class="app-item" style="--app-color: #14b8a6;" data-name="Крестики-нолики" data-module="ticTacToe">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/ticTacToe.svg" alt="Крестики-нолики"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Крестики-нолики</span></div>
+        </a>
+        <a href="?app=minesweeper" class="app-item" style="--app-color: #4b5563;" data-name="Сапер" data-module="minesweeper">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/minesweeper.svg" alt="Сапер"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Сапер</span></div>
+        </a>
+        <a href="?app=stopwatch" class="app-item" style="--app-color: #84cc16;" data-name="Секундомер" data-module="stopwatch">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/stopwatch.svg" alt="Секундомер"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Секундомер</span></div>
+        </a>
+        <a href="?app=randomColor" class="app-item" style="--app-color: #f43f5e;" data-name="Случайный цвет" data-module="randomColor">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/randomColor.svg" alt="Случайный цвет"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Случайный цвет</span></div>
+        </a>
+        <a href="?app=numberGenerator" class="app-item" style="--app-color: #22c55e;" data-name="Генератор чисел" data-module="numberGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/numberGenerator.svg" alt="Генератор чисел"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор чисел</span></div>
+        </a>
+        <a href="?app=qrCodeGenerator" class="app-item" style="--app-color: #16a34a;" data-name="Генератор QR-кодов" data-module="qrCodeGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/qrCodeGenerator.svg" alt="Генератор QR-кодов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор QR-кодов</span></div>
+        </a>
+        <a href="?app=emojiAndSymbols" class="app-item" style="--app-color: #f97316;" data-name="Эмодзи и символы" data-module="emojiAndSymbols">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/emojiAndSymbols.svg" alt="Эмодзи и символы"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Эмодзи и символы</span></div>
+        </a>
+        <a href="?app=unitConverter" class="app-item" style="--app-color: #0ea5e9;" data-name="Конвертер величин" data-module="unitConverter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/unitConverter.svg" alt="Конвертер величин"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Конвертер величин</span></div>
+        </a>
+        <a href="?app=dateCalculator" class="app-item" style="--app-color: #ef4444;" data-name="Калькулятор дат" data-module="dateCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/dateCalculator.svg" alt="Калькулятор дат"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор дат</span></div>
+        </a>
+        <a href="?app=bmiCalculator" class="app-item" style="--app-color: #10b981;" data-name="Калькулятор ИМТ" data-module="bmiCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/bmiCalculator.svg" alt="Калькулятор ИМТ"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор ИМТ</span></div>
+        </a>
+        <a href="?app=qrScanner" class="app-item" style="--app-color: #475569;" data-name="Сканер QR-кодов" data-module="qrScanner">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/qrScanner.svg" alt="Сканер QR-кодов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Сканер QR-кодов</span></div>
+        </a>
+        <a href="?app=piano" class="app-item" style="--app-color: #dc2626;" data-name="Пианино" data-module="piano">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/piano.svg" alt="Пианино"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Пианино</span></div>
+        </a>
+        <a href="?app=caseConverter" class="app-item" style="--app-color: #14b8a6;" data-name="Конвертер регистра" data-module="caseConverter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/caseConverter.svg" alt="Конвертер регистра"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Конвертер регистра</span></div>
+        </a>
+        <a href="?app=colorConverter" class="app-item" style="--app-color: #a855f7;" data-name="Конвертер цветов" data-module="colorConverter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/colorConverter.svg" alt="Конвертер цветов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Конвертер цветов</span></div>
+        </a>
+        <a href="?app=memoryGame" class="app-item" style="--app-color: #ec4899;" data-name="Игра на память" data-module="memoryGame">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/memoryGame.svg" alt="Игра на память"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Игра на память</span></div>
+        </a>
+        <a href="?app=textTranslit" class="app-item" style="--app-color: #0ea5e9;" data-name="Транслитерация текста" data-module="textTranslit">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/textTranslit.svg" alt="Транслитерация текста"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Транслитерация текста</span></div>
+        </a>
+        <a href="?app=currencyCalculator" class="app-item" style="--app-color: #10b981;" data-name="Калькулятор валют" data-module="currencyCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/currencyCalculator.svg" alt="Калькулятор валют"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор валют</span></div>
+        </a>
+        <a href="?app=snakeGame" class="app-item" style="--app-color: #65a30d;" data-name="Змейка" data-module="snakeGame">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/snakeGame.svg" alt="Змейка"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Змейка</span></div>
+        </a>
+        <a href="?app=timezoneConverter" class="app-item" style="--app-color: #0284c7;" data-name="Конвертер часовых поясов" data-module="timezoneConverter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/timezoneConverter.svg" alt="Конвертер часовых поясов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Конвертер часовых поясов</span></div>
+        </a>
+        <a href="?app=textToSpeech" class="app-item" style="--app-color: #0891b2;" data-name="Текст в речь" data-module="textToSpeech">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/textToSpeech.svg" alt="Текст в речь"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Текст в речь</span></div>
+        </a>
+        <a href="?app=rockPaperScissors" class="app-item" style="--app-color: #e11d48;" data-name="Камень, ножницы, бумага" data-module="rockPaperScissors">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/rockPaperScissors.svg" alt="Камень, ножницы, бумага"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Камень, ножницы, бумага</span></div>
+        </a>
+        <a href="?app=sudoku" class="app-item" style="--app-color: #4f46e5;" data-name="Судоку" data-module="sudoku">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/sudoku.svg" alt="Судоку"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Судоку</span></div>
+        </a>
+        <a href="?app=zipArchiver" class="app-item" style="--app-color: #eab308;" data-name="Архиватор файлов (ZIP)" data-module="zipArchiver">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/zipArchiver.svg" alt="Архиватор файлов (ZIP)"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Архиватор файлов (ZIP)</span></div>
+        </a>
+        <a href="?app=game2048" class="app-item" style="--app-color: #fb923c;" data-name="2048" data-module="game2048">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/game2048.svg" alt="2048"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">2048</span></div>
+        </a>
+        <a href="?app=barcodeGenerator" class="app-item" style="--app-color: #4b5563;" data-name="Генератор штрих-кодов" data-module="barcodeGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/barcodeGenerator.svg" alt="Генератор штрих-кодов"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор штрих-кодов</span></div>
+        </a>
+        <a href="?app=voiceRecorder" class="app-item" style="--app-color: #ef4444;" data-name="Диктофон" data-module="voiceRecorder">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/voiceRecorder.svg" alt="Диктофон"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Диктофон</span></div>
+        </a>
+        <a href="?app=siteSkeletonGenerator" class="app-item" style="--app-color: #7e22ce;" data-name="Генератор каркаса Сайта" data-module="siteSkeletonGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/siteSkeletonGenerator.svg" alt="Генератор каркаса Сайта"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор каркаса сайта</span></div>
+        </a>
+        <a href="?app=mouseTester" class="app-item" style="--app-color: #34d399;" data-name="Тест мыши" data-module="mouseTester">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/mouseTester.svg" alt="Тест мыши"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тест мыши</span></div>
+        </a>
+        <a href="?app=keyboardTester" class="app-item" style="--app-color: #60a5fa;" data-name="Тест клавиатуры" data-module="keyboardTester">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/keyboardTester.svg" alt="Тест клавиатуры"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тест клавиатуры</span></div>
+        </a>
+        <a href="?app=drawingPad" class="app-item" style="--app-color: #f472b6;" data-name="Графический редактор" data-module="drawingPad">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/drawingPad.svg" alt="Графический редактор"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Графический редактор</span></div>
+        </a>
+        <a href="?app=textDiffTool" class="app-item" style="--app-color: #2dd4bf;" data-name="Сравнение текста" data-module="textDiffTool">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/textDiffTool.svg" alt="Сравнение текста"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Сравнение текста</span></div>
+        </a>
+        <a href="?app=faviconGenerator" class="app-item" style="--app-color: #fb7185;" data-name="Генератор favicon" data-module="faviconGenerator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/faviconGenerator.svg" alt="Генератор favicon"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Генератор favicon</span></div>
+        </a>
+        <a href="?app=loanCalculator" class="app-item" style="--app-color: #a78bfa;" data-name="Калькулятор кредита" data-module="loanCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/loanCalculator.svg" alt="Калькулятор кредита"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор кредита</span></div>
+        </a>
+        <a href="?app=typingTest" class="app-item" style="--app-color: #f59e0b;" data-name="Тест скорости печати" data-module="typingTest">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/typingTest.svg" alt="Тест скорости печати"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тест скорости печати</span></div>
+        </a>
+        <a href="?app=screenRecorder" class="app-item" style="--app-color: #ef4444;" data-name="Запись экрана" data-module="screenRecorder">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/screenRecorder.svg" alt="Запись экрана"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Запись экрана</span></div>
+        </a>
+        <a href="?app=flappyBird" class="app-item" style="--app-color: #f9a825;" data-name="Flappy Bird" data-module="flappyBird">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/flappyBird.svg" alt="Flappy Bird"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Flappy Bird</span></div>
+        </a>
+        <a href="?app=textAnalyzer" class="app-item" style="--app-color: #8b5cf6;" data-name="Анализатор текста" data-module="textAnalyzer">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/textAnalyzer.svg" alt="Анализатор текста"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Анализатор текста</span></div>
+        </a>
+        <a href="?app=virtualDice" class="app-item" style="--app-color: #9333ea;" data-name="Виртуальный кубик" data-module="virtualDice">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/virtualDice.svg" alt="Виртуальный кубик"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Виртуальный кубик</span></div>
+        </a>
+        <a href="?app=calorieCalculator" class="app-item" style="--app-color: #22c55e;" data-name="Калькулятор калорий" data-module="calorieCalculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/calorieCalculator.svg" alt="Калькулятор калорий"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор калорий</span></div>
+        </a>
+        <a href="?app=calculator" class="app-item" style="--app-color: #8b5cf6;" data-name="Калькулятор" data-module="calculator">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/calculator.svg" alt="Калькулятор"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Калькулятор</span></div>
+        </a>
+        <a href="?app=imageEditor" class="app-item" style="--app-color: #8b5cf6;" data-name="Редактор изображений" data-module="imageEditor">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/imageEditor.svg" alt="Редактор изображений"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Редактор изображений</span></div>
+        </a>
+        <a href="?app=onlineTv" class="app-item" style="--app-color: #0ea5e9;" data-name="ТВ онлайн" data-module="onlineTv">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/onlineTv.svg" alt="ТВ онлайн"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">ТВ онлайн</span></div>
+        </a>
+        <a href="?app=markdownEditor" class="app-item" style="--app-color: #4a5568;" data-name="Markdown Редактор" data-module="markdownEditor">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/markdownEditor.svg" alt="Markdown Редактор"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Markdown Редактор</span></div>
+        </a>
+        <a href="?app=tetris" class="app-item" style="--app-color: #8b5cf6;" data-name="Тетрис" data-module="tetris">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/tetris.svg" alt="Тетрис"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Тетрис</span></div>
+        </a>
+        <a href="?app=audiobookPlayer" class="app-item" style="--app-color: #7c3aed;" data-name="Проигрыватель аудиокниг" data-module="audiobookPlayer">
+    <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+    <div class="app-icon-wrapper"><img src="img/audiobookPlayer.svg" alt="Проигрыватель аудиокниг"></div>
+    <div class="app-name-wrapper"><span class="app-name-text">Проигрыватель аудиокниг</span></div>
+        </a>
+        <a href="?app=pomodoroTimer" class="app-item" style="--app-color: #ef4444;" data-name="Pomodoro-таймер" data-module="pomodoroTimer">
+    <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+    <div class="app-icon-wrapper"><img src="img/pomodoroTimer.svg" alt="Pomodoro-таймер"></div>
+    <div class="app-name-wrapper"><span class="app-name-text">Pomodoro-таймер</span></div>
+       </a>
+       <a href="?app=base64Converter" class="app-item" style="--app-color: #4f46e5;" data-name="Кодировщик Base64" data-module="base64Converter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/base64Converter.svg" alt="Кодировщик Base64"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Кодировщик Base64</span></div>
+        </a>
+        <a href="?app=periodicTable" class="app-item" style="--app-color: #0d9488;" data-name="Таблица Менделеева" data-module="periodicTable">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/periodicTable.svg" alt="Таблица Менделеева"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Таблица Менделеева</span></div>
+        </a>
+        <a href="?app=battleship" class="app-item" style="--app-color: #0ea5e9;" data-name="Морской бой" data-module="battleship">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/battleship.svg" alt="Морской бой"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Морской бой</span></div>
+        </a>
+        <a href="?app=metronome" class="app-item" style="--app-color: #475569;" data-name="Метроном" data-module="metronome">
+        <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+        <div class="app-icon-wrapper"><img src="img/metronome.svg" alt="Метроном"></div>
+        <div class="app-name-wrapper"><span class="app-name-text">Метроном</span></div>
+    </a>
+        <a href="?app=habitTracker" class="app-item" style="--app-color: #10b981;" data-name="Трекер привычек" data-module="habitTracker">
+    <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+    <div class="app-icon-wrapper"><img src="img/habitTracker.svg" alt="Трекер привычек"></div>
+    <div class="app-name-wrapper"><span class="app-name-text">Трекер привычек</span></div>
+</a>
+          <a href="?app=jsonFormatter" class="app-item" style="--app-color: #6d28d9;" data-name="Форматировщик JSON" data-module="jsonFormatter">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/jsonFormatter.svg" alt="Форматировщик JSON"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Форматировщик JSON</span></div>
+        </a>
+        <a href="?app=solitaire" class="app-item" style="--app-color: #16a34a;" data-name="Пасьянс «Косынка»" data-module="solitaire">
+        <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+        <div class="app-icon-wrapper"><img src="img/solitaire.svg" alt="Пасьянс «Косынка»"></div>
+        <div class="app-name-wrapper"><span class="app-name-text">Пасьянс «Косынка»</span></div>
+    </a>
+        <a href="?app=mahjongSolitaire" class="app-item" style="--app-color: #0d9488;" data-name="Пасьянс Маджонг" data-module="mahjongSolitaire">
+        <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+        <div class="app-icon-wrapper"><img src="img/mahjongSolitaire.svg" alt="Пасьянс Маджонг"></div>
+        <div class="app-name-wrapper"><span class="app-name-text">Пасьянс Маджонг</span></div>
+    </a>
+        <a href="?app=tabataTimer" class="app-item" style="--app-color: #f97316;" data-name="Табата-таймер" data-module="tabataTimer">
+            <button class="add-to-my-apps-btn"><img src="img/plusapps.svg" class="plus-icon" alt="Добавить"><img src="img/minusapps.svg" class="cross-icon" alt="Удалить"></button>
+            <div class="app-icon-wrapper"><img src="img/tabataTimer.svg" alt="Табата-таймер"></div>
+            <div class="app-name-wrapper"><span class="app-name-text">Табата-таймер</span></div>
+        </a>
+    </template>
+</body>
+</html>
