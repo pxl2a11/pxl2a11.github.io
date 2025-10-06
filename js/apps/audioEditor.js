@@ -1,4 +1,4 @@
-// 48 НАЧАЛО ФАЙЛА audioEditor.js ---
+// 58--- НАЧАЛО ФАЙЛА js/apps/audioEditor.js ---
 
 let audioFile = null;
 let detectedInputFormat = null;
@@ -156,7 +156,6 @@ export function getHtml() {
     `;
 }
 
-
 function updateCompressOptionsUI() {
     const selectedFormat = document.querySelector('input[name="output-format"]:checked').value;
     const compressSpan = compressToggleLabel.querySelector('span');
@@ -177,7 +176,6 @@ function updateCompressOptionsUI() {
         compressOptionsMp3.classList.add('hidden');
     }
 }
-
 
 export function init() {
     eventListenersController = new AbortController();
@@ -436,14 +434,13 @@ export function init() {
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 // ==================================================================
 
-// --- ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ ДЛЯ ИЗМЕРЕНИЯ ГРОМКОСТИ С FFMPEG.WASM ---
-
 // Вспомогательная функция для безопасной загрузки Wasm локально.
 const toBlobURL = async (url, type) => {
     const data = await fetch(url).then((res) => res.blob());
     return URL.createObjectURL(data, { type });
 };
 
+// --- ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ ДЛЯ ИЗМЕРЕНИЯ ГРОМКОСТИ С FFMPEG.WASM ---
 async function measureIntegratedLoudness(audioBuffer) {
     // Деструктурируем FFmpeg из глобального объекта window, куда его добавил скрипт.
     const { FFmpeg, fetchFile } = window.FFmpeg;
@@ -452,7 +449,8 @@ async function measureIntegratedLoudness(audioBuffer) {
     try {
         statusMessage.textContent = 'Загрузка модуля обработки...';
 
-        const baseURL = "js/utils/"; // Путь к вашей папке с файлами ffmpeg
+        // --- ИСПОЛЬЗУЕМ АБСОЛЮТНЫЙ ПУТЬ ОТ КОРНЯ САЙТА ---
+        const baseURL = "/js/utils/";
         
         // Указываем пути к основным файлам. `workerURL` больше не нужен.
         await ffmpeg.load({
@@ -497,14 +495,10 @@ async function measureIntegratedLoudness(audioBuffer) {
 }
 
 async function compressToMp3(audioBuffer, bitrate = 128) {
+    // lamejs уже подключен в index.html, так что динамическая загрузка не нужна.
+    // Проверяем на всякий случай.
     if (!window.lamejs) {
-         await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
+        throw new Error("Библиотека lame.min.js не загружена.");
     }
 
     try {
@@ -640,14 +634,12 @@ function formatBytes(bytes, decimals = 2) {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
     return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
 }
-
 
 export function cleanup(softCleanup = false) {
     if (!softCleanup && eventListenersController) {
