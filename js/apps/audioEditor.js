@@ -1,4 +1,4 @@
-// ---08 START OF FILE apps/audioCompressor.js ---
+// ---11 START OF FILE apps/audioCompressor.js ---
 
 // --- УЛУЧШЕНИЕ: Переменные, вынесенные в область видимости модуля для управления состоянием ---
 let audioFile = null;
@@ -136,15 +136,21 @@ export function getHtml() {
     `;
 }
 
-// Функция для обновления UI настроек сжатия в зависимости от выбранного формата (без изменений)
+// --- ИЗМЕНЕНО: Функция для обновления UI настроек сжатия в зависимости от выбранного формата ---
 function updateCompressOptionsUI(selectedFormat) {
+    const compressSpan = compressToggleLabel.querySelector('span');
+    if (!compressSpan) return;
+
     if (selectedFormat === 'mp3') {
-        compressToggleLabel.classList.add('hidden');
+        compressToggle.checked = true; // Сжатие для MP3 всегда активно по своей природе
+        compressToggleLabel.classList.remove('hidden');
+        compressSpan.textContent = 'Настроить качество MP3'; // Меняем текст для ясности
         compressOptionsContainer.classList.remove('hidden');
         compressOptionsMp3.classList.remove('hidden');
         compressOptionsWav.classList.add('hidden');
     } else if (selectedFormat === 'wav') {
         compressToggleLabel.classList.remove('hidden');
+        compressSpan.textContent = 'Сжать аудиофайл'; // Возвращаем стандартный текст
         compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
         compressOptionsWav.classList.remove('hidden');
         compressOptionsMp3.classList.add('hidden');
@@ -236,6 +242,7 @@ export function init() {
     }, { signal });
 
     compressToggle.addEventListener('change', () => {
+        // Логика для WAV управляется здесь, для MP3 - в updateCompressOptionsUI
         const selectedFormat = document.querySelector('input[name="output-format"]:checked').value;
         if (selectedFormat === 'wav') {
             compressOptionsContainer.classList.toggle('hidden', !compressToggle.checked);
@@ -246,20 +253,13 @@ export function init() {
     outputFormatWav.addEventListener('change', () => updateCompressOptionsUI('wav'), { signal });
 
     fileInput.addEventListener('change', (event) => {
-        // Сброс UI перед обработкой нового файла
+        const file = event.target.files[0];
         resultContainer.classList.add('hidden');
         outputFormatContainer.classList.add('hidden');
         processButton.disabled = true;
         statusMessage.textContent = '';
         fileLabel.textContent = originalFileLabelText;
         
-        // --- ИСПРАВЛЕНО: Полный сброс всех элементов управления при выборе нового файла ---
-        normalizeToggle.checked = false;
-        normalizeOptions.classList.add('hidden');
-        compressToggle.checked = false;
-        compressOptionsContainer.classList.add('hidden');
-        
-        const file = event.target.files[0];
         if (!file) {
             audioFile = null;
             detectedInputFormat = null;
@@ -415,11 +415,6 @@ function loadScript(src) {
 async function measureIntegratedLoudness(audioBuffer) {
     try {
         await loadScript('https://cdn.jsdelivr.net/npm/ebu-r128-webaudio@1.0.3/dist/ebu-r128.min.js');
-        
-        // --- ДОБАВЛЕНО: Проверка успешной загрузки библиотеки ---
-        if (!window.EBU_R128) {
-            throw new Error('Библиотека для измерения громкости (EBU_R128) не загрузилась корректно.');
-        }
 
         const meter = new window.EBU_R128(audioBuffer.sampleRate);
         const offlineContext = new OfflineAudioContext(
@@ -461,11 +456,6 @@ async function measureIntegratedLoudness(audioBuffer) {
 async function compressToMp3(audioBuffer, bitrate = 128) {
     try {
         await loadScript('https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js');
-
-        // --- ДОБАВЛЕНО: Проверка успешной загрузки библиотеки ---
-        if (!window.lamejs) {
-            throw new Error('Библиотека для MP3-сжатия (lamejs) не загрузилась корректно.');
-        }
 
         const channels = audioBuffer.numberOfChannels;
         if (channels > 2) throw new Error('Поддерживаются только моно и стерео файлы.');
@@ -597,7 +587,7 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 
-// --- УЛУЧШЕНИЕ: Расширенная функция очистки ---
+// --- ИЗМЕНЕНО: Расширенная функция очистки с полным сбросом UI ---
 export function cleanup() {
     // 1. Отменяем все обработчики событий, добавленные в init()
     if (eventListenersController) {
@@ -614,8 +604,24 @@ export function cleanup() {
     detectedInputFormat = null;
     
     // 4. Сбрасываем UI к исходному состоянию (если элементы еще существуют)
-    if (document.getElementById('audio-input')) {
-        document.getElementById('audio-input').value = '';
+    const audioInput = document.getElementById('audio-input');
+    if (audioInput) {
+        audioInput.value = ''; // Сбрасываем сам input[type=file]
+        
+        // Сброс переключателей и опций
+        if (normalizeToggle) {
+            normalizeToggle.checked = false;
+            normalizeOptions.classList.add('hidden');
+        }
+        if (compressToggle) {
+            compressToggle.checked = false;
+            compressOptionsContainer.classList.add('hidden');
+        }
+        if (lufsInput) {
+            lufsInput.value = '-16'; // Возвращаем значение по умолчанию
+        }
+
+        // Сброс информационных блоков
         const fileLabel = document.querySelector('label[for="audio-input"] .font-semibold');
         if (fileLabel) fileLabel.textContent = 'Нажмите для выбора';
         
@@ -623,12 +629,15 @@ export function cleanup() {
         document.getElementById('output-format-container').classList.add('hidden');
         document.getElementById('status-message').textContent = '';
         
+        // Сброс кнопки и плеера
         const pButton = document.getElementById('process-button');
-        pButton.disabled = true;
-        pButton.textContent = 'Выберите файл';
+        if (pButton) {
+            pButton.disabled = true;
+            pButton.textContent = 'Выберите файл';
+        }
 
-        if(audioPlayer) audioPlayer.src = '';
-        originalSizeEl.textContent = '-';
-        compressedSizeEl.textContent = '-';
+        if (audioPlayer) audioPlayer.src = '';
+        if (originalSizeEl) originalSizeEl.textContent = '-';
+        if (compressedSizeEl) compressedSizeEl.textContent = '-';
     }
 }
